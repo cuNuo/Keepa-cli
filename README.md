@@ -1,168 +1,217 @@
-# Keepa CLI 调研与实现方案
+<p align="center">
+  <h1 align="center">Keepa CLI</h1>
+  <p align="center">Agent-first Keepa API tooling with JSON, stdio, fixtures, token budgeting, and a modern Textual TUI.</p>
+</p>
 
-本仓库用于沉淀基于 Keepa API 的 Agent-first CLI 程序设计、实现计划与后续代码。最终目标是把 Keepa 能力封装成后续 Agent 可稳定调用的工具层，同时提供人类友好的交互界面。
+<p align="center">
+  <a href="https://github.com/cuNuo/Keepa-cli/actions"><img alt="CI" src="https://img.shields.io/badge/ci-release_gate-2f855a"></a>
+  <a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776ab"></a>
+  <a href="https://www.npmjs.com/package/@cunuo/keepa-cli"><img alt="npm" src="https://img.shields.io/badge/npm-%40cunuo%2Fkeepa--cli-cb3837"></a>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-111827"></a>
+</p>
 
-本项目按开源项目维护，当前采用 MIT License。发布目标包括 Python 可编辑安装和 npm 全局安装；npm 包只提供 Node.js bin wrapper，业务逻辑仍在 Python `keepa_cli` 包内。
+<p align="center">
+  <a href="#installation">Installation</a>
+  · <a href="#configure-your-keepa-token">Configure Token</a>
+  · <a href="#tui">TUI</a>
+  · <a href="#agent-mode">Agent Mode</a>
+  · <a href="./README.zh-CN.md">中文</a>
+</p>
 
-当前已完成调研报告：
+Keepa CLI wraps Keepa API workflows into a stable command-line surface for agents and humans. It is offline-first by default: dry-runs and fixtures do not call Keepa or spend tokens. Live requests require an explicit Keepa token.
 
-- [Keepa CLI 实现调研与落地报告](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
-- [Keepa CLI 功能完善与完整开发路线](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
-- [Keepa CLI Agent 协议契约](docs/agent-contract.md)
-- [Keepa 官方 API 约束摘记](docs/keepa-official-api-notes.md)
-- [service.py / cli.py 拆分计划](docs/architecture/service-cli-split-plan.md)
-- [贡献指南](CONTRIBUTING.md)
-- [安全说明](SECURITY.md)
-- [变更记录](CHANGELOG.md)
+## Features
 
-## 当前 MVP 状态
+- Equivalent `keepa-cli` and `kc` entrypoints.
+- Stable `--json` envelopes for automation.
+- JSON Lines `--stdio` protocol for long-running agent sessions.
+- Textual/Rich TUI with command palette, token setup, and result panel.
+- Fixture/offline mode, dry-run requests, token budget hints, and secret redaction.
+- Safe `/graphimage` handling with explicit `--out` for binary PNG output.
+- Release gate for compile, tests, fixture sync, Python/Node smoke, and npm pack dry-run.
 
-已落地 Phase 0 到 Phase 5 的最小可运行骨架：
+## Installation
 
-- Python 包 `keepa_cli`
-- 双入口声明：`keepa-cli` 与 `kc`
-- `python -m keepa_cli`
-- `--json doctor`
-- `--json config show`
-- `--json config init --dry-run`
-- `--json domains list`
-- `--json request get/post ... --dry-run`
-- `--json products get/search ... --fixture ...`
-- `--json categories get/search ... --fixture ...`
-- `--json history export/trend ... --fixture ...`
-- `--json finder query --selection-file ... --dry-run`
-- `--json deals query --selection-file ... --fixture ... --out ...`
-- `--json sellers get ... --fixture ...`
-- `--json bestsellers get ... --dry-run`
-- `--json topsellers list ... --fixture ... --out ...`
-- `--json tokens status ... --fixture ...`
-- `--json graphs image ... --dry-run`
-- `--json lightningdeals list ... --dry-run`
-- `--json tracking list/get/list-names ... --dry-run`
-- `--json tracking add/remove/remove-all/webhook ... --dry-run`，真实写类请求必须 `--yes`
-- `--json capabilities`
-- `--stdio` JSON Lines 协议
-- Textual 现代 TUI 工作台：默认执行 `kc` / `keepa-cli` 进入组件化命令界面；缺少 Textual 或管道输入时自动回退标准库 slash 界面
-- JSON success/error envelope
-- Keepa domain 归一化
-- token 预算器
-- request client dry-run、fixture/offline、gzip 解码、429/5xx 信息流测试
-- Agent schema snapshot 测试
-- record/replay transport，供未来真实 live smoke 录制后离线回放
-- npm bin wrapper：`keepa-cli` 与 `kc`
-- 凭据打码
-- 标准库 `unittest` 测试
-
-命令入口约定：
-
-- `keepa-cli` 和 `kc` 都必须能完整调用 CLI 的所有能力。
-- Agent 适配是硬门槛：`--json`、`--stdio`、结构化错误、token 预算、fixture/offline、凭据打码都必须优先稳定。
-- 默认执行任一入口都进入人类友好的交互界面，但交互界面必须复用同一套 Agent-safe command service。
-- 所有能力必须同时支持 `keepa-cli` 和 `kc` 两个入口。
-
-安全约定：
-
-- 不提交 Keepa API key、`.env`、本地缓存或临时浏览器产物。
-- 后续如需 GitHub Actions 调用真实 Keepa API，使用 GitHub Secrets 保存 `KEEPA_API_KEY`。
-
-## 本地开发
-
-必须使用项目本地虚拟环境，不要在基础环境安装依赖：
-
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
-```
-
-如需验证 console script，先安装到本项目虚拟环境：
+For local development:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\keepa-cli.exe --json doctor
 .\.venv\Scripts\kc.exe --json doctor
-.\.venv\Scripts\kc.exe --json config show
-.\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
-.\.venv\Scripts\kc.exe --json categories search "home kitchen" --domain US --fixture category_search_home.json
-.\.venv\Scripts\kc.exe --json history export B001GZ6QEC --domain US --series amazon,new --format json --fixture product_history_B001GZ6QEC.json
-.\.venv\Scripts\kc.exe --json history trend B001GZ6QEC --domain US --series amazon --window-days 30 --fixture product_history_B001GZ6QEC.json
-.\.venv\Scripts\kc.exe --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
-.\.venv\Scripts\kc.exe --json deals query --selection-file keepa_cli/fixtures/deals_selection.json --domain US --fixture deals_home.json --out deals.json
-.\.venv\Scripts\kc.exe --json sellers get A2L77EE7U53NWQ --domain US --storefront --fixture seller_A2L77EE7U53NWQ.json
-.\.venv\Scripts\kc.exe --json bestsellers get 172282 --domain US --dry-run
-.\.venv\Scripts\kc.exe --json topsellers list --domain US --fixture topsellers_US.json --out topsellers.json
-.\.venv\Scripts\kc.exe --json tokens status --fixture token_status.json
-.\.venv\Scripts\kc.exe --json graphs image B09YNQCQKR --domain US --width 800 --height 400 --range 365 --param amazon=1 --dry-run
-.\.venv\Scripts\kc.exe --json lightningdeals list --domain US --fixture lightningdeals_US.json
-.\.venv\Scripts\kc.exe --json tracking list-names --dry-run
-.\.venv\Scripts\kc.exe --json tracking add --tracking-json "{`"asin`":`"B09YNQCQKR`",`"domain`":1}" --dry-run
-.\.venv\Scripts\kc.exe --json capabilities
-.\.venv\Scripts\python.exe scripts\release_gate.py --skip-npm-install
 ```
 
-stdio smoke test：
-
-```powershell
-'{"id":"1","method":"doctor","params":{}}' | .\.venv\Scripts\python.exe -m keepa_cli --stdio
-```
-
-启动人类 TUI 工作台：
-
-```powershell
-.\.venv\Scripts\python.exe -m keepa_cli
-```
-
-TUI 默认优先使用 Textual/Rich 风格的现代终端框架，提供侧边命令面板、状态卡片、输入栏和结果面板；所有命令仍通过同一套 Agent-safe service 执行，不复制业务逻辑。若需要旧版管道式 slash 界面，可使用：
-
-```powershell
-.\.venv\Scripts\python.exe -m keepa_cli tui --classic
-@'
-/doctor
-/quit
-'@ | .\.venv\Scripts\python.exe -m keepa_cli
-```
-
-Agent 可用 JSON 方式检查 TUI 能力，不会启动交互界面：
-
-```powershell
-.\.venv\Scripts\python.exe -m keepa_cli --json tui
-```
-
-常用 slash 命令示例：
-
-```text
-/doctor
-/domains
-/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json
-/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json
-/bestsellers 172282 --domain US --dry-run
-/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json
-/tokens --fixture token_status.json
-/graph B09YNQCQKR --domain US --param amazon=1 --dry-run
-/lightningdeals --domain US --dry-run
-/tracking-list --asins-only --dry-run
-/category 0 --domain US --parents --fixture category_roots_US.json
-/category-search home kitchen --domain US --fixture category_search_home.json
-/quit
-```
-
-## npm 安装目标
-
-当前仓库已包含 npm wrapper，可本地 smoke：
-
-```powershell
-node bin/keepa-cli.js --json doctor
-npm pack --dry-run
-```
-
-未来发布到 npm 后的目标安装方式：
+For the npm wrapper target:
 
 ```powershell
 npm install -g @cunuo/keepa-cli
-keepa-cli --json doctor
 kc --json doctor
 ```
 
-约束：
+The npm wrapper calls Python. Point it at this project's virtual environment when needed:
 
-- npm wrapper 需要系统可用 Python 3.11+。
-- 可通过 `KEEPA_CLI_PYTHON` 指定 Python 解释器路径。
-- wrapper 不实现业务逻辑，只设置 `PYTHONPATH` 并执行 `python -m keepa_cli`。
+```powershell
+$env:KEEPA_CLI_PYTHON="D:\github\Keepa-cli\.venv\Scripts\python.exe"
+kc --json doctor
+```
+
+## Configure Your Keepa Token
+
+Option 1: store the token in the local config file. CLI output is redacted.
+
+```powershell
+kc --json config set-token YOUR_KEEPA_TOKEN
+kc --json doctor
+```
+
+Default config paths:
+
+- Windows: `%APPDATA%\keepa-cli\config.toml`
+- macOS / Linux: `~/.config/keepa-cli/config.toml`
+
+Use a custom config path:
+
+```powershell
+kc --json config set-token YOUR_KEEPA_TOKEN --path .\config.local.toml
+$env:KEEPA_CLI_CONFIG=(Resolve-Path .\config.local.toml)
+kc --json doctor
+```
+
+Option 2: use an environment variable. It takes precedence over config files.
+
+```powershell
+$env:KEEPA_API_KEY="YOUR_KEEPA_TOKEN"
+kc --json doctor
+```
+
+Inspect config safely:
+
+```powershell
+kc --json config init --dry-run
+kc --json config show
+```
+
+## Language
+
+English is the default UI language. Switch the TUI to Chinese with:
+
+```powershell
+kc --json config set-language zh
+```
+
+Switch back to English:
+
+```powershell
+kc --json config set-language en
+```
+
+## Quick Start
+
+Fixture-backed commands do not spend live tokens:
+
+```powershell
+kc --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
+kc --json history trend B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json
+kc --json tokens status --fixture token_status.json
+```
+
+Use dry-run for high-cost requests:
+
+```powershell
+kc --json bestsellers get 172282 --domain US --dry-run
+kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
+```
+
+Graph Image live downloads must write to a file:
+
+```powershell
+kc --json graphs image B09YNQCQKR --domain US --width 800 --height 400 --range 365 --param amazon=1 --dry-run
+```
+
+## TUI
+
+Start the modern terminal workspace:
+
+```powershell
+kc
+```
+
+The TUI includes:
+
+- A compact command rail.
+- Auth and default domain status.
+- Token input that saves to local config.
+- Slash command input, such as `/doctor`, `/capabilities`, and `/product ...`.
+
+Force the classic slash TUI:
+
+```powershell
+kc tui --classic
+```
+
+Piped input automatically uses classic mode:
+
+```powershell
+@'
+/doctor
+/quit
+'@ | kc
+```
+
+Inspect TUI metadata without launching an interactive UI:
+
+```powershell
+kc --json tui
+```
+
+## Agent Mode
+
+JSON envelope examples:
+
+```powershell
+kc --json capabilities
+kc --json domains list
+kc --json request get /product --param domain=1 --param asin=B001GZ6QEC --dry-run
+```
+
+stdio JSON Lines:
+
+```powershell
+'{"id":"1","method":"doctor","params":{}}' | kc --stdio
+```
+
+Contracts:
+
+- [Agent contract](docs/agent-contract.md)
+- [Keepa official API notes](docs/keepa-official-api-notes.md)
+
+## Development
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe scripts\release_gate.py --skip-npm-install
+.\.venv\Scripts\python.exe D:\.codex\hooks\run_relevant_hooks.py --changed-only
+git diff --check
+```
+
+Smoke checks:
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json doctor
+node .\bin\keepa-cli.js --json doctor
+node .\bin\kc.js --json doctor
+npm pack --dry-run --json
+```
+
+## Security
+
+- Do not commit Keepa API keys, `.env` files, local caches, or unredacted cassettes.
+- Output redacts `key`, `api_key`, `apikey`, `token`, and `authorization`.
+- Live Keepa smoke tests should use `KEEPA_API_KEY` from GitHub Secrets and manual workflow dispatch.
+
+## Documentation
+
+- [Implementation research report](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
+- [Development roadmap](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
+- [service.py / cli.py split plan](docs/architecture/service-cli-split-plan.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+- [Changelog](CHANGELOG.md)

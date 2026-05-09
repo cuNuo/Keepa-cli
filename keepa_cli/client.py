@@ -2,7 +2,7 @@
 keepa_cli/client.py
 文件说明：封装 Keepa API 请求客户端的 dry-run、fixture 与 live 请求路径。
 主要职责：生成 redacted request spec、读取离线 fixture，并统一返回 JSON envelope。
-依赖边界：仅使用标准库网络能力；真实 API key 只来自调用参数或环境变量。
+依赖边界：仅使用标准库网络能力；真实 API key 只来自调用参数、环境变量或本地配置。
 """
 
 from __future__ import annotations
@@ -15,9 +15,10 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 from keepa_cli.cache import build_cache_provenance
+from keepa_cli.config import load_config
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.request_spec import build_request_spec
 from keepa_cli.token_budget import estimate_request_budget
@@ -60,6 +61,7 @@ class KeepaClient:
         fixture: str | None = None,
         out: str | None = None,
         binary: bool = False,
+        env: Mapping[str, str] | None = None,
     ) -> dict[str, Any]:
         params = dict(params or {})
         method = method.upper()
@@ -91,7 +93,8 @@ class KeepaClient:
         if fixture:
             return self._fixture_response(command, fixture, request_payload, budget)
 
-        api_key = params.get("key") or os.environ.get("KEEPA_API_KEY")
+        env = os.environ if env is None else env
+        api_key = params.get("key") or env.get("KEEPA_API_KEY") or load_config(env=env).get("api_key")
         if not api_key:
             return error_envelope(
                 command=command,

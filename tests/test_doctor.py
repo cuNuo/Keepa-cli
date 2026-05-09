@@ -7,6 +7,8 @@ tests/test_doctor.py
 
 import os
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from keepa_cli.doctor import build_doctor_report
@@ -36,6 +38,32 @@ class DoctorTests(unittest.TestCase):
         self.assertTrue(report["auth"]["available"])
         self.assertEqual(report["auth"]["source"], "env")
         self.assertNotIn("SECRET123", str(report))
+
+    def test_doctor_detects_config_auth_without_leaking_key(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text('api_key = "SECRET123"\n', encoding="utf-8")
+
+            report = build_doctor_report(env={"KEEPA_CLI_CONFIG": str(config_path)}, fixture_available=True)
+
+        self.assertTrue(report["auth"]["available"])
+        self.assertEqual(report["auth"]["source"], "config")
+        self.assertNotIn("SECRET123", str(report))
+
+    def test_env_auth_takes_precedence_over_config_auth(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text('api_key = "CONFIG_SECRET"\n', encoding="utf-8")
+
+            report = build_doctor_report(
+                env={"KEEPA_API_KEY": "ENV_SECRET", "KEEPA_CLI_CONFIG": str(config_path)},
+                fixture_available=True,
+            )
+
+        self.assertTrue(report["auth"]["available"])
+        self.assertEqual(report["auth"]["source"], "env")
+        self.assertNotIn("ENV_SECRET", str(report))
+        self.assertNotIn("CONFIG_SECRET", str(report))
 
 
 if __name__ == "__main__":

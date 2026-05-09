@@ -17,7 +17,7 @@ from typing import Any
 from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.capabilities import build_capabilities
 from keepa_cli.client import KeepaClient
-from keepa_cli.config import build_config_report, init_config
+from keepa_cli.config import build_config_report, init_config, set_api_token, set_language
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
@@ -731,6 +731,30 @@ def run_command(
             return success_envelope(
                 command="config.init",
                 data=init_config(path=params.get("path"), env=env, dry_run=bool(params.get("dry_run"))),
+                request={"transport": "service", "dry_run": bool(params.get("dry_run"))},
+                token_bucket={},
+            )
+        if command in {"config.set-token", "config.set_token"}:
+            return success_envelope(
+                command="config.set-token",
+                data=set_api_token(
+                    str(params.get("token", "")),
+                    path=params.get("path"),
+                    env=env,
+                    dry_run=bool(params.get("dry_run")),
+                ),
+                request={"transport": "service", "dry_run": bool(params.get("dry_run"))},
+                token_bucket={},
+            )
+        if command in {"config.set-language", "config.set_language"}:
+            return success_envelope(
+                command="config.set-language",
+                data=set_language(
+                    str(params.get("language", "")),
+                    path=params.get("path"),
+                    env=env,
+                    dry_run=bool(params.get("dry_run")),
+                ),
                 request={"transport": "service", "dry_run": bool(params.get("dry_run"))},
                 token_bucket={},
             )

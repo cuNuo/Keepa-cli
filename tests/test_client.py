@@ -11,6 +11,7 @@ import io
 import unittest
 import urllib.error
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from keepa_cli.client import KeepaClient
@@ -95,6 +96,26 @@ class KeepaClientTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["token_bucket"]["tokens_left"], 9)
         self.assertEqual(payload["token_bucket"]["tokens_consumed"], 1)
+
+    def test_live_response_can_read_api_key_from_config_without_leaking_it(self):
+        body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
+        opener = SequenceOpener([FakeResponse(body)])
+        client = KeepaClient(opener=opener)
+
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text('api_key = "CONFIG_SECRET"\n', encoding="utf-8")
+            payload = client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC"},
+                env={"KEEPA_CLI_CONFIG": str(config_path)},
+            )
+
+        encoded = json.dumps(payload)
+        self.assertTrue(payload["ok"])
+        self.assertNotIn("CONFIG_SECRET", encoded)
 
     def test_http_429_maps_refill_to_retry_after_without_leaking_key(self):
         body = json.dumps({"refillIn": 12000, "tokensLeft": -1, "error": {"type": "TOKEN_LIMIT"}}).encode(

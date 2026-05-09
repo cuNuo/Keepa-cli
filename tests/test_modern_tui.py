@@ -6,6 +6,8 @@ tests/test_modern_tui.py
 """
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from keepa_cli.ui import modern_tui
@@ -19,11 +21,18 @@ class ModernTuiTests(unittest.TestCase):
         commands = {item.slash for item in catalog}
         groups = {item.group for item in catalog}
 
-        self.assertIn("Product Lens", labels)
+        self.assertIn("Product", labels)
         self.assertIn("/product B001GZ6QEC --fixture product_B001GZ6QEC.json", commands)
         self.assertIn("Inspect", groups)
         self.assertIn("Operate", groups)
         self.assertTrue(all(item.service_command for item in catalog))
+
+    def test_command_catalog_defaults_to_english_and_can_switch_to_chinese(self):
+        english = modern_tui.build_command_catalog(language="en")
+        chinese = modern_tui.build_command_catalog(language="zh")
+
+        self.assertEqual(english[0].label, "Doctor")
+        self.assertEqual(chinese[0].label, "诊断")
 
     def test_stylesheet_contains_textual_layout_selectors(self):
         stylesheet = modern_tui.MODERN_TUI_CSS
@@ -75,6 +84,49 @@ class ModernTuiTests(unittest.TestCase):
         rendered = asyncio.run(run_smoke())
 
         self.assertIn("[doctor] OK", rendered)
+
+    def test_textual_app_saves_token_from_input(self):
+        if not modern_tui.is_textual_available():
+            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+
+        import asyncio
+
+        async def run_smoke(config_path: Path):
+            app_class = modern_tui._create_app_class()
+            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
+                token_input = pilot.app.query_one("#token-input")
+                token_input.value = "SECRET123"
+                await pilot.click("#save-token")
+                body = str(pilot.app.query_one("#result-body").renderable)
+                token_value = token_input.value
+                return body, token_value
+
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            rendered, token_value = asyncio.run(run_smoke(config_path))
+            content = config_path.read_text(encoding="utf-8")
+
+        self.assertIn("Token saved", rendered)
+        self.assertEqual(token_value, "")
+        self.assertIn('api_key = "SECRET123"', content)
+        self.assertNotIn("SECRET123", rendered)
+
+    def test_textual_app_uses_chinese_when_configured(self):
+        if not modern_tui.is_textual_available():
+            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+
+        import asyncio
+
+        async def run_smoke(config_path: Path):
+            config_path.write_text('language = "zh"\n', encoding="utf-8")
+            app_class = modern_tui._create_app_class()
+            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
+                return str(pilot.app.query_one("#hero").renderable)
+
+        with TemporaryDirectory() as temp_dir:
+            rendered = asyncio.run(run_smoke(Path(temp_dir) / "config.toml"))
+
+        self.assertIn("命令面板", rendered)
 
 
 if __name__ == "__main__":

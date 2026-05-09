@@ -55,6 +55,14 @@ def _build_parser() -> argparse.ArgumentParser:
     config_init = config_subparsers.add_parser("init", help="生成默认配置文件。")
     config_init.add_argument("--path", help="指定配置文件路径。")
     config_init.add_argument("--dry-run", action="store_true", help="只输出将写入的配置，不落盘。")
+    config_token = config_subparsers.add_parser("set-token", help="写入本地 Keepa API token。")
+    config_token.add_argument("token", help="Keepa API token；输出会自动打码。")
+    config_token.add_argument("--path", help="指定配置文件路径。")
+    config_token.add_argument("--dry-run", action="store_true", help="只输出打码后的写入结果，不落盘。")
+    config_language = config_subparsers.add_parser("set-language", help="设置界面语言。")
+    config_language.add_argument("language", choices=("en", "zh"), help="默认英文；可设置 zh 使用中文 TUI。")
+    config_language.add_argument("--path", help="指定配置文件路径。")
+    config_language.add_argument("--dry-run", action="store_true", help="只输出将写入的语言配置，不落盘。")
 
     domains = subparsers.add_parser("domains", help="Keepa domain 发现命令。")
     domains_subparsers = domains.add_subparsers(dest="domains_command")
@@ -287,6 +295,20 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
 
     if args.command == "config" and args.config_command == "init":
         payload = run_command("config.init", {"path": args.path, "dry_run": bool(args.dry_run)})
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "config" and args.config_command == "set-token":
+        payload = run_command(
+            "config.set-token",
+            {"path": args.path, "token": args.token, "dry_run": bool(args.dry_run)},
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "config" and args.config_command == "set-language":
+        payload = run_command(
+            "config.set-language",
+            {"path": args.path, "language": args.language, "dry_run": bool(args.dry_run)},
+        )
         return 0 if payload["ok"] else 1, payload
 
     if args.command == "products" and args.products_command == "get":

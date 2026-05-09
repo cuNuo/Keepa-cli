@@ -13,8 +13,55 @@ from dataclasses import dataclass
 from typing import Any
 
 from keepa_cli.capabilities import SCHEMA_VERSION
+from keepa_cli.config import build_config_report
 from keepa_cli.service import run_command
 from keepa_cli.ui.tui import _doctor_context, _slash_to_command, _summarize_success, run_interactive_tui
+
+
+TEXT: dict[str, dict[str, str]] = {
+    "en": {
+        "brand": "Keepa CLI",
+        "hero_title": "Command Deck",
+        "hero_flow": "Inspect  Preview  Export  Record",
+        "token_placeholder": "Keepa token",
+        "save": "Save",
+        "result": "Result",
+        "ready": "Ready",
+        "config": "Config",
+        "token_empty": "Token is empty",
+        "token_saved": "Token saved",
+        "doctor": "Doctor",
+        "capabilities": "Capabilities",
+        "domains": "Domains",
+        "product": "Product",
+        "history": "History",
+        "finder": "Finder",
+        "bestsellers": "Best Sellers",
+        "graph": "Graph Image",
+        "tracking": "Tracking",
+    },
+    "zh": {
+        "brand": "Keepa CLI",
+        "hero_title": "命令面板",
+        "hero_flow": "检查  预览  导出  记录",
+        "token_placeholder": "Keepa token",
+        "save": "保存",
+        "result": "结果",
+        "ready": "就绪",
+        "config": "配置",
+        "token_empty": "Token 不能为空",
+        "token_saved": "Token 已保存",
+        "doctor": "诊断",
+        "capabilities": "能力",
+        "domains": "域名",
+        "product": "产品",
+        "history": "历史",
+        "finder": "筛选",
+        "bestsellers": "榜单",
+        "graph": "图像",
+        "tracking": "跟踪",
+    },
+}
 
 
 MODERN_TUI_CSS = """
@@ -47,6 +94,26 @@ Screen {
     text-style: bold;
 }
 
+#token-row {
+    height: 3;
+    margin-bottom: 1;
+}
+
+#token-input {
+    width: 1fr;
+    height: 3;
+    border: round #47616d;
+    background: #0f1418;
+}
+
+#save-token {
+    width: 10;
+    height: 3;
+    margin-left: 1;
+    border: round #8fb7a8;
+    background: #1f302e;
+}
+
 .status-card {
     height: auto;
     margin: 0 0 1 0;
@@ -62,7 +129,7 @@ Screen {
 
 CommandButton {
     width: 100%;
-    height: 3;
+    height: 2;
     margin: 0 0 1 0;
     border: round #313b42;
     background: #1c2329;
@@ -80,7 +147,7 @@ CommandButton:hover {
 }
 
 #hero {
-    height: 7;
+    height: 4;
     padding: 1 2;
     border: round #47616d;
     background: #172026;
@@ -129,70 +196,75 @@ def is_textual_available() -> bool:
     return importlib.util.find_spec("textual") is not None
 
 
-def build_command_catalog() -> tuple[CommandItem, ...]:
+def _language(value: str | None) -> str:
+    return "zh" if str(value).lower() == "zh" else "en"
+
+
+def build_command_catalog(language: str = "en") -> tuple[CommandItem, ...]:
+    text = TEXT[_language(language)]
     return (
         CommandItem(
-            label="System Doctor",
+            label=text["doctor"],
             group="Inspect",
             slash="/doctor",
             service_command="doctor",
-            description="认证、fixture、入口与版本状态",
+            description="Auth and local status",
         ),
         CommandItem(
-            label="Capabilities",
+            label=text["capabilities"],
             group="Inspect",
             slash="/capabilities",
             service_command="capabilities",
-            description="Agent 能力发现协议与命令预算",
+            description="Agent protocol surface",
         ),
         CommandItem(
-            label="Domain Map",
+            label=text["domains"],
             group="Inspect",
             slash="/domains",
             service_command="domains.list",
-            description="Keepa Amazon domain 映射",
+            description="Amazon domain map",
         ),
         CommandItem(
-            label="Product Lens",
+            label=text["product"],
             group="Catalog",
             slash="/product B001GZ6QEC --fixture product_B001GZ6QEC.json",
             service_command="products.get",
-            description="离线产品详情检查",
+            description="Fixture product lookup",
         ),
         CommandItem(
-            label="History Trend",
+            label=text["history"],
             group="Catalog",
             slash="/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
             service_command="history.trend",
-            description="价格历史趋势摘要",
+            description="Price history summary",
         ),
         CommandItem(
-            label="Finder Preview",
+            label=text["finder"],
             group="Operate",
             slash="/finder --selection-file keepa_cli/fixtures/finder_selection.json --dry-run",
             service_command="finder.query",
-            description="Product Finder token 预算预览",
+            description="Finder dry-run",
         ),
         CommandItem(
-            label="Best Sellers",
+            label=text["bestsellers"],
             group="Operate",
             slash="/bestsellers 172282 --domain US --dry-run",
             service_command="bestsellers.get",
-            description="榜单请求规格与 50 token 提示",
+            description="Best sellers dry-run",
         ),
         CommandItem(
-            label="Graph Image",
+            label=text["graph"],
             group="Operate",
             slash="/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
             service_command="graphs.image",
-            description="Graph Image API 请求规格",
+            description="Graph image spec",
         ),
         CommandItem(
-            label="Tracking",
+            label=text["tracking"],
             group="Operate",
             slash="/tracking-list --asins-only --dry-run",
             service_command="tracking.list",
-            description="Tracking 列表安全预览",
+            description="Tracking dry-run",
         ),
     )
 
@@ -241,7 +313,7 @@ def _create_app_class():
 
     class CommandButton(Button):
         def __init__(self, item: CommandItem) -> None:
-            super().__init__(f"{item.label}\n{item.description}", id=f"cmd-{item.service_command.replace('.', '-')}")
+            super().__init__(item.label, id=f"cmd-{item.service_command.replace('.', '-')}")
             self.item = item
 
         class Selected(Message):
@@ -269,45 +341,54 @@ def _create_app_class():
 
         def compose(self) -> ComposeResult:
             context = _doctor_context(self.env)
+            config = build_config_report(env=self.env)
+            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
+            language = _language(str(config_data.get("language", "en")))
+            text = TEXT[language]
+            default_domain = config_data.get("default_domain", "US")
             yield Header(show_clock=True)
             with Horizontal(id="workspace"):
                 with Vertical(id="sidebar"):
-                    yield Static("KEEPA\nCOMMAND DECK", id="brand")
+                    yield Static(text["brand"], id="brand")
                     yield Static(
                         "\n".join(
                             [
                                 f"Auth      {context['auth']}",
-                                f"Fixture   {context['fixture']}",
+                                f"Domain    {default_domain}",
                                 f"Schema    {SCHEMA_VERSION}",
-                                "Mode      offline-first",
                             ]
                         ),
                         classes="status-card",
                     )
+                    with Horizontal(id="token-row"):
+                        yield Input(placeholder=text["token_placeholder"], password=True, id="token-input")
+                        yield Button(text["save"], id="save-token")
                     with ScrollableContainer(id="command-rail"):
-                        for item in build_command_catalog():
+                        for item in build_command_catalog(language):
                             yield CommandButton(item)
                 with Vertical(id="main"):
                     yield Static(
                         "\n".join(
                             [
-                                "Agent-first Keepa API workspace",
-                                "Inspect -> preview -> export -> record",
-                                "输入 slash 命令，或从左侧选择常用离线安全流程。",
+                                text["hero_title"],
+                                text["hero_flow"],
                             ]
                         ),
                         id="hero",
                     )
                     yield Input(placeholder="/doctor", id="command-input")
                     with Vertical(id="result-panel"):
-                        yield Static("Result", id="result-title")
-                        yield Static("等待命令。默认不访问真实 Keepa API。", id="result-body")
+                        yield Static(text["result"], id="result-title")
+                        yield Static(text["ready"], id="result-body")
             yield Footer()
 
         def on_command_button_selected(self, event: CommandButton.Selected) -> None:
             self._run_slash(event.item.slash)
 
         def on_input_submitted(self, event: Input.Submitted) -> None:
+            if event.input.id == "token-input":
+                self._save_token(event.value)
+                return
             value = event.value.strip()
             if not value:
                 return
@@ -323,12 +404,39 @@ def _create_app_class():
         def action_capabilities(self) -> None:
             self._run_slash("/capabilities")
 
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            if event.button.id == "save-token":
+                token = self.query_one("#token-input", Input).value
+                self._save_token(token)
+
         def _run_slash(self, slash: str) -> None:
             command, params = _slash_to_command(slash)
             payload = run_command(command, params, env=self.env)
             title = f"Result  {slash}"
             self.query_one("#result-title", Static).update(title)
             self.query_one("#result-body", Static).update(_format_result(payload))
+
+        def _save_token(self, token: str) -> None:
+            text = self._text()
+            token = token.strip()
+            if not token:
+                self.query_one("#result-title", Static).update(text["config"])
+                self.query_one("#result-body", Static).update(text["token_empty"])
+                return
+            payload = run_command("config.set-token", {"token": token}, env=self.env)
+            self.query_one("#token-input", Input).value = ""
+            self.query_one("#result-title", Static).update(text["config"])
+            if payload.get("ok"):
+                data = payload.get("data", {})
+                path = data.get("path", "") if isinstance(data, dict) else ""
+                self.query_one("#result-body", Static).update(f"{text['token_saved']}\n{path}")
+            else:
+                self.query_one("#result-body", Static).update(_format_result(payload))
+
+        def _text(self) -> dict[str, str]:
+            config = build_config_report(env=self.env)
+            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
+            return TEXT[_language(str(config_data.get("language", "en")))]
 
     return KeepaModernTui
 

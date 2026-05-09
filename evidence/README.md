@@ -23,3 +23,4 @@
 - `tasks/20260509-1850-keepa-cli调研报告.md`：项目调研、路线、MVP 到官方 API 链路演进记录。
 - `tasks/20260509-2326-项目健康检查与完善项记录.md`：P0-P3 健康检查待完善项。
 - `tasks/20260510-0018-textual现代tui工作台.md`：Textual/Rich 风格现代 TUI 工作台与 fallback 验证。
+- `tasks/20260510-0048-token配置与英文默认界面.md`：token 配置闭环、TUI 降噪、默认英文与中文可选。

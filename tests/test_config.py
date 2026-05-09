@@ -6,9 +6,11 @@ tests/test_config.py
 """
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from keepa_cli.config import build_config_report, render_config_toml
+from keepa_cli.config import build_config_report, load_config, render_config_toml, set_api_token, set_language
 
 
 class ConfigTests(unittest.TestCase):
@@ -17,6 +19,7 @@ class ConfigTests(unittest.TestCase):
 
         self.assertFalse(report["exists"])
         self.assertEqual(report["config"]["default_domain"], "US")
+        self.assertEqual(report["config"]["language"], "en")
         self.assertIn("config.toml", report["path"])
 
     def test_explicit_empty_env_ignores_real_appdata(self):
@@ -29,8 +32,42 @@ class ConfigTests(unittest.TestCase):
         rendered = render_config_toml()
 
         self.assertIn('default_domain = "US"', rendered)
+        self.assertIn('language = "en"', rendered)
         self.assertIn("max_tokens_per_request = 20", rendered)
         self.assertNotIn("KEEPA_API_KEY", rendered)
+
+    def test_set_api_token_writes_local_config_and_report_redacts_it(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+
+            result = set_api_token("SECRET123", path=config_path)
+            loaded = load_config(config_path)
+            report = build_config_report(config_path)
+
+        self.assertTrue(result["written"])
+        self.assertEqual(result["auth_source"], "config")
+        self.assertEqual(loaded["api_key"], "SECRET123")
+        self.assertEqual(report["config"]["api_key"], "[REDACTED]")
+        self.assertNotIn("SECRET123", str(report))
+
+    def test_set_api_token_rejects_empty_value(self):
+        with self.assertRaises(ValueError):
+            set_api_token("  ", path="unused.toml")
+
+    def test_set_language_persists_supported_language(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+
+            result = set_language("zh", path=config_path)
+            loaded = load_config(config_path)
+
+        self.assertTrue(result["written"])
+        self.assertEqual(result["language"], "zh")
+        self.assertEqual(loaded["language"], "zh")
+
+    def test_set_language_rejects_unknown_language(self):
+        with self.assertRaises(ValueError):
+            set_language("fr", path="unused.toml")
 
 
 if __name__ == "__main__":

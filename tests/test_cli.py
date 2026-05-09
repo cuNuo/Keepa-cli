@@ -9,6 +9,8 @@ import json
 import subprocess
 import sys
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 class CliTests(unittest.TestCase):
@@ -46,6 +48,35 @@ class CliTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "config.show")
         self.assertEqual(payload["data"]["config"]["default_domain"], "US")
+
+    def test_config_set_token_writes_redacted_config_report(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            result = self.run_module("--json", "config", "set-token", "SECRET123", "--path", str(config_path))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            content = config_path.read_text(encoding="utf-8")
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "config.set-token")
+        self.assertEqual(payload["data"]["auth_source"], "config")
+        self.assertIn('api_key = "SECRET123"', content)
+        self.assertNotIn("SECRET123", result.stdout)
+
+    def test_config_set_language_writes_language(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            result = self.run_module("--json", "config", "set-language", "zh", "--path", str(config_path))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            content = config_path.read_text(encoding="utf-8")
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "config.set-language")
+        self.assertEqual(payload["data"]["language"], "zh")
+        self.assertIn('language = "zh"', content)
 
     def test_products_get_fixture_returns_product_data(self):
         result = self.run_module(
