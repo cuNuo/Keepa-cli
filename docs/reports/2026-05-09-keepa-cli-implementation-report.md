@@ -7,18 +7,19 @@
 
 ## 1. 结论摘要
 
-建议先做一个只读、额度安全优先、默认方便人类使用的 Keepa CLI，而不是一开始覆盖所有 API。第一版聚焦 `product`、`search`、`query`、`deal`、`category`、`seller`、`bestsellers`、`topseller`、`graphimage` 等查询类能力；`tracking` 会降低 token refill rate，建议作为第二阶段并默认要求 `--dry-run` / `--yes`。
+建议先做一个 Agent-first、只读、额度安全优先的 Keepa CLI，而不是一开始覆盖所有 API。第一版必须先稳定 `--json`、`--stdio`、结构化错误、token 预算、fixture/offline 与双入口一致性；人类交互界面保留为同一套 command service 的外壳。API 能力先聚焦 `product`、`search`、`category` 和 raw request，再扩展 `query`、`deal`、`seller`、`bestsellers`、`topseller`、`graphimage`；`tracking` 会降低 token refill rate，建议作为后续阶段并默认要求 `--dry-run` / `--yes`。
 
-CLI 的核心价值不是把 REST API 简单包一层，而是把 Keepa 的 token 成本、分页/批量、gzip/keep-alive、`csv` 历史数据、错误响应与缓存策略固化成可审计命令。默认模式应像 Claude Code 一样进入交互式工作台，支持搜索、选择、预览、确认、导出和历史记录；结构化参数主要服务 agent，通过 `--json`、`--stdio` 和显式子命令提供稳定机器接口。
+CLI 的核心价值不是把 REST API 简单包一层，而是把 Keepa 的 token 成本、分页/批量、gzip/keep-alive、`csv` 历史数据、错误响应与缓存策略固化成可审计的 Agent 工具层。默认模式可以像 Claude Code 一样进入交互式工作台，支持搜索、选择、预览、确认、导出和历史记录；但所有底层能力必须先能被 agent 通过 `--json`、`--stdio` 和显式子命令稳定调用。
 
 GitHub 远程建议使用私有仓库保存初始报告与后续源码，避免误传 API key。真实 API key 不进仓库，只通过本机环境变量 `KEEPA_API_KEY`、用户配置文件或 GitHub Secrets 注入。
 
 新增强约束：
 
 - `keepa-cli` 与 `kc` 必须都是一等入口，不允许出现某个入口功能不全。
-- 人类入口优先做交互界面；参数化命令优先服务 agent 和脚本。
+- Agent 适配优先于界面：所有业务能力先有可解析命令契约，再接入 TUI。
 - 默认交互模式不得隐藏 token 成本，高成本操作必须先预览再确认。
 - agent 模式必须稳定、无 ANSI、可解析，避免依赖 TUI 屏幕抓取。
+- agent 模式不得等待交互输入；需要人工授权时返回结构化 `confirmation_required`。
 
 ## 2. 资料来源与时效
 
@@ -652,10 +653,10 @@ gh secret set KEEPA_API_KEY --repo cuNuo/Keepa-cli
 下一步直接进入实现阶段：
 
 1. 用 Python/uv 初始化项目。
-2. 同时暴露 `keepa-cli` 与 `kc`，两个入口默认都启动人类交互工作台，且所有子命令完全等价。
-3. 实现 `doctor`、`domains list`、`products get`、`products search`、`request get/post`。
-4. 实现 `--json` 与 `--stdio` 两个 agent 通道。
-5. 加 fixture 测试、TUI smoke test 和 GitHub Actions。
-6. 再扩展 finder、deals、seller、bestsellers 和 graphimage。
+2. 同时暴露 `keepa-cli` 与 `kc`，两个入口所有子命令完全等价。
+3. 先实现 Agent-safe 核心：`doctor`、`domains list`、`request get/post --dry-run`、JSON envelope、结构化错误、redaction、token 预算器、fixture/offline。
+4. 实现 `products get/search` 与 `categories get/search`，并保证 `--json` 和 `--stdio` 都可调用。
+5. 在稳定 command service 上接入默认交互工作台与 TUI smoke test。
+6. 再扩展 finder、deals、seller、bestsellers、topseller、graphimage 和历史分析。
 
-第一版完成标准：`kc` 和 `keepa-cli` 都能启动人类友好的交互界面；`keepa-cli --json doctor` 与 `kc --json doctor` 在无 key 下可用；两个入口都能调用 `products get/search`；两个入口的 agent 通道都输出稳定 JSON 或 JSON Lines；CI 在 GitHub 上通过。
+第一版完成标准：`keepa-cli --json doctor`、`kc --json doctor`、`keepa-cli --stdio`、`kc --stdio` 在无 key 下可用；两个入口都能通过 agent 通道调用 `products get/search`；所有错误、预算、缓存、确认需求都能结构化输出；TUI 可启动但不得复制业务逻辑；CI 在 GitHub 上通过。
