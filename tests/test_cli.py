@@ -46,6 +46,45 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["command"], "config.show")
         self.assertEqual(payload["data"]["config"]["default_domain"], "US")
 
+    def test_products_get_fixture_returns_product_data(self):
+        result = self.run_module(
+            "--json",
+            "products",
+            "get",
+            "B001GZ6QEC",
+            "--domain",
+            "US",
+            "--history",
+            "0",
+            "--fixture",
+            "product_B001GZ6QEC.json",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "products.get")
+        self.assertEqual(payload["request"]["endpoint"], "/product")
+        self.assertEqual(payload["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
+
+    def test_categories_search_fixture_returns_category_data(self):
+        result = self.run_module(
+            "--json",
+            "categories",
+            "search",
+            "home kitchen",
+            "--domain",
+            "US",
+            "--fixture",
+            "category_search_home.json",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["request"]["params_redacted"]["type"], "category")
+        self.assertIn("1055398", payload["data"]["body"]["categories"])
+
     def test_stdio_reads_json_lines(self):
         result = self.run_module("--stdio", input_text='{"id":"1","method":"doctor","params":{}}\n')
 

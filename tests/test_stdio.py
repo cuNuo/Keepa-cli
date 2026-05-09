@@ -35,6 +35,26 @@ class StdioProtocolTests(unittest.TestCase):
         self.assertFalse(response["payload"]["ok"])
         self.assertEqual(response["payload"]["error"]["kind"], "confirmation_required")
 
+    def test_products_get_message_uses_fixture_service_path(self):
+        raw = json.dumps(
+            {
+                "id": "3",
+                "method": "products.get",
+                "params": {
+                    "asin": ["B001GZ6QEC"],
+                    "domain": "US",
+                    "history": "0",
+                    "fixture": "product_B001GZ6QEC.json",
+                },
+            }
+        )
+        events = handle_stdio_message(raw, env={})
+        response = next(event for event in events if event["event"] == "response")
+
+        self.assertTrue(response["payload"]["ok"])
+        self.assertEqual(response["payload"]["request"]["endpoint"], "/product")
+        self.assertEqual(response["payload"]["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
+
 
 if __name__ == "__main__":
     unittest.main()

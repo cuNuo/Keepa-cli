@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import json
 import os
+import gzip
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.request_spec import build_request_spec
@@ -36,10 +38,14 @@ class KeepaClient:
         base_url: str = "https://api.keepa.com",
         fixture_dir: Path | str | None = None,
         timeout_seconds: float = 20.0,
+        opener: Callable[[urllib.request.Request, float], Any] | None = None,
+        sleeper: Callable[[float], None] | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.fixture_dir = Path(fixture_dir) if fixture_dir is not None else None
         self.timeout_seconds = timeout_seconds
+        self.opener = opener or urllib.request.urlopen
+        self.sleeper = sleeper or time.sleep
 
     def request(
         self,
@@ -141,28 +147,40 @@ class KeepaClient:
 
         request = urllib.request.Request(url, data=body_bytes, headers=headers, method=method)
         secret_values = [str(params["key"])] if params.get("key") else []
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
-                response_body = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
-            return error_envelope(
-                command=command,
-                kind="api_error",
-                message=str(exc),
-                status_code=exc.code,
-                details={"endpoint": endpoint},
-                token_bucket={"estimated": budget},
-                secret_values=secret_values,
-            )
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            return error_envelope(
-                command=command,
-                kind="network_or_parse_error",
-                message=str(exc),
-                details={"endpoint": endpoint},
-                token_bucket={"estimated": budget},
-                secret_values=secret_values,
-            )
+        attempts = 0
+        while True:
+            try:
+                with self.opener(request, timeout=self.timeout_seconds) as response:
+                    response_body = self._decode_response_body(response)
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code >= 500 and attempts == 0:
+                    attempts += 1
+                    self.sleeper(2.0)
+                    continue
+                return self._http_error_envelope(command, endpoint, exc, budget, secret_values)
+            except (urllib.error.URLError, TimeoutError) as exc:
+                if attempts == 0:
+                    attempts += 1
+                    self.sleeper(2.0)
+                    continue
+                return error_envelope(
+                    command=command,
+                    kind="network_or_parse_error",
+                    message=str(exc),
+                    details={"endpoint": endpoint},
+                    token_bucket={"estimated": budget},
+                    secret_values=secret_values,
+                )
+            except json.JSONDecodeError as exc:
+                return error_envelope(
+                    command=command,
+                    kind="network_or_parse_error",
+                    message=str(exc),
+                    details={"endpoint": endpoint},
+                    token_bucket={"estimated": budget},
+                    secret_values=secret_values,
+                )
 
         return success_envelope(
             command=command,
@@ -178,3 +196,68 @@ class KeepaClient:
             if source_key in body:
                 token_bucket[target_key] = body[source_key]
         return token_bucket
+
+    @staticmethod
+    def _decode_response_body(response: Any) -> dict[str, Any]:
+        raw_body = response.read()
+        encoding = ""
+        if hasattr(response, "getheader"):
+            encoding = str(response.getheader("Content-Encoding", "") or "").lower()
+        if encoding == "gzip":
+            raw_body = gzip.decompress(raw_body)
+        return json.loads(raw_body.decode("utf-8"))
+
+    def _http_error_envelope(
+        self,
+        command: str,
+        endpoint: str,
+        exc: urllib.error.HTTPError,
+        budget: dict[str, Any],
+        secret_values: list[str],
+    ) -> dict[str, Any]:
+        body = self._read_http_error_body(exc)
+        token_bucket = self._token_bucket_from_body(body, budget)
+        details: dict[str, Any] = {"endpoint": endpoint}
+        if exc.code == 429 and "refillIn" in body:
+            details["retry_after_ms"] = body["refillIn"]
+
+        return error_envelope(
+            command=command,
+            kind=self._http_error_kind(exc.code),
+            message=self._http_error_message(exc, body),
+            status_code=exc.code,
+            details=details,
+            token_bucket=token_bucket,
+            secret_values=secret_values,
+        )
+
+    @staticmethod
+    def _read_http_error_body(exc: urllib.error.HTTPError) -> dict[str, Any]:
+        if exc.fp is None:
+            return {}
+        try:
+            raw_body = exc.fp.read()
+            if not raw_body:
+                return {}
+            return json.loads(raw_body.decode("utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            return {}
+
+    @staticmethod
+    def _http_error_kind(status_code: int) -> str:
+        return {
+            400: "bad_request",
+            402: "payment_required",
+            405: "invalid_parameter",
+            429: "not_enough_token",
+            500: "server_error",
+        }.get(status_code, "api_error")
+
+    @staticmethod
+    def _http_error_message(exc: urllib.error.HTTPError, body: dict[str, Any]) -> str:
+        error = body.get("error")
+        if isinstance(error, dict):
+            message = error.get("message") or error.get("type")
+            if message:
+                return str(message)
+        return str(exc)

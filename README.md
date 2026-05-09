@@ -7,6 +7,7 @@
 - [Keepa CLI 实现调研与落地报告](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
 - [Keepa CLI 功能完善与完整开发路线](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
 - [Keepa CLI Agent 协议契约](docs/agent-contract.md)
+- [Keepa 官方 API 约束摘记](docs/keepa-official-api-notes.md)
 
 ## 当前 MVP 状态
 
@@ -20,11 +21,14 @@
 - `--json config init --dry-run`
 - `--json domains list`
 - `--json request get/post ... --dry-run`
+- `--json products get/search ... --fixture ...`
+- `--json categories get/search ... --fixture ...`
 - `--stdio` JSON Lines 协议
+- 标准库 TUI 工作台骨架：默认执行 `kc` / `keepa-cli` 进入 slash 命令界面
 - JSON success/error envelope
 - Keepa domain 归一化
 - token 预算器
-- request client dry-run 与 fixture/offline 路径
+- request client dry-run、fixture/offline、gzip 解码、429/5xx 信息流测试
 - 凭据打码
 - 标准库 `unittest` 测试
 
@@ -55,6 +59,8 @@
 .\.venv\Scripts\keepa-cli.exe --json doctor
 .\.venv\Scripts\kc.exe --json doctor
 .\.venv\Scripts\kc.exe --json config show
+.\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
+.\.venv\Scripts\kc.exe --json categories search "home kitchen" --domain US --fixture category_search_home.json
 ```
 
 stdio smoke test：

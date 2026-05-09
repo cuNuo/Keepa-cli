@@ -6,10 +6,45 @@ tests/test_client.py
 """
 
 import json
+import gzip
+import io
 import unittest
+import urllib.error
 from pathlib import Path
+from typing import Any
 
 from keepa_cli.client import KeepaClient
+
+
+class FakeResponse:
+    def __init__(self, body: bytes, *, headers: dict[str, str] | None = None) -> None:
+        self.body = body
+        self.headers = headers or {}
+
+    def read(self) -> bytes:
+        return self.body
+
+    def getheader(self, name: str, default: str | None = None) -> str | None:
+        return self.headers.get(name, default)
+
+    def __enter__(self) -> "FakeResponse":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        return None
+
+
+class SequenceOpener:
+    def __init__(self, responses: list[object]) -> None:
+        self.responses = responses
+        self.calls = 0
+
+    def __call__(self, request: object, timeout: float) -> FakeResponse:
+        self.calls += 1
+        response = self.responses.pop(0)
+        if isinstance(response, Exception):
+            raise response
+        return response
 
 
 class KeepaClientTests(unittest.TestCase):
@@ -44,6 +79,76 @@ class KeepaClientTests(unittest.TestCase):
         self.assertTrue(payload["data"]["offline"])
         self.assertEqual(payload["data"]["fixture"], "product_B001GZ6QEC.json")
         self.assertEqual(payload["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
+
+    def test_live_response_decodes_gzip_without_real_network(self):
+        body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
+        opener = SequenceOpener([FakeResponse(gzip.compress(body), headers={"Content-Encoding": "gzip"})])
+        client = KeepaClient(opener=opener)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["token_bucket"]["tokens_left"], 9)
+        self.assertEqual(payload["token_bucket"]["tokens_consumed"], 1)
+
+    def test_http_429_maps_refill_to_retry_after_without_leaking_key(self):
+        body = json.dumps({"refillIn": 12000, "tokensLeft": -1, "error": {"type": "TOKEN_LIMIT"}}).encode(
+            "utf-8"
+        )
+        error = urllib.error.HTTPError(
+            url="https://api.keepa.com/product?key=SECRET123",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={},
+            fp=io.BytesIO(body),
+        )
+        opener = SequenceOpener([error])
+        client = KeepaClient(opener=opener, sleeper=lambda seconds: None)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+        )
+
+        encoded = json.dumps(payload)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["kind"], "not_enough_token")
+        self.assertEqual(payload["error"]["details"]["retry_after_ms"], 12000)
+        self.assertEqual(payload["token_bucket"]["refill_in_ms"], 12000)
+        self.assertNotIn("SECRET123", encoded)
+
+    def test_server_error_retries_once_before_success(self):
+        server_error = urllib.error.HTTPError(
+            url="https://api.keepa.com/product",
+            code=500,
+            msg="Internal Server Error",
+            hdrs={},
+            fp=io.BytesIO(b'{"error":{"type":"SERVER"}}'),
+        )
+        opener = SequenceOpener(
+            [
+                server_error,
+                FakeResponse(b'{"tokensLeft":8,"tokensConsumed":1,"products":[]}'),
+            ]
+        )
+        client = KeepaClient(opener=opener, sleeper=lambda seconds: None)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(opener.calls, 2)
 
 
 if __name__ == "__main__":

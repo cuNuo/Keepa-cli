@@ -16,11 +16,9 @@ from typing import Any
 
 from keepa_cli import __version__
 from keepa_cli.agent.stdio import iter_stdio_output
-from keepa_cli.client import KeepaClient
-from keepa_cli.config import build_config_report, init_config
-from keepa_cli.doctor import build_doctor_report
-from keepa_cli.domains import list_domains
 from keepa_cli.envelope import error_envelope, success_envelope
+from keepa_cli.service import run_command
+from keepa_cli.ui.tui import run_interactive_tui
 
 
 def _write_json(payload: dict[str, Any]) -> None:
@@ -52,6 +50,38 @@ def _build_parser() -> argparse.ArgumentParser:
     domains_subparsers = domains.add_subparsers(dest="domains_command")
     domains_subparsers.add_parser("list", help="列出 Keepa 支持的 Amazon domain。")
 
+    products = subparsers.add_parser("products", help="产品查询命令。")
+    products_subparsers = products.add_subparsers(dest="products_command")
+    products_get = products_subparsers.add_parser("get", help="按 ASIN 或 code 查询产品。")
+    products_get.add_argument("asin", nargs="*", help="一个或多个 ASIN。")
+    products_get.add_argument("--code", action="append", default=[], help="UPC、EAN 或 ISBN-13，可重复。")
+    products_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    products_get.add_argument("--history", help="0 表示排除历史字段，1 表示包含。")
+    products_get.add_argument("--stats", help="统计窗口，例如 90 或日期区间。")
+    products_get.add_argument("--update", help="刷新阈值小时；0 可能额外消耗 token。")
+    products_get.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
+    products_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    products_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    products_search = products_subparsers.add_parser("search", help="产品关键词搜索。")
+    products_search.add_argument("term", help="搜索词。")
+    products_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    products_search.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    products_search.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    categories = subparsers.add_parser("categories", help="分类查询命令。")
+    categories_subparsers = categories.add_subparsers(dest="categories_command")
+    categories_get = categories_subparsers.add_parser("get", help="按 category id 查询分类。")
+    categories_get.add_argument("category", nargs="+", help="一个或多个 category id，0 表示 root categories。")
+    categories_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    categories_get.add_argument("--parents", action="store_true", help="包含父级分类树。")
+    categories_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    categories_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    categories_search = categories_subparsers.add_parser("search", help="分类关键词搜索。")
+    categories_search.add_argument("term", help="搜索词，多个关键词需全部匹配。")
+    categories_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    categories_search.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    categories_search.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
     request = subparsers.add_parser("request", help="原始 Keepa API dry-run 逃生口。")
     request_subparsers = request.add_subparsers(dest="request_method")
     for method in ("get", "post"):
@@ -81,36 +111,74 @@ def _parse_params(raw_params: Sequence[str]) -> dict[str, str]:
 
 def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
     if args.command == "doctor":
-        return 0, success_envelope(
-            command="doctor",
-            data=build_doctor_report(env=os.environ),
-            request={"transport": "cli"},
-            token_bucket={},
-        )
+        payload = run_command("doctor")
+        return 0 if payload["ok"] else 1, payload
 
     if args.command == "domains" and args.domains_command == "list":
-        return 0, success_envelope(
-            command="domains.list",
-            data={"domains": list_domains()},
-            request={"transport": "cli"},
-            token_bucket={},
-        )
+        payload = run_command("domains.list")
+        return 0 if payload["ok"] else 1, payload
 
     if args.command == "config" and args.config_command == "show":
-        return 0, success_envelope(
-            command="config.show",
-            data=build_config_report(path=args.path, env=os.environ),
-            request={"transport": "cli"},
-            token_bucket={},
-        )
+        payload = run_command("config.show", {"path": args.path})
+        return 0 if payload["ok"] else 1, payload
 
     if args.command == "config" and args.config_command == "init":
-        return 0, success_envelope(
-            command="config.init",
-            data=init_config(path=args.path, env=os.environ, dry_run=bool(args.dry_run)),
-            request={"transport": "cli", "dry_run": bool(args.dry_run)},
-            token_bucket={},
+        payload = run_command("config.init", {"path": args.path, "dry_run": bool(args.dry_run)})
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "products" and args.products_command == "get":
+        payload = run_command(
+            "products.get",
+            {
+                "asin": args.asin,
+                "code": args.code,
+                "domain": args.domain,
+                "history": args.history,
+                "stats": args.stats,
+                "update": args.update,
+                "offers": args.offers,
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
         )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "products" and args.products_command == "search":
+        payload = run_command(
+            "products.search",
+            {
+                "term": args.term,
+                "domain": args.domain,
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "categories" and args.categories_command == "get":
+        payload = run_command(
+            "categories.get",
+            {
+                "category": args.category,
+                "domain": args.domain,
+                "parents": bool(args.parents),
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "categories" and args.categories_command == "search":
+        payload = run_command(
+            "categories.search",
+            {
+                "term": args.term,
+                "domain": args.domain,
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
 
     if args.command == "request" and args.request_method in {"get", "post"}:
         try:
@@ -121,12 +189,13 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 kind="invalid_argument",
                 message=str(exc),
             )
-        payload = KeepaClient().request(
-            command=f"request.{args.request_method}",
-            method=args.request_method.upper(),
-            path=args.path,
-            params=params,
-            dry_run=bool(args.dry_run),
+        payload = run_command(
+            f"request.{args.request_method}",
+            {
+                "path": args.path,
+                "params": params,
+                "dry_run": bool(args.dry_run),
+            },
         )
         return 0 if payload["ok"] else 1, payload
 
@@ -157,8 +226,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
             )
             return 2
-        parser.print_help()
-        return 0
+        return run_interactive_tui()
 
     exit_code, payload = _run_command(args)
     if args.json:

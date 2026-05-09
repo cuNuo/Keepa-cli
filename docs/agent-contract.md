@@ -143,21 +143,58 @@ kc = "keepa_cli.cli:main"
 
 当前 MVP 先支持 dry-run request client 与 fixture/offline 客户端路径。live 请求需要 `KEEPA_API_KEY`，后续应补齐 429/5xx 重试、HTTP fixture 和更多错误映射测试。
 
+### products get/search
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
+.\.venv\Scripts\python.exe -m keepa_cli --json products search "coffee grinder" --domain US --fixture product_search_coffee.json
+```
+
+`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
+
+### categories get/search
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json categories get 0 --domain US --parents --fixture category_roots_US.json
+.\.venv\Scripts\python.exe -m keepa_cli --json categories search "home kitchen" --domain US --fixture category_search_home.json
+```
+
+`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`。
+
 ## 5. Fixture
 
 当前 fixture：
 
 ```text
 tests/fixtures/product_B001GZ6QEC.json
+tests/fixtures/product_search_coffee.json
+tests/fixtures/category_roots_US.json
+tests/fixtures/category_search_home.json
 ```
 
 用途：
 
 - 无 Keepa key 时验证 client 解析与 token bucket 映射。
 - 为后续 `products.get`、history export、schema regression 提供稳定样本。
+- 为 `products.search`、`categories.get`、`categories.search` 提供不接 API 的信息流样本。
 - CI 默认只跑 fixture，不消耗真实 Keepa token。
 
-## 6. 后续冻结项
+## 6. TUI 边界
+
+默认无参数执行 `keepa-cli` 或 `kc` 会进入标准库 TUI 工作台。当前支持 slash 命令：
+
+```text
+/doctor
+/domains
+/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json
+/category 0 --domain US --parents --fixture category_roots_US.json
+/category-search home kitchen --domain US --fixture category_search_home.json
+/quit
+```
+
+TUI 不直接构造 Keepa request，也不读取 API key；它只解析人类输入并调用 `keepa_cli.service.run_command`。
+
+## 7. 后续冻结项
 
 Phase 6 之后如要扩展 TUI、缓存或真实 API 调用，应保持以下不变：
 

@@ -2,7 +2,7 @@
 keepa_cli/agent/stdio.py
 文件说明：实现 Agent 使用的 JSON Lines stdio 协议。
 主要职责：解析单行请求、输出事件流，并把高成本请求转成确认错误。
-依赖边界：不直接访问网络，只调用 doctor、envelope 与 token 预算模块。
+依赖边界：不直接访问网络，业务执行统一委托 Agent-safe command service。
 """
 
 from __future__ import annotations
@@ -11,8 +11,8 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from keepa_cli.doctor import build_doctor_report
-from keepa_cli.envelope import error_envelope, success_envelope
+from keepa_cli.envelope import error_envelope
+from keepa_cli.service import run_command
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -67,26 +67,7 @@ def handle_stdio_message(raw_message: str, *, env: Mapping[str, str] | None = No
         events.append(_event(message_id, "done"))
         return events
 
-    if method == "doctor":
-        payload = success_envelope(
-            command="doctor",
-            data=build_doctor_report(env=env),
-            request={"transport": "stdio"},
-            token_bucket={},
-        )
-    elif method in {"products.get", "products.search", "categories.get", "categories.search"}:
-        payload = success_envelope(
-            command=method,
-            data={"offline": True, "params": params, "items": []},
-            request={"transport": "stdio", "dry_run": True},
-            token_bucket={"estimated": budget},
-        )
-    else:
-        payload = error_envelope(
-            command=method or "stdio",
-            kind="unsupported_method",
-            message=f"unsupported stdio method: {method}",
-        )
+    payload = run_command(method, params, env=env)
 
     events.append(_event(message_id, "response", payload=payload))
     events.append(_event(message_id, "done"))
