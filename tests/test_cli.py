@@ -85,6 +85,50 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["request"]["params_redacted"]["type"], "category")
         self.assertIn("1055398", payload["data"]["body"]["categories"])
 
+    def test_history_export_fixture_returns_rows(self):
+        result = self.run_module(
+            "--json",
+            "history",
+            "export",
+            "B001GZ6QEC",
+            "--domain",
+            "US",
+            "--series",
+            "amazon,new",
+            "--format",
+            "json",
+            "--fixture",
+            "product_history_B001GZ6QEC.json",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "history.export")
+        self.assertEqual(payload["data"]["row_count"], 6)
+        self.assertEqual(payload["data"]["rows"][0]["series"], "amazon")
+
+    def test_history_trend_fixture_returns_analysis(self):
+        result = self.run_module(
+            "--json",
+            "history",
+            "trend",
+            "B001GZ6QEC",
+            "--domain",
+            "US",
+            "--series",
+            "amazon",
+            "--window-days",
+            "30",
+            "--fixture",
+            "product_history_B001GZ6QEC.json",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["analysis"]["series"]["amazon"]["all_time"]["points"], 3)
+
     def test_stdio_reads_json_lines(self):
         result = self.run_module("--stdio", input_text='{"id":"1","method":"doctor","params":{}}\n')
 

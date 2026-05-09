@@ -43,6 +43,17 @@ class TuiTests(unittest.TestCase):
         self.assertIn("[unknown] ERROR", rendered)
         self.assertIn("unsupported_command", rendered)
 
+    def test_tui_history_command_returns_trend_summary(self):
+        output = run_tui_session(
+            ["/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json", "/quit"],
+            env={},
+        )
+
+        rendered = "\n".join(output)
+        self.assertIn("[history.trend] OK", rendered)
+        self.assertIn("amazon", rendered)
+        self.assertIn("10.99", rendered)
+
     def test_piped_interactive_tui_prints_session_output_on_separate_lines(self):
         stdin = StringIO("/doctor\n/quit\n")
         stdout = StringIO()

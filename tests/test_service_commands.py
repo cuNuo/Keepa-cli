@@ -7,6 +7,7 @@ tests/test_service_commands.py
 
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from keepa_cli.service import run_command
 
@@ -76,6 +77,101 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertEqual(payload["request"]["params_redacted"]["type"], "category")
         self.assertEqual(payload["request"]["params_redacted"]["term"], "home kitchen")
         self.assertIn("1055398", payload["data"]["body"]["categories"])
+
+    def test_history_export_expands_product_csv_fixture(self):
+        payload = run_command(
+            "history.export",
+            {
+                "asin": "B001GZ6QEC",
+                "domain": "US",
+                "series": "amazon,new",
+                "format": "json",
+                "fixture": "product_history_B001GZ6QEC.json",
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "history.export")
+        self.assertEqual(payload["request"]["endpoint"], "/product")
+        self.assertEqual(payload["request"]["params_redacted"]["history"], "1")
+        self.assertEqual(payload["data"]["row_count"], 6)
+        self.assertEqual(payload["data"]["fields"][0], "asin")
+        self.assertEqual(payload["data"]["rows"][0]["series"], "amazon")
+
+    def test_history_trend_returns_analysis_summary(self):
+        payload = run_command(
+            "history.trend",
+            {
+                "asin": "B001GZ6QEC",
+                "domain": "US",
+                "series": "amazon",
+                "window_days": [30, 90],
+                "fixture": "product_history_B001GZ6QEC.json",
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        summary = payload["data"]["analysis"]["series"]["amazon"]["all_time"]
+        self.assertEqual(summary["points"], 3)
+        self.assertEqual(summary["latest"]["value"], 10.99)
+        self.assertEqual(summary["change"]["absolute"], -2.0)
+
+    def test_history_export_reports_missing_csv_field(self):
+        payload = run_command(
+            "history.export",
+            {
+                "asin": "B001GZ6QEC",
+                "domain": "US",
+                "fixture": "product_B001GZ6QEC.json",
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["kind"], "history_unavailable")
+
+    def test_history_export_reports_empty_series(self):
+        payload = run_command(
+            "history.export",
+            {
+                "asin": "B001GZ6QEC",
+                "domain": "US",
+                "series": "amazon",
+                "fixture": "product_history_empty_B001GZ6QEC.json",
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["kind"], "history_empty")
+
+    def test_history_export_can_write_csv_file(self):
+        with TemporaryDirectory() as temp_dir:
+            out_path = Path(temp_dir) / "history.csv"
+            payload = run_command(
+                "history.export",
+                {
+                    "asin": "B001GZ6QEC",
+                    "domain": "US",
+                    "series": "amazon",
+                    "format": "csv",
+                    "out": str(out_path),
+                    "fixture": "product_history_B001GZ6QEC.json",
+                },
+                fixture_dir=FIXTURES,
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            self.assertTrue(out_path.is_file())
+            self.assertEqual(payload["data"]["output"]["row_count"], 3)
+            self.assertEqual(payload["data"]["output"]["path"], str(out_path))
 
 
 if __name__ == "__main__":

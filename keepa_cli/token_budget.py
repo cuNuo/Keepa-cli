@@ -52,6 +52,10 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
     if normalized in {"categories.get", "category.get", "categories.search", "category.search"}:
         return BudgetEstimate(1, 2 if params.get("parents") else 1, bool(params.get("parents")))
 
+    if normalized in {"history.export", "history.trend", "history.analyze"}:
+        item_count = max(_count_items(params.get("asin") or params.get("asins")), 1)
+        return BudgetEstimate(item_count, item_count, False)
+
     if normalized in {"deals.query", "deal.query"}:
         return BudgetEstimate(5, 5, False)
 

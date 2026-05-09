@@ -36,6 +36,17 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},
                 env={},
             ),
+            "history_trend": run_command(
+                "history.trend",
+                {
+                    "asin": "B001GZ6QEC",
+                    "domain": "US",
+                    "series": "amazon",
+                    "window_days": [30],
+                    "fixture": "product_history_B001GZ6QEC.json",
+                },
+                env={},
+            ),
             "stdio_products_get": handle_stdio_message(
                 json.dumps(
                     {

@@ -70,6 +70,114 @@
     },
     "token_bucket": {}
   },
+  "history_trend": {
+    "command": "str",
+    "data": {
+      "analysis": {
+        "series": {
+          "amazon": {
+            "all_time": {
+              "average": "float",
+              "change": {
+                "absolute": "float",
+                "percent": "float"
+              },
+              "latest": {
+                "keepa_minute": "int",
+                "raw_value": "int",
+                "timestamp": "str",
+                "value": "float"
+              },
+              "max": {
+                "keepa_minute": "int",
+                "raw_value": "int",
+                "timestamp": "str",
+                "value": "float"
+              },
+              "min": {
+                "keepa_minute": "int",
+                "raw_value": "int",
+                "timestamp": "str",
+                "value": "float"
+              },
+              "oldest": {
+                "keepa_minute": "int",
+                "raw_value": "int",
+                "timestamp": "str",
+                "value": "float"
+              },
+              "points": "int",
+              "unit": "str",
+              "volatility": "float"
+            },
+            "windows": {
+              "30": {
+                "average": "float",
+                "change": {
+                  "absolute": "float",
+                  "percent": "float"
+                },
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "min": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "oldest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "points": "int",
+                "unit": "str",
+                "volatility": "float"
+              }
+            }
+          }
+        }
+      },
+      "asin": "str",
+      "domain": "str",
+      "series": [
+        "str"
+      ]
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "asin": "str",
+        "domain": "str",
+        "history": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_in_ms": "int",
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
   "products_get": {
     "command": "str",
     "data": {

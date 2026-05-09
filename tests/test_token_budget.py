@@ -24,6 +24,12 @@ class TokenBudgetTests(unittest.TestCase):
         self.assertEqual(estimate.estimated_tokens, 50)
         self.assertTrue(estimate.requires_confirmation)
 
+    def test_history_budget_counts_asins_without_confirmation(self):
+        estimate = estimate_request_budget("history.trend", {"asin": "B001GZ6QEC"})
+
+        self.assertEqual(estimate.estimated_tokens, 1)
+        self.assertFalse(estimate.requires_confirmation)
+
     def test_budget_can_be_serialized_for_agent(self):
         estimate = BudgetEstimate(estimated_tokens=1, worst_case_tokens=6, requires_confirmation=True)
 

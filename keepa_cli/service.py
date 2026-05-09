@@ -12,11 +12,13 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.client import KeepaClient
 from keepa_cli.config import build_config_report, init_config
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
+from keepa_cli.history_export import build_history_export_data, extract_history_rows, normalize_series_names
 
 
 DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -173,6 +175,161 @@ def _categories_search(params: Mapping[str, Any], fixture_dir: Path | str | None
     )
 
 
+def _keepa_body_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        return {}
+    body = data.get("body")
+    if isinstance(body, dict):
+        return body
+    return data
+
+
+def _find_product(body: dict[str, Any], asin: str) -> dict[str, Any] | None:
+    products = body.get("products")
+    if not isinstance(products, list):
+        return None
+    for product in products:
+        if isinstance(product, dict) and str(product.get("asin", "")).upper() == asin.upper():
+            return product
+    for product in products:
+        if isinstance(product, dict):
+            return product
+    return None
+
+
+def _history_product_payload(
+    command: str,
+    params: Mapping[str, Any],
+    fixture_dir: Path | str | None,
+) -> dict[str, Any]:
+    asins = _as_list(params.get("asin") or params.get("asins"))
+    if len(asins) != 1:
+        return error_envelope(
+            command=command,
+            kind="invalid_argument",
+            message=f"{command} requires exactly one asin",
+        )
+
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "asin": asins[0],
+        "history": "1",
+    }
+    return _client(fixture_dir).request(
+        command=command,
+        method="GET",
+        path="/product",
+        params=request_params,
+        dry_run=bool(params.get("dry_run")),
+        fixture=params.get("fixture"),
+    )
+
+
+def _history_rows_from_payload(
+    command: str,
+    params: Mapping[str, Any],
+    payload: dict[str, Any],
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]] | None, dict[str, Any] | None]:
+    asin = _as_list(params.get("asin") or params.get("asins"))[0]
+    body = _keepa_body_from_payload(payload)
+    product = _find_product(body, asin)
+    if product is None:
+        return (
+            error_envelope(
+                command=command,
+                kind="product_not_found",
+                message=f"product not found in Keepa response: {asin}",
+                token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else None,
+            ),
+            None,
+            None,
+        )
+
+    try:
+        rows = extract_history_rows(
+            product,
+            normalize_series_names(params.get("series")),
+            include_missing=bool(params.get("include_missing")),
+        )
+    except ValueError as exc:
+        return (
+            error_envelope(
+                command=command,
+                kind="history_unavailable",
+                message=str(exc),
+                token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else None,
+            ),
+            None,
+            None,
+        )
+    if not rows:
+        return (
+            error_envelope(
+                command=command,
+                kind="history_empty",
+                message="selected history series contains no data points",
+                token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else None,
+            ),
+            None,
+            None,
+        )
+    return None, rows, product
+
+
+def _history_export(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    payload = _history_product_payload("history.export", params, fixture_dir)
+    if not payload.get("ok") or payload.get("data", {}).get("dry_run"):
+        return payload
+
+    error, rows, product = _history_rows_from_payload("history.export", params, payload)
+    if error is not None:
+        return error
+    assert rows is not None
+    assert product is not None
+
+    output_format = str(params.get("format") or "json").lower()
+    data = build_history_export_data(
+        asin=str(product.get("asin", _as_list(params.get("asin"))[0])),
+        domain=str(params.get("domain", "US")),
+        rows=rows,
+        output_format=output_format,
+        output_path=params.get("out"),
+    )
+    return success_envelope(
+        command="history.export",
+        data=data,
+        request=payload.get("request") if isinstance(payload.get("request"), dict) else {},
+        token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else {},
+    )
+
+
+def _history_trend(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    payload = _history_product_payload("history.trend", params, fixture_dir)
+    if not payload.get("ok") or payload.get("data", {}).get("dry_run"):
+        return payload
+
+    error, rows, product = _history_rows_from_payload("history.trend", params, payload)
+    if error is not None:
+        return error
+    assert rows is not None
+    assert product is not None
+
+    window_days = [int(item) for item in _as_list(params.get("window_days"))] or [30, 90, 180]
+    data = {
+        "asin": str(product.get("asin", _as_list(params.get("asin"))[0])),
+        "domain": str(params.get("domain", "US")),
+        "series": normalize_series_names(params.get("series")),
+        "analysis": analyze_history_rows(rows, window_days=window_days),
+    }
+    return success_envelope(
+        command="history.trend",
+        data=data,
+        request=payload.get("request") if isinstance(payload.get("request"), dict) else {},
+        token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else {},
+    )
+
+
 def run_command(
     command: str,
     params: Mapping[str, Any] | None = None,
@@ -230,6 +387,10 @@ def run_command(
             return _categories_get(params, fixture_dir)
         if command == "categories.search":
             return _categories_search(params, fixture_dir)
+        if command == "history.export":
+            return _history_export(params, fixture_dir)
+        if command in {"history.trend", "history.analyze"}:
+            return _history_trend(params, fixture_dir)
     except ValueError as exc:
         return error_envelope(command=command, kind="invalid_argument", message=str(exc))
 

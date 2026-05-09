@@ -1,0 +1,14 @@
+{
+  "tokensLeft": 88,
+  "tokensConsumed": 1,
+  "refillRate": 20,
+  "refillIn": 0,
+  "products": [
+    {
+      "asin": "B001GZ6QEC",
+      "title": "Fixture empty history product",
+      "domainId": 1,
+      "csv": [[], [], [], []]
+    }
+  ]
+}

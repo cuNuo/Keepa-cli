@@ -161,6 +161,15 @@ kc = "keepa_cli.cli:main"
 
 `categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`。
 
+### history export/trend
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json history export B001GZ6QEC --domain US --series amazon,new --format json --fixture product_history_B001GZ6QEC.json
+.\.venv\Scripts\python.exe -m keepa_cli --json history trend B001GZ6QEC --domain US --series amazon --window-days 30 --fixture product_history_B001GZ6QEC.json
+```
+
+`history.export` 复用官方 Product Request `/product` 并强制 `history=1`，把 Product Object 的 `csv` 历史展开成稳定 rows；支持 `json`、`jsonl`、`csv` 和 `--out` 文件导出。`history.trend` 基于同一 rows 返回 all-time 与窗口统计。当前冻结序列为 `amazon`、`new`、`used`、`sales_rank`。
+
 ## 5. Fixture
 
 当前 fixture：
@@ -168,6 +177,8 @@ kc = "keepa_cli.cli:main"
 ```text
 tests/fixtures/product_B001GZ6QEC.json
 tests/fixtures/product_search_coffee.json
+tests/fixtures/product_history_B001GZ6QEC.json
+tests/fixtures/product_history_empty_B001GZ6QEC.json
 tests/fixtures/category_roots_US.json
 tests/fixtures/category_search_home.json
 ```
@@ -187,6 +198,7 @@ tests/fixtures/category_search_home.json
 /doctor
 /domains
 /product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json
+/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json
 /category 0 --domain US --parents --fixture category_roots_US.json
 /category-search home kitchen --domain US --fixture category_search_home.json
 /quit
@@ -212,6 +224,7 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 - `doctor`
 - `products.get`
 - `categories.search`
+- `history.trend`
 - `stdio products.get` 事件流
 
 更新规则：

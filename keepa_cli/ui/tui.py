@@ -94,6 +94,7 @@ def _welcome(env: Mapping[str, str] | None) -> list[str]:
                 "/doctor",
                 "/domains",
                 "/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json",
+                "/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
                 "/category 0 --domain US --parents --fixture category_roots_US.json",
                 "/category-search home kitchen --domain US --fixture category_search_home.json",
                 "/quit",
@@ -137,6 +138,10 @@ def _slash_to_command(line: str) -> tuple[str, dict[str, Any]]:
         return "products.get", {"asin": positional, **options}
     if slash_command == "product-search":
         return "products.search", {"term": " ".join(positional), **options}
+    if slash_command == "history":
+        return "history.trend", {"asin": positional[:1], **options}
+    if slash_command == "history-export":
+        return "history.export", {"asin": positional[:1], **options}
     if slash_command == "category":
         return "categories.get", {"category": positional, **options}
     if slash_command == "category-search":
@@ -159,6 +164,25 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
         return lines
 
     if isinstance(data, dict):
+        analysis = data.get("analysis")
+        if isinstance(analysis, dict):
+            series_map = analysis.get("series", {})
+            if isinstance(series_map, dict):
+                for series, series_data in list(series_map.items())[:3]:
+                    if isinstance(series_data, dict):
+                        all_time = series_data.get("all_time", {})
+                        if isinstance(all_time, dict):
+                            latest = all_time.get("latest", {})
+                            points = all_time.get("points", 0)
+                            value = latest.get("value") if isinstance(latest, dict) else ""
+                            lines.append(f"历史    {series} points={points} latest={value}")
+                return lines
+        if "row_count" in data:
+            lines.append(f"导出    rows={data.get('row_count')} format={data.get('format')}")
+            output = data.get("output")
+            if isinstance(output, dict):
+                lines.append(f"文件    {output.get('path', '')}")
+            return lines
         body = data.get("body")
         if isinstance(body, dict):
             products = body.get("products")
