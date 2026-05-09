@@ -28,6 +28,8 @@ Keepa CLI wraps Keepa API workflows into a stable command-line surface for agent
 - Prompt-toolkit TUI with slash completion, command history, a bottom status bar, and copyable output.
 - Fixture/offline mode, dry-run requests, token budget hints, and secret redaction.
 - Safe `/graphimage` handling with explicit `--out` for binary PNG output.
+- Finder, Deals, Seller, Best Sellers, Top Sellers, Tracking, and webhook command families.
+- Local browse snapshots, batch ASIN plans, workflow templates, markdown/JSON/CSV reports, cache explain, and cost audit.
 - Release gate for compile, tests, fixture sync, Python/Node smoke, and npm pack dry-run.
 
 ## Installation
@@ -127,6 +129,37 @@ Graph Image live downloads must write to a file:
 kc --json graphs image B09YNQCQKR --domain US --width 800 --height 400 --range 365 --param amazon=1 --dry-run
 ```
 
+## Local Workflows
+
+Build an offline batch plan, report, and local HTML browse snapshot:
+
+```powershell
+kc --json batch asins .\asins.txt --domain US --dry-run --out .\batch.json
+kc --json reports build --input .\batch.json --format markdown --out .\report.md
+kc --json browse snapshot --input .\batch.json --out-dir .\keepa-browse
+```
+
+Use built-in workflow templates:
+
+```powershell
+kc --json templates list
+kc --json templates show finder-basic --out .\finder-basic.json
+```
+
+Explain provenance and estimate token cost before live work:
+
+```powershell
+kc --json cache explain --input .\batch.json --command products.get
+kc --json audit cost products.get --param asin=B001GZ6QEC
+```
+
+Tracking and webhook write paths stay dry-run by default in examples:
+
+```powershell
+kc --json tracking add --tracking-file .\tracking.json --dry-run
+kc --json tracking webhook https://example.invalid/keepa --dry-run
+```
+
 ## TUI
 
 Start the command-first terminal interface:
@@ -190,6 +223,7 @@ Contracts:
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 .\.venv\Scripts\python.exe scripts\release_gate.py --skip-npm-install
+.\.venv\Scripts\python.exe scripts\install_verify.py --skip-npm-pack
 .\.venv\Scripts\python.exe D:\.codex\hooks\run_relevant_hooks.py --changed-only
 git diff --check
 ```
@@ -214,6 +248,7 @@ npm pack --dry-run --json
 - [Implementation research report](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
 - [Development roadmap](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
 - [service.py / cli.py split plan](docs/architecture/service-cli-split-plan.md)
+- [Companion skill](.codex/skills/keepa-cli/SKILL.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
 - [Changelog](CHANGELOG.md)

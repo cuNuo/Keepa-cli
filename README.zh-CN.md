@@ -13,6 +13,14 @@
 
 Keepa CLI 将 Keepa API 工作流封装为稳定、可审计、适合 Agent 和人类共同使用的命令行界面。默认离线优先：dry-run 和 fixture 不访问 Keepa，也不消耗 token。真实请求必须显式配置 Keepa token。
 
+## 能力概览
+
+- `keepa-cli` 与 `kc` 双入口等价。
+- Finder、Deals、Seller、Best Sellers、Top Sellers、Tracking 与 webhook 命令族。
+- 本地 Web 浏览快照、ASIN 批处理、工作流模板、Markdown/JSON/CSV 报告。
+- cache explain 与成本审计，便于上线前确认 provenance 和 token 预算。
+- 发布门禁包含测试、fixture 同步、Python/Node smoke、npm pack dry-run 和跨平台安装验证。
+
 ## 安装
 
 本地开发：
@@ -102,6 +110,37 @@ kc --json bestsellers get 172282 --domain US --dry-run
 kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
 ```
 
+## 本地工作流
+
+生成离线批处理计划、报告和本地 HTML 浏览页面：
+
+```powershell
+kc --json batch asins .\asins.txt --domain US --dry-run --out .\batch.json
+kc --json reports build --input .\batch.json --format markdown --out .\report.md
+kc --json browse snapshot --input .\batch.json --out-dir .\keepa-browse
+```
+
+查看内置模板：
+
+```powershell
+kc --json templates list
+kc --json templates show finder-basic --out .\finder-basic.json
+```
+
+上线前解释缓存来源并估算 token 成本：
+
+```powershell
+kc --json cache explain --input .\batch.json --command products.get
+kc --json audit cost products.get --param asin=B001GZ6QEC
+```
+
+Tracking 与 webhook 示例默认 dry-run：
+
+```powershell
+kc --json tracking add --tracking-file .\tracking.json --dry-run
+kc --json tracking webhook https://example.invalid/keepa --dry-run
+```
+
 ## TUI
 
 启动命令优先的终端界面：
@@ -137,6 +176,7 @@ kc --json domains list
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 .\.venv\Scripts\python.exe scripts\release_gate.py --skip-npm-install
+.\.venv\Scripts\python.exe scripts\install_verify.py --skip-npm-pack
 git diff --check
 ```
 

@@ -1,4 +1,38 @@
 {
+  "audit_cost": {
+    "command": "str",
+    "data": {
+      "items": [
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "params": {
+            "asin": [
+              "str"
+            ]
+          },
+          "requires_confirmation": "bool",
+          "worst_case_tokens": "int"
+        }
+      ],
+      "provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "requires_confirmation": "bool",
+      "totals": {
+        "estimated_tokens": "int",
+        "worst_case_tokens": "int"
+      }
+    },
+    "ok": "bool",
+    "request": {
+      "transport": "str"
+    },
+    "token_bucket": {}
+  },
   "bestsellers_get": {
     "command": "str",
     "data": {
@@ -32,6 +66,69 @@
     "command": "str",
     "data": {
       "commands": [
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
         {
           "estimated_tokens": "int",
           "name": "str",
@@ -780,6 +877,38 @@
       "id": "str"
     }
   ],
+  "templates_list": {
+    "command": "str",
+    "data": {
+      "templates": [
+        {
+          "description": "str",
+          "kind": "str",
+          "name": "str"
+        },
+        {
+          "description": "str",
+          "kind": "str",
+          "name": "str"
+        },
+        {
+          "description": "str",
+          "kind": "str",
+          "name": "str"
+        },
+        {
+          "description": "str",
+          "kind": "str",
+          "name": "str"
+        }
+      ]
+    },
+    "ok": "bool",
+    "request": {
+      "transport": "str"
+    },
+    "token_bucket": {}
+  },
   "tokens_status": {
     "command": "str",
     "data": {

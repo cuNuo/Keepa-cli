@@ -24,6 +24,10 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("tui", payload["data"]["protocols"])
         command_names = {item["name"] for item in payload["data"]["commands"]}
         self.assertIn("graphs.image", command_names)
+        self.assertIn("browse.snapshot", command_names)
+        self.assertIn("reports.build", command_names)
+        self.assertIn("cache.explain", command_names)
+        self.assertIn("audit.cost", command_names)
         graph = next(item for item in payload["data"]["commands"] if item["name"] == "graphs.image")
         self.assertTrue(graph["supports_fixture"])
         self.assertTrue(graph["supports_live"])

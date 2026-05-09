@@ -46,6 +46,10 @@ def main() -> int:
         _run([python, "-m", "compileall", "-q", "keepa_cli", "scripts"], root)
         _run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], root)
         _run([python, "scripts/check_fixture_sync.py"], root)
+        install_verify = [python, "scripts/install_verify.py"]
+        if args.skip_npm_pack:
+            install_verify.append("--skip-npm-pack")
+        _run(install_verify, root, smoke_env)
         _run([python, "-m", "keepa_cli", "--json", "doctor"], root, env=smoke_env)
         _run([node, "bin/keepa-cli.js", "--json", "doctor"], root, env=node_env)
         _run([node, "bin/kc.js", "--json", "doctor"], root, env=node_env)

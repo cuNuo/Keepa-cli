@@ -107,6 +107,12 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"tracking": {"asin": "B09YNQCQKR", "domain": 1}, "dry_run": True},
                 env={},
             ),
+            "templates_list": run_command("templates.list", env={}),
+            "audit_cost": run_command(
+                "audit.cost",
+                {"target_command": "products.get", "params": {"asin": ["B001GZ6QEC"]}},
+                env={},
+            ),
             "stdio_products_get": handle_stdio_message(
                 json.dumps(
                     {
