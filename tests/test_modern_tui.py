@@ -40,6 +40,7 @@ class ModernTuiTests(unittest.TestCase):
         self.assertIn("#status-bar", stylesheet)
         self.assertIn("#result-panel", stylesheet)
         self.assertIn("#quickbar", stylesheet)
+        self.assertIn("#command-row", stylesheet)
         self.assertNotIn("CommandButton", stylesheet)
 
     def test_run_modern_tui_falls_back_when_textual_is_missing(self):
@@ -203,6 +204,25 @@ class ModernTuiTests(unittest.TestCase):
 
         self.assertIn("/product", rendered)
 
+    def test_textual_app_selects_suggestion_with_arrow_keys(self):
+        if not modern_tui.is_textual_available():
+            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+
+        import asyncio
+
+        async def run_smoke():
+            app_class = modern_tui._create_app_class()
+            async with app_class(env={}).run_test(size=(100, 32)) as pilot:
+                command_input = pilot.app.query_one("#command-input")
+                command_input.value = "/"
+                await pilot.press("down")
+                await pilot.press("enter")
+                return command_input.value
+
+        value = asyncio.run(run_smoke())
+
+        self.assertEqual(value, "/capabilities")
+
     def test_textual_app_outputs_parsed_command_and_copyable_json(self):
         if not modern_tui.is_textual_available():
             self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
@@ -216,13 +236,36 @@ class ModernTuiTests(unittest.TestCase):
                 command_input.value = "/doctor"
                 await pilot.press("enter")
                 title = str(pilot.app.query_one("#result-title").renderable)
-                copy_text = pilot.app.query_one("#result-copy").text
+                copy_text = str(pilot.app.query_one("#result-copy-body").renderable)
                 return title, copy_text
 
         title, copy_text = asyncio.run(run_smoke())
 
         self.assertIn("doctor", title)
         self.assertIn('"command": "doctor"', copy_text)
+
+    def test_textual_app_copy_output_is_scrollable(self):
+        if not modern_tui.is_textual_available():
+            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+
+        import asyncio
+
+        async def run_smoke():
+            app_class = modern_tui._create_app_class()
+            async with app_class(env={}).run_test(size=(80, 18)) as pilot:
+                command_input = pilot.app.query_one("#command-input")
+                command_input.value = "/capabilities"
+                await pilot.press("enter")
+                output = pilot.app.query_one("#result-copy")
+                before = output.scroll_y
+                output.scroll_down()
+                await pilot.pause()
+                return before, output.scroll_y, output.max_scroll_y
+
+        before, after, max_scroll_y = asyncio.run(run_smoke())
+
+        self.assertGreater(max_scroll_y, 0)
+        self.assertGreaterEqual(after, before)
 
     def test_textual_app_saves_max_tokens_setting(self):
         if not modern_tui.is_textual_available():

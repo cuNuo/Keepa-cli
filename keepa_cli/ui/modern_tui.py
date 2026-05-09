@@ -167,10 +167,14 @@ Screen {
 }
 
 #command-input {
-    margin-top: 1;
     height: 3;
     border: round #8fb7a8;
     background: #0f1418;
+}
+
+#command-row {
+    height: 3;
+    margin-top: 1;
 }
 
 #result-title {
@@ -180,15 +184,21 @@ Screen {
 }
 
 #result-body {
-    height: 1fr;
+    height: auto;
+    max-height: 8;
     margin-top: 1;
     color: #dce4e8;
 }
 
 #result-copy {
-    height: 8;
+    height: 1fr;
     margin-top: 1;
     border: round #35424b;
+    background: #0f1418;
+    scrollbar-size: 1 1;
+}
+
+#result-copy .text-area--cursor-line {
     background: #0f1418;
 }
 """
@@ -333,8 +343,10 @@ def _settings_needed(config_data: dict[str, Any]) -> bool:
 
 def _create_app_class():
     from textual.app import App, ComposeResult
-    from textual.containers import Horizontal, Vertical
-    from textual.widgets import Button, Footer, Header, Input, Static, TextArea
+    from textual.containers import Horizontal, ScrollableContainer, Vertical
+    from textual.events import Key
+    from textual.widgets import Button, Header, Input, Static, TextArea
+    from rich.text import Text
 
     class KeepaModernTui(App[None]):
         CSS = MODERN_TUI_CSS
@@ -350,6 +362,8 @@ def _create_app_class():
         def __init__(self, *, env: dict[str, str] | None = None) -> None:
             super().__init__()
             self.env = env
+            self._suggestions: list[CommandItem] = []
+            self._suggestion_index = 0
 
         def compose(self) -> ComposeResult:
             context = _doctor_context(self.env)
@@ -377,10 +391,10 @@ def _create_app_class():
                 with Vertical(id="result-panel"):
                     yield Static(text["result"], id="result-title")
                     yield Static(text["ready"], id="result-body")
-                    yield TextArea("", id="result-copy", read_only=True)
+                    with ScrollableContainer(id="result-copy"):
+                        yield Static("", id="result-copy-body")
                 with Vertical(id="command-row"):
                     yield Input(placeholder="/doctor", id="command-input")
-            yield Footer()
 
         def on_mount(self) -> None:
             self.query_one("#command-input", Input).focus()
@@ -395,6 +409,11 @@ def _create_app_class():
             value = event.value.strip()
             if not value:
                 return
+            if event.input.id == "command-input" and self._suggestions:
+                selected = self._suggestions[self._suggestion_index]
+                if value != selected.slash:
+                    self._accept_suggestion()
+                    return
             event.input.value = ""
             self._hide_suggestions()
             if value in {"/quit", "quit", "exit"}:
@@ -406,6 +425,19 @@ def _create_app_class():
             if event.input.id != "command-input":
                 return
             self._update_suggestions(event.value)
+
+        def on_key(self, event: Key) -> None:
+            focused = self.focused
+            if not isinstance(focused, Input) or focused.id != "command-input" or not self._suggestions:
+                return
+            if event.key in {"down", "ctrl+n"}:
+                self._move_suggestion(1)
+                event.stop()
+                event.prevent_default()
+            if event.key in {"up", "ctrl+p"}:
+                self._move_suggestion(-1)
+                event.stop()
+                event.prevent_default()
 
         def action_doctor(self) -> None:
             self._run_slash("/doctor")
@@ -428,8 +460,8 @@ def _create_app_class():
             formatted = _format_result(payload)
             detail = json.dumps(payload, ensure_ascii=False, indent=2)
             self.query_one("#result-title", Static).update(title)
-            self.query_one("#result-body", Static).update(formatted)
-            self.query_one("#result-copy", TextArea).text = detail
+            self.query_one("#result-body", Static).update(Text(formatted))
+            self.query_one("#result-copy-body", Static).update(Text(detail))
 
         def _save_token(self, token: str) -> None:
             text = self._text()
@@ -444,11 +476,11 @@ def _create_app_class():
             if payload.get("ok"):
                 data = payload.get("data", {})
                 path = data.get("path", "") if isinstance(data, dict) else ""
-                self.query_one("#result-body", Static).update(f"{text['token_saved']}\n{path}")
+                self.query_one("#result-body", Static).update(Text(f"{text['token_saved']}\n{path}"))
                 self._refresh_status()
                 self._collapse_settings_if_complete()
             else:
-                self.query_one("#result-body", Static).update(_format_result(payload))
+                self.query_one("#result-body", Static).update(Text(_format_result(payload)))
 
         def _save_max_tokens(self, value: str) -> None:
             text = self._text()
@@ -458,11 +490,11 @@ def _create_app_class():
             if payload.get("ok"):
                 data = payload.get("data", {})
                 max_tokens = data.get("max_tokens_per_request", "") if isinstance(data, dict) else ""
-                self.query_one("#result-body", Static).update(f"{text['budget_saved']}\n{max_tokens}")
+                self.query_one("#result-body", Static).update(Text(f"{text['budget_saved']}\n{max_tokens}"))
                 self._refresh_status()
                 self._collapse_settings_if_complete()
             else:
-                self.query_one("#result-body", Static).update(_format_result(payload))
+                self.query_one("#result-body", Static).update(Text(_format_result(payload)))
 
         def _text(self) -> dict[str, str]:
             config = build_config_report(env=self.env)
@@ -485,17 +517,42 @@ def _create_app_class():
                 for item in build_command_catalog(language)
                 if item.slash.lower().startswith(query) or item.label.lower().startswith(query.lstrip("/"))
             ][:5]
+            self._suggestions = matches
+            self._suggestion_index = min(self._suggestion_index, max(len(matches) - 1, 0))
             if not matches:
                 quickbar.update("")
                 quickbar.add_class("hidden")
                 return
-            quickbar.update("\n".join(f"{item.label:<13} {item.slash}" for item in matches))
+            quickbar.update(self._render_suggestions())
             quickbar.remove_class("hidden")
 
         def _hide_suggestions(self) -> None:
             quickbar = self.query_one("#quickbar", Static)
             quickbar.update("")
             quickbar.add_class("hidden")
+            self._suggestions = []
+            self._suggestion_index = 0
+
+        def _render_suggestions(self) -> Text:
+            rendered = Text()
+            for index, item in enumerate(self._suggestions):
+                prefix = "> " if index == self._suggestion_index else "  "
+                style = "bold #f2c66d" if index == self._suggestion_index else "#dce4e8"
+                rendered.append(f"{prefix}{item.label:<13} {item.slash}", style=style)
+                if index < len(self._suggestions) - 1:
+                    rendered.append("\n")
+            return rendered
+
+        def _move_suggestion(self, delta: int) -> None:
+            if not self._suggestions:
+                return
+            self._suggestion_index = (self._suggestion_index + delta) % len(self._suggestions)
+            self.query_one("#quickbar", Static).update(self._render_suggestions())
+
+        def _accept_suggestion(self) -> None:
+            selected = self._suggestions[self._suggestion_index]
+            self.query_one("#command-input", Input).value = selected.slash
+            self._hide_suggestions()
 
         def _refresh_status(self) -> None:
             context = _doctor_context(self.env)
