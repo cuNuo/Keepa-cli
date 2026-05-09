@@ -138,6 +138,10 @@ deals.query       -> /deal
 sellers.get       -> /seller
 bestsellers.get   -> /bestsellers
 topsellers.list   -> /topseller
+tokens.status     -> /token
+graphs.image      -> /graphimage
+lightningdeals.list -> /lightningdeal
+tracking.*        -> /tracking
 ```
 
 当前命令：
@@ -148,6 +152,10 @@ topsellers.list   -> /topseller
 .\.venv\Scripts\kc.exe --json sellers get A2L77EE7U53NWQ --domain US --storefront --fixture seller_A2L77EE7U53NWQ.json
 .\.venv\Scripts\kc.exe --json bestsellers get 172282 --domain US --dry-run
 .\.venv\Scripts\kc.exe --json topsellers list --domain US --fixture topsellers_US.json --out topsellers.json
+.\.venv\Scripts\kc.exe --json tokens status --fixture token_status.json
+.\.venv\Scripts\kc.exe --json graphs image B09YNQCQKR --domain US --param amazon=1 --dry-run
+.\.venv\Scripts\kc.exe --json lightningdeals list --domain US --fixture lightningdeals_US.json
+.\.venv\Scripts\kc.exe --json tracking list-names --dry-run
 ```
 
 实现边界：
@@ -158,6 +166,15 @@ topsellers.list   -> /topseller
 - `deals.query` 估算 5 tokens；`sellers.get` 按 seller id 数估算。
 - 大结果命令支持 `--out`，写入响应 body 的 JSON 文件，并在 envelope 中返回 `path`、`format`、`size_bytes` 与 `result_count`。
 - fixture 与 dry-run 是当前唯一自动化验证路径；真实 live smoke 后续只能手动触发并录制脱敏 cassette。
+
+## 官方链路补齐记录
+
+本轮对照 Keepa 官方 Java API framework 的 `Request.java` 与 Keepa Python wrapper 文档，确认除已落地的 product/search/category/query/deal/seller/bestsellers/topseller 外，还应补齐以下高价值链路：
+
+- `/token`：通过 `tokens.status` 读取 token bucket 状态，估算成本为 0。
+- `/graphimage`：通过 `graphs.image` 构建 Graph Image API 请求；真实响应为 PNG 二进制，当前只开放 dry-run/fixture 信息流，live binary download 留给后续专用 transport。
+- `/lightningdeal`：通过 `lightningdeals.list` 查询全部或指定 ASIN 的 Lightning Deals。
+- `/tracking`：通过 `tracking.list`、`tracking.list-names`、`tracking.get`、`tracking.notifications` 做只读信息流；通过 `tracking.add`、`tracking.remove`、`tracking.remove-all`、`tracking.webhook` 做写类信息流。写类真实请求必须 `--yes`，避免 Agent 阻塞或误触发长期跟踪副作用。
 
 ## 本仓库信息流测试策略
 

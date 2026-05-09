@@ -1,0 +1,14 @@
+{
+  "lightningDeals": [
+    {
+      "asin": "B09YNQCQKR",
+      "domainId": 1,
+      "endTime": 7931520,
+      "startTime": 7930920,
+      "title": "Fixture lightning deal"
+    }
+  ],
+  "refillRate": 5,
+  "tokensConsumed": 1,
+  "tokensLeft": 41
+}

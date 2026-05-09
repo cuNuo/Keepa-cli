@@ -19,7 +19,7 @@ class RequestSpec:
     endpoint: str
     params: dict[str, Any]
     dry_run: bool = False
-    json_body: dict[str, Any] | None = None
+    json_body: dict[str, Any] | list[Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
@@ -39,7 +39,7 @@ def build_request_spec(
     path: str,
     params: dict[str, Any] | None = None,
     dry_run: bool = False,
-    json_body: dict[str, Any] | None = None,
+    json_body: dict[str, Any] | list[Any] | None = None,
 ) -> RequestSpec:
     endpoint = path if path.startswith("/") else f"/{path}"
     return RequestSpec(

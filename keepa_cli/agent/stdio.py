@@ -62,7 +62,8 @@ def handle_stdio_message(raw_message: str, *, env: Mapping[str, str] | None = No
     budget = estimate_request_budget(method, params).to_dict()
     events.append(_event(message_id, "budget_estimated", **budget))
 
-    if budget["requires_confirmation"] and not params.get("yes"):
+    bypass_confirmation = bool(params.get("yes") or params.get("dry_run") or params.get("dry-run") or params.get("fixture"))
+    if budget["requires_confirmation"] and not bypass_confirmation:
         events.append(_event(message_id, "response", payload=_confirmation_required(method, budget)))
         events.append(_event(message_id, "done"))
         return events

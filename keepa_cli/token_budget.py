@@ -56,6 +56,15 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
         item_count = max(_count_items(params.get("asin") or params.get("asins")), 1)
         return BudgetEstimate(item_count, item_count, False)
 
+    if normalized in {"tokens.status", "token.status"}:
+        return BudgetEstimate(0, 0, False)
+
+    if normalized in {"graphs.image", "graph.image"}:
+        return BudgetEstimate(1, 1, False)
+
+    if normalized in {"lightningdeals.list", "lightningdeal.list"}:
+        return BudgetEstimate(1, 1, False)
+
     if normalized in {"deals.query", "deal.query"}:
         return BudgetEstimate(5, 5, False)
 
@@ -68,6 +77,9 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
 
     if normalized in {"bestsellers.get", "topsellers.list", "topseller.list"}:
         return BudgetEstimate(50, 50, True)
+
+    if normalized in {"tracking.list", "tracking.list-names", "tracking.get", "tracking.notifications"}:
+        return BudgetEstimate(1, int(params.get("max_tokens") or 1), False)
 
     if normalized.startswith("tracking."):
         return BudgetEstimate(1, int(params.get("max_tokens") or 1), True)

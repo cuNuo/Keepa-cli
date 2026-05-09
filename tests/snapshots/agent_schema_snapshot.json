@@ -117,6 +117,34 @@
       }
     }
   },
+  "graphs_image": {
+    "command": "str",
+    "data": {
+      "dry_run": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "amazon": "int",
+        "asin": "str",
+        "domain": "str",
+        "height": "int",
+        "new": "int",
+        "range": "int",
+        "width": "int"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
+    }
+  },
   "history_trend": {
     "command": "str",
     "data": {
@@ -223,6 +251,28 @@
       "refill_rate": "int",
       "tokens_consumed": "int",
       "tokens_left": "int"
+    }
+  },
+  "lightningdeals_list": {
+    "command": "str",
+    "data": {
+      "dry_run": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "domain": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
     }
   },
   "products_get": {
@@ -375,5 +425,89 @@
       "event": "str",
       "id": "str"
     }
-  ]
+  ],
+  "tokens_status": {
+    "command": "str",
+    "data": {
+      "body": {
+        "refillIn": "int",
+        "refillRate": "int",
+        "tokenFlowReduction": "int",
+        "tokensConsumed": "int",
+        "tokensLeft": "int"
+      },
+      "fixture": "str",
+      "offline": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {}
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_in_ms": "int",
+      "refill_rate": "int",
+      "token_flow_reduction": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
+  "tracking_add": {
+    "command": "str",
+    "data": {
+      "dry_run": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "json_body_redacted": [
+        {
+          "asin": "str",
+          "domain": "int"
+        }
+      ],
+      "method": "str",
+      "params_redacted": {
+        "type": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
+    }
+  },
+  "tracking_list": {
+    "command": "str",
+    "data": {
+      "dry_run": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "asins-only": "str",
+        "type": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
+    }
+  }
 }

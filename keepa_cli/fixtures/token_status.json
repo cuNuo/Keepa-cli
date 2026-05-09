@@ -1,0 +1,7 @@
+{
+  "refillIn": 12000,
+  "refillRate": 5,
+  "tokenFlowReduction": 0,
+  "tokensConsumed": 0,
+  "tokensLeft": 42
+}

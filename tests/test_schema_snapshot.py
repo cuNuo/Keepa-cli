@@ -72,6 +72,40 @@ class SchemaSnapshotTests(unittest.TestCase):
                 },
                 env={},
             ),
+            "tokens_status": run_command(
+                "tokens.status",
+                {"fixture": "token_status.json"},
+                env={},
+            ),
+            "graphs_image": run_command(
+                "graphs.image",
+                {
+                    "asin": "B09YNQCQKR",
+                    "domain": "US",
+                    "width": 800,
+                    "height": 400,
+                    "range": 365,
+                    "amazon": 1,
+                    "new": 1,
+                    "dry_run": True,
+                },
+                env={},
+            ),
+            "lightningdeals_list": run_command(
+                "lightningdeals.list",
+                {"domain": "US", "dry_run": True},
+                env={},
+            ),
+            "tracking_list": run_command(
+                "tracking.list",
+                {"asins_only": True, "dry_run": True},
+                env={},
+            ),
+            "tracking_add": run_command(
+                "tracking.add",
+                {"tracking": {"asin": "B09YNQCQKR", "domain": 1}, "dry_run": True},
+                env={},
+            ),
             "stdio_products_get": handle_stdio_message(
                 json.dumps(
                     {

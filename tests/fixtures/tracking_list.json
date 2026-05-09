@@ -1,0 +1,13 @@
+{
+  "refillRate": 5,
+  "tokensConsumed": 0,
+  "tokensLeft": 42,
+  "trackings": [
+    {
+      "asin": "B09YNQCQKR",
+      "domain": 1,
+      "desiredPricesInMainCurrency": true,
+      "title": "Fixture tracked product"
+    }
+  ]
+}

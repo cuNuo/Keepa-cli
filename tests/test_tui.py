@@ -61,6 +61,24 @@ class TuiTests(unittest.TestCase):
         self.assertIn("[bestsellers.get] OK", rendered)
         self.assertIn("预算    estimated=50 worst=50 confirm=True", rendered)
 
+    def test_tui_official_gap_commands_use_service_paths(self):
+        output = run_tui_session(
+            [
+                "/tokens --fixture token_status.json",
+                "/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
+                "/lightningdeals --domain US --dry-run",
+                "/tracking-list --asins-only --dry-run",
+                "/quit",
+            ],
+            env={},
+        )
+
+        rendered = "\n".join(output)
+        self.assertIn("[tokens.status] OK", rendered)
+        self.assertIn("[graphs.image] OK", rendered)
+        self.assertIn("[lightningdeals.list] OK", rendered)
+        self.assertIn("[tracking.list] OK", rendered)
+
     def test_piped_interactive_tui_prints_session_output_on_separate_lines(self):
         stdin = StringIO("/doctor\n/quit\n")
         stdout = StringIO()

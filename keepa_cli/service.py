@@ -8,6 +8,8 @@ keepa_cli/service.py
 from __future__ import annotations
 
 import os
+import json
+import urllib.parse
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -216,6 +218,214 @@ def _confirmation_required(command: str, params: Mapping[str, Any]) -> dict[str,
         },
         token_bucket={"estimated": budget},
     )
+
+
+def _tokens_status(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    return _client(fixture_dir).request(
+        command="tokens.status",
+        method="GET",
+        path="/token",
+        params={},
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+
+
+def _graph_image(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    asin = str(_param(params, "asin", default="")).strip()
+    if not asin:
+        return error_envelope(
+            command="graphs.image",
+            kind="invalid_argument",
+            message="graphs.image requires an ASIN",
+        )
+
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "asin": asin,
+    }
+    for name in (
+        "range",
+        "width",
+        "height",
+        "amazon",
+        "new",
+        "used",
+        "salesrank",
+        "bb",
+        "fba",
+        "warehouse",
+        "ld",
+        "deal",
+        "cBackground",
+        "cAmazon",
+        "cNew",
+        "cUsed",
+        "cBB",
+        "cFBA",
+    ):
+        if _param(params, name) is not None:
+            request_params[name] = _param(params, name)
+
+    extra_params = _param(params, "extra_params", "params")
+    if isinstance(extra_params, Mapping):
+        request_params.update(dict(extra_params))
+
+    if not _bool_option(params, "dry_run", "dry-run") and not params.get("fixture"):
+        budget = estimate_request_budget("graphs.image", request_params).to_dict()
+        return error_envelope(
+            command="graphs.image",
+            kind="live_binary_unsupported",
+            message="graph image live download returns PNG bytes and is not enabled until binary transport is added",
+            details={"offline_alternative": "use --dry-run or --fixture"},
+            token_bucket={"estimated": budget},
+        )
+
+    return _client(fixture_dir).request(
+        command="graphs.image",
+        method="GET",
+        path="/graphimage",
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+
+
+def _lightningdeals_list(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+    }
+    asin = str(_param(params, "asin", default="")).strip()
+    if asin:
+        request_params["asin"] = asin
+
+    payload = _client(fixture_dir).request(
+        command="lightningdeals.list",
+        method="GET",
+        path="/lightningdeal",
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
+
+
+def _tracking_body(params: Mapping[str, Any]) -> list[dict[str, Any]]:
+    raw_value = _param(params, "tracking", "trackings")
+    tracking_file = _param(params, "tracking_file", "tracking-file")
+    if tracking_file is not None:
+        path = Path(str(tracking_file))
+        if not path.is_file():
+            raise ValueError(f"tracking file not found: {tracking_file}")
+        raw_value = json.loads(path.read_text(encoding="utf-8"))
+    elif isinstance(raw_value, str):
+        raw_value = json.loads(raw_value)
+
+    if isinstance(raw_value, Mapping):
+        return [dict(raw_value)]
+    if isinstance(raw_value, Sequence) and not isinstance(raw_value, (str, bytes, bytearray)):
+        result: list[dict[str, Any]] = []
+        for item in raw_value:
+            if not isinstance(item, Mapping):
+                raise ValueError("tracking list items must be JSON objects")
+            result.append(dict(item))
+        return result
+    raise ValueError("tracking.add requires tracking JSON object/list or tracking_file")
+
+
+def _redact_url_query_secrets(url: str) -> str:
+    parsed = urllib.parse.urlsplit(url)
+    query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+    redacted_query = []
+    for key, value in query:
+        if key.lower() in {"key", "api_key", "apikey", "token", "authorization"}:
+            redacted_query.append((key, "[REDACTED]"))
+        else:
+            redacted_query.append((key, value))
+    return urllib.parse.urlunsplit(
+        (
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            urllib.parse.urlencode(redacted_query),
+            parsed.fragment,
+        )
+    )
+
+
+def _sanitize_webhook_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    request = payload.get("request")
+    if not isinstance(request, dict):
+        return payload
+    params_redacted = request.get("params_redacted")
+    if not isinstance(params_redacted, dict):
+        return payload
+    url = params_redacted.get("url")
+    if isinstance(url, str):
+        params_redacted["url"] = _redact_url_query_secrets(url)
+    return payload
+
+
+def _tracking_request(command: str, params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    action = command.split(".", 1)[1]
+    request_params: dict[str, Any] = {}
+    method = "GET"
+    json_body: list[dict[str, Any]] | None = None
+
+    if action in {"list", "list-names"}:
+        request_params["type"] = "list"
+        if _bool_option(params, "asins_only", "asins-only"):
+            request_params["asins-only"] = "1"
+        if action == "list-names":
+            request_params["asins-only"] = "1"
+    elif action == "get":
+        asin = str(_param(params, "asin", default="")).strip()
+        if not asin:
+            return error_envelope(command=command, kind="invalid_argument", message="tracking.get requires an ASIN")
+        request_params.update({"type": "get", "asin": asin})
+    elif action == "add":
+        method = "POST"
+        request_params["type"] = "add"
+        json_body = _tracking_body(params)
+    elif action == "remove":
+        asin = str(_param(params, "asin", default="")).strip()
+        if not asin:
+            return error_envelope(command=command, kind="invalid_argument", message="tracking.remove requires an ASIN")
+        request_params.update({"type": "remove", "asin": asin})
+    elif action == "remove-all":
+        request_params["type"] = "removeAll"
+    elif action == "notifications":
+        request_params.update(
+            {
+                "type": "notification",
+                "since": str(_param(params, "since", default=0)),
+                "revise": _bool_param(_param(params, "revise", default=False)),
+            }
+        )
+    elif action == "webhook":
+        url = str(_param(params, "url", default="")).strip()
+        if not url:
+            return error_envelope(command=command, kind="invalid_argument", message="tracking.webhook requires a URL")
+        request_params.update({"type": "webhook", "url": url})
+    else:
+        return error_envelope(command=command, kind="unsupported_command", message=f"unsupported tracking action: {action}")
+
+    confirmation = _confirmation_required(command, {**dict(params), **request_params})
+    if confirmation is not None:
+        return confirmation
+
+    payload = _client(fixture_dir).request(
+        command=command,
+        method=method,
+        path="/tracking",
+        params=request_params,
+        json_body=json_body,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    if action == "webhook":
+        payload = _sanitize_webhook_payload(payload)
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
 def _selection_query(
@@ -524,6 +734,23 @@ def run_command(
                 dry_run=bool(params.get("dry_run")),
                 fixture=params.get("fixture"),
             )
+        if command in {"tokens.status", "token.status"}:
+            return _tokens_status(params, fixture_dir)
+        if command in {"graphs.image", "graph.image"}:
+            return _graph_image(params, fixture_dir)
+        if command in {"lightningdeals.list", "lightningdeal.list"}:
+            return _lightningdeals_list(params, fixture_dir)
+        if command in {
+            "tracking.list",
+            "tracking.list-names",
+            "tracking.get",
+            "tracking.add",
+            "tracking.remove",
+            "tracking.remove-all",
+            "tracking.notifications",
+            "tracking.webhook",
+        }:
+            return _tracking_request(command, params, fixture_dir)
         if command == "products.get":
             return _product_get(params, fixture_dir)
         if command == "products.search":

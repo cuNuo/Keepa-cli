@@ -182,6 +182,21 @@ kc = "keepa_cli.cli:main"
 
 `finder.query` 映射到 `/query`，`deals.query` 映射到 `/deal`，二者读取 selection JSON 并作为 `selection` 参数发送。`sellers.get` 映射到 `/seller`。`bestsellers.get` 映射到 `/bestsellers`，`topsellers.list` 映射到 `/topseller`。`finder.query`、`bestsellers.get`、`topsellers.list` 会在预算里标记 `requires_confirmation=true`；真实请求必须显式 `--yes`，dry-run 与 fixture 不消耗 token。大结果命令支持 `--out` 把响应 body 写入 JSON 文件。
 
+### tokens/graphs/lightningdeals/tracking
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json tokens status --fixture token_status.json
+.\.venv\Scripts\python.exe -m keepa_cli --json graphs image B09YNQCQKR --domain US --width 800 --height 400 --range 365 --param amazon=1 --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json lightningdeals list --domain US --fixture lightningdeals_US.json
+.\.venv\Scripts\python.exe -m keepa_cli --json tracking list --asins-only --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json tracking list-names --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json tracking get B09YNQCQKR --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json tracking notifications --since 0 --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json tracking add --tracking-json "{\"asin\":\"B09YNQCQKR\",\"domain\":1}" --dry-run
+```
+
+`tokens.status` 映射到 `/token`，用于读取 token bucket 状态。`graphs.image` 映射到 `/graphimage`，当前只冻结 dry-run/fixture 信息流；真实响应是 PNG 二进制，live 下载要等专用 binary transport。`lightningdeals.list` 映射到 `/lightningdeal`。`tracking.list`、`tracking.list-names`、`tracking.get`、`tracking.notifications` 是只读链路；`tracking.add`、`tracking.remove`、`tracking.remove-all`、`tracking.webhook` 是有副作用链路，真实请求必须显式 `--yes`，Agent 模式不能交互等待确认。
+
 ## 5. Fixture
 
 当前 fixture：
@@ -199,6 +214,9 @@ tests/fixtures/deals_home.json
 tests/fixtures/seller_A2L77EE7U53NWQ.json
 tests/fixtures/bestsellers_home.json
 tests/fixtures/topsellers_US.json
+tests/fixtures/token_status.json
+tests/fixtures/lightningdeals_US.json
+tests/fixtures/tracking_list.json
 ```
 
 用途：
@@ -207,6 +225,7 @@ tests/fixtures/topsellers_US.json
 - 为后续 `products.get`、history export、schema regression 提供稳定样本。
 - 为 `products.search`、`categories.get`、`categories.search` 提供不接 API 的信息流样本。
 - 为 Phase 8 高价值 API 提供 selection、seller、deals 与榜单离线样本。
+- 为新增官方缺口链路提供 token、lightning deals 与 tracking 离线样本。
 - CI 默认只跑 fixture，不消耗真实 Keepa token。
 
 ## 6. TUI 边界
@@ -220,6 +239,10 @@ tests/fixtures/topsellers_US.json
 /history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json
 /bestsellers 172282 --domain US --dry-run
 /seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json
+/tokens --fixture token_status.json
+/graph B09YNQCQKR --domain US --param amazon=1 --dry-run
+/lightningdeals --domain US --dry-run
+/tracking-list --asins-only --dry-run
 /category 0 --domain US --parents --fixture category_roots_US.json
 /category-search home kitchen --domain US --fixture category_search_home.json
 /quit
@@ -249,6 +272,11 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 - `finder.query`
 - `bestsellers.get`
 - `sellers.get`
+- `tokens.status`
+- `graphs.image`
+- `lightningdeals.list`
+- `tracking.list`
+- `tracking.add`
 - `stdio products.get` 事件流
 
 更新规则：

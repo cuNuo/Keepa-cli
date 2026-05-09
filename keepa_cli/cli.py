@@ -156,6 +156,77 @@ def _build_parser() -> argparse.ArgumentParser:
     topsellers_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     topsellers_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
 
+    tokens = subparsers.add_parser("tokens", help="Token bucket 状态命令。")
+    tokens_subparsers = tokens.add_subparsers(dest="tokens_command")
+    tokens_status = tokens_subparsers.add_parser("status", help="查询当前 Keepa token bucket 状态。")
+    tokens_status.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tokens_status.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    graphs = subparsers.add_parser("graphs", help="Keepa 图像链路命令。")
+    graphs_subparsers = graphs.add_subparsers(dest="graphs_command")
+    graphs_image = graphs_subparsers.add_parser("image", help="构建 Graph Image API 请求规格。")
+    graphs_image.add_argument("asin", help="一个 ASIN。")
+    graphs_image.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    graphs_image.add_argument("--width", type=int, help="图像宽度。")
+    graphs_image.add_argument("--height", type=int, help="图像高度。")
+    graphs_image.add_argument("--range", type=int, help="历史天数范围。")
+    graphs_image.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    graphs_image.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    graphs_image.add_argument(
+        "--param",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="添加 Graph Image API 参数，可重复，例如 amazon=1。",
+    )
+
+    lightningdeals = subparsers.add_parser("lightningdeals", help="Lightning Deals 查询命令。")
+    lightningdeals_subparsers = lightningdeals.add_subparsers(dest="lightningdeals_command")
+    lightningdeals_list = lightningdeals_subparsers.add_parser("list", help="查询当前或指定 ASIN 的 Lightning Deals。")
+    lightningdeals_list.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    lightningdeals_list.add_argument("--asin", help="可选 ASIN；不提供则请求完整列表。")
+    lightningdeals_list.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    lightningdeals_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    lightningdeals_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    tracking = subparsers.add_parser("tracking", help="Keepa tracking 请求命令。")
+    tracking_subparsers = tracking.add_subparsers(dest="tracking_command")
+    tracking_list = tracking_subparsers.add_parser("list", help="列出当前 tracking。")
+    tracking_list.add_argument("--asins-only", action="store_true", help="只返回被跟踪 ASIN 列表。")
+    tracking_list.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    tracking_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_list_names = tracking_subparsers.add_parser("list-names", help="列出 tracking ASIN 名称入口，等价 asins-only list。")
+    tracking_list_names.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_list_names.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    tracking_list_names.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_get = tracking_subparsers.add_parser("get", help="查询单个 ASIN 的 tracking。")
+    tracking_get.add_argument("asin", help="一个 ASIN。")
+    tracking_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_add = tracking_subparsers.add_parser("add", help="添加一个或一批 tracking。")
+    tracking_add.add_argument("--tracking-json", dest="tracking", help="Tracking JSON object/list。")
+    tracking_add.add_argument("--tracking-file", help="包含 Tracking JSON object/list 的文件。")
+    tracking_add.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_add.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    tracking_add.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_remove = tracking_subparsers.add_parser("remove", help="移除单个 ASIN 的 tracking。")
+    tracking_remove.add_argument("asin", help="一个 ASIN。")
+    tracking_remove.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_remove.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_remove_all = tracking_subparsers.add_parser("remove-all", help="移除所有 tracking。")
+    tracking_remove_all.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_remove_all.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_notifications = tracking_subparsers.add_parser("notifications", help="查询 tracking 通知。")
+    tracking_notifications.add_argument("--since", default=0, help="Keepa minute；0 表示全部。")
+    tracking_notifications.add_argument("--revise", action="store_true", help="包含已读通知。")
+    tracking_notifications.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_notifications.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    tracking_webhook = tracking_subparsers.add_parser("webhook", help="更新 tracking webhook URL。")
+    tracking_webhook.add_argument("url", help="Webhook URL。")
+    tracking_webhook.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    tracking_webhook.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
     request = subparsers.add_parser("request", help="原始 Keepa API dry-run 逃生口。")
     request_subparsers = request.add_subparsers(dest="request_method")
     for method in ("get", "post"):
@@ -352,6 +423,148 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "category": args.category,
                 "fixture": args.fixture,
                 "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tokens" and args.tokens_command == "status":
+        payload = run_command(
+            "tokens.status",
+            {
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "graphs" and args.graphs_command == "image":
+        try:
+            extra_params = _parse_params(args.param)
+        except ValueError as exc:
+            return 2, error_envelope(command="graphs.image", kind="invalid_argument", message=str(exc))
+        payload = run_command(
+            "graphs.image",
+            {
+                "asin": args.asin,
+                "domain": args.domain,
+                "width": args.width,
+                "height": args.height,
+                "range": args.range,
+                "extra_params": extra_params,
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "lightningdeals" and args.lightningdeals_command == "list":
+        payload = run_command(
+            "lightningdeals.list",
+            {
+                "domain": args.domain,
+                "asin": args.asin,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "list":
+        payload = run_command(
+            "tracking.list",
+            {
+                "asins_only": bool(args.asins_only),
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "list-names":
+        payload = run_command(
+            "tracking.list-names",
+            {
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "get":
+        payload = run_command(
+            "tracking.get",
+            {
+                "asin": args.asin,
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "add":
+        payload = run_command(
+            "tracking.add",
+            {
+                "tracking": args.tracking,
+                "tracking_file": args.tracking_file,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "remove":
+        payload = run_command(
+            "tracking.remove",
+            {
+                "asin": args.asin,
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "remove-all":
+        payload = run_command(
+            "tracking.remove-all",
+            {
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "notifications":
+        payload = run_command(
+            "tracking.notifications",
+            {
+                "since": args.since,
+                "revise": bool(args.revise),
+                "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tracking" and args.tracking_command == "webhook":
+        payload = run_command(
+            "tracking.webhook",
+            {
+                "url": args.url,
+                "fixture": args.fixture,
                 "dry_run": bool(args.dry_run),
                 "yes": bool(args.yes),
             },

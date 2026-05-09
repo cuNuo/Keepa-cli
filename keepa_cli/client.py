@@ -54,7 +54,7 @@ class KeepaClient:
         method: str,
         path: str,
         params: dict[str, Any] | None = None,
-        json_body: dict[str, Any] | None = None,
+        json_body: dict[str, Any] | list[Any] | None = None,
         dry_run: bool = False,
         fixture: str | None = None,
     ) -> dict[str, Any]:
@@ -133,7 +133,7 @@ class KeepaClient:
         method: str,
         endpoint: str,
         params: dict[str, Any],
-        json_body: dict[str, Any] | None,
+        json_body: dict[str, Any] | list[Any] | None,
         request_payload: dict[str, Any],
         budget: dict[str, Any],
     ) -> dict[str, Any]:

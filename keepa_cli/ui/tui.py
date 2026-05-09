@@ -97,6 +97,10 @@ def _welcome(env: Mapping[str, str] | None) -> list[str]:
                 "/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
                 "/bestsellers 172282 --domain US --dry-run",
                 "/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json",
+                "/tokens --fixture token_status.json",
+                "/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
+                "/lightningdeals --domain US --dry-run",
+                "/tracking-list --asins-only --dry-run",
                 "/category 0 --domain US --parents --fixture category_roots_US.json",
                 "/category-search home kitchen --domain US --fixture category_search_home.json",
                 "/quit",
@@ -154,6 +158,22 @@ def _slash_to_command(line: str) -> tuple[str, dict[str, Any]]:
         return "bestsellers.get", {"category": positional[0] if positional else "", **options}
     if slash_command == "topsellers":
         return "topsellers.list", options
+    if slash_command == "tokens":
+        return "tokens.status", options
+    if slash_command == "graph":
+        return "graphs.image", {"asin": positional[0] if positional else "", **options}
+    if slash_command == "lightningdeals":
+        return "lightningdeals.list", {"asin": positional[0] if positional else "", **options}
+    if slash_command == "tracking-list":
+        return "tracking.list", options
+    if slash_command == "tracking-list-names":
+        return "tracking.list-names", options
+    if slash_command == "tracking-get":
+        return "tracking.get", {"asin": positional[0] if positional else "", **options}
+    if slash_command == "tracking-remove":
+        return "tracking.remove", {"asin": positional[0] if positional else "", **options}
+    if slash_command == "tracking-notifications":
+        return "tracking.notifications", options
     if slash_command == "category":
         return "categories.get", {"category": positional, **options}
     if slash_command == "category-search":
