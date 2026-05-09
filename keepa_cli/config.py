@@ -23,7 +23,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
 
 
 def default_config_path(env: Mapping[str, str] | None = None) -> Path:
-    env = env or os.environ
+    env = os.environ if env is None else env
     appdata = env.get("APPDATA")
     if appdata:
         return Path(appdata) / "keepa-cli" / "config.toml"

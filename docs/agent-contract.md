@@ -202,3 +202,41 @@ Phase 6 之后如要扩展 TUI、缓存或真实 API 调用，应保持以下不
 - TUI 只调用 Agent-safe command service，不复制 Keepa API 逻辑。
 - `--json` 和 `--stdio` 的 stdout 继续保持纯机器协议。
 - 新增命令先补 Agent schema 与 fixture 测试，再接入人类界面。
+
+## 8. Schema Snapshot
+
+Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 snapshot 只记录字段与类型形状，不锁定完整业务数据，避免 Product Object 字段扩展造成无意义噪音。
+
+覆盖对象：
+
+- `doctor`
+- `products.get`
+- `categories.search`
+- `stdio products.get` 事件流
+
+更新规则：
+
+- 任何输出字段新增、删除或类型变化都必须先确认 Agent 兼容性。
+- 确认兼容后再更新 snapshot。
+- 不能为了让测试通过而删除 schema 字段；要先说明迁移影响。
+
+## 9. Record/Replay Transport
+
+`keepa_cli.transport` 提供未来真实 live smoke 的接口：
+
+- `RecordingOpener`：包装真实或 fake opener，写入脱敏 cassette。
+- `ReplayOpener`：从 cassette 回放 HTTP 响应。
+
+当前测试只使用 fake opener，不请求真实 Keepa API。cassette 中会把 query 参数里的 `key`、`api_key`、`apikey`、`token` 替换为 `[REDACTED]`。
+
+## 10. npm Wrapper
+
+开源发布目标支持 npm 全局安装：
+
+```powershell
+npm install -g @cunuo/keepa-cli
+keepa-cli --json doctor
+kc --json doctor
+```
+
+npm wrapper 位于 `bin/keepa-cli.js` 与 `bin/kc.js`。二者只负责寻找 Python 3.11+ 并执行 `python -m keepa_cli`。可通过 `KEEPA_CLI_PYTHON` 指定解释器。

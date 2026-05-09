@@ -99,3 +99,14 @@
 ```powershell
 .\.venv\Scripts\kc.exe --json categories search "home kitchen" --domain US --fixture category_search_home.json
 ```
+
+## 本仓库信息流测试策略
+
+当前仓库不接真实 Keepa API，所有 live-like 行为都通过离线机制验证：
+
+- `keepa_cli/fixtures/*.json`：随 Python 包发布的官方形状示例响应。
+- `tests/fixtures/*.json`：测试用固定响应。
+- `RecordingOpener` / `ReplayOpener`：为未来手动 live smoke 留 record/replay 接口。
+- fake opener：在内存中模拟 gzip、429、500，不访问 `https://api.keepa.com/`。
+
+未来如开启真实 live smoke，应使用手动触发 workflow 和 GitHub Secret `KEEPA_API_KEY`，并把录制后的 cassette 脱敏后再用于回归测试。

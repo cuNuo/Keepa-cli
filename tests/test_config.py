@@ -6,6 +6,7 @@ tests/test_config.py
 """
 
 import unittest
+from unittest.mock import patch
 
 from keepa_cli.config import build_config_report, render_config_toml
 
@@ -17,6 +18,12 @@ class ConfigTests(unittest.TestCase):
         self.assertFalse(report["exists"])
         self.assertEqual(report["config"]["default_domain"], "US")
         self.assertIn("config.toml", report["path"])
+
+    def test_explicit_empty_env_ignores_real_appdata(self):
+        with patch.dict("os.environ", {"APPDATA": "C:\\RealUser\\AppData\\Roaming"}, clear=False):
+            report = build_config_report(env={})
+
+        self.assertNotIn("RealUser", report["path"])
 
     def test_render_config_toml_contains_safe_defaults(self):
         rendered = render_config_toml()

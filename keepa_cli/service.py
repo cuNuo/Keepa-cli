@@ -19,7 +19,7 @@ from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
 
 
-DEFAULT_FIXTURE_DIR = Path("tests/fixtures")
+DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
 
 
 def _as_list(value: Any) -> list[str]:
@@ -181,7 +181,7 @@ def run_command(
     env: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
     params = dict(params or {})
-    env = env or os.environ
+    env = os.environ if env is None else env
 
     try:
         if command == "doctor":

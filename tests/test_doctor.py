@@ -7,6 +7,7 @@ tests/test_doctor.py
 
 import os
 import unittest
+from unittest.mock import patch
 
 from keepa_cli.doctor import build_doctor_report
 
@@ -19,6 +20,14 @@ class DoctorTests(unittest.TestCase):
         self.assertFalse(report["auth"]["available"])
         self.assertEqual(report["auth"]["source"], "missing")
         self.assertTrue(report["offline"]["fixture_available"])
+
+    def test_explicit_empty_env_does_not_read_real_environment(self):
+        with patch.dict(os.environ, {"KEEPA_API_KEY": "REAL_SECRET"}, clear=False):
+            report = build_doctor_report(env={}, fixture_available=True)
+
+        self.assertFalse(report["auth"]["available"])
+        self.assertEqual(report["auth"]["source"], "missing")
+        self.assertNotIn("REAL_SECRET", str(report))
 
     def test_doctor_detects_env_auth_without_leaking_key(self):
         env = {"KEEPA_API_KEY": "SECRET123"}

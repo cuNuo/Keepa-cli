@@ -17,3 +17,6 @@ kc = "keepa_cli.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["keepa_cli*"]
+
+[tool.setuptools.package-data]
+keepa_cli = ["fixtures/*.json"]

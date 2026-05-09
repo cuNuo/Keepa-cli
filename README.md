@@ -2,6 +2,8 @@
 
 本仓库用于沉淀基于 Keepa API 的 Agent-first CLI 程序设计、实现计划与后续代码。最终目标是把 Keepa 能力封装成后续 Agent 可稳定调用的工具层，同时提供人类友好的交互界面。
 
+本项目按开源项目维护，当前采用 MIT License。发布目标包括 Python 可编辑安装和 npm 全局安装；npm 包只提供 Node.js bin wrapper，业务逻辑仍在 Python `keepa_cli` 包内。
+
 当前已完成调研报告：
 
 - [Keepa CLI 实现调研与落地报告](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
@@ -29,6 +31,9 @@
 - Keepa domain 归一化
 - token 预算器
 - request client dry-run、fixture/offline、gzip 解码、429/5xx 信息流测试
+- Agent schema snapshot 测试
+- record/replay transport，供未来真实 live smoke 录制后离线回放
+- npm bin wrapper：`keepa-cli` 与 `kc`
 - 凭据打码
 - 标准库 `unittest` 测试
 
@@ -68,3 +73,26 @@ stdio smoke test：
 ```powershell
 '{"id":"1","method":"doctor","params":{}}' | .\.venv\Scripts\python.exe -m keepa_cli --stdio
 ```
+
+## npm 安装目标
+
+当前仓库已包含 npm wrapper，可本地 smoke：
+
+```powershell
+node bin/keepa-cli.js --json doctor
+npm pack --dry-run
+```
+
+未来发布到 npm 后的目标安装方式：
+
+```powershell
+npm install -g @cunuo/keepa-cli
+keepa-cli --json doctor
+kc --json doctor
+```
+
+约束：
+
+- npm wrapper 需要系统可用 Python 3.11+。
+- 可通过 `KEEPA_CLI_PYTHON` 指定 Python 解释器路径。
+- wrapper 不实现业务逻辑，只设置 `PYTHONPATH` 并执行 `python -m keepa_cli`。

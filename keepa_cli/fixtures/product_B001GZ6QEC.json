@@ -1,0 +1,13 @@
+{
+  "tokensLeft": 100,
+  "tokensConsumed": 1,
+  "refillRate": 20,
+  "refillIn": 0,
+  "products": [
+    {
+      "asin": "B001GZ6QEC",
+      "title": "Fixture product",
+      "domainId": 1
+    }
+  ]
+}

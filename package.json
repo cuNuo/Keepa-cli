@@ -1,0 +1,40 @@
+{
+  "name": "@cunuo/keepa-cli",
+  "version": "0.1.0",
+  "description": "Agent-first Keepa API CLI with keepa-cli and kc entry points.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "keepa-cli": "bin/keepa-cli.js",
+    "kc": "bin/kc.js"
+  },
+  "files": [
+    "bin/",
+    "keepa_cli/**/*.py",
+    "keepa_cli/fixtures/*.json",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "python -m unittest discover -s tests -v",
+    "smoke": "node bin/keepa-cli.js --json doctor"
+  },
+  "keywords": [
+    "keepa",
+    "cli",
+    "agent",
+    "amazon"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuNuo/Keepa-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cuNuo/Keepa-cli/issues"
+  },
+  "homepage": "https://github.com/cuNuo/Keepa-cli#readme"
+}

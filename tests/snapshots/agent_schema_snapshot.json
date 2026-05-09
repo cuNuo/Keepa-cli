@@ -1,0 +1,179 @@
+{
+  "categories_search": {
+    "command": "str",
+    "data": {
+      "body": {
+        "categories": {
+          "1055398": {
+            "catId": "int",
+            "children": [
+              "int"
+            ],
+            "domainId": "int",
+            "matched": "bool",
+            "name": "str",
+            "parent": "int"
+          }
+        },
+        "refillIn": "int",
+        "refillRate": "int",
+        "tokensConsumed": "int",
+        "tokensLeft": "int"
+      },
+      "fixture": "str",
+      "offline": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "domain": "str",
+        "term": "str",
+        "type": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_in_ms": "int",
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
+  "doctor": {
+    "command": "str",
+    "data": {
+      "auth": {
+        "available": "bool",
+        "source": "str"
+      },
+      "commands": {
+        "alias": "str",
+        "parity_required": "bool",
+        "primary": "str"
+      },
+      "offline": {
+        "auth_required": "bool",
+        "fixture_available": "bool"
+      },
+      "version": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "transport": "str"
+    },
+    "token_bucket": {}
+  },
+  "products_get": {
+    "command": "str",
+    "data": {
+      "body": {
+        "products": [
+          {
+            "asin": "str",
+            "domainId": "int",
+            "title": "str"
+          }
+        ],
+        "refillIn": "int",
+        "refillRate": "int",
+        "tokensConsumed": "int",
+        "tokensLeft": "int"
+      },
+      "fixture": "str",
+      "offline": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "asin": "str",
+        "domain": "str",
+        "history": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_in_ms": "int",
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
+  "stdio_products_get": [
+    {
+      "event": "str",
+      "id": "str",
+      "method": "str"
+    },
+    {
+      "estimated_tokens": "int",
+      "event": "str",
+      "id": "str",
+      "requires_confirmation": "bool",
+      "worst_case_tokens": "int"
+    },
+    {
+      "event": "str",
+      "id": "str",
+      "payload": {
+        "command": "str",
+        "data": {
+          "body": {
+            "products": [
+              {
+                "asin": "str",
+                "domainId": "int",
+                "title": "str"
+              }
+            ],
+            "refillIn": "int",
+            "refillRate": "int",
+            "tokensConsumed": "int",
+            "tokensLeft": "int"
+          },
+          "fixture": "str",
+          "offline": "bool"
+        },
+        "ok": "bool",
+        "request": {
+          "dry_run": "bool",
+          "endpoint": "str",
+          "method": "str",
+          "params_redacted": {
+            "asin": "str",
+            "domain": "str",
+            "history": "str"
+          }
+        },
+        "token_bucket": {
+          "estimated": {
+            "estimated_tokens": "int",
+            "requires_confirmation": "bool",
+            "worst_case_tokens": "int"
+          },
+          "refill_in_ms": "int",
+          "refill_rate": "int",
+          "tokens_consumed": "int",
+          "tokens_left": "int"
+        }
+      }
+    },
+    {
+      "event": "str",
+      "id": "str"
+    }
+  ]
+}

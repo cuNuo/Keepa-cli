@@ -14,8 +14,11 @@ from typing import Mapping
 from keepa_cli import __version__
 
 
+PACKAGE_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
+
+
 def find_auth_source(env: Mapping[str, str] | None = None) -> dict[str, object]:
-    env = env or os.environ
+    env = os.environ if env is None else env
     if env.get("KEEPA_API_KEY"):
         return {"available": True, "source": "env"}
     return {"available": False, "source": "missing"}
@@ -27,7 +30,7 @@ def build_doctor_report(
     fixture_available: bool | None = None,
 ) -> dict[str, object]:
     if fixture_available is None:
-        fixture_available = Path("tests/fixtures").exists()
+        fixture_available = PACKAGE_FIXTURE_DIR.exists() or Path("tests/fixtures").exists()
 
     return {
         "version": __version__,
