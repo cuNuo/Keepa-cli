@@ -95,6 +95,8 @@ def _welcome(env: Mapping[str, str] | None) -> list[str]:
                 "/domains",
                 "/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json",
                 "/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
+                "/bestsellers 172282 --domain US --dry-run",
+                "/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json",
                 "/category 0 --domain US --parents --fixture category_roots_US.json",
                 "/category-search home kitchen --domain US --fixture category_search_home.json",
                 "/quit",
@@ -142,6 +144,16 @@ def _slash_to_command(line: str) -> tuple[str, dict[str, Any]]:
         return "history.trend", {"asin": positional[:1], **options}
     if slash_command == "history-export":
         return "history.export", {"asin": positional[:1], **options}
+    if slash_command == "finder":
+        return "finder.query", options
+    if slash_command == "deals":
+        return "deals.query", options
+    if slash_command == "seller":
+        return "sellers.get", {"seller": positional, **options}
+    if slash_command == "bestsellers":
+        return "bestsellers.get", {"category": positional[0] if positional else "", **options}
+    if slash_command == "topsellers":
+        return "topsellers.list", options
     if slash_command == "category":
         return "categories.get", {"category": positional, **options}
     if slash_command == "category-search":
@@ -164,6 +176,17 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
         return lines
 
     if isinstance(data, dict):
+        if data.get("dry_run"):
+            estimate = payload.get("token_bucket", {}).get("estimated", {})
+            if isinstance(estimate, dict):
+                lines.append(
+                    "预算    "
+                    f"estimated={estimate.get('estimated_tokens')} "
+                    f"worst={estimate.get('worst_case_tokens')} "
+                    f"confirm={estimate.get('requires_confirmation')}"
+                )
+            lines.append("请求    dry-run；未访问 Keepa API")
+            return lines
         analysis = data.get("analysis")
         if isinstance(analysis, dict):
             series_map = analysis.get("series", {})
@@ -198,6 +221,23 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
                 for category_id, item in list(categories.items())[:3]:
                     if isinstance(item, dict):
                         lines.append(f"分类    {category_id}  {item.get('name', category_id)}")
+                return lines
+            sellers = body.get("sellers")
+            if isinstance(sellers, dict) and sellers:
+                for seller_id, item in list(sellers.items())[:3]:
+                    name = item.get("sellerName", seller_id) if isinstance(item, dict) else seller_id
+                    lines.append(f"卖家    {seller_id}  {name}")
+                return lines
+            for key, label in (("deals", "Deals"), ("topSellers", "卖家榜")):
+                value = body.get(key)
+                if isinstance(value, list):
+                    lines.append(f"{label}  count={len(value)}")
+                    return lines
+            bestsellers = body.get("bestSellersList")
+            if isinstance(bestsellers, dict):
+                asin_list = bestsellers.get("asinList")
+                count = len(asin_list) if isinstance(asin_list, list) else 0
+                lines.append(f"榜单    category={bestsellers.get('categoryId', '')} count={count}")
                 return lines
     lines.append("完成    已收到结构化响应；Agent 可使用 --json 查看完整 envelope")
     return lines

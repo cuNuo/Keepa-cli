@@ -108,6 +108,54 @@ def _build_parser() -> argparse.ArgumentParser:
     history_trend.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     history_trend.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
 
+    finder = subparsers.add_parser("finder", help="Product Finder 高价值查询命令。")
+    finder_subparsers = finder.add_subparsers(dest="finder_command")
+    finder_query = finder_subparsers.add_parser("query", help="按 selection JSON 查询 ASIN 列表。")
+    finder_query.add_argument("--selection-file", required=True, help="Keepa Product Finder selection JSON 文件。")
+    finder_query.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    finder_query.add_argument("--max-tokens", type=int, default=10, help="Agent 预算上限提示。")
+    finder_query.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    finder_query.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    finder_query.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    deals = subparsers.add_parser("deals", help="Keepa deals 查询命令。")
+    deals_subparsers = deals.add_subparsers(dest="deals_command")
+    deals_query = deals_subparsers.add_parser("query", help="按 selection JSON 查询 deals。")
+    deals_query.add_argument("--selection-file", required=True, help="Keepa deals selection JSON 文件。")
+    deals_query.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    deals_query.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    deals_query.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    deals_query.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    sellers = subparsers.add_parser("sellers", help="卖家查询命令。")
+    sellers_subparsers = sellers.add_subparsers(dest="sellers_command")
+    sellers_get = sellers_subparsers.add_parser("get", help="按 seller id 查询卖家。")
+    sellers_get.add_argument("seller", nargs="+", help="一个或多个 seller id。")
+    sellers_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    sellers_get.add_argument("--storefront", action="store_true", help="请求卖家 storefront ASIN 列表。")
+    sellers_get.add_argument("--update", help="刷新阈值小时。")
+    sellers_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    sellers_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    sellers_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    bestsellers = subparsers.add_parser("bestsellers", help="Best Sellers 榜单命令。")
+    bestsellers_subparsers = bestsellers.add_subparsers(dest="bestsellers_command")
+    bestsellers_get = bestsellers_subparsers.add_parser("get", help="按 category id 查询 Best Sellers。")
+    bestsellers_get.add_argument("category", help="Keepa category id。")
+    bestsellers_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    bestsellers_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    bestsellers_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    bestsellers_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
+    topsellers = subparsers.add_parser("topsellers", help="Top Sellers 榜单命令。")
+    topsellers_subparsers = topsellers.add_subparsers(dest="topsellers_command")
+    topsellers_list = topsellers_subparsers.add_parser("list", help="查询 Most Rated Sellers 列表。")
+    topsellers_list.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    topsellers_list.add_argument("--category", help="可选 Keepa category id。")
+    topsellers_list.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    topsellers_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    topsellers_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+
     request = subparsers.add_parser("request", help="原始 Keepa API dry-run 逃生口。")
     request_subparsers = request.add_subparsers(dest="request_method")
     for method in ("get", "post"):
@@ -233,6 +281,79 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "include_missing": bool(args.include_missing),
                 "fixture": args.fixture,
                 "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "finder" and args.finder_command == "query":
+        payload = run_command(
+            "finder.query",
+            {
+                "selection_file": args.selection_file,
+                "domain": args.domain,
+                "max_tokens": args.max_tokens,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "deals" and args.deals_command == "query":
+        payload = run_command(
+            "deals.query",
+            {
+                "selection_file": args.selection_file,
+                "domain": args.domain,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "sellers" and args.sellers_command == "get":
+        payload = run_command(
+            "sellers.get",
+            {
+                "seller": args.seller,
+                "domain": args.domain,
+                "storefront": bool(args.storefront),
+                "update": args.update,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "bestsellers" and args.bestsellers_command == "get":
+        payload = run_command(
+            "bestsellers.get",
+            {
+                "category": args.category,
+                "domain": args.domain,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "topsellers" and args.topsellers_command == "list":
+        payload = run_command(
+            "topsellers.list",
+            {
+                "domain": args.domain,
+                "category": args.category,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
             },
         )
         return 0 if payload["ok"] else 1, payload

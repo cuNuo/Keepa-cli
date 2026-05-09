@@ -170,6 +170,18 @@ kc = "keepa_cli.cli:main"
 
 `history.export` 复用官方 Product Request `/product` 并强制 `history=1`，把 Product Object 的 `csv` 历史展开成稳定 rows；支持 `json`、`jsonl`、`csv` 和 `--out` 文件导出。`history.trend` 基于同一 rows 返回 all-time 与窗口统计。当前冻结序列为 `amazon`、`new`、`used`、`sales_rank`。
 
+### finder/deals/sellers/bestsellers/topsellers
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
+.\.venv\Scripts\python.exe -m keepa_cli --json deals query --selection-file keepa_cli/fixtures/deals_selection.json --domain US --fixture deals_home.json --out deals.json
+.\.venv\Scripts\python.exe -m keepa_cli --json sellers get A2L77EE7U53NWQ --domain US --storefront --fixture seller_A2L77EE7U53NWQ.json
+.\.venv\Scripts\python.exe -m keepa_cli --json bestsellers get 172282 --domain US --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json topsellers list --domain US --fixture topsellers_US.json --out topsellers.json
+```
+
+`finder.query` 映射到 `/query`，`deals.query` 映射到 `/deal`，二者读取 selection JSON 并作为 `selection` 参数发送。`sellers.get` 映射到 `/seller`。`bestsellers.get` 映射到 `/bestsellers`，`topsellers.list` 映射到 `/topseller`。`finder.query`、`bestsellers.get`、`topsellers.list` 会在预算里标记 `requires_confirmation=true`；真实请求必须显式 `--yes`，dry-run 与 fixture 不消耗 token。大结果命令支持 `--out` 把响应 body 写入 JSON 文件。
+
 ## 5. Fixture
 
 当前 fixture：
@@ -181,6 +193,12 @@ tests/fixtures/product_history_B001GZ6QEC.json
 tests/fixtures/product_history_empty_B001GZ6QEC.json
 tests/fixtures/category_roots_US.json
 tests/fixtures/category_search_home.json
+tests/fixtures/finder_selection.json
+tests/fixtures/deals_selection.json
+tests/fixtures/deals_home.json
+tests/fixtures/seller_A2L77EE7U53NWQ.json
+tests/fixtures/bestsellers_home.json
+tests/fixtures/topsellers_US.json
 ```
 
 用途：
@@ -188,6 +206,7 @@ tests/fixtures/category_search_home.json
 - 无 Keepa key 时验证 client 解析与 token bucket 映射。
 - 为后续 `products.get`、history export、schema regression 提供稳定样本。
 - 为 `products.search`、`categories.get`、`categories.search` 提供不接 API 的信息流样本。
+- 为 Phase 8 高价值 API 提供 selection、seller、deals 与榜单离线样本。
 - CI 默认只跑 fixture，不消耗真实 Keepa token。
 
 ## 6. TUI 边界
@@ -199,6 +218,8 @@ tests/fixtures/category_search_home.json
 /domains
 /product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json
 /history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json
+/bestsellers 172282 --domain US --dry-run
+/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json
 /category 0 --domain US --parents --fixture category_roots_US.json
 /category-search home kitchen --domain US --fixture category_search_home.json
 /quit
@@ -225,6 +246,9 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 - `products.get`
 - `categories.search`
 - `history.trend`
+- `finder.query`
+- `bestsellers.get`
+- `sellers.get`
 - `stdio products.get` 事件流
 
 更新规则：

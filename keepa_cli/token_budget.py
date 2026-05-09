@@ -62,6 +62,10 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
     if normalized in {"finder.query", "query"}:
         return BudgetEstimate(10, int(params.get("max_tokens") or 10), True)
 
+    if normalized in {"sellers.get", "seller.get"}:
+        seller_count = max(_count_items(params.get("seller") or params.get("sellers")), 1)
+        return BudgetEstimate(seller_count, seller_count, False)
+
     if normalized in {"bestsellers.get", "topsellers.list", "topseller.list"}:
         return BudgetEstimate(50, 50, True)
 

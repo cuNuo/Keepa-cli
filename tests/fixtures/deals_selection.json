@@ -1,0 +1,7 @@
+{
+  "isLowest": true,
+  "deltaPercentRange": [20, 80],
+  "currentRange": [500, 5000],
+  "salesRankRange": [1, 50000],
+  "page": 0
+}

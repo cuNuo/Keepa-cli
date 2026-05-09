@@ -1,0 +1,15 @@
+{
+  "sellers": {
+    "A2L77EE7U53NWQ": {
+      "sellerId": "A2L77EE7U53NWQ",
+      "sellerName": "Offline Seller Fixture",
+      "rating": 96,
+      "ratingCount": 1240,
+      "hasStorefront": true,
+      "asinList": ["B001GZ6QEC"]
+    }
+  },
+  "refillRate": 20,
+  "tokensLeft": 88,
+  "tokensConsumed": 1
+}

@@ -1,0 +1,16 @@
+{
+  "timestamp": 6320000,
+  "deals": [
+    {
+      "asin": "B001GZ6QEC",
+      "title": "Offline Deal Fixture",
+      "current": 1099,
+      "avg": 1299,
+      "deltaPercent": 25
+    }
+  ],
+  "totalResults": 1,
+  "refillRate": 20,
+  "tokensLeft": 88,
+  "tokensConsumed": 5
+}

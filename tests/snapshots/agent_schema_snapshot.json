@@ -1,4 +1,27 @@
 {
+  "bestsellers_get": {
+    "command": "str",
+    "data": {
+      "dry_run": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "category": "str",
+        "domain": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
+    }
+  },
   "categories_search": {
     "command": "str",
     "data": {
@@ -69,6 +92,30 @@
       "transport": "str"
     },
     "token_bucket": {}
+  },
+  "finder_query": {
+    "command": "str",
+    "data": {
+      "dry_run": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "domain": "str",
+        "max_tokens": "int",
+        "selection": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
+    }
   },
   "history_trend": {
     "command": "str",
@@ -215,6 +262,51 @@
         "worst_case_tokens": "int"
       },
       "refill_in_ms": "int",
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
+  "sellers_get": {
+    "command": "str",
+    "data": {
+      "body": {
+        "refillRate": "int",
+        "sellers": {
+          "A2L77EE7U53NWQ": {
+            "asinList": [
+              "str"
+            ],
+            "hasStorefront": "bool",
+            "rating": "int",
+            "ratingCount": "int",
+            "sellerId": "str",
+            "sellerName": "str"
+          }
+        },
+        "tokensConsumed": "int",
+        "tokensLeft": "int"
+      },
+      "fixture": "str",
+      "offline": "bool"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "domain": "str",
+        "seller": "str",
+        "storefront": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
       "refill_rate": "int",
       "tokens_consumed": "int",
       "tokens_left": "int"

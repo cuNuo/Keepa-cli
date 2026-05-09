@@ -129,6 +129,63 @@ class CliTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["analysis"]["series"]["amazon"]["all_time"]["points"], 3)
 
+    def test_finder_query_dry_run_loads_selection_file(self):
+        result = self.run_module(
+            "--json",
+            "finder",
+            "query",
+            "--selection-file",
+            "tests/fixtures/finder_selection.json",
+            "--domain",
+            "US",
+            "--dry-run",
+            "--max-tokens",
+            "25",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "finder.query")
+        self.assertEqual(payload["request"]["endpoint"], "/query")
+        self.assertEqual(payload["token_bucket"]["estimated"]["worst_case_tokens"], 25)
+
+    def test_sellers_get_fixture_returns_seller_data(self):
+        result = self.run_module(
+            "--json",
+            "sellers",
+            "get",
+            "A2L77EE7U53NWQ",
+            "--domain",
+            "US",
+            "--storefront",
+            "--fixture",
+            "seller_A2L77EE7U53NWQ.json",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["request"]["endpoint"], "/seller")
+        self.assertIn("A2L77EE7U53NWQ", payload["data"]["body"]["sellers"])
+
+    def test_bestsellers_dry_run_returns_50_token_hint(self):
+        result = self.run_module(
+            "--json",
+            "bestsellers",
+            "get",
+            "172282",
+            "--domain",
+            "US",
+            "--dry-run",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["request"]["endpoint"], "/bestsellers")
+        self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 50)
+
     def test_stdio_reads_json_lines(self):
         result = self.run_module("--stdio", input_text='{"id":"1","method":"doctor","params":{}}\n')
 

@@ -1,0 +1,10 @@
+{
+  "bestSellersList": {
+    "categoryId": 172282,
+    "asinList": ["B001GZ6QEC", "B000TEST001"],
+    "lastUpdate": 6320000
+  },
+  "refillRate": 20,
+  "tokensLeft": 50,
+  "tokensConsumed": 50
+}

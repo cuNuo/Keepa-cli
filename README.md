@@ -26,6 +26,11 @@
 - `--json products get/search ... --fixture ...`
 - `--json categories get/search ... --fixture ...`
 - `--json history export/trend ... --fixture ...`
+- `--json finder query --selection-file ... --dry-run`
+- `--json deals query --selection-file ... --fixture ... --out ...`
+- `--json sellers get ... --fixture ...`
+- `--json bestsellers get ... --dry-run`
+- `--json topsellers list ... --fixture ... --out ...`
 - `--stdio` JSON Lines 协议
 - 标准库 TUI 工作台骨架：默认执行 `kc` / `keepa-cli` 进入 slash 命令界面
 - JSON success/error envelope
@@ -69,6 +74,11 @@
 .\.venv\Scripts\kc.exe --json categories search "home kitchen" --domain US --fixture category_search_home.json
 .\.venv\Scripts\kc.exe --json history export B001GZ6QEC --domain US --series amazon,new --format json --fixture product_history_B001GZ6QEC.json
 .\.venv\Scripts\kc.exe --json history trend B001GZ6QEC --domain US --series amazon --window-days 30 --fixture product_history_B001GZ6QEC.json
+.\.venv\Scripts\kc.exe --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
+.\.venv\Scripts\kc.exe --json deals query --selection-file keepa_cli/fixtures/deals_selection.json --domain US --fixture deals_home.json --out deals.json
+.\.venv\Scripts\kc.exe --json sellers get A2L77EE7U53NWQ --domain US --storefront --fixture seller_A2L77EE7U53NWQ.json
+.\.venv\Scripts\kc.exe --json bestsellers get 172282 --domain US --dry-run
+.\.venv\Scripts\kc.exe --json topsellers list --domain US --fixture topsellers_US.json --out topsellers.json
 ```
 
 stdio smoke test：
@@ -90,6 +100,8 @@ TUI 默认展示上下文状态、常用命令和结果面板；所有命令仍�
 /domains
 /product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json
 /history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json
+/bestsellers 172282 --domain US --dry-run
+/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json
 /category 0 --domain US --parents --fixture category_roots_US.json
 /category-search home kitchen --domain US --fixture category_search_home.json
 /quit

@@ -1,0 +1,14 @@
+{
+  "topSellers": [
+    {
+      "sellerId": "A2L77EE7U53NWQ",
+      "sellerName": "Offline Seller Fixture",
+      "ratingCount": 1240,
+      "categoryId": 172282
+    }
+  ],
+  "domainId": 1,
+  "refillRate": 20,
+  "tokensLeft": 50,
+  "tokensConsumed": 50
+}

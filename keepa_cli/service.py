@@ -18,7 +18,9 @@ from keepa_cli.config import build_config_report, init_config
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
+from keepa_cli.high_value import attach_output_if_requested, load_selection, selection_to_query_value
 from keepa_cli.history_export import build_history_export_data, extract_history_rows, normalize_series_names
+from keepa_cli.token_budget import estimate_request_budget
 
 
 DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -44,6 +46,18 @@ def _optional_params(params: Mapping[str, Any], names: Sequence[str]) -> dict[st
         if name in params and params[name] is not None:
             result[name] = params[name]
     return result
+
+
+def _param(params: Mapping[str, Any], *names: str, default: Any = None) -> Any:
+    for name in names:
+        if name in params and params[name] is not None:
+            return params[name]
+    return default
+
+
+def _bool_option(params: Mapping[str, Any], *names: str) -> bool:
+    value = _param(params, *names)
+    return value is True or str(value).lower() in {"1", "true", "yes", "on"}
 
 
 def _client(fixture_dir: Path | str | None = None) -> KeepaClient:
@@ -183,6 +197,137 @@ def _keepa_body_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if isinstance(body, dict):
         return body
     return data
+
+
+def _confirmation_required(command: str, params: Mapping[str, Any]) -> dict[str, Any] | None:
+    budget = estimate_request_budget(command, dict(params)).to_dict()
+    if not budget["requires_confirmation"]:
+        return None
+    if _bool_option(params, "dry_run", "dry-run") or params.get("fixture") or _bool_option(params, "yes"):
+        return None
+    return error_envelope(
+        command=command,
+        kind="confirmation_required",
+        message="request requires explicit confirmation because it may consume significant Keepa tokens",
+        details={
+            "resume_with": "--yes",
+            "estimated_tokens": budget["estimated_tokens"],
+            "worst_case_tokens": budget["worst_case_tokens"],
+        },
+        token_bucket={"estimated": budget},
+    )
+
+
+def _selection_query(
+    command: str,
+    path: str,
+    params: Mapping[str, Any],
+    fixture_dir: Path | str | None,
+) -> dict[str, Any]:
+    selection = load_selection(
+        _param(params, "selection"),
+        _param(params, "selection_file", "selection-file"),
+    )
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "selection": selection_to_query_value(selection),
+    }
+    if _param(params, "max_tokens", "max-tokens") is not None:
+        request_params["max_tokens"] = int(_param(params, "max_tokens", "max-tokens"))
+
+    confirmation = _confirmation_required(command, {**dict(params), **request_params})
+    if confirmation is not None:
+        return confirmation
+
+    payload = _client(fixture_dir).request(
+        command=command,
+        method="GET",
+        path=path,
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
+
+
+def _seller_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    sellers = _as_list(params.get("seller") or params.get("sellers"))
+    if not sellers:
+        return error_envelope(
+            command="sellers.get",
+            kind="invalid_argument",
+            message="sellers.get requires at least one seller id",
+        )
+
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "seller": ",".join(sellers),
+    }
+    if _param(params, "storefront") is not None:
+        request_params["storefront"] = _bool_param(params.get("storefront"))
+    if _param(params, "update") is not None:
+        request_params["update"] = params.get("update")
+
+    payload = _client(fixture_dir).request(
+        command="sellers.get",
+        method="GET",
+        path="/seller",
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
+
+
+def _bestsellers_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    category = str(_param(params, "category", "category_id", "category-id", default="")).strip()
+    if not category:
+        return error_envelope(
+            command="bestsellers.get",
+            kind="invalid_argument",
+            message="bestsellers.get requires a category id",
+        )
+
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "category": category,
+    }
+    confirmation = _confirmation_required("bestsellers.get", {**dict(params), **request_params})
+    if confirmation is not None:
+        return confirmation
+
+    payload = _client(fixture_dir).request(
+        command="bestsellers.get",
+        method="GET",
+        path="/bestsellers",
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
+
+
+def _topsellers_list(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+    }
+    category = _param(params, "category", "category_id", "category-id")
+    if category is not None:
+        request_params["category"] = str(category)
+
+    confirmation = _confirmation_required("topsellers.list", {**dict(params), **request_params})
+    if confirmation is not None:
+        return confirmation
+
+    payload = _client(fixture_dir).request(
+        command="topsellers.list",
+        method="GET",
+        path="/topseller",
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
 def _find_product(body: dict[str, Any], asin: str) -> dict[str, Any] | None:
@@ -387,6 +532,16 @@ def run_command(
             return _categories_get(params, fixture_dir)
         if command == "categories.search":
             return _categories_search(params, fixture_dir)
+        if command == "finder.query":
+            return _selection_query("finder.query", "/query", params, fixture_dir)
+        if command == "deals.query":
+            return _selection_query("deals.query", "/deal", params, fixture_dir)
+        if command == "sellers.get":
+            return _seller_get(params, fixture_dir)
+        if command == "bestsellers.get":
+            return _bestsellers_get(params, fixture_dir)
+        if command in {"topsellers.list", "topseller.list"}:
+            return _topsellers_list(params, fixture_dir)
         if command == "history.export":
             return _history_export(params, fixture_dir)
         if command in {"history.trend", "history.analyze"}:

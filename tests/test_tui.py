@@ -54,6 +54,13 @@ class TuiTests(unittest.TestCase):
         self.assertIn("amazon", rendered)
         self.assertIn("10.99", rendered)
 
+    def test_tui_bestsellers_dry_run_surfaces_token_prompt(self):
+        output = run_tui_session(["/bestsellers 172282 --domain US --dry-run", "/quit"], env={})
+
+        rendered = "\n".join(output)
+        self.assertIn("[bestsellers.get] OK", rendered)
+        self.assertIn("预算    estimated=50 worst=50 confirm=True", rendered)
+
     def test_piped_interactive_tui_prints_session_output_on_separate_lines(self):
         stdin = StringIO("/doctor\n/quit\n")
         stdout = StringIO()

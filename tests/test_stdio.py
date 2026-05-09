@@ -74,6 +74,26 @@ class StdioProtocolTests(unittest.TestCase):
         self.assertTrue(response["payload"]["ok"])
         self.assertEqual(response["payload"]["data"]["analysis"]["series"]["amazon"]["all_time"]["points"], 3)
 
+    def test_bestsellers_yes_message_uses_fixture_service_path(self):
+        raw = json.dumps(
+            {
+                "id": "5",
+                "method": "bestsellers.get",
+                "params": {
+                    "category": "172282",
+                    "domain": "US",
+                    "fixture": "bestsellers_home.json",
+                    "yes": True,
+                },
+            }
+        )
+        events = handle_stdio_message(raw, env={})
+        response = next(event for event in events if event["event"] == "response")
+
+        self.assertTrue(response["payload"]["ok"])
+        self.assertEqual(response["payload"]["request"]["endpoint"], "/bestsellers")
+        self.assertEqual(response["payload"]["token_bucket"]["estimated"]["estimated_tokens"], 50)
+
 
 if __name__ == "__main__":
     unittest.main()

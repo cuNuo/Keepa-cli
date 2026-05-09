@@ -1,0 +1,8 @@
+{
+  "current_SALES_gte": 1,
+  "current_SALES_lte": 20000,
+  "current_COUNT_REVIEWS_gte": 50,
+  "sort": [["current_SALES", "asc"]],
+  "perPage": 50,
+  "page": 0
+}

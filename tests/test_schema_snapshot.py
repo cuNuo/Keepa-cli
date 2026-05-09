@@ -47,6 +47,31 @@ class SchemaSnapshotTests(unittest.TestCase):
                 },
                 env={},
             ),
+            "finder_query": run_command(
+                "finder.query",
+                {
+                    "selection_file": "tests/fixtures/finder_selection.json",
+                    "domain": "US",
+                    "dry_run": True,
+                    "max_tokens": 25,
+                },
+                env={},
+            ),
+            "bestsellers_get": run_command(
+                "bestsellers.get",
+                {"category": "172282", "domain": "US", "dry_run": True},
+                env={},
+            ),
+            "sellers_get": run_command(
+                "sellers.get",
+                {
+                    "seller": ["A2L77EE7U53NWQ"],
+                    "domain": "US",
+                    "storefront": True,
+                    "fixture": "seller_A2L77EE7U53NWQ.json",
+                },
+                env={},
+            ),
             "stdio_products_get": handle_stdio_message(
                 json.dumps(
                     {

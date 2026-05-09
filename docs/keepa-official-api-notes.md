@@ -10,6 +10,7 @@
 - Product Request：`https://discuss.keepa.com/t/products/110.json`
 - Category Lookup：`https://discuss.keepa.com/t/category-lookup/113.json`
 - Category Searches：`https://discuss.keepa.com/t/category-searches/114.json`
+- Keepa Python wrapper API methods：`https://keepaapi.readthedocs.io/en/stable/api_methods.html`
 
 ## 请求通用约束
 
@@ -124,6 +125,39 @@
 ```powershell
 .\.venv\Scripts\kc.exe --json categories search "home kitchen" --domain US --fixture category_search_home.json
 ```
+
+## Phase 8 P1 高价值 API
+
+本轮只冻结请求信息流，不接真实 API。Keepa 官方通用约束仍按 GET、API key query 参数、gzip 响应与 token bucket 字段处理；Python wrapper 文档用于交叉确认 Product Finder、deals、seller 与 best seller 类方法存在。
+
+当前命令与路径：
+
+```text
+finder.query      -> /query
+deals.query       -> /deal
+sellers.get       -> /seller
+bestsellers.get   -> /bestsellers
+topsellers.list   -> /topseller
+```
+
+当前命令：
+
+```powershell
+.\.venv\Scripts\kc.exe --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
+.\.venv\Scripts\kc.exe --json deals query --selection-file keepa_cli/fixtures/deals_selection.json --domain US --fixture deals_home.json --out deals.json
+.\.venv\Scripts\kc.exe --json sellers get A2L77EE7U53NWQ --domain US --storefront --fixture seller_A2L77EE7U53NWQ.json
+.\.venv\Scripts\kc.exe --json bestsellers get 172282 --domain US --dry-run
+.\.venv\Scripts\kc.exe --json topsellers list --domain US --fixture topsellers_US.json --out topsellers.json
+```
+
+实现边界：
+
+- `finder.query` 与 `deals.query` 从 `--selection-file` 读取 JSON object，并以压缩 JSON 字符串放入 `selection` 参数。
+- `finder.query` 的默认估算为 10 tokens，可用 `--max-tokens` 给 Agent 设置 worst-case 提示；真实请求未带 `--yes` 时返回 `confirmation_required`。
+- `bestsellers.get` 与 `topsellers.list` 固定显示 50 token 预算提示；真实请求未带 `--yes` 时先返回确认错误，不先走认证错误。
+- `deals.query` 估算 5 tokens；`sellers.get` 按 seller id 数估算。
+- 大结果命令支持 `--out`，写入响应 body 的 JSON 文件，并在 envelope 中返回 `path`、`format`、`size_bytes` 与 `result_count`。
+- fixture 与 dry-run 是当前唯一自动化验证路径；真实 live smoke 后续只能手动触发并录制脱敏 cassette。
 
 ## 本仓库信息流测试策略
 
