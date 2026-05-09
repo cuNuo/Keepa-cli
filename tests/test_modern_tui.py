@@ -128,6 +128,26 @@ class ModernTuiTests(unittest.TestCase):
 
         self.assertIn("命令面板", rendered)
 
+    def test_command_buttons_keep_visible_content_height_in_narrow_window(self):
+        if not modern_tui.is_textual_available():
+            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+
+        import asyncio
+
+        async def run_smoke():
+            app_class = modern_tui._create_app_class()
+            async with app_class(env={}).run_test(size=(34, 30)) as pilot:
+                doctor = pilot.app.query_one("#cmd-doctor")
+                product = pilot.app.query_one("#cmd-products-get")
+                return doctor.size.height, product.size.height, str(doctor.label), str(product.label)
+
+        doctor_height, product_height, doctor_label, product_label = asyncio.run(run_smoke())
+
+        self.assertGreaterEqual(doctor_height, 1)
+        self.assertGreaterEqual(product_height, 1)
+        self.assertIn("Doctor", doctor_label)
+        self.assertIn("Product", product_label)
+
 
 if __name__ == "__main__":
     unittest.main()

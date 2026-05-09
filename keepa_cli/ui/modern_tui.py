@@ -107,7 +107,7 @@ Screen {
 }
 
 #save-token {
-    width: 10;
+    width: 9;
     height: 3;
     margin-left: 1;
     border: round #8fb7a8;
@@ -129,7 +129,8 @@ Screen {
 
 CommandButton {
     width: 100%;
-    height: 2;
+    height: 3;
+    min-height: 3;
     margin: 0 0 1 0;
     border: round #313b42;
     background: #1c2329;
