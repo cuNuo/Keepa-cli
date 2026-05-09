@@ -12,6 +12,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -38,15 +39,18 @@ def main() -> int:
     python = sys.executable
     node = _tool("node")
     npm = _tool("npm")
-    node_env = {**os.environ, "KEEPA_CLI_PYTHON": python}
-    _run([python, "-m", "compileall", "-q", "keepa_cli", "scripts"], root)
-    _run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], root)
-    _run([python, "scripts/check_fixture_sync.py"], root)
-    _run([python, "-m", "keepa_cli", "--json", "doctor"], root)
-    _run([node, "bin/keepa-cli.js", "--json", "doctor"], root, env=node_env)
-    _run([node, "bin/kc.js", "--json", "doctor"], root, env=node_env)
-    if not args.skip_npm_pack:
-        _run([npm, "pack", "--dry-run", "--json", "--ignore-scripts"], root)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        smoke_env = {**os.environ, "KEEPA_CLI_CONFIG": str(Path(temp_dir) / "config.toml")}
+        smoke_env.pop("KEEPA_API_KEY", None)
+        node_env = {**smoke_env, "KEEPA_CLI_PYTHON": python}
+        _run([python, "-m", "compileall", "-q", "keepa_cli", "scripts"], root)
+        _run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], root)
+        _run([python, "scripts/check_fixture_sync.py"], root)
+        _run([python, "-m", "keepa_cli", "--json", "doctor"], root, env=smoke_env)
+        _run([node, "bin/keepa-cli.js", "--json", "doctor"], root, env=node_env)
+        _run([node, "bin/kc.js", "--json", "doctor"], root, env=node_env)
+        if not args.skip_npm_pack:
+            _run([npm, "pack", "--dry-run", "--json", "--ignore-scripts"], root, env=smoke_env)
     print("release gate ok")
     return 0
 

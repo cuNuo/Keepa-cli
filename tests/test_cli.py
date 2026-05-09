@@ -6,6 +6,7 @@ tests/test_cli.py
 """
 
 import json
+import os
 import subprocess
 import sys
 import unittest
@@ -14,6 +15,15 @@ from tempfile import TemporaryDirectory
 
 
 class CliTests(unittest.TestCase):
+    def setUp(self):
+        self._temp_dir = TemporaryDirectory()
+        self._env = dict(os.environ)
+        self._env.pop("KEEPA_API_KEY", None)
+        self._env["KEEPA_CLI_CONFIG"] = str(Path(self._temp_dir.name) / "config.toml")
+
+    def tearDown(self):
+        self._temp_dir.cleanup()
+
     def run_module(self, *args, input_text=None):
         return subprocess.run(
             [sys.executable, "-m", "keepa_cli", *args],
@@ -22,6 +32,7 @@ class CliTests(unittest.TestCase):
             encoding="utf-8",
             capture_output=True,
             check=False,
+            env=self._env,
         )
 
     def test_json_doctor_returns_machine_readable_output(self):
@@ -248,7 +259,7 @@ class CliTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "tui")
-        self.assertIn("textual", payload["data"]["preferred_runtime"])
+        self.assertEqual(payload["data"]["preferred_runtime"], "prompt_toolkit")
         self.assertIn("classic", payload["data"]["fallback_runtime"])
 
     def test_json_tui_classic_does_not_start_interactive_session(self):

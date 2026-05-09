@@ -1,7 +1,7 @@
 """
 tests/test_modern_tui.py
-文件说明：验证 Textual 现代 TUI 的入口、命令目录与降级路径。
-主要职责：确保现代 TUI 使用组件化元数据，同时缺少框架时仍可回退标准库 TUI。
+文件说明：验证 prompt_toolkit 现代 TUI 的入口、补全与降级路径。
+主要职责：确保现代 TUI 保持官方 CLI 风格的 REPL 交互，并复用 command service。
 依赖边界：测试不启动真实终端应用，不访问真实 Keepa API。
 """
 
@@ -11,6 +11,22 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from keepa_cli.ui import modern_tui
+from keepa_cli.ui.tui import _slash_to_command
+
+
+class FakePromptSession:
+    def __init__(self, lines):
+        self.lines = list(lines)
+        self.prompts = []
+
+    def prompt(self, message, **kwargs):
+        self.prompts.append((message, kwargs))
+        if not self.lines:
+            raise EOFError
+        value = self.lines.pop(0)
+        if isinstance(value, BaseException):
+            raise value
+        return value
 
 
 class ModernTuiTests(unittest.TestCase):
@@ -23,7 +39,9 @@ class ModernTuiTests(unittest.TestCase):
 
         self.assertIn("Product", labels)
         self.assertIn("/product B001GZ6QEC --fixture product_B001GZ6QEC.json", commands)
+        self.assertIn("/token <64-char Keepa key>", commands)
         self.assertIn("Inspect", groups)
+        self.assertIn("Config", groups)
         self.assertIn("Operate", groups)
         self.assertTrue(all(item.service_command for item in catalog))
 
@@ -34,18 +52,56 @@ class ModernTuiTests(unittest.TestCase):
         self.assertEqual(english[0].label, "Doctor")
         self.assertEqual(chinese[0].label, "诊断")
 
-    def test_stylesheet_contains_textual_layout_selectors(self):
-        stylesheet = modern_tui.MODERN_TUI_CSS
+    def test_metadata_prefers_prompt_toolkit(self):
+        with patch("keepa_cli.ui.modern_tui.is_prompt_tui_available", return_value=True):
+            metadata = modern_tui.build_tui_metadata()
 
-        self.assertIn("#status-bar", stylesheet)
-        self.assertIn("#result-panel", stylesheet)
-        self.assertIn("#quickbar", stylesheet)
-        self.assertIn("#command-row", stylesheet)
-        self.assertNotIn("CommandButton", stylesheet)
+        self.assertEqual(metadata["preferred_runtime"], "prompt_toolkit")
+        self.assertEqual(metadata["fallback_runtime"], "classic")
+        self.assertEqual(metadata["selected_runtime"], "prompt_toolkit")
+        self.assertTrue(metadata["prompt_toolkit_available"])
 
-    def test_run_modern_tui_falls_back_when_textual_is_missing(self):
+    def test_completion_candidates_follow_slash_prefixes(self):
+        slash = modern_tui._iter_completion_candidates("/", language="en")
+        product = modern_tui._iter_completion_candidates("/pro", language="en")
+        fuzzy = modern_tui._iter_completion_candidates("/prd", language="en")
+        config = modern_tui._iter_completion_candidates("/max", language="en")
+
+        self.assertIn("/doctor", {item.slash for item in slash})
+        self.assertIn("/capabilities", {item.slash for item in slash})
+        self.assertEqual([item.service_command for item in product], ["products.get"])
+        self.assertEqual([item.service_command for item in fuzzy], ["products.get"])
+        self.assertEqual([item.service_command for item in config], ["config.set-max-tokens"])
+
+    def test_completion_ignores_non_slash_text(self):
+        self.assertEqual(modern_tui._iter_completion_candidates("doctor", language="en"), ())
+
+    def test_slash_parser_supports_config_shortcuts(self):
+        token_command, token_params = _slash_to_command("/token " + "A" * 64)
+        budget_command, budget_params = _slash_to_command("/max-tokens 250")
+        language_command, language_params = _slash_to_command("/language zh")
+
+        self.assertEqual(token_command, "config.set-token")
+        self.assertEqual(token_params["token"], "A" * 64)
+        self.assertEqual(budget_command, "config.set-max-tokens")
+        self.assertEqual(budget_params["max_tokens"], "250")
+        self.assertEqual(language_command, "config.set-language")
+        self.assertEqual(language_params["language"], "zh")
+
+    def test_format_result_contains_summary_and_error_details(self):
+        ok_payload = {"ok": True, "command": "doctor", "data": {"auth": {}, "offline": {}}}
+        error_payload = {
+            "ok": False,
+            "command": "config.set-token",
+            "error": {"kind": "invalid_argument", "message": "token must be 64 visible ASCII characters"},
+        }
+
+        self.assertIn("[doctor] OK", modern_tui._format_result(ok_payload))
+        self.assertIn("token must be 64", modern_tui._format_result(error_payload))
+
+    def test_run_modern_tui_falls_back_when_prompt_toolkit_is_missing(self):
         with (
-            patch("keepa_cli.ui.modern_tui.is_textual_available", return_value=False),
+            patch("keepa_cli.ui.modern_tui.is_prompt_tui_available", return_value=False),
             patch("keepa_cli.ui.modern_tui.run_interactive_tui", return_value=0) as fallback,
         ):
             exit_code = modern_tui.run_modern_tui(env={})
@@ -53,242 +109,75 @@ class ModernTuiTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         fallback.assert_called_once_with(env={})
 
-    def test_run_modern_tui_starts_textual_app_when_available(self):
-        class FakeApp:
-            def __init__(self, *, env=None):
-                self.env = env
+    def test_prompt_loop_runs_command_and_prints_copyable_json(self):
+        session = FakePromptSession(["/doctor", "/quit"])
 
-            def run(self):
-                return None
+        with patch("builtins.print") as fake_print:
+            exit_code = modern_tui._run_prompt_loop(env={}, session=session)
 
-        with (
-            patch("keepa_cli.ui.modern_tui.is_textual_available", return_value=True),
-            patch("keepa_cli.ui.modern_tui._create_app_class", return_value=FakeApp) as create_app,
-        ):
-            exit_code = modern_tui.run_modern_tui(env={"KEEPA_API_KEY": "secret"})
-
+        rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
         self.assertEqual(exit_code, 0)
-        create_app.assert_called_once()
-
-    def test_textual_app_updates_result_panel_from_shortcut(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke():
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={}).run_test(size=(100, 32)) as pilot:
-                await pilot.press("f1")
-                return str(pilot.app.query_one("#result-body").renderable)
-
-        rendered = asyncio.run(run_smoke())
-
+        self.assertIn("kc › ", session.prompts[0][0][0][1])
+        self.assertIn("$ kc /doctor", rendered)
         self.assertIn("[doctor] OK", rendered)
+        self.assertIn('"command": "doctor"', rendered)
 
-    def test_textual_app_saves_token_from_input(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+    def test_prompt_loop_prints_help_without_running_service(self):
+        session = FakePromptSession(["/help", "/quit"])
 
-        import asyncio
+        with patch("builtins.print") as fake_print:
+            exit_code = modern_tui._run_prompt_loop(env={}, session=session)
 
-        async def run_smoke(config_path: Path):
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
-                token_input = pilot.app.query_one("#token-input")
-                token_input.value = "A" * 64
-                await pilot.click("#save-token")
-                body = str(pilot.app.query_one("#result-body").renderable)
-                token_value = token_input.value
-                return body, token_value
+        rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Commands", rendered)
+        self.assertIn("/product", rendered)
+        self.assertIn("/max-tokens", rendered)
 
+    def test_prompt_loop_saves_token_without_printing_secret(self):
         with TemporaryDirectory() as temp_dir:
             config_path = Path(temp_dir) / "config.toml"
-            rendered, token_value = asyncio.run(run_smoke(config_path))
+            token = "A" * 64
+            session = FakePromptSession([f"/token {token}", "/quit"])
+
+            with patch("builtins.print") as fake_print:
+                exit_code = modern_tui._run_prompt_loop(env={"KEEPA_CLI_CONFIG": str(config_path)}, session=session)
+
+            rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
             content = config_path.read_text(encoding="utf-8")
 
-        self.assertIn("Token saved", rendered)
-        self.assertEqual(token_value, "")
-        self.assertIn(f'api_key = "{"A" * 64}"', content)
-        self.assertNotIn("A" * 64, rendered)
+        self.assertEqual(exit_code, 0)
+        self.assertIn(f'api_key = "{token}"', content)
+        self.assertIn("[config.set-token] OK", rendered)
+        self.assertNotIn(token, rendered)
 
-    def test_textual_app_rejects_invalid_token_before_writing(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke(config_path: Path):
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
-                pilot.app.query_one("#token-input").value = "short"
-                await pilot.click("#save-token")
-                return str(pilot.app.query_one("#result-body").renderable), config_path.exists()
-
+    def test_prompt_loop_saves_budget_setting(self):
         with TemporaryDirectory() as temp_dir:
-            rendered, exists = asyncio.run(run_smoke(Path(temp_dir) / "config.toml"))
+            config_path = Path(temp_dir) / "config.toml"
+            session = FakePromptSession(["/max-tokens 250", "/quit"])
 
-        self.assertIn("64", rendered)
-        self.assertFalse(exists)
+            with patch("builtins.print") as fake_print:
+                exit_code = modern_tui._run_prompt_loop(env={"KEEPA_CLI_CONFIG": str(config_path)}, session=session)
 
-    def test_textual_app_uses_chinese_when_configured(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
+            rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
+            content = config_path.read_text(encoding="utf-8")
 
-        import asyncio
+        self.assertEqual(exit_code, 0)
+        self.assertIn("max_tokens_per_request = 250", content)
+        self.assertIn("[config.set-max-tokens] OK", rendered)
 
-        async def run_smoke(config_path: Path):
-            config_path.write_text('language = "zh"\n', encoding="utf-8")
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
-                command_input = pilot.app.query_one("#command-input")
-                command_input.value = "/"
-                await pilot.pause()
-                return str(pilot.app.query_one("#quickbar").renderable)
-
+    def test_startup_lines_hide_setup_noise_after_config(self):
         with TemporaryDirectory() as temp_dir:
-            rendered = asyncio.run(run_smoke(Path(temp_dir) / "config.toml"))
-
-        self.assertIn("诊断", rendered)
-
-    def test_textual_app_hides_settings_after_existing_config(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke(config_path: Path):
+            config_path = Path(temp_dir) / "config.toml"
             config_path.write_text(
                 f'api_key = "{"A" * 64}"\nmax_tokens_per_request = 250\n',
                 encoding="utf-8",
             )
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
-                return "hidden" in pilot.app.query_one("#settings-row").classes
+            lines = modern_tui._startup_lines({"KEEPA_CLI_CONFIG": str(config_path)})
 
-        with TemporaryDirectory() as temp_dir:
-            hidden = asyncio.run(run_smoke(Path(temp_dir) / "config.toml"))
-
-        self.assertTrue(hidden)
-
-    def test_command_input_has_initial_focus(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke():
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={}).run_test(size=(80, 24)) as pilot:
-                return pilot.app.focused.id
-
-        focused_id = asyncio.run(run_smoke())
-
-        self.assertEqual(focused_id, "command-input")
-
-    def test_textual_app_suggests_commands_after_slash(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke():
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={}).run_test(size=(100, 32)) as pilot:
-                command_input = pilot.app.query_one("#command-input")
-                command_input.value = "/pro"
-                await pilot.pause()
-                return str(pilot.app.query_one("#quickbar").renderable)
-
-        rendered = asyncio.run(run_smoke())
-
-        self.assertIn("/product", rendered)
-
-    def test_textual_app_selects_suggestion_with_arrow_keys(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke():
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={}).run_test(size=(100, 32)) as pilot:
-                command_input = pilot.app.query_one("#command-input")
-                command_input.value = "/"
-                await pilot.press("down")
-                await pilot.press("enter")
-                return command_input.value
-
-        value = asyncio.run(run_smoke())
-
-        self.assertEqual(value, "/capabilities")
-
-    def test_textual_app_outputs_parsed_command_and_copyable_json(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke():
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={}).run_test(size=(100, 32)) as pilot:
-                command_input = pilot.app.query_one("#command-input")
-                command_input.value = "/doctor"
-                await pilot.press("enter")
-                title = str(pilot.app.query_one("#result-title").renderable)
-                copy_text = str(pilot.app.query_one("#result-copy-body").renderable)
-                return title, copy_text
-
-        title, copy_text = asyncio.run(run_smoke())
-
-        self.assertIn("doctor", title)
-        self.assertIn('"command": "doctor"', copy_text)
-
-    def test_textual_app_copy_output_is_scrollable(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke():
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={}).run_test(size=(80, 18)) as pilot:
-                command_input = pilot.app.query_one("#command-input")
-                command_input.value = "/capabilities"
-                await pilot.press("enter")
-                output = pilot.app.query_one("#result-copy")
-                before = output.scroll_y
-                output.scroll_down()
-                await pilot.pause()
-                return before, output.scroll_y, output.max_scroll_y
-
-        before, after, max_scroll_y = asyncio.run(run_smoke())
-
-        self.assertGreater(max_scroll_y, 0)
-        self.assertGreaterEqual(after, before)
-
-    def test_textual_app_saves_max_tokens_setting(self):
-        if not modern_tui.is_textual_available():
-            self.skipTest("Textual 未安装，跳过真实 TUI 交互 smoke。")
-
-        import asyncio
-
-        async def run_smoke(config_path: Path):
-            app_class = modern_tui._create_app_class()
-            async with app_class(env={"KEEPA_CLI_CONFIG": str(config_path)}).run_test(size=(100, 32)) as pilot:
-                max_tokens = pilot.app.query_one("#max-tokens-input")
-                max_tokens.value = "250"
-                await pilot.click("#save-max-tokens")
-                body = str(pilot.app.query_one("#result-body").renderable)
-                return body
-
-        with TemporaryDirectory() as temp_dir:
-            config_path = Path(temp_dir) / "config.toml"
-            rendered = asyncio.run(run_smoke(config_path))
-            content = config_path.read_text(encoding="utf-8")
-
-        self.assertIn("Budget saved", rendered)
-        self.assertIn("max_tokens_per_request = 250", content)
+        rendered = "\n".join(lines)
+        self.assertNotIn("/token", rendered)
+        self.assertNotIn("/max-tokens", rendered)
 
 
 if __name__ == "__main__":

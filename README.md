@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Keepa CLI</h1>
-  <p align="center">Agent-first Keepa API tooling with JSON, stdio, fixtures, token budgeting, and a modern Textual TUI.</p>
+  <p align="center">Agent-first Keepa API tooling with JSON, stdio, fixtures, token budgeting, and a command-first TUI.</p>
 </p>
 
 <p align="center">
@@ -25,7 +25,7 @@ Keepa CLI wraps Keepa API workflows into a stable command-line surface for agent
 - Equivalent `keepa-cli` and `kc` entrypoints.
 - Stable `--json` envelopes for automation.
 - JSON Lines `--stdio` protocol for long-running agent sessions.
-- Textual/Rich TUI with command palette, token setup, and result panel.
+- Prompt-toolkit TUI with slash completion, command history, a bottom status bar, and copyable output.
 - Fixture/offline mode, dry-run requests, token budget hints, and secret redaction.
 - Safe `/graphimage` handling with explicit `--out` for binary PNG output.
 - Release gate for compile, tests, fixture sync, Python/Node smoke, and npm pack dry-run.
@@ -129,19 +129,19 @@ kc --json graphs image B09YNQCQKR --domain US --width 800 --height 400 --range 3
 
 ## TUI
 
-Start the modern terminal workspace:
+Start the command-first terminal interface:
 
 ```powershell
 kc
 ```
 
-The TUI includes:
+The TUI follows the Codex/zread-style CLI pattern:
 
-- A command-first input focused on startup.
-- Slash suggestions when you type `/`.
-- Auth, default domain, and per-request token budget status.
-- Token and budget fields only while setup is incomplete.
-- A selectable JSON output area for copying full envelopes.
+- `kc ›` stays focused as the bottom composer.
+- Typing `/` opens slash completion with arrow-key selection.
+- The bottom status bar keeps auth, domain, language, budget, and schema visible.
+- Setup is terse: use `/token <64-char Keepa key>`, `/max-tokens 250`, or `/language zh`.
+- Command output is normal terminal text, so summaries and full JSON envelopes can be selected and copied.
 
 Force the classic slash TUI:
 

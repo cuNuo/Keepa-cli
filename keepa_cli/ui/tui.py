@@ -220,6 +220,14 @@ def _slash_to_command(line: str) -> tuple[str, dict[str, Any]]:
         return "capabilities", {}
     if slash_command == "domains":
         return "domains.list", {}
+    if slash_command == "config":
+        return "config.show", options
+    if slash_command in {"token", "login"}:
+        return "config.set-token", {"token": positional[0] if positional else "", **options}
+    if slash_command == "max-tokens":
+        return "config.set-max-tokens", {"max_tokens": positional[0] if positional else "", **options}
+    if slash_command == "language":
+        return "config.set-language", {"language": positional[0] if positional else "", **options}
     if slash_command == "product":
         return "products.get", {"asin": positional, **options}
     if slash_command == "product-search":

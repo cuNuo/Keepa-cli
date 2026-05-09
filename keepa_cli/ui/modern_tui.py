@@ -1,14 +1,16 @@
 """
 keepa_cli/ui/modern_tui.py
-文件说明：提供基于 Textual 的现代终端工作台。
-主要职责：渲染组件化 TUI、接收 slash 命令，并复用 Agent-safe command service。
-依赖边界：Textual 仅延迟导入；缺少依赖时自动回退标准库 TUI。
+文件说明：提供基于 prompt_toolkit 的现代命令行交互层。
+主要职责：渲染低噪声 REPL、提供 slash 命令补全，并复用 Agent-safe command service。
+依赖边界：prompt_toolkit 延迟导入；缺少依赖时自动回退标准库 TUI。
 """
 
 from __future__ import annotations
 
+import html
 import importlib.util
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -21,19 +23,12 @@ from keepa_cli.ui.tui import _doctor_context, _slash_to_command, _summarize_succ
 TEXT: dict[str, dict[str, str]] = {
     "en": {
         "brand": "Keepa CLI",
-        "token_placeholder": "Keepa token",
-        "budget_placeholder": "Max tokens/request",
-        "save": "Save",
-        "budget_save": "Budget",
-        "result": "Output",
-        "ready": "Type / for commands",
-        "settings": "Settings",
-        "settings_hint": "Token or max tokens missing",
-        "suggestions": "Commands",
-        "config": "Config",
-        "token_empty": "Token is empty",
-        "token_saved": "Token saved",
-        "budget_saved": "Budget saved",
+        "ready": "Type / for commands. Ctrl-L clears the screen. Ctrl-C exits.",
+        "setup_token": "Auth is missing. Use /token <64-char Keepa key> or export KEEPA_API_KEY.",
+        "setup_budget": "Request budget is using the default. Use /max-tokens 250 to widen it.",
+        "bye": "bye",
+        "help": "Commands",
+        "json": "Full JSON",
         "doctor": "Doctor",
         "capabilities": "Capabilities",
         "domains": "Domains",
@@ -43,22 +38,19 @@ TEXT: dict[str, dict[str, str]] = {
         "bestsellers": "Best Sellers",
         "graph": "Graph Image",
         "tracking": "Tracking",
+        "token": "Set Token",
+        "budget": "Set Budget",
+        "language": "Language",
+        "config": "Config",
     },
     "zh": {
         "brand": "Keepa CLI",
-        "token_placeholder": "Keepa token",
-        "budget_placeholder": "单次最大 token",
-        "save": "保存",
-        "budget_save": "预算",
-        "result": "输出",
-        "ready": "输入 / 查看命令",
-        "settings": "设置",
-        "settings_hint": "Token 或单次 token 上限未配置",
-        "suggestions": "命令",
-        "config": "配置",
-        "token_empty": "Token 不能为空",
-        "token_saved": "Token 已保存",
-        "budget_saved": "预算已保存",
+        "ready": "输入 / 查看命令。Ctrl-L 清屏，Ctrl-C 退出。",
+        "setup_token": "认证未配置。使用 /token <64字符 Keepa key> 或导出 KEEPA_API_KEY。",
+        "setup_budget": "请求预算仍为默认值。使用 /max-tokens 250 调宽。",
+        "bye": "再见",
+        "help": "命令",
+        "json": "完整 JSON",
         "doctor": "诊断",
         "capabilities": "能力",
         "domains": "域名",
@@ -68,140 +60,12 @@ TEXT: dict[str, dict[str, str]] = {
         "bestsellers": "榜单",
         "graph": "图像",
         "tracking": "跟踪",
+        "token": "配置 Token",
+        "budget": "配置预算",
+        "language": "语言",
+        "config": "配置",
     },
 }
-
-
-MODERN_TUI_CSS = """
-Screen {
-    layout: vertical;
-    background: #101418;
-    color: #dce4e8;
-}
-
-#workspace {
-    layout: vertical;
-    height: 1fr;
-    padding: 1 2;
-}
-
-#status-bar {
-    height: 3;
-    padding: 0 1;
-    border-bottom: tall #33414b;
-    background: #141a1f;
-}
-
-#brand {
-    height: auto;
-    width: 16;
-    color: #e6f4f1;
-    text-style: bold;
-}
-
-#status-line {
-    width: 1fr;
-    color: #9fb3bd;
-}
-
-#settings-row {
-    height: 3;
-    margin: 1 0 0 0;
-}
-
-#settings-row.hidden {
-    display: none;
-}
-
-#token-input {
-    width: 1fr;
-    height: 3;
-    border: round #47616d;
-    background: #0f1418;
-}
-
-#max-tokens-input {
-    width: 20;
-    height: 3;
-    margin-left: 1;
-    border: round #47616d;
-    background: #0f1418;
-}
-
-#save-token {
-    width: 9;
-    height: 3;
-    margin-left: 1;
-    border: round #8fb7a8;
-    background: #1f302e;
-}
-
-#save-max-tokens {
-    width: 10;
-    height: 3;
-    margin-left: 1;
-    border: round #8fb7a8;
-    background: #1f302e;
-}
-
-#quickbar {
-    height: auto;
-    max-height: 6;
-    margin-top: 1;
-    padding: 1;
-    border: round #35424b;
-    background: #11181d;
-    color: #dce4e8;
-}
-
-#quickbar.hidden {
-    display: none;
-}
-
-#result-panel {
-    height: 1fr;
-    margin-top: 1;
-    padding: 1 2;
-    border: round #47616d;
-    background: #11171b;
-}
-
-#command-input {
-    height: 3;
-    border: round #8fb7a8;
-    background: #0f1418;
-}
-
-#command-row {
-    height: 3;
-    margin-top: 1;
-}
-
-#result-title {
-    height: 1;
-    color: #f2c66d;
-    text-style: bold;
-}
-
-#result-body {
-    height: auto;
-    max-height: 8;
-    margin-top: 1;
-    color: #dce4e8;
-}
-
-#result-copy {
-    height: 1fr;
-    margin-top: 1;
-    border: round #35424b;
-    background: #0f1418;
-    scrollbar-size: 1 1;
-}
-
-#result-copy .text-area--cursor-line {
-    background: #0f1418;
-}
-"""
 
 
 @dataclass(frozen=True)
@@ -213,90 +77,86 @@ class CommandItem:
     description: str
 
 
-def is_textual_available() -> bool:
-    return importlib.util.find_spec("textual") is not None
+def is_prompt_tui_available() -> bool:
+    return importlib.util.find_spec("prompt_toolkit") is not None
 
 
 def _language(value: str | None) -> str:
     return "zh" if str(value).lower() == "zh" else "en"
 
 
+def _config_data(env: Mapping[str, str] | None) -> dict[str, Any]:
+    report = build_config_report(env=env)
+    config = report.get("config", {})
+    return config if isinstance(config, dict) else {}
+
+
+def _active_language(env: Mapping[str, str] | None) -> str:
+    return _language(str(_config_data(env).get("language", "en")))
+
+
 def build_command_catalog(language: str = "en") -> tuple[CommandItem, ...]:
     text = TEXT[_language(language)]
     return (
+        CommandItem(text["doctor"], "Inspect", "/doctor", "doctor", "Auth, config, offline fixture status"),
+        CommandItem(text["capabilities"], "Inspect", "/capabilities", "capabilities", "Agent protocol surface"),
+        CommandItem(text["domains"], "Inspect", "/domains", "domains.list", "Amazon domain map"),
+        CommandItem(text["config"], "Config", "/config", "config.show", "Show effective local config"),
+        CommandItem(text["token"], "Config", "/token <64-char Keepa key>", "config.set-token", "Save local token"),
+        CommandItem(text["budget"], "Config", "/max-tokens 250", "config.set-max-tokens", "Set request budget"),
+        CommandItem(text["language"], "Config", "/language zh", "config.set-language", "Switch UI language"),
         CommandItem(
-            label=text["doctor"],
-            group="Inspect",
-            slash="/doctor",
-            service_command="doctor",
-            description="Auth and local status",
+            text["product"],
+            "Catalog",
+            "/product B001GZ6QEC --fixture product_B001GZ6QEC.json",
+            "products.get",
+            "Fixture product lookup",
         ),
         CommandItem(
-            label=text["capabilities"],
-            group="Inspect",
-            slash="/capabilities",
-            service_command="capabilities",
-            description="Agent protocol surface",
+            text["history"],
+            "Catalog",
+            "/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
+            "history.trend",
+            "Price history summary",
         ),
         CommandItem(
-            label=text["domains"],
-            group="Inspect",
-            slash="/domains",
-            service_command="domains.list",
-            description="Amazon domain map",
+            text["finder"],
+            "Operate",
+            "/finder --selection-file keepa_cli/fixtures/finder_selection.json --dry-run",
+            "finder.query",
+            "Finder dry-run",
         ),
         CommandItem(
-            label=text["product"],
-            group="Catalog",
-            slash="/product B001GZ6QEC --fixture product_B001GZ6QEC.json",
-            service_command="products.get",
-            description="Fixture product lookup",
+            text["bestsellers"],
+            "Operate",
+            "/bestsellers 172282 --domain US --dry-run",
+            "bestsellers.get",
+            "Best sellers dry-run",
         ),
         CommandItem(
-            label=text["history"],
-            group="Catalog",
-            slash="/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
-            service_command="history.trend",
-            description="Price history summary",
+            text["graph"],
+            "Operate",
+            "/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
+            "graphs.image",
+            "Graph image spec",
         ),
         CommandItem(
-            label=text["finder"],
-            group="Operate",
-            slash="/finder --selection-file keepa_cli/fixtures/finder_selection.json --dry-run",
-            service_command="finder.query",
-            description="Finder dry-run",
-        ),
-        CommandItem(
-            label=text["bestsellers"],
-            group="Operate",
-            slash="/bestsellers 172282 --domain US --dry-run",
-            service_command="bestsellers.get",
-            description="Best sellers dry-run",
-        ),
-        CommandItem(
-            label=text["graph"],
-            group="Operate",
-            slash="/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
-            service_command="graphs.image",
-            description="Graph image spec",
-        ),
-        CommandItem(
-            label=text["tracking"],
-            group="Operate",
-            slash="/tracking-list --asins-only --dry-run",
-            service_command="tracking.list",
-            description="Tracking dry-run",
+            text["tracking"],
+            "Operate",
+            "/tracking-list --asins-only --dry-run",
+            "tracking.list",
+            "Tracking dry-run",
         ),
     )
 
 
 def build_tui_metadata(*, selected_runtime: str | None = None) -> dict[str, Any]:
     return {
-        "preferred_runtime": "textual",
+        "preferred_runtime": "prompt_toolkit",
         "fallback_runtime": "classic",
-        "selected_runtime": selected_runtime or ("textual" if is_textual_available() else "classic"),
+        "selected_runtime": selected_runtime or ("prompt_toolkit" if is_prompt_tui_available() else "classic"),
         "schema_version": SCHEMA_VERSION,
-        "textual_available": is_textual_available(),
+        "prompt_toolkit_available": is_prompt_tui_available(),
         "commands": [
             {
                 "label": item.label,
@@ -309,276 +169,303 @@ def build_tui_metadata(*, selected_runtime: str | None = None) -> dict[str, Any]
     }
 
 
-def _format_result(payload: dict[str, Any]) -> str:
+def _has_configured_token(config_data: Mapping[str, Any]) -> bool:
+    return str(config_data.get("api_key", "")).strip() == "[REDACTED]"
+
+
+def _has_custom_budget(config_data: Mapping[str, Any]) -> bool:
+    try:
+        return int(config_data.get("max_tokens_per_request", 20)) != 20
+    except (TypeError, ValueError):
+        return False
+
+
+def _iter_completion_candidates(text: str, *, language: str = "en") -> tuple[CommandItem, ...]:
+    query = text.strip().lower()
+    if not query:
+        return build_command_catalog(language)
+    if not query.startswith("/"):
+        return ()
+    normalized = query.lstrip("/")
+    matches: list[CommandItem] = []
+    for item in build_command_catalog(language):
+        command_name = item.slash.split()[0].lstrip("/").lower()
+        if (
+            item.slash.lower().startswith(query)
+            or command_name.startswith(normalized)
+            or _is_subsequence(normalized, command_name)
+            or item.label.lower().startswith(normalized)
+        ):
+            matches.append(item)
+    return tuple(matches)
+
+
+def _is_subsequence(needle: str, haystack: str) -> bool:
+    if not needle:
+        return True
+    iterator = iter(haystack)
+    return all(char in iterator for char in needle)
+
+
+def _format_result(payload: dict[str, Any], *, language: str = "en") -> str:
     command = str(payload.get("command", "unknown"))
     if payload.get("ok"):
-        lines = _summarize_success(payload)
-        return "\n".join(lines)
+        if _language(language) == "zh":
+            return "\n".join(_summarize_success(payload))
+        return "\n".join(_summarize_success_english(payload))
+
     error = payload.get("error", {})
     if isinstance(error, dict):
+        if _language(language) == "zh":
+            return "\n".join(
+                [
+                    f"[{command}] ERROR",
+                    f"类型    {error.get('kind', 'unknown')}",
+                    f"说明    {error.get('message', '')}",
+                ]
+            )
         return "\n".join(
             [
                 f"[{command}] ERROR",
-                f"类型    {error.get('kind', 'unknown')}",
-                f"说明    {error.get('message', '')}",
+                f"Kind    {error.get('kind', 'unknown')}",
+                f"Message {error.get('message', '')}",
             ]
         )
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
-def _has_configured_token(config_data: dict[str, Any]) -> bool:
-    return str(config_data.get("api_key", "")).strip() == "[REDACTED]"
+def _summarize_success_english(payload: dict[str, Any]) -> list[str]:
+    command = str(payload.get("command", "unknown"))
+    data = payload.get("data")
+    lines = [f"[{command}] OK"]
+
+    if command == "doctor" and isinstance(data, dict):
+        auth = data.get("auth", {})
+        offline = data.get("offline", {})
+        if isinstance(auth, dict):
+            lines.append(f"Auth    {auth.get('source', 'unknown')}")
+        if isinstance(offline, dict):
+            lines.append(f"Offline fixture={'ready' if offline.get('fixture_available') else 'missing'}")
+        return lines
+
+    if command == "capabilities" and isinstance(data, dict):
+        commands = data.get("commands", [])
+        command_count = len(commands) if isinstance(commands, list) else 0
+        lines.append(f"Schema   {data.get('schema_version', '')}")
+        lines.append(f"Commands {command_count}")
+        lines.append("Modes    json / stdio / TUI")
+        return lines
+
+    if isinstance(data, dict):
+        if data.get("dry_run"):
+            estimate = payload.get("token_bucket", {}).get("estimated", {})
+            if isinstance(estimate, dict):
+                lines.append(
+                    "Budget  "
+                    f"estimated={estimate.get('estimated_tokens')} "
+                    f"worst={estimate.get('worst_case_tokens')} "
+                    f"confirm={estimate.get('requires_confirmation')}"
+                )
+            lines.append("Request dry-run; Keepa API was not called")
+            provenance = data.get("cache_provenance")
+            if isinstance(provenance, dict):
+                lines.append(f"Source  {provenance.get('source')} hash={str(provenance.get('params_hash', ''))[:10]}")
+            return lines
+        analysis = data.get("analysis")
+        if isinstance(analysis, dict):
+            series_map = analysis.get("series", {})
+            if isinstance(series_map, dict):
+                for series, series_data in list(series_map.items())[:3]:
+                    if isinstance(series_data, dict):
+                        all_time = series_data.get("all_time", {})
+                        if isinstance(all_time, dict):
+                            latest = all_time.get("latest", {})
+                            points = all_time.get("points", 0)
+                            value = latest.get("value") if isinstance(latest, dict) else ""
+                            lines.append(f"History {series} points={points} latest={value}")
+                return lines
+        if "row_count" in data:
+            lines.append(f"Export  rows={data.get('row_count')} format={data.get('format')}")
+            output = data.get("output")
+            if isinstance(output, dict):
+                lines.append(f"File    {output.get('path', '')}")
+            return lines
+        body = data.get("body")
+        provenance = data.get("cache_provenance")
+        if isinstance(provenance, dict):
+            source = provenance.get("source", "")
+            fixture = provenance.get("fixture", "")
+            lines.append(f"Source  {source} {fixture}".strip())
+        if isinstance(body, dict):
+            products = body.get("products")
+            if isinstance(products, list) and products:
+                for product in products[:3]:
+                    if isinstance(product, dict):
+                        asin = product.get("asin", "")
+                        title = product.get("title", "")
+                        lines.append(f"Product {asin}  {title}".strip())
+                return lines
+            categories = body.get("categories")
+            if isinstance(categories, dict) and categories:
+                for category_id, item in list(categories.items())[:3]:
+                    if isinstance(item, dict):
+                        lines.append(f"Category {category_id}  {item.get('name', category_id)}")
+                return lines
+            sellers = body.get("sellers")
+            if isinstance(sellers, dict) and sellers:
+                for seller_id, item in list(sellers.items())[:3]:
+                    name = item.get("sellerName", seller_id) if isinstance(item, dict) else seller_id
+                    lines.append(f"Seller  {seller_id}  {name}")
+                return lines
+            for key, label in (("deals", "Deals"), ("topSellers", "Top sellers")):
+                value = body.get(key)
+                if isinstance(value, list):
+                    lines.append(f"{label} count={len(value)}")
+                    return lines
+            bestsellers = body.get("bestSellersList")
+            if isinstance(bestsellers, dict):
+                asin_list = bestsellers.get("asinList")
+                count = len(asin_list) if isinstance(asin_list, list) else 0
+                lines.append(f"Best sellers category={bestsellers.get('categoryId', '')} count={count}")
+                return lines
+    lines.append("Done    Structured response received; use --json or the JSON block for the full envelope")
+    return lines
 
 
-def _has_configured_budget(config_data: dict[str, Any]) -> bool:
-    try:
-        return int(config_data.get("max_tokens_per_request", 0)) > 0
-    except (TypeError, ValueError):
-        return False
+def _redact_transcript_command(line: str) -> str:
+    command, _params = _slash_to_command(line)
+    if command == "config.set-token":
+        parts = line.split(maxsplit=1)
+        return parts[0] + " [REDACTED]" if parts else "[REDACTED]"
+    return line
 
 
-def _settings_needed(config_data: dict[str, Any]) -> bool:
-    return not (_has_configured_token(config_data) and _has_configured_budget(config_data))
+def _status_bar(env: Mapping[str, str] | None) -> str:
+    context = _doctor_context(env)
+    config = _config_data(env)
+    default_domain = config.get("default_domain", "US")
+    max_tokens = config.get("max_tokens_per_request", 20)
+    language = _language(str(config.get("language", "en")))
+    status = (
+        f" Keepa CLI  auth:{context['auth']}  domain:{default_domain}  "
+        f"max/request:{max_tokens}  lang:{language}  schema:{SCHEMA_VERSION} "
+    )
+    return html.escape(status)
 
 
-def _create_app_class():
-    from textual.app import App, ComposeResult
-    from textual.containers import Horizontal, ScrollableContainer, Vertical
-    from textual.events import Key
-    from textual.widgets import Button, Header, Input, Static, TextArea
-    from rich.text import Text
+def _startup_lines(env: Mapping[str, str] | None) -> list[str]:
+    language = _active_language(env)
+    text = TEXT[language]
+    config = _config_data(env)
+    context = _doctor_context(env)
+    lines = [
+        text["brand"],
+        f"Auth {context['auth']} | Domain {config.get('default_domain', 'US')} | Max/request {config.get('max_tokens_per_request', 20)} | Schema {SCHEMA_VERSION}",
+        text["ready"],
+    ]
+    if not _has_configured_token(config) and context["auth"] == "missing":
+        lines.append(text["setup_token"])
+    if not _has_custom_budget(config):
+        lines.append(text["setup_budget"])
+    return lines
 
-    class KeepaModernTui(App[None]):
-        CSS = MODERN_TUI_CSS
-        TITLE = "Keepa CLI Command Deck"
-        SUB_TITLE = "offline-first Agent-safe workspace"
-        BINDINGS = [
-            ("ctrl+c", "quit", "退出"),
-            ("ctrl+d", "quit", "退出"),
-            ("f1", "doctor", "Doctor"),
-            ("f2", "capabilities", "Capabilities"),
-        ]
 
-        def __init__(self, *, env: dict[str, str] | None = None) -> None:
-            super().__init__()
-            self.env = env
-            self._suggestions: list[CommandItem] = []
-            self._suggestion_index = 0
+def _help_lines(*, language: str = "en") -> list[str]:
+    text = TEXT[_language(language)]
+    lines = [text["help"]]
+    for item in build_command_catalog(language):
+        lines.append(f"  {item.slash:<72} {item.description}")
+    lines.append("  /quit                                                                    Exit")
+    return lines
 
-        def compose(self) -> ComposeResult:
-            context = _doctor_context(self.env)
-            config = build_config_report(env=self.env)
-            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
-            language = _language(str(config_data.get("language", "en")))
-            text = TEXT[language]
-            default_domain = config_data.get("default_domain", "US")
-            max_tokens = config_data.get("max_tokens_per_request", 20)
-            settings_classes = "" if _settings_needed(config_data) else "hidden"
-            yield Header(show_clock=True)
-            with Vertical(id="workspace"):
-                with Horizontal(id="status-bar"):
-                    yield Static(text["brand"], id="brand")
-                    yield Static(
-                        f"Auth {context['auth']}   Domain {default_domain}   Max/request {max_tokens}   Schema {SCHEMA_VERSION}",
-                        id="status-line",
-                    )
-                yield Static("", id="quickbar", classes="hidden")
-                with Horizontal(id="settings-row", classes=settings_classes):
-                    yield Input(placeholder=text["token_placeholder"], password=True, id="token-input")
-                    yield Button(text["save"], id="save-token")
-                    yield Input(placeholder=text["budget_placeholder"], id="max-tokens-input")
-                    yield Button(text["budget_save"], id="save-max-tokens")
-                with Vertical(id="result-panel"):
-                    yield Static(text["result"], id="result-title")
-                    yield Static(text["ready"], id="result-body")
-                    with ScrollableContainer(id="result-copy"):
-                        yield Static("", id="result-copy-body")
-                with Vertical(id="command-row"):
-                    yield Input(placeholder="/doctor", id="command-input")
 
-        def on_mount(self) -> None:
-            self.query_one("#command-input", Input).focus()
+def _create_completer(*, language: str = "en"):
+    from prompt_toolkit.completion import Completer, Completion
 
-        def on_input_submitted(self, event: Input.Submitted) -> None:
-            if event.input.id == "token-input":
-                self._save_token(event.value)
-                return
-            if event.input.id == "max-tokens-input":
-                self._save_max_tokens(event.value)
-                return
-            value = event.value.strip()
-            if not value:
-                return
-            if event.input.id == "command-input" and self._suggestions:
-                selected = self._suggestions[self._suggestion_index]
-                if value != selected.slash:
-                    self._accept_suggestion()
-                    return
-            event.input.value = ""
-            self._hide_suggestions()
-            if value in {"/quit", "quit", "exit"}:
-                self.exit()
-                return
-            self._run_slash(value)
+    class KeepaCompleter(Completer):
+        def get_completions(self, document, complete_event):
+            before_cursor = document.text_before_cursor
+            for item in _iter_completion_candidates(before_cursor, language=language):
+                yield Completion(
+                    item.slash,
+                    start_position=-len(before_cursor),
+                    display=item.slash,
+                    display_meta=item.description,
+                )
 
-        def on_input_changed(self, event: Input.Changed) -> None:
-            if event.input.id != "command-input":
-                return
-            self._update_suggestions(event.value)
+    return KeepaCompleter()
 
-        def on_key(self, event: Key) -> None:
-            focused = self.focused
-            if not isinstance(focused, Input) or focused.id != "command-input" or not self._suggestions:
-                return
-            if event.key in {"down", "ctrl+n"}:
-                self._move_suggestion(1)
-                event.stop()
-                event.prevent_default()
-            if event.key in {"up", "ctrl+p"}:
-                self._move_suggestion(-1)
-                event.stop()
-                event.prevent_default()
 
-        def action_doctor(self) -> None:
-            self._run_slash("/doctor")
+def _create_session(*, language: str = "en"):
+    from prompt_toolkit import PromptSession
+    from prompt_toolkit.history import InMemoryHistory
+    from prompt_toolkit.shortcuts import CompleteStyle
+    from prompt_toolkit.styles import Style
 
-        def action_capabilities(self) -> None:
-            self._run_slash("/capabilities")
+    style = Style.from_dict(
+        {
+            "prompt": "ansigreen bold",
+            "toolbar": "reverse",
+        }
+    )
+    return PromptSession(
+        history=InMemoryHistory(),
+        completer=_create_completer(language=language),
+        complete_while_typing=True,
+        complete_style=CompleteStyle.COLUMN,
+        style=style,
+    )
 
-        def on_button_pressed(self, event: Button.Pressed) -> None:
-            if event.button.id == "save-token":
-                token = self.query_one("#token-input", Input).value
-                self._save_token(token)
-            if event.button.id == "save-max-tokens":
-                value = self.query_one("#max-tokens-input", Input).value
-                self._save_max_tokens(value)
 
-        def _run_slash(self, slash: str) -> None:
-            command, params = _slash_to_command(slash)
-            payload = run_command(command, params, env=self.env)
-            title = f"Result  {command}"
-            formatted = _format_result(payload)
-            detail = json.dumps(payload, ensure_ascii=False, indent=2)
-            self.query_one("#result-title", Static).update(title)
-            self.query_one("#result-body", Static).update(Text(formatted))
-            self.query_one("#result-copy-body", Static).update(Text(detail))
+def _print_block(lines: list[str]) -> None:
+    for line in lines:
+        print(line)
 
-        def _save_token(self, token: str) -> None:
-            text = self._text()
-            token = token.strip()
-            if not token:
-                self.query_one("#result-title", Static).update(text["config"])
-                self.query_one("#result-body", Static).update(text["token_empty"])
-                return
-            payload = run_command("config.set-token", {"token": token}, env=self.env)
-            self.query_one("#token-input", Input).value = ""
-            self.query_one("#result-title", Static).update(text["config"])
-            if payload.get("ok"):
-                data = payload.get("data", {})
-                path = data.get("path", "") if isinstance(data, dict) else ""
-                self.query_one("#result-body", Static).update(Text(f"{text['token_saved']}\n{path}"))
-                self._refresh_status()
-                self._collapse_settings_if_complete()
-            else:
-                self.query_one("#result-body", Static).update(Text(_format_result(payload)))
 
-        def _save_max_tokens(self, value: str) -> None:
-            text = self._text()
-            payload = run_command("config.set-max-tokens", {"max_tokens": value}, env=self.env)
-            self.query_one("#max-tokens-input", Input).value = ""
-            self.query_one("#result-title", Static).update(text["config"])
-            if payload.get("ok"):
-                data = payload.get("data", {})
-                max_tokens = data.get("max_tokens_per_request", "") if isinstance(data, dict) else ""
-                self.query_one("#result-body", Static).update(Text(f"{text['budget_saved']}\n{max_tokens}"))
-                self._refresh_status()
-                self._collapse_settings_if_complete()
-            else:
-                self.query_one("#result-body", Static).update(Text(_format_result(payload)))
+def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = None) -> int:
+    from prompt_toolkit.formatted_text import HTML
+    from prompt_toolkit.shortcuts import clear
 
-        def _text(self) -> dict[str, str]:
-            config = build_config_report(env=self.env)
-            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
-            return TEXT[_language(str(config_data.get("language", "en")))]
+    language = _active_language(env)
+    text = TEXT[language]
+    prompt_session = session or _create_session(language=language)
+    _print_block(_startup_lines(env))
 
-        def _quickbar(self, language: str) -> str:
-            commands = build_command_catalog(language)
-            return "\n".join(f"{item.label:<13} {item.slash}" for item in commands[:5])
-
-        def _update_suggestions(self, value: str) -> None:
-            quickbar = self.query_one("#quickbar", Static)
-            query = value.strip().lower()
-            if not query.startswith("/"):
-                self._hide_suggestions()
-                return
-            language = _language(str(build_config_report(env=self.env).get("config", {}).get("language", "en")))
-            matches = [
-                item
-                for item in build_command_catalog(language)
-                if item.slash.lower().startswith(query) or item.label.lower().startswith(query.lstrip("/"))
-            ][:5]
-            self._suggestions = matches
-            self._suggestion_index = min(self._suggestion_index, max(len(matches) - 1, 0))
-            if not matches:
-                quickbar.update("")
-                quickbar.add_class("hidden")
-                return
-            quickbar.update(self._render_suggestions())
-            quickbar.remove_class("hidden")
-
-        def _hide_suggestions(self) -> None:
-            quickbar = self.query_one("#quickbar", Static)
-            quickbar.update("")
-            quickbar.add_class("hidden")
-            self._suggestions = []
-            self._suggestion_index = 0
-
-        def _render_suggestions(self) -> Text:
-            rendered = Text()
-            for index, item in enumerate(self._suggestions):
-                prefix = "> " if index == self._suggestion_index else "  "
-                style = "bold #f2c66d" if index == self._suggestion_index else "#dce4e8"
-                rendered.append(f"{prefix}{item.label:<13} {item.slash}", style=style)
-                if index < len(self._suggestions) - 1:
-                    rendered.append("\n")
-            return rendered
-
-        def _move_suggestion(self, delta: int) -> None:
-            if not self._suggestions:
-                return
-            self._suggestion_index = (self._suggestion_index + delta) % len(self._suggestions)
-            self.query_one("#quickbar", Static).update(self._render_suggestions())
-
-        def _accept_suggestion(self) -> None:
-            selected = self._suggestions[self._suggestion_index]
-            self.query_one("#command-input", Input).value = selected.slash
-            self._hide_suggestions()
-
-        def _refresh_status(self) -> None:
-            context = _doctor_context(self.env)
-            config = build_config_report(env=self.env)
-            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
-            default_domain = config_data.get("default_domain", "US")
-            max_tokens = config_data.get("max_tokens_per_request", 20)
-            self.query_one("#status-line", Static).update(
-                f"Auth {context['auth']}   Domain {default_domain}   Max/request {max_tokens}   Schema {SCHEMA_VERSION}"
+    while True:
+        try:
+            line = prompt_session.prompt(
+                [("class:prompt", "kc › ")],
+                bottom_toolbar=lambda: HTML(f"<style bg='ansiblack' fg='ansiwhite'>{_status_bar(env)}</style>"),
             )
+        except (EOFError, KeyboardInterrupt):
+            print(text["bye"])
+            return 0
 
-        def _collapse_settings_if_complete(self) -> None:
-            config = build_config_report(env=self.env)
-            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
-            settings = self.query_one("#settings-row")
-            if _settings_needed(config_data):
-                settings.remove_class("hidden")
-            else:
-                settings.add_class("hidden")
+        value = line.strip()
+        if not value:
+            continue
+        if value in {"/quit", "quit", "exit"}:
+            print(text["bye"])
+            return 0
+        if value == "/clear":
+            clear()
+            _print_block(_startup_lines(env))
+            continue
+        if value == "/help":
+            _print_block(_help_lines(language=language))
+            continue
 
-    return KeepaModernTui
+        command, params = _slash_to_command(value)
+        payload = run_command(command, params, env=env)
+        print(f"\n$ kc {_redact_transcript_command(value)}")
+        print(_format_result(payload, language=language))
+        print(f"{text['json']}:")
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        language = _active_language(env)
+        text = TEXT[language]
 
 
-def run_modern_tui(*, env: dict[str, str] | None = None) -> int:
-    if not is_textual_available():
+def run_modern_tui(*, env: Mapping[str, str] | None = None) -> int:
+    if not is_prompt_tui_available():
         return run_interactive_tui(env=env)
-    app_class = _create_app_class()
-    app_class(env=env).run()
-    return 0
+    return _run_prompt_loop(env=env)

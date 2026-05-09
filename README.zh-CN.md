@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Keepa CLI</h1>
-  <p align="center">面向 Agent 的 Keepa API 命令行工具，支持 JSON、stdio、fixture、token 预算和现代 Textual TUI。</p>
+  <p align="center">面向 Agent 的 Keepa API 命令行工具，支持 JSON、stdio、fixture、token 预算和命令优先 TUI。</p>
 </p>
 
 <p align="center">
@@ -104,19 +104,19 @@ kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json
 
 ## TUI
 
-启动现代终端工作台：
+启动命令优先的终端界面：
 
 ```powershell
 kc
 ```
 
-TUI 包含：
+TUI 采用 Codex/zread 风格：
 
-- 启动后默认聚焦命令输入框。
-- 输入 `/` 时弹出命令建议。
-- 认证状态、默认 domain 和单次 token 预算状态。
-- token 与预算只在配置不完整时占用输入区。
-- 可选中的 JSON 输出区域，便于复制完整 envelope。
+- `kc ›` 始终作为底部 composer。
+- 输入 `/` 后出现 slash 补全，可用方向键选择。
+- 底部状态栏持续显示认证、domain、语言、预算和 schema。
+- 配置入口保持简洁：`/token <64字符 Keepa key>`、`/max-tokens 250`、`/language zh`。
+- 输出使用普通终端文本，摘要和完整 JSON envelope 都可直接选中复制。
 
 强制旧版 slash TUI：
 

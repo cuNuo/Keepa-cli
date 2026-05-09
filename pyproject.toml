@@ -9,7 +9,7 @@ description = "Agent-first Keepa API CLI with keepa-cli and kc entry points."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "textual>=0.86,<2",
+    "prompt_toolkit>=3.0,<4",
 ]
 license = {file = "LICENSE"}
 authors = [{name = "cuNuo"}]
@@ -34,7 +34,7 @@ Issues = "https://github.com/cuNuo/Keepa-cli/issues"
 [project.optional-dependencies]
 dev = []
 tui = [
-    "textual>=0.86,<2",
+    "prompt_toolkit>=3.0,<4",
 ]
 
 [project.scripts]

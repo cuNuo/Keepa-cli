@@ -45,7 +45,7 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("doctor", help="检查认证、fixture/offline 与双入口配置。")
     subparsers.add_parser("capabilities", help="输出 Agent 能力发现协议。")
-    tui = subparsers.add_parser("tui", help="启动人类 TUI 工作台；默认优先 Textual，缺失时回退标准库界面。")
+    tui = subparsers.add_parser("tui", help="启动人类 TUI；默认优先 prompt_toolkit，缺失时回退标准库界面。")
     tui.add_argument("--classic", action="store_true", help="强制使用标准库 TUI。")
 
     config = subparsers.add_parser("config", help="查看或初始化本地配置。")

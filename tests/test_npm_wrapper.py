@@ -12,6 +12,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,21 +26,25 @@ class NpmWrapperTests(unittest.TestCase):
         env = dict(os.environ)
         env["KEEPA_CLI_PYTHON"] = sys.executable
 
-        for wrapper in ("keepa-cli.js", "kc.js"):
-            with self.subTest(wrapper=wrapper):
-                result = subprocess.run(
-                    ["node", str(ROOT / "bin" / wrapper), "--json", "doctor"],
-                    cwd=ROOT,
-                    text=True,
-                    capture_output=True,
-                    check=False,
-                    env=env,
-                )
+        with TemporaryDirectory() as temp_dir:
+            env.pop("KEEPA_API_KEY", None)
+            env["KEEPA_CLI_CONFIG"] = str(Path(temp_dir) / "config.toml")
 
-                self.assertEqual(result.returncode, 0, result.stderr)
-                payload = json.loads(result.stdout)
-                self.assertTrue(payload["ok"])
-                self.assertEqual(payload["command"], "doctor")
+            for wrapper in ("keepa-cli.js", "kc.js"):
+                with self.subTest(wrapper=wrapper):
+                    result = subprocess.run(
+                        ["node", str(ROOT / "bin" / wrapper), "--json", "doctor"],
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                        check=False,
+                        env=env,
+                    )
+
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    payload = json.loads(result.stdout)
+                    self.assertTrue(payload["ok"])
+                    self.assertEqual(payload["command"], "doctor")
 
 
 if __name__ == "__main__":
