@@ -16,4 +16,5 @@ build/
 .keepa-cli/
 keepa-cache.sqlite*
 .playwright-mcp/
+.serena/
 keepa_api_snapshot.md

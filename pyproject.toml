@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keepa-cli"
+version = "0.1.0"
+description = "Agent-first Keepa API CLI with keepa-cli and kc entry points."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+keepa-cli = "keepa_cli.cli:main"
+kc = "keepa_cli.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["keepa_cli*"]

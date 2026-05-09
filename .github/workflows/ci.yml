@@ -1,0 +1,20 @@
+# .github/workflows/ci.yml
+# 文件说明：为 Keepa CLI MVP 提供无 secret 的 GitHub Actions 基础验证。
+# 主要职责：在远程仓库运行标准库 unittest，确保 Agent-first CLI 骨架可回归。
+# 依赖边界：不读取 KEEPA_API_KEY，不访问真实 Keepa API。
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
