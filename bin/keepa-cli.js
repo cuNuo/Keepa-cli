@@ -19,6 +19,7 @@ const candidates = process.env.KEEPA_CLI_PYTHON
 function runPython(candidate) {
   const env = {
     ...process.env,
+    PYTHONUTF8: process.env.PYTHONUTF8 || "1",
     PYTHONPATH: process.env.PYTHONPATH ? `${packageRoot}${path.delimiter}${process.env.PYTHONPATH}` : packageRoot,
   };
   const args = candidate === "py" ? ["-3", "-m", "keepa_cli", ...process.argv.slice(2)] : ["-m", "keepa_cli", ...process.argv.slice(2)];

@@ -74,6 +74,23 @@ stdio smoke test：
 '{"id":"1","method":"doctor","params":{}}' | .\.venv\Scripts\python.exe -m keepa_cli --stdio
 ```
 
+启动人类 TUI 工作台：
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli
+```
+
+TUI 默认展示上下文状态、常用命令和结果面板；所有命令仍通过同一套 Agent-safe service 执行，不复制业务逻辑。常用 slash 命令示例：
+
+```text
+/doctor
+/domains
+/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json
+/category 0 --domain US --parents --fixture category_roots_US.json
+/category-search home kitchen --domain US --fixture category_search_home.json
+/quit
+```
+
 ## npm 安装目标
 
 当前仓库已包含 npm wrapper，可本地 smoke：

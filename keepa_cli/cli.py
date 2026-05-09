@@ -25,6 +25,12 @@ def _write_json(payload: dict[str, Any]) -> None:
     sys.stdout.write(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
+def _ensure_utf8_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="keepa-cli",
@@ -207,6 +213,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    _ensure_utf8_stdio()
     parser = _build_parser()
     args = parser.parse_args(argv)
 
