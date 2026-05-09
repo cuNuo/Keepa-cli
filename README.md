@@ -5,6 +5,7 @@
 当前已完成调研报告：
 
 - [Keepa CLI 实现调研与落地报告](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
+- [Keepa CLI 功能完善与完整开发路线](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
 
 命令入口约定：
 
