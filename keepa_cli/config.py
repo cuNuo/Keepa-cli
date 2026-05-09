@@ -22,6 +22,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "max_tokens_per_request": 20,
 }
 
+KEEPA_API_TOKEN_LENGTH = 64
+
 
 def default_config_path(env: Mapping[str, str] | None = None) -> Path:
     env = os.environ if env is None else env
@@ -105,9 +107,7 @@ def set_api_token(
     env: Mapping[str, str] | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
-    token = token.strip()
-    if not token:
-        raise ValueError("api token cannot be empty")
+    token = validate_api_token(token)
 
     config_path = Path(path) if path is not None else default_config_path(env)
     config = load_config(config_path, env=env)
@@ -124,6 +124,15 @@ def set_api_token(
         "auth_source": "config",
         "config": redact_value(config),
     }
+
+
+def validate_api_token(token: str) -> str:
+    token = token.strip()
+    if len(token) != KEEPA_API_TOKEN_LENGTH:
+        raise ValueError("Keepa API token must be a 64 character access key")
+    if any(char.isspace() or ord(char) < 33 or ord(char) > 126 for char in token):
+        raise ValueError("Keepa API token must contain 64 visible ASCII characters without spaces")
+    return token
 
 
 def set_language(
@@ -150,5 +159,36 @@ def set_language(
         "written": not dry_run,
         "dry_run": dry_run,
         "language": language,
+        "config": redact_value(config),
+    }
+
+
+def set_max_tokens_per_request(
+    value: int | str,
+    path: Path | str | None = None,
+    *,
+    env: Mapping[str, str] | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    try:
+        max_tokens = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("max_tokens_per_request must be a positive integer") from exc
+    if max_tokens <= 0:
+        raise ValueError("max_tokens_per_request must be a positive integer")
+
+    config_path = Path(path) if path is not None else default_config_path(env)
+    config = load_config(config_path, env=env)
+    config["max_tokens_per_request"] = max_tokens
+    content = render_config_toml(config)
+    if not dry_run:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.write_text(content, encoding="utf-8")
+
+    return {
+        "path": str(config_path),
+        "written": not dry_run,
+        "dry_run": dry_run,
+        "max_tokens_per_request": max_tokens,
         "config": redact_value(config),
     }

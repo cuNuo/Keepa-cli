@@ -10,7 +10,15 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-from keepa_cli.config import build_config_report, load_config, render_config_toml, set_api_token, set_language
+from keepa_cli.config import (
+    build_config_report,
+    load_config,
+    render_config_toml,
+    set_api_token,
+    set_language,
+    set_max_tokens_per_request,
+    validate_api_token,
+)
 
 
 class ConfigTests(unittest.TestCase):
@@ -39,20 +47,29 @@ class ConfigTests(unittest.TestCase):
     def test_set_api_token_writes_local_config_and_report_redacts_it(self):
         with TemporaryDirectory() as temp_dir:
             config_path = Path(temp_dir) / "config.toml"
+            token = "A" * 64
 
-            result = set_api_token("SECRET123", path=config_path)
+            result = set_api_token(token, path=config_path)
             loaded = load_config(config_path)
             report = build_config_report(config_path)
 
         self.assertTrue(result["written"])
         self.assertEqual(result["auth_source"], "config")
-        self.assertEqual(loaded["api_key"], "SECRET123")
+        self.assertEqual(loaded["api_key"], token)
         self.assertEqual(report["config"]["api_key"], "[REDACTED]")
-        self.assertNotIn("SECRET123", str(report))
+        self.assertNotIn(token, str(report))
 
     def test_set_api_token_rejects_empty_value(self):
         with self.assertRaises(ValueError):
             set_api_token("  ", path="unused.toml")
+
+    def test_validate_api_token_requires_64_visible_characters(self):
+        self.assertEqual(validate_api_token("A" * 64), "A" * 64)
+
+        for value in ("A" * 63, "A" * 65, "A" * 32 + " " + "A" * 31, "A" * 32 + "\n" + "A" * 31):
+            with self.subTest(value=repr(value)):
+                with self.assertRaises(ValueError):
+                    validate_api_token(value)
 
     def test_set_language_persists_supported_language(self):
         with TemporaryDirectory() as temp_dir:
@@ -68,6 +85,23 @@ class ConfigTests(unittest.TestCase):
     def test_set_language_rejects_unknown_language(self):
         with self.assertRaises(ValueError):
             set_language("fr", path="unused.toml")
+
+    def test_set_max_tokens_per_request_persists_positive_integer(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+
+            result = set_max_tokens_per_request("250", path=config_path)
+            loaded = load_config(config_path)
+
+        self.assertTrue(result["written"])
+        self.assertEqual(result["max_tokens_per_request"], 250)
+        self.assertEqual(loaded["max_tokens_per_request"], 250)
+
+    def test_set_max_tokens_per_request_rejects_non_positive_value(self):
+        for value in ("0", "-1", "abc"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    set_max_tokens_per_request(value, path="unused.toml")
 
 
 if __name__ == "__main__":

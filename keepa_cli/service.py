@@ -17,7 +17,7 @@ from typing import Any
 from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.capabilities import build_capabilities
 from keepa_cli.client import KeepaClient
-from keepa_cli.config import build_config_report, init_config, set_api_token, set_language
+from keepa_cli.config import build_config_report, init_config, set_api_token, set_language, set_max_tokens_per_request
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
@@ -751,6 +751,18 @@ def run_command(
                 command="config.set-language",
                 data=set_language(
                     str(params.get("language", "")),
+                    path=params.get("path"),
+                    env=env,
+                    dry_run=bool(params.get("dry_run")),
+                ),
+                request={"transport": "service", "dry_run": bool(params.get("dry_run"))},
+                token_bucket={},
+            )
+        if command in {"config.set-max-tokens", "config.set_max_tokens"}:
+            return success_envelope(
+                command="config.set-max-tokens",
+                data=set_max_tokens_per_request(
+                    params.get("max_tokens", params.get("max-tokens", "")),
                     path=params.get("path"),
                     env=env,
                     dry_run=bool(params.get("dry_run")),

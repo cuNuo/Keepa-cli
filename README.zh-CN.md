@@ -38,10 +38,10 @@ kc --json doctor
 
 ## 配置 Keepa Token
 
-写入本地配置文件，CLI 输出会自动打码：
+写入本地配置文件，CLI 输出会自动打码。保存前会先做本地格式校验：Keepa access key 必须是 64 个可见 ASCII 字符。
 
 ```powershell
-kc --json config set-token YOUR_KEEPA_TOKEN
+kc --json config set-token YOUR_KEEPA_64_CHARACTER_ACCESS_KEY
 kc --json doctor
 ```
 
@@ -63,6 +63,12 @@ kc --json doctor
 ```powershell
 $env:KEEPA_API_KEY="YOUR_KEEPA_TOKEN"
 kc --json doctor
+```
+
+高订阅可调大单次请求 token 预算提示：
+
+```powershell
+kc --json config set-max-tokens 250
 ```
 
 ## 语言
@@ -106,10 +112,11 @@ kc
 
 TUI 包含：
 
-- 精简命令侧栏。
-- 认证状态和默认 domain。
-- token 输入框，保存到本地 config。
-- slash 命令输入，例如 `/doctor`、`/capabilities`、`/product ...`。
+- 启动后默认聚焦命令输入框。
+- 输入 `/` 时弹出命令建议。
+- 认证状态、默认 domain 和单次 token 预算状态。
+- token 与预算只在配置不完整时占用输入区。
+- 可选中的 JSON 输出区域，便于复制完整 envelope。
 
 强制旧版 slash TUI：
 

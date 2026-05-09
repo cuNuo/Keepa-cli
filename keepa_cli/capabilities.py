@@ -20,6 +20,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "config.init", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "config.set-token", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "config.set-language", "supports_fixture": False, "supports_live": False, "output": "json"},
+    {"name": "config.set-max-tokens", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "domains.list", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "products.get", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "products.search", "supports_fixture": True, "supports_live": True, "output": "json"},

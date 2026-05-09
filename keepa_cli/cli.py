@@ -63,6 +63,10 @@ def _build_parser() -> argparse.ArgumentParser:
     config_language.add_argument("language", choices=("en", "zh"), help="默认英文；可设置 zh 使用中文 TUI。")
     config_language.add_argument("--path", help="指定配置文件路径。")
     config_language.add_argument("--dry-run", action="store_true", help="只输出将写入的语言配置，不落盘。")
+    config_budget = config_subparsers.add_parser("set-max-tokens", help="设置单次请求 token 预算上限提示。")
+    config_budget.add_argument("max_tokens", help="正整数；高订阅可设置更宽。")
+    config_budget.add_argument("--path", help="指定配置文件路径。")
+    config_budget.add_argument("--dry-run", action="store_true", help="只输出将写入的预算配置，不落盘。")
 
     domains = subparsers.add_parser("domains", help="Keepa domain 发现命令。")
     domains_subparsers = domains.add_subparsers(dest="domains_command")
@@ -308,6 +312,13 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
         payload = run_command(
             "config.set-language",
             {"path": args.path, "language": args.language, "dry_run": bool(args.dry_run)},
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "config" and args.config_command == "set-max-tokens":
+        payload = run_command(
+            "config.set-max-tokens",
+            {"path": args.path, "max_tokens": args.max_tokens, "dry_run": bool(args.dry_run)},
         )
         return 0 if payload["ok"] else 1, payload
 

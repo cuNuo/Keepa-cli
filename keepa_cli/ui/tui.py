@@ -185,7 +185,21 @@ def _parse_options(tokens: list[str]) -> tuple[list[str], dict[str, Any]]:
             continue
         name = token[2:]
         if index + 1 < len(tokens) and not tokens[index + 1].startswith("--"):
-            options[name] = tokens[index + 1]
+            value = tokens[index + 1]
+            if name == "param":
+                extra_params = options.setdefault("params", {})
+                if isinstance(extra_params, dict):
+                    key, separator, raw_value = value.partition("=")
+                    if separator and key.strip():
+                        extra_params[key.strip()] = raw_value
+            elif name in options:
+                existing = options[name]
+                if isinstance(existing, list):
+                    existing.append(value)
+                else:
+                    options[name] = [existing, value]
+            else:
+                options[name] = value
             index += 2
         else:
             options[name] = True

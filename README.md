@@ -55,10 +55,10 @@ kc --json doctor
 
 ## Configure Your Keepa Token
 
-Option 1: store the token in the local config file. CLI output is redacted.
+Option 1: store the token in the local config file. CLI output is redacted. Keepa access keys are validated locally as 64 visible ASCII characters before they are saved.
 
 ```powershell
-kc --json config set-token YOUR_KEEPA_TOKEN
+kc --json config set-token YOUR_KEEPA_64_CHARACTER_ACCESS_KEY
 kc --json doctor
 ```
 
@@ -82,11 +82,12 @@ $env:KEEPA_API_KEY="YOUR_KEEPA_TOKEN"
 kc --json doctor
 ```
 
-Inspect config safely:
+Inspect config safely and adjust the per-request token budget hint for higher Keepa plans:
 
 ```powershell
 kc --json config init --dry-run
 kc --json config show
+kc --json config set-max-tokens 250
 ```
 
 ## Language
@@ -136,10 +137,11 @@ kc
 
 The TUI includes:
 
-- A compact command rail.
-- Auth and default domain status.
-- Token input that saves to local config.
-- Slash command input, such as `/doctor`, `/capabilities`, and `/product ...`.
+- A command-first input focused on startup.
+- Slash suggestions when you type `/`.
+- Auth, default domain, and per-request token budget status.
+- Token and budget fields only while setup is incomplete.
+- A selectable JSON output area for copying full envelopes.
 
 Force the classic slash TUI:
 

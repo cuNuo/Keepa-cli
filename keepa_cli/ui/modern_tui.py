@@ -21,15 +21,19 @@ from keepa_cli.ui.tui import _doctor_context, _slash_to_command, _summarize_succ
 TEXT: dict[str, dict[str, str]] = {
     "en": {
         "brand": "Keepa CLI",
-        "hero_title": "Command Deck",
-        "hero_flow": "Inspect  Preview  Export  Record",
         "token_placeholder": "Keepa token",
+        "budget_placeholder": "Max tokens/request",
         "save": "Save",
-        "result": "Result",
-        "ready": "Ready",
+        "budget_save": "Budget",
+        "result": "Output",
+        "ready": "Type / for commands",
+        "settings": "Settings",
+        "settings_hint": "Token or max tokens missing",
+        "suggestions": "Commands",
         "config": "Config",
         "token_empty": "Token is empty",
         "token_saved": "Token saved",
+        "budget_saved": "Budget saved",
         "doctor": "Doctor",
         "capabilities": "Capabilities",
         "domains": "Domains",
@@ -42,15 +46,19 @@ TEXT: dict[str, dict[str, str]] = {
     },
     "zh": {
         "brand": "Keepa CLI",
-        "hero_title": "命令面板",
-        "hero_flow": "检查  预览  导出  记录",
         "token_placeholder": "Keepa token",
+        "budget_placeholder": "单次最大 token",
         "save": "保存",
-        "result": "结果",
-        "ready": "就绪",
+        "budget_save": "预算",
+        "result": "输出",
+        "ready": "输入 / 查看命令",
+        "settings": "设置",
+        "settings_hint": "Token 或单次 token 上限未配置",
+        "suggestions": "命令",
         "config": "配置",
         "token_empty": "Token 不能为空",
         "token_saved": "Token 已保存",
+        "budget_saved": "预算已保存",
         "doctor": "诊断",
         "capabilities": "能力",
         "domains": "域名",
@@ -72,36 +80,50 @@ Screen {
 }
 
 #workspace {
-    layout: horizontal;
+    layout: vertical;
     height: 1fr;
+    padding: 1 2;
 }
 
-#sidebar {
-    width: 32;
-    min-width: 28;
-    background: #161b20;
-    border-right: tall #33414b;
-    padding: 1 1;
+#status-bar {
+    height: 3;
+    padding: 0 1;
+    border-bottom: tall #33414b;
+    background: #141a1f;
 }
 
 #brand {
     height: auto;
-    margin-bottom: 1;
-    padding: 1;
-    border: round #4f7d7a;
-    background: #0f1d1f;
+    width: 16;
     color: #e6f4f1;
     text-style: bold;
 }
 
-#token-row {
+#status-line {
+    width: 1fr;
+    color: #9fb3bd;
+}
+
+#settings-row {
     height: 3;
-    margin-bottom: 1;
+    margin: 1 0 0 0;
+}
+
+#settings-row.hidden {
+    display: none;
 }
 
 #token-input {
     width: 1fr;
     height: 3;
+    border: round #47616d;
+    background: #0f1418;
+}
+
+#max-tokens-input {
+    width: 20;
+    height: 3;
+    margin-left: 1;
     border: round #47616d;
     background: #0f1418;
 }
@@ -114,52 +136,26 @@ Screen {
     background: #1f302e;
 }
 
-.status-card {
+#save-max-tokens {
+    width: 10;
+    height: 3;
+    margin-left: 1;
+    border: round #8fb7a8;
+    background: #1f302e;
+}
+
+#quickbar {
     height: auto;
-    margin: 0 0 1 0;
+    max-height: 6;
+    margin-top: 1;
     padding: 1;
     border: round #35424b;
     background: #11181d;
-}
-
-#command-rail {
-    height: 1fr;
-    scrollbar-color: #8fb7a8;
-}
-
-CommandButton {
-    width: 100%;
-    height: 3;
-    min-height: 3;
-    margin: 0 0 1 0;
-    border: round #313b42;
-    background: #1c2329;
     color: #dce4e8;
 }
 
-CommandButton:hover {
-    background: #26323a;
-    border: round #8fb7a8;
-}
-
-#main {
-    width: 1fr;
-    padding: 1 2;
-}
-
-#hero {
-    height: 4;
-    padding: 1 2;
-    border: round #47616d;
-    background: #172026;
-    color: #f5f0df;
-}
-
-#command-input {
-    margin-top: 1;
-    height: 3;
-    border: round #8fb7a8;
-    background: #0f1418;
+#quickbar.hidden {
+    display: none;
 }
 
 #result-panel {
@@ -168,6 +164,13 @@ CommandButton:hover {
     padding: 1 2;
     border: round #47616d;
     background: #11171b;
+}
+
+#command-input {
+    margin-top: 1;
+    height: 3;
+    border: round #8fb7a8;
+    background: #0f1418;
 }
 
 #result-title {
@@ -180,6 +183,13 @@ CommandButton:hover {
     height: 1fr;
     margin-top: 1;
     color: #dce4e8;
+}
+
+#result-copy {
+    height: 8;
+    margin-top: 1;
+    border: round #35424b;
+    background: #0f1418;
 }
 """
 
@@ -306,24 +316,25 @@ def _format_result(payload: dict[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
 
+def _has_configured_token(config_data: dict[str, Any]) -> bool:
+    return str(config_data.get("api_key", "")).strip() == "[REDACTED]"
+
+
+def _has_configured_budget(config_data: dict[str, Any]) -> bool:
+    try:
+        return int(config_data.get("max_tokens_per_request", 0)) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _settings_needed(config_data: dict[str, Any]) -> bool:
+    return not (_has_configured_token(config_data) and _has_configured_budget(config_data))
+
+
 def _create_app_class():
     from textual.app import App, ComposeResult
-    from textual.containers import Horizontal, ScrollableContainer, Vertical
-    from textual.message import Message
-    from textual.widgets import Button, Footer, Header, Input, Static
-
-    class CommandButton(Button):
-        def __init__(self, item: CommandItem) -> None:
-            super().__init__(item.label, id=f"cmd-{item.service_command.replace('.', '-')}")
-            self.item = item
-
-        class Selected(Message):
-            def __init__(self, item: CommandItem) -> None:
-                self.item = item
-                super().__init__()
-
-        def on_button_pressed(self) -> None:
-            self.post_message(self.Selected(self.item))
+    from textual.containers import Horizontal, Vertical
+    from textual.widgets import Button, Footer, Header, Input, Static, TextArea
 
     class KeepaModernTui(App[None]):
         CSS = MODERN_TUI_CSS
@@ -347,57 +358,54 @@ def _create_app_class():
             language = _language(str(config_data.get("language", "en")))
             text = TEXT[language]
             default_domain = config_data.get("default_domain", "US")
+            max_tokens = config_data.get("max_tokens_per_request", 20)
+            settings_classes = "" if _settings_needed(config_data) else "hidden"
             yield Header(show_clock=True)
-            with Horizontal(id="workspace"):
-                with Vertical(id="sidebar"):
+            with Vertical(id="workspace"):
+                with Horizontal(id="status-bar"):
                     yield Static(text["brand"], id="brand")
                     yield Static(
-                        "\n".join(
-                            [
-                                f"Auth      {context['auth']}",
-                                f"Domain    {default_domain}",
-                                f"Schema    {SCHEMA_VERSION}",
-                            ]
-                        ),
-                        classes="status-card",
+                        f"Auth {context['auth']}   Domain {default_domain}   Max/request {max_tokens}   Schema {SCHEMA_VERSION}",
+                        id="status-line",
                     )
-                    with Horizontal(id="token-row"):
-                        yield Input(placeholder=text["token_placeholder"], password=True, id="token-input")
-                        yield Button(text["save"], id="save-token")
-                    with ScrollableContainer(id="command-rail"):
-                        for item in build_command_catalog(language):
-                            yield CommandButton(item)
-                with Vertical(id="main"):
-                    yield Static(
-                        "\n".join(
-                            [
-                                text["hero_title"],
-                                text["hero_flow"],
-                            ]
-                        ),
-                        id="hero",
-                    )
+                yield Static("", id="quickbar", classes="hidden")
+                with Horizontal(id="settings-row", classes=settings_classes):
+                    yield Input(placeholder=text["token_placeholder"], password=True, id="token-input")
+                    yield Button(text["save"], id="save-token")
+                    yield Input(placeholder=text["budget_placeholder"], id="max-tokens-input")
+                    yield Button(text["budget_save"], id="save-max-tokens")
+                with Vertical(id="result-panel"):
+                    yield Static(text["result"], id="result-title")
+                    yield Static(text["ready"], id="result-body")
+                    yield TextArea("", id="result-copy", read_only=True)
+                with Vertical(id="command-row"):
                     yield Input(placeholder="/doctor", id="command-input")
-                    with Vertical(id="result-panel"):
-                        yield Static(text["result"], id="result-title")
-                        yield Static(text["ready"], id="result-body")
             yield Footer()
 
-        def on_command_button_selected(self, event: CommandButton.Selected) -> None:
-            self._run_slash(event.item.slash)
+        def on_mount(self) -> None:
+            self.query_one("#command-input", Input).focus()
 
         def on_input_submitted(self, event: Input.Submitted) -> None:
             if event.input.id == "token-input":
                 self._save_token(event.value)
                 return
+            if event.input.id == "max-tokens-input":
+                self._save_max_tokens(event.value)
+                return
             value = event.value.strip()
             if not value:
                 return
             event.input.value = ""
+            self._hide_suggestions()
             if value in {"/quit", "quit", "exit"}:
                 self.exit()
                 return
             self._run_slash(value)
+
+        def on_input_changed(self, event: Input.Changed) -> None:
+            if event.input.id != "command-input":
+                return
+            self._update_suggestions(event.value)
 
         def action_doctor(self) -> None:
             self._run_slash("/doctor")
@@ -409,13 +417,19 @@ def _create_app_class():
             if event.button.id == "save-token":
                 token = self.query_one("#token-input", Input).value
                 self._save_token(token)
+            if event.button.id == "save-max-tokens":
+                value = self.query_one("#max-tokens-input", Input).value
+                self._save_max_tokens(value)
 
         def _run_slash(self, slash: str) -> None:
             command, params = _slash_to_command(slash)
             payload = run_command(command, params, env=self.env)
-            title = f"Result  {slash}"
+            title = f"Result  {command}"
+            formatted = _format_result(payload)
+            detail = json.dumps(payload, ensure_ascii=False, indent=2)
             self.query_one("#result-title", Static).update(title)
-            self.query_one("#result-body", Static).update(_format_result(payload))
+            self.query_one("#result-body", Static).update(formatted)
+            self.query_one("#result-copy", TextArea).text = detail
 
         def _save_token(self, token: str) -> None:
             text = self._text()
@@ -431,6 +445,22 @@ def _create_app_class():
                 data = payload.get("data", {})
                 path = data.get("path", "") if isinstance(data, dict) else ""
                 self.query_one("#result-body", Static).update(f"{text['token_saved']}\n{path}")
+                self._refresh_status()
+                self._collapse_settings_if_complete()
+            else:
+                self.query_one("#result-body", Static).update(_format_result(payload))
+
+        def _save_max_tokens(self, value: str) -> None:
+            text = self._text()
+            payload = run_command("config.set-max-tokens", {"max_tokens": value}, env=self.env)
+            self.query_one("#max-tokens-input", Input).value = ""
+            self.query_one("#result-title", Static).update(text["config"])
+            if payload.get("ok"):
+                data = payload.get("data", {})
+                max_tokens = data.get("max_tokens_per_request", "") if isinstance(data, dict) else ""
+                self.query_one("#result-body", Static).update(f"{text['budget_saved']}\n{max_tokens}")
+                self._refresh_status()
+                self._collapse_settings_if_complete()
             else:
                 self.query_one("#result-body", Static).update(_format_result(payload))
 
@@ -438,6 +468,53 @@ def _create_app_class():
             config = build_config_report(env=self.env)
             config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
             return TEXT[_language(str(config_data.get("language", "en")))]
+
+        def _quickbar(self, language: str) -> str:
+            commands = build_command_catalog(language)
+            return "\n".join(f"{item.label:<13} {item.slash}" for item in commands[:5])
+
+        def _update_suggestions(self, value: str) -> None:
+            quickbar = self.query_one("#quickbar", Static)
+            query = value.strip().lower()
+            if not query.startswith("/"):
+                self._hide_suggestions()
+                return
+            language = _language(str(build_config_report(env=self.env).get("config", {}).get("language", "en")))
+            matches = [
+                item
+                for item in build_command_catalog(language)
+                if item.slash.lower().startswith(query) or item.label.lower().startswith(query.lstrip("/"))
+            ][:5]
+            if not matches:
+                quickbar.update("")
+                quickbar.add_class("hidden")
+                return
+            quickbar.update("\n".join(f"{item.label:<13} {item.slash}" for item in matches))
+            quickbar.remove_class("hidden")
+
+        def _hide_suggestions(self) -> None:
+            quickbar = self.query_one("#quickbar", Static)
+            quickbar.update("")
+            quickbar.add_class("hidden")
+
+        def _refresh_status(self) -> None:
+            context = _doctor_context(self.env)
+            config = build_config_report(env=self.env)
+            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
+            default_domain = config_data.get("default_domain", "US")
+            max_tokens = config_data.get("max_tokens_per_request", 20)
+            self.query_one("#status-line", Static).update(
+                f"Auth {context['auth']}   Domain {default_domain}   Max/request {max_tokens}   Schema {SCHEMA_VERSION}"
+            )
+
+        def _collapse_settings_if_complete(self) -> None:
+            config = build_config_report(env=self.env)
+            config_data = config.get("config", {}) if isinstance(config.get("config"), dict) else {}
+            settings = self.query_one("#settings-row")
+            if _settings_needed(config_data):
+                settings.remove_class("hidden")
+            else:
+                settings.add_class("hidden")
 
     return KeepaModernTui
 

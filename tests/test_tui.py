@@ -9,7 +9,7 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
-from keepa_cli.ui.tui import run_interactive_tui, run_tui_session
+from keepa_cli.ui.tui import _slash_to_command, run_interactive_tui, run_tui_session
 
 
 class TuiTests(unittest.TestCase):
@@ -81,6 +81,16 @@ class TuiTests(unittest.TestCase):
         self.assertIn("[graphs.image] OK", rendered)
         self.assertIn("[lightningdeals.list] OK", rendered)
         self.assertIn("[tracking.list] OK", rendered)
+
+    def test_slash_parser_expands_repeated_param_options(self):
+        command, params = _slash_to_command(
+            "/graph B09YNQCQKR --domain US --param amazon=1 --param new=1 --dry-run"
+        )
+
+        self.assertEqual(command, "graphs.image")
+        self.assertEqual(params["asin"], "B09YNQCQKR")
+        self.assertEqual(params["params"], {"amazon": "1", "new": "1"})
+        self.assertTrue(params["dry-run"])
 
     def test_piped_interactive_tui_prints_session_output_on_separate_lines(self):
         stdin = StringIO("/doctor\n/quit\n")
