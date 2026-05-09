@@ -18,6 +18,7 @@ from keepa_cli import __version__
 from keepa_cli.agent.stdio import iter_stdio_output
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.service import run_command
+from keepa_cli.ui.modern_tui import build_tui_metadata, run_modern_tui
 from keepa_cli.ui.tui import run_interactive_tui
 
 
@@ -44,6 +45,8 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("doctor", help="检查认证、fixture/offline 与双入口配置。")
     subparsers.add_parser("capabilities", help="输出 Agent 能力发现协议。")
+    tui = subparsers.add_parser("tui", help="启动人类 TUI 工作台；默认优先 Textual，缺失时回退标准库界面。")
+    tui.add_argument("--classic", action="store_true", help="强制使用标准库 TUI。")
 
     config = subparsers.add_parser("config", help="查看或初始化本地配置。")
     config_subparsers = config.add_subparsers(dest="config_command")
@@ -264,6 +267,15 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
     if args.command == "capabilities":
         payload = run_command("capabilities")
         return 0 if payload["ok"] else 1, payload
+
+    if args.command == "tui":
+        selected_runtime = "classic" if getattr(args, "classic", False) else None
+        return 0, success_envelope(
+            command="tui",
+            data=build_tui_metadata(selected_runtime=selected_runtime),
+            request={"transport": "cli"},
+            token_bucket={},
+        )
 
     if args.command == "domains" and args.domains_command == "list":
         payload = run_command("domains.list")
@@ -625,7 +637,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
             )
             return 2
-        return run_interactive_tui()
+        if not sys.stdin.isatty():
+            return run_interactive_tui(env=os.environ)
+        return run_modern_tui(env=os.environ)
+
+    if args.command == "tui" and not args.json:
+        if getattr(args, "classic", False):
+            return run_interactive_tui(env=os.environ)
+        return run_modern_tui(env=os.environ)
 
     exit_code, payload = _run_command(args)
     if args.json:

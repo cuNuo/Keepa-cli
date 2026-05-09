@@ -60,7 +60,7 @@ def build_capabilities() -> dict[str, Any]:
         )
     return {
         "schema_version": SCHEMA_VERSION,
-        "protocols": ["json", "stdio"],
+        "protocols": ["json", "stdio", "tui"],
         "entrypoints": ["keepa-cli", "kc", "python -m keepa_cli"],
         "commands": commands,
     }

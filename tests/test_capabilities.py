@@ -21,6 +21,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
         self.assertEqual(payload["data"]["schema_version"], "2026-05-09.1")
+        self.assertIn("tui", payload["data"]["protocols"])
         command_names = {item["name"] for item in payload["data"]["commands"]}
         self.assertIn("graphs.image", command_names)
         graph = next(item for item in payload["data"]["commands"] if item["name"] == "graphs.image")

@@ -42,7 +42,7 @@
 - `--json tracking add/remove/remove-all/webhook ... --dry-run`，真实写类请求必须 `--yes`
 - `--json capabilities`
 - `--stdio` JSON Lines 协议
-- 标准库 TUI 工作台骨架：默认执行 `kc` / `keepa-cli` 进入 slash 命令界面
+- Textual 现代 TUI 工作台：默认执行 `kc` / `keepa-cli` 进入组件化命令界面；缺少 Textual 或管道输入时自动回退标准库 slash 界面
 - JSON success/error envelope
 - Keepa domain 归一化
 - token 预算器
@@ -110,7 +110,23 @@ stdio smoke test：
 .\.venv\Scripts\python.exe -m keepa_cli
 ```
 
-TUI 默认展示上下文状态、常用命令和结果面板；所有命令仍通过同一套 Agent-safe service 执行，不复制业务逻辑。常用 slash 命令示例：
+TUI 默认优先使用 Textual/Rich 风格的现代终端框架，提供侧边命令面板、状态卡片、输入栏和结果面板；所有命令仍通过同一套 Agent-safe service 执行，不复制业务逻辑。若需要旧版管道式 slash 界面，可使用：
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli tui --classic
+@'
+/doctor
+/quit
+'@ | .\.venv\Scripts\python.exe -m keepa_cli
+```
+
+Agent 可用 JSON 方式检查 TUI 能力，不会启动交互界面：
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json tui
+```
+
+常用 slash 命令示例：
 
 ```text
 /doctor

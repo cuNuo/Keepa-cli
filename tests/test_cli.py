@@ -17,6 +17,7 @@ class CliTests(unittest.TestCase):
             [sys.executable, "-m", "keepa_cli", *args],
             input=input_text,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             check=False,
         )
@@ -193,6 +194,40 @@ class CliTests(unittest.TestCase):
         lines = [json.loads(line) for line in result.stdout.splitlines()]
         self.assertEqual(lines[0]["event"], "started")
         self.assertEqual(lines[-1]["event"], "done")
+
+    def test_json_tui_returns_human_interface_metadata(self):
+        result = self.run_module("--json", "tui")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "tui")
+        self.assertIn("textual", payload["data"]["preferred_runtime"])
+        self.assertIn("classic", payload["data"]["fallback_runtime"])
+
+    def test_json_tui_classic_does_not_start_interactive_session(self):
+        result = self.run_module("--json", "tui", "--classic")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "tui")
+        self.assertEqual(payload["data"]["selected_runtime"], "classic")
+        self.assertNotIn("Keepa CLI 工作台", result.stdout)
+
+    def test_classic_tui_subcommand_keeps_piped_session(self):
+        result = self.run_module("tui", "--classic", input_text="/doctor\n/quit\n")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Keepa CLI 工作台", result.stdout)
+        self.assertIn("[doctor] OK", result.stdout)
+
+    def test_default_no_command_keeps_piped_tui_session(self):
+        result = self.run_module(input_text="/doctor\n/quit\n")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Keepa CLI 工作台", result.stdout)
+        self.assertIn("[doctor] OK", result.stdout)
 
 
 if __name__ == "__main__":

@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Agent-first Keepa API CLI with keepa-cli and kc entry points."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "textual>=0.86,<2",
+]
 license = {file = "LICENSE"}
 authors = [{name = "cuNuo"}]
 keywords = ["keepa", "cli", "agent", "amazon"]
@@ -31,6 +33,9 @@ Issues = "https://github.com/cuNuo/Keepa-cli/issues"
 
 [project.optional-dependencies]
 dev = []
+tui = [
+    "textual>=0.86,<2",
+]
 
 [project.scripts]
 keepa-cli = "keepa_cli.cli:main"

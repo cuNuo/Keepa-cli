@@ -292,6 +292,7 @@
       ],
       "protocols": [
         "str",
+        "str",
         "str"
       ],
       "schema_version": "str"
