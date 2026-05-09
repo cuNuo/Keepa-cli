@@ -10,15 +10,26 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+      - name: Check fixture sync
+        run: python scripts/check_fixture_sync.py
       - name: Smoke npm wrapper
         run: node bin/keepa-cli.js --json doctor
+        env:
+          KEEPA_CLI_PYTHON: python
+      - name: Smoke capabilities
+        run: node bin/kc.js --json capabilities
         env:
           KEEPA_CLI_PYTHON: python

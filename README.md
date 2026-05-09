@@ -10,6 +10,10 @@
 - [Keepa CLI 功能完善与完整开发路线](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
 - [Keepa CLI Agent 协议契约](docs/agent-contract.md)
 - [Keepa 官方 API 约束摘记](docs/keepa-official-api-notes.md)
+- [service.py / cli.py 拆分计划](docs/architecture/service-cli-split-plan.md)
+- [贡献指南](CONTRIBUTING.md)
+- [安全说明](SECURITY.md)
+- [变更记录](CHANGELOG.md)
 
 ## 当前 MVP 状态
 
@@ -36,6 +40,7 @@
 - `--json lightningdeals list ... --dry-run`
 - `--json tracking list/get/list-names ... --dry-run`
 - `--json tracking add/remove/remove-all/webhook ... --dry-run`，真实写类请求必须 `--yes`
+- `--json capabilities`
 - `--stdio` JSON Lines 协议
 - 标准库 TUI 工作台骨架：默认执行 `kc` / `keepa-cli` 进入 slash 命令界面
 - JSON success/error envelope
@@ -89,6 +94,8 @@
 .\.venv\Scripts\kc.exe --json lightningdeals list --domain US --fixture lightningdeals_US.json
 .\.venv\Scripts\kc.exe --json tracking list-names --dry-run
 .\.venv\Scripts\kc.exe --json tracking add --tracking-json "{`"asin`":`"B09YNQCQKR`",`"domain`":1}" --dry-run
+.\.venv\Scripts\kc.exe --json capabilities
+.\.venv\Scripts\python.exe scripts\release_gate.py --skip-npm-install
 ```
 
 stdio smoke test：

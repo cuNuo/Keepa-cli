@@ -43,6 +43,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("doctor", help="检查认证、fixture/offline 与双入口配置。")
+    subparsers.add_parser("capabilities", help="输出 Agent 能力发现协议。")
 
     config = subparsers.add_parser("config", help="查看或初始化本地配置。")
     config_subparsers = config.add_subparsers(dest="config_command")
@@ -171,6 +172,7 @@ def _build_parser() -> argparse.ArgumentParser:
     graphs_image.add_argument("--height", type=int, help="图像高度。")
     graphs_image.add_argument("--range", type=int, help="历史天数范围。")
     graphs_image.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    graphs_image.add_argument("--out", help="写入 PNG 文件路径；真实 graphimage 请求必须提供。")
     graphs_image.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
     graphs_image.add_argument(
         "--param",
@@ -257,6 +259,10 @@ def _parse_params(raw_params: Sequence[str]) -> dict[str, str]:
 def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
     if args.command == "doctor":
         payload = run_command("doctor")
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "capabilities":
+        payload = run_command("capabilities")
         return 0 if payload["ok"] else 1, payload
 
     if args.command == "domains" and args.domains_command == "list":
@@ -454,6 +460,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "range": args.range,
                 "extra_params": extra_params,
                 "fixture": args.fixture,
+                "out": args.out,
                 "dry_run": bool(args.dry_run),
             },
         )

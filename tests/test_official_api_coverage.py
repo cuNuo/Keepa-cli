@@ -8,10 +8,12 @@ tests/test_official_api_coverage.py
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 from keepa_cli.agent.stdio import handle_stdio_message
+from keepa_cli.client import KeepaClient
 from keepa_cli.service import run_command
 from keepa_cli.token_budget import estimate_request_budget
 
@@ -70,7 +72,7 @@ class OfficialApiCoverageTests(unittest.TestCase):
         self.assertEqual(params["amazon"], 1)
         self.assertEqual(params["new"], 1)
 
-    def test_graph_image_live_path_is_explicitly_unsupported_until_binary_transport(self):
+    def test_graph_image_live_path_requires_out_path_for_binary_safety(self):
         payload = run_command(
             "graphs.image",
             {"asin": "B09YNQCQKR", "domain": "US"},
@@ -79,7 +81,41 @@ class OfficialApiCoverageTests(unittest.TestCase):
         )
 
         self.assertFalse(payload["ok"])
-        self.assertEqual(payload["error"]["kind"], "live_binary_unsupported")
+        self.assertEqual(payload["error"]["kind"], "binary_output_path_required")
+
+    def test_graph_image_live_binary_writes_png_file_with_fake_opener(self):
+        class FakePngResponse:
+            def read(self):
+                return b"\x89PNG\r\n\x1a\nfake"
+
+            def getheader(self, name, default=None):
+                if name.lower() == "content-type":
+                    return "image/png"
+                return default
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "graph.png"
+            client = KeepaClient(fixture_dir=FIXTURES, opener=lambda request, timeout=20.0: FakePngResponse())
+            payload = client.request(
+                command="graphs.image",
+                method="GET",
+                path="/graphimage",
+                params={"asin": "B09YNQCQKR", "domain": "1", "key": "SECRET"},
+                out=str(out),
+                binary=True,
+            )
+
+            self.assertTrue(payload["ok"])
+            self.assertEqual(out.read_bytes(), b"\x89PNG\r\n\x1a\nfake")
+            self.assertEqual(payload["data"]["content_type"], "image/png")
+            self.assertEqual(payload["data"]["bytes_written"], 12)
+            self.assertEqual(payload["data"]["cache_provenance"]["source"], "live")
 
     def test_lightningdeals_dry_run_uses_lightningdeal_endpoint(self):
         payload = run_command(
@@ -243,6 +279,8 @@ class OfficialApiCoverageTests(unittest.TestCase):
             "365",
             "--param",
             "amazon=1",
+            "--out",
+            "graph.png",
             "--dry-run",
         )
         lightning_result = self.run_module(

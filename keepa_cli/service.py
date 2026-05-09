@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from keepa_cli.analysis import analyze_history_rows
+from keepa_cli.capabilities import build_capabilities
 from keepa_cli.client import KeepaClient
 from keepa_cli.config import build_config_report, init_config
 from keepa_cli.doctor import build_doctor_report
@@ -271,13 +272,13 @@ def _graph_image(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
     if isinstance(extra_params, Mapping):
         request_params.update(dict(extra_params))
 
-    if not _bool_option(params, "dry_run", "dry-run") and not params.get("fixture"):
+    if not _bool_option(params, "dry_run", "dry-run") and not params.get("fixture") and not params.get("out"):
         budget = estimate_request_budget("graphs.image", request_params).to_dict()
         return error_envelope(
             command="graphs.image",
-            kind="live_binary_unsupported",
-            message="graph image live download returns PNG bytes and is not enabled until binary transport is added",
-            details={"offline_alternative": "use --dry-run or --fixture"},
+            kind="binary_output_path_required",
+            message="graph image live download returns PNG bytes and requires --out",
+            details={"resume_with": "--out <path>", "offline_alternative": "use --dry-run or --fixture"},
             token_bucket={"estimated": budget},
         )
 
@@ -288,6 +289,8 @@ def _graph_image(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
         params=request_params,
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
+        out=params.get("out"),
+        binary=not _bool_option(params, "dry_run", "dry-run") and not params.get("fixture"),
     )
 
 
@@ -700,6 +703,13 @@ def run_command(
             return success_envelope(
                 command="doctor",
                 data=build_doctor_report(env=env),
+                request={"transport": "service"},
+                token_bucket={},
+            )
+        if command == "capabilities":
+            return success_envelope(
+                command="capabilities",
+                data=build_capabilities(),
                 request={"transport": "service"},
                 token_bucket={},
             )

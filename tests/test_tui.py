@@ -24,11 +24,14 @@ class TuiTests(unittest.TestCase):
         )
 
         rendered = "\n".join(output)
-        self.assertIn("╭", rendered)
+        self.assertIn("+---", rendered)
         self.assertIn("Keepa CLI 工作台", rendered)
+        self.assertIn("KEEPA COMMAND DECK", rendered)
         self.assertIn("Agent-first Keepa API workspace", rendered)
-        self.assertIn("常用命令", rendered)
-        self.assertIn("上下文", rendered)
+        self.assertIn("API Radar", rendered)
+        self.assertIn("Command Palette", rendered)
+        self.assertIn("Inspect", rendered)
+        self.assertIn("Export", rendered)
         self.assertIn("结果", rendered)
         self.assertIn("[doctor] OK", rendered)
         self.assertIn("[products.get] OK", rendered)
@@ -90,6 +93,17 @@ class TuiTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertIn("kc> /doctor", rendered)
         self.assertNotIn("kc> +", rendered)
+
+    def test_tui_welcome_uses_grouped_command_dashboard(self):
+        output = run_tui_session(["/quit"], env={})
+
+        rendered = "\n".join(output)
+        self.assertIn("Auth", rendered)
+        self.assertIn("Fixture", rendered)
+        self.assertIn("Schema", rendered)
+        self.assertIn("Workflow", rendered)
+        self.assertIn("Preview", rendered)
+        self.assertIn("/capabilities", rendered)
 
 
 if __name__ == "__main__":

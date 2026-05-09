@@ -1,0 +1,34 @@
+# .github/workflows/live-keepa-smoke.yml
+# 文件说明：手动触发的 Keepa live smoke，默认 CI 不运行。
+# 主要职责：使用 GitHub Secret 验证低成本真实链路，并提醒录制结果必须脱敏。
+# 依赖边界：只在 workflow_dispatch 时运行，需要 KEEPA_API_KEY。
+name: Live Keepa Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  live-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Require secret
+        shell: bash
+        env:
+          KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
+        run: |
+          if [ -z "$KEEPA_API_KEY" ]; then
+            echo "KEEPA_API_KEY secret is required for live smoke." >&2
+            exit 1
+          fi
+      - name: Live token status smoke
+        env:
+          KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
+        run: python -m keepa_cli --json tokens status
+      - name: Dry-run graphimage binary contract
+        env:
+          KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
+        run: python -m keepa_cli --json graphs image B09YNQCQKR --domain US --out graph.png --dry-run

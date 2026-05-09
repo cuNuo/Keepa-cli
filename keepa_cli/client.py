@@ -17,6 +17,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Callable
 
+from keepa_cli.cache import build_cache_provenance
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.request_spec import build_request_spec
 from keepa_cli.token_budget import estimate_request_budget
@@ -57,6 +58,8 @@ class KeepaClient:
         json_body: dict[str, Any] | list[Any] | None = None,
         dry_run: bool = False,
         fixture: str | None = None,
+        out: str | None = None,
+        binary: bool = False,
     ) -> dict[str, Any]:
         params = dict(params or {})
         method = method.upper()
@@ -73,7 +76,14 @@ class KeepaClient:
         if dry_run:
             return success_envelope(
                 command=command,
-                data={"dry_run": True},
+                data={
+                    "dry_run": True,
+                    "cache_provenance": build_cache_provenance(
+                        endpoint=spec.endpoint,
+                        params=params,
+                        source="dry-run",
+                    ),
+                },
                 request=request_payload,
                 token_bucket={"estimated": budget},
             )
@@ -92,6 +102,16 @@ class KeepaClient:
             )
 
         params["key"] = str(api_key)
+        if binary:
+            if not out:
+                return error_envelope(
+                    command=command,
+                    kind="binary_output_path_required",
+                    message="binary live response requires an explicit output path",
+                    details={"resume_with": "--out <path>"},
+                    token_bucket={"estimated": budget},
+                )
+            return self._live_binary_response(command, method, spec.endpoint, params, json_body, request_payload, budget, out)
         return self._live_response(command, method, spec.endpoint, params, json_body, request_payload, budget)
 
     def _fixture_response(
@@ -122,7 +142,17 @@ class KeepaClient:
         body = json.loads(fixture_path.read_text(encoding="utf-8"))
         return success_envelope(
             command=command,
-            data={"offline": True, "fixture": fixture, "body": body},
+            data={
+                "offline": True,
+                "fixture": fixture,
+                "body": body,
+                "cache_provenance": build_cache_provenance(
+                    endpoint=str(request_payload.get("endpoint", "")),
+                    params=dict(request_payload.get("params_redacted") or {}),
+                    source="fixture",
+                    fixture=fixture,
+                ),
+            },
             request=request_payload,
             token_bucket=self._token_bucket_from_body(body, budget),
         )
@@ -187,6 +217,63 @@ class KeepaClient:
             data=response_body,
             request=request_payload,
             token_bucket=self._token_bucket_from_body(response_body, budget),
+        )
+
+    def _live_binary_response(
+        self,
+        command: str,
+        method: str,
+        endpoint: str,
+        params: dict[str, Any],
+        json_body: dict[str, Any] | list[Any] | None,
+        request_payload: dict[str, Any],
+        budget: dict[str, Any],
+        out: str,
+    ) -> dict[str, Any]:
+        query = urllib.parse.urlencode(params, doseq=True)
+        url = f"{self.base_url}{endpoint}?{query}"
+        body_bytes = None
+        headers = {"Accept": "image/png", "User-Agent": "keepa-cli/0.1"}
+        if json_body is not None:
+            body_bytes = json.dumps(json_body).encode("utf-8")
+            headers["Content-Type"] = "application/json"
+
+        request = urllib.request.Request(url, data=body_bytes, headers=headers, method=method)
+        secret_values = [str(params["key"])] if params.get("key") else []
+        try:
+            with self.opener(request, timeout=self.timeout_seconds) as response:
+                content = response.read()
+                content_type = response.getheader("Content-Type", "application/octet-stream")
+        except urllib.error.HTTPError as exc:
+            return self._http_error_envelope(command, endpoint, exc, budget, secret_values)
+        except (urllib.error.URLError, TimeoutError) as exc:
+            return error_envelope(
+                command=command,
+                kind="network_or_parse_error",
+                message=str(exc),
+                details={"endpoint": endpoint},
+                token_bucket={"estimated": budget},
+                secret_values=secret_values,
+            )
+
+        out_path = Path(out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_bytes(content)
+        return success_envelope(
+            command=command,
+            data={
+                "out": str(out_path),
+                "bytes_written": len(content),
+                "content_type": content_type,
+                "cache_provenance": build_cache_provenance(
+                    endpoint=endpoint,
+                    params={key: value for key, value in params.items() if key != "key"},
+                    source="live",
+                    out=str(out_path),
+                ),
+            },
+            request=request_payload,
+            token_bucket={"estimated": budget},
         )
 
     @staticmethod

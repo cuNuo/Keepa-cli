@@ -20,6 +20,7 @@ SNAPSHOT = Path("tests/snapshots/agent_schema_snapshot.json")
 class SchemaSnapshotTests(unittest.TestCase):
     def test_agent_schema_snapshot_matches_committed_contract(self):
         payloads = {
+            "capabilities": run_command("capabilities", env={}),
             "doctor": run_command("doctor", env={}),
             "products_get": run_command(
                 "products.get",

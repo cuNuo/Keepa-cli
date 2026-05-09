@@ -2,6 +2,12 @@
   "bestsellers_get": {
     "command": "str",
     "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "dry_run": "bool"
     },
     "ok": "bool",
@@ -21,6 +27,280 @@
         "worst_case_tokens": "int"
       }
     }
+  },
+  "capabilities": {
+    "command": "str",
+    "data": {
+      "commands": [
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        }
+      ],
+      "entrypoints": [
+        "str",
+        "str",
+        "str"
+      ],
+      "protocols": [
+        "str",
+        "str"
+      ],
+      "schema_version": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "transport": "str"
+    },
+    "token_bucket": {}
   },
   "categories_search": {
     "command": "str",
@@ -42,6 +322,13 @@
         "refillRate": "int",
         "tokensConsumed": "int",
         "tokensLeft": "int"
+      },
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
       },
       "fixture": "str",
       "offline": "bool"
@@ -96,6 +383,12 @@
   "finder_query": {
     "command": "str",
     "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "dry_run": "bool"
     },
     "ok": "bool",
@@ -120,6 +413,12 @@
   "graphs_image": {
     "command": "str",
     "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "dry_run": "bool"
     },
     "ok": "bool",
@@ -256,6 +555,12 @@
   "lightningdeals_list": {
     "command": "str",
     "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "dry_run": "bool"
     },
     "ok": "bool",
@@ -290,6 +595,13 @@
         "refillRate": "int",
         "tokensConsumed": "int",
         "tokensLeft": "int"
+      },
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
       },
       "fixture": "str",
       "offline": "bool"
@@ -336,6 +648,13 @@
         },
         "tokensConsumed": "int",
         "tokensLeft": "int"
+      },
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
       },
       "fixture": "str",
       "offline": "bool"
@@ -394,6 +713,13 @@
             "tokensConsumed": "int",
             "tokensLeft": "int"
           },
+          "cache_provenance": {
+            "cache_hit": "bool",
+            "endpoint": "str",
+            "fixture": "str",
+            "params_hash": "str",
+            "source": "str"
+          },
           "fixture": "str",
           "offline": "bool"
         },
@@ -436,6 +762,13 @@
         "tokensConsumed": "int",
         "tokensLeft": "int"
       },
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "fixture": "str",
       "offline": "bool"
     },
@@ -462,6 +795,12 @@
   "tracking_add": {
     "command": "str",
     "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "dry_run": "bool"
     },
     "ok": "bool",
@@ -490,6 +829,12 @@
   "tracking_list": {
     "command": "str",
     "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
       "dry_run": "bool"
     },
     "ok": "bool",

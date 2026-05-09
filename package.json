@@ -21,7 +21,9 @@
   },
   "scripts": {
     "test": "python -m unittest discover -s tests -v",
-    "smoke": "node bin/keepa-cli.js --json doctor"
+    "smoke": "node bin/keepa-cli.js --json doctor",
+    "release:check": "python scripts/release_gate.py --skip-npm-install",
+    "prepack": "python scripts/release_gate.py --skip-npm-install --skip-npm-pack"
   },
   "keywords": [
     "keepa",

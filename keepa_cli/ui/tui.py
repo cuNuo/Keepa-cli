@@ -16,7 +16,7 @@ from typing import Any
 from keepa_cli.service import run_command
 
 
-PANEL_WIDTH = 78
+PANEL_WIDTH = 92
 
 
 def _display_width(text: str) -> int:
@@ -50,14 +50,25 @@ def _pad(text: str, width: int) -> str:
 def _panel(title: str, lines: Iterable[str], *, width: int = PANEL_WIDTH) -> list[str]:
     inner_width = width - 4
     output = [
-        "╭" + "─" * (width - 2) + "╮",
-        "│ " + _pad(title, inner_width) + " │",
-        "├" + "─" * (width - 2) + "┤",
+        "+" + "-" * (width - 2) + "+",
+        "| " + _pad(title, inner_width) + " |",
+        "+" + "-" * (width - 2) + "+",
     ]
     for line in lines:
-        output.append("│ " + _pad(line, inner_width) + " │")
-    output.append("╰" + "─" * (width - 2) + "╯")
+        output.append("| " + _pad(line, inner_width) + " |")
+    output.append("+" + "-" * (width - 2) + "+")
     return output
+
+
+def _columns(left: list[str], right: list[str], *, gap: int = 2, width: int = PANEL_WIDTH) -> list[str]:
+    column_width = (width - gap) // 2
+    height = max(len(left), len(right))
+    rows: list[str] = []
+    for index in range(height):
+        left_text = left[index] if index < len(left) else ""
+        right_text = right[index] if index < len(right) else ""
+        rows.append(_pad(left_text, column_width) + " " * gap + _pad(right_text, column_width))
+    return rows
 
 
 def _doctor_context(env: Mapping[str, str] | None) -> dict[str, Any]:
@@ -77,33 +88,86 @@ def _doctor_context(env: Mapping[str, str] | None) -> dict[str, Any]:
 
 def _welcome(env: Mapping[str, str] | None) -> list[str]:
     context = _doctor_context(env)
+    status_lines = _columns(
+        [
+            f"Auth      {context['auth']}",
+            f"Fixture   {context['fixture']}",
+            f"Version   {context['version']}",
+        ],
+        [
+            "Schema    2026-05-09.1",
+            "Mode      offline-first",
+            "Safety    no live token use by default",
+        ],
+    )
+    inspect_lines = [
+        "Inspect   /doctor                 /domains",
+        "Catalog   /product <ASIN>          /category 0 --parents",
+        "History   /history <ASIN>          /history-export <ASIN>",
+        "Market    /bestsellers <CAT>       /topsellers --dry-run",
+    ]
+    operate_lines = [
+        "Preview   /finder --selection-file <json> --dry-run",
+        "Export    /deals --selection-file <json> --fixture deals_home.json",
+        "Graph     /graph <ASIN> --param amazon=1 --out graph.png",
+        "Track     /tracking-list --asins-only --dry-run",
+        "Agent     /capabilities            /quit",
+    ]
     return [
         *_panel(
-            "Keepa CLI 工作台",
+            "Keepa CLI 工作台  |  KEEPA COMMAND DECK",
             [
                 "Agent-first Keepa API workspace",
-                f"上下文  auth={context['auth']}  fixture={context['fixture']}  version={context['version']}",
-                "模式    默认离线优先；live 请求必须显式配置 KEEPA_API_KEY",
-                "入口    keepa-cli 与 kc 完全等价；Agent 使用 --json / --stdio",
+                "Purpose   inspect products, preview token cost, export evidence",
+                "Entrypoint keepa-cli == kc; Agent lanes use --json / --stdio",
             ],
         ),
         "",
         *_panel(
-            "常用命令",
+            "API Radar",
+            status_lines,
+        ),
+        "",
+        *_panel(
+            "Command Palette",
             [
-                "/doctor",
-                "/domains",
-                "/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json",
-                "/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
-                "/bestsellers 172282 --domain US --dry-run",
-                "/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json",
-                "/tokens --fixture token_status.json",
-                "/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
-                "/lightningdeals --domain US --dry-run",
-                "/tracking-list --asins-only --dry-run",
-                "/category 0 --domain US --parents --fixture category_roots_US.json",
-                "/category-search home kitchen --domain US --fixture category_search_home.json",
-                "/quit",
+                "Workflow  inspect -> preview -> export -> record",
+                "",
+                *_columns(inspect_lines, operate_lines),
+            ],
+        ),
+    ]
+
+
+def _legacy_help() -> list[str]:
+    return _panel(
+        "Command Reference",
+        [
+            "/doctor",
+            "/domains",
+            "/product B001GZ6QEC --domain US --fixture product_B001GZ6QEC.json",
+            "/history B001GZ6QEC --series amazon --fixture product_history_B001GZ6QEC.json",
+            "/bestsellers 172282 --domain US --dry-run",
+            "/seller A2L77EE7U53NWQ --fixture seller_A2L77EE7U53NWQ.json",
+            "/tokens --fixture token_status.json",
+            "/graph B09YNQCQKR --domain US --param amazon=1 --dry-run",
+            "/lightningdeals --domain US --dry-run",
+            "/tracking-list --asins-only --dry-run",
+            "/category 0 --domain US --parents --fixture category_roots_US.json",
+            "/category-search home kitchen --domain US --fixture category_search_home.json",
+            "/capabilities",
+            "/quit",
+        ],
+    )
+
+
+def _compact_help() -> list[str]:
+    return [
+        *_panel(
+            "Quick Reference",
+            [
+                "Use /help for complete commands.",
+                "Best first run: /doctor, then /capabilities.",
             ],
         ),
     ]
@@ -138,6 +202,8 @@ def _slash_to_command(line: str) -> tuple[str, dict[str, Any]]:
 
     if slash_command == "doctor":
         return "doctor", {}
+    if slash_command == "capabilities":
+        return "capabilities", {}
     if slash_command == "domains":
         return "domains.list", {}
     if slash_command == "product":
@@ -195,6 +261,14 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
             lines.append(f"离线    fixture={'ready' if offline.get('fixture_available') else 'missing'}")
         return lines
 
+    if command == "capabilities" and isinstance(data, dict):
+        commands = data.get("commands", [])
+        command_count = len(commands) if isinstance(commands, list) else 0
+        lines.append(f"Schema   {data.get('schema_version', '')}")
+        lines.append(f"Commands {command_count}")
+        lines.append("Modes    json / stdio / TUI")
+        return lines
+
     if isinstance(data, dict):
         if data.get("dry_run"):
             estimate = payload.get("token_bucket", {}).get("estimated", {})
@@ -206,6 +280,9 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
                     f"confirm={estimate.get('requires_confirmation')}"
                 )
             lines.append("请求    dry-run；未访问 Keepa API")
+            provenance = data.get("cache_provenance")
+            if isinstance(provenance, dict):
+                lines.append(f"来源    {provenance.get('source')} hash={str(provenance.get('params_hash', ''))[:10]}")
             return lines
         analysis = data.get("analysis")
         if isinstance(analysis, dict):
@@ -227,6 +304,11 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
                 lines.append(f"文件    {output.get('path', '')}")
             return lines
         body = data.get("body")
+        provenance = data.get("cache_provenance")
+        if isinstance(provenance, dict):
+            source = provenance.get("source", "")
+            fixture = provenance.get("fixture", "")
+            lines.append(f"来源    {source} {fixture}".strip())
         if isinstance(body, dict):
             products = body.get("products")
             if isinstance(products, list) and products:
@@ -293,7 +375,7 @@ def run_tui_session(input_lines: Iterable[str], *, env: Mapping[str, str] | None
             output.extend(_panel("会话", ["再见"]))
             break
         if line == "/help":
-            output.extend(_welcome(env))
+            output.extend(_legacy_help())
             continue
         command, params = _slash_to_command(line)
         payload = run_command(command, params, env=env)
@@ -323,7 +405,7 @@ def run_interactive_tui(*, env: Mapping[str, str] | None = None) -> int:
         if not line:
             continue
         if line == "/help":
-            for output_line in _welcome(env):
+            for output_line in _legacy_help():
                 print(output_line)
             continue
         command, params = _slash_to_command(line)
