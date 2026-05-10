@@ -18,10 +18,12 @@ from typing import Any
 
 from keepa_cli import __version__
 from keepa_cli.agent.cache_keys import build_cache_key
+from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
+from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names
 from keepa_cli.research_graph import graph_summary
 
 
-RESOURCE_SCHEMA_VERSION = "2026-05-10.3"
+RESOURCE_SCHEMA_VERSION = "2026-05-10.5"
 MAX_RESOURCE_TEXT_BYTES = 1_000_000
 
 
@@ -50,6 +52,36 @@ STATIC_RESOURCES: tuple[dict[str, str], ...] = (
         "description": "Recent task evidence entries summarized from evidence/manifest.csv.",
         "mimeType": "application/json",
     },
+    {
+        "uri": "keepa://tools/index",
+        "name": "mcp-tools-index",
+        "description": "Compact MCP toolset and tool schema index for Agent discovery without loading every tool schema.",
+        "mimeType": "application/json",
+    },
+    {
+        "uri": "keepa://prompts/index",
+        "name": "mcp-prompts-index",
+        "description": "MCP prompt catalog for product research, category research, deal comparison, and project onboarding.",
+        "mimeType": "application/json",
+    },
+    {
+        "uri": "keepa://zread/wiki/current",
+        "name": "zread-current-wiki",
+        "description": "Current committed zread wiki version and public documentation links.",
+        "mimeType": "application/json",
+    },
+    {
+        "uri": "keepa://zread/wiki/toc",
+        "name": "zread-wiki-toc",
+        "description": "Current zread wiki table of contents from .zread/wiki.",
+        "mimeType": "application/json",
+    },
+    {
+        "uri": "keepa://zread/wiki/pages",
+        "name": "zread-wiki-pages",
+        "description": "Compact zread wiki page catalog with resource URIs for each page.",
+        "mimeType": "application/json",
+    },
 )
 
 
@@ -70,6 +102,24 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "uriTemplate": "keepa://cache-key/{command}/{encoded_params}",
         "name": "session-cache-key-preview",
         "description": "Preview the deterministic AgentSession cache key for a service command and base64url JSON params.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://toolsets/{toolset}",
+        "name": "mcp-toolset-by-name",
+        "description": "Read a compact MCP toolset manifest by name, including tool resource URIs and command mappings.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://tools/{name}",
+        "name": "mcp-tool-schema-by-name",
+        "description": "Read one MCP tool schema by name without listing every tool.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://prompts/{name}",
+        "name": "mcp-prompt-by-name",
+        "description": "Read one MCP prompt definition or no-argument rendered prompt by name.",
         "mimeType": "application/json",
     },
     {
@@ -96,6 +146,12 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "description": "Read a local output file referenced by an MCP resource manifest.",
         "mimeType": "application/json",
     },
+    {
+        "uriTemplate": "keepa://zread/wiki/page/{slug_or_file}",
+        "name": "zread-wiki-page",
+        "description": "Read a committed zread wiki markdown page by slug, title slug, or markdown file name.",
+        "mimeType": "text/markdown",
+    },
 )
 
 
@@ -117,8 +173,26 @@ def read_mcp_resource(uri: str, *, root: Path | str | None = None) -> dict[str, 
         return {"uri": uri, "mimeType": "text/markdown", "text": _cassette_promotion_guide()}
     if uri == "keepa://evidence/recent":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_recent_evidence(repo_root), ensure_ascii=False, indent=2)}
+    if uri == "keepa://tools/index":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_tools_index(), ensure_ascii=False, indent=2)}
+    if uri == "keepa://prompts/index":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_prompts_index(), ensure_ascii=False, indent=2)}
+    if uri == "keepa://zread/wiki/current":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_zread_current(repo_root), ensure_ascii=False, indent=2)}
+    if uri == "keepa://zread/wiki/toc":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_zread_toc(repo_root), ensure_ascii=False, indent=2)}
+    if uri == "keepa://zread/wiki/pages":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_zread_pages(repo_root), ensure_ascii=False, indent=2)}
+    if uri.startswith("keepa://zread/wiki/page/"):
+        return _read_zread_page_resource(uri, repo_root=repo_root)
     if uri.startswith("keepa://cache-key/"):
         return _read_cache_key_resource(uri)
+    if uri.startswith("keepa://toolsets/"):
+        return _read_toolset_resource(uri)
+    if uri.startswith("keepa://tools/"):
+        return _read_tool_resource(uri)
+    if uri.startswith("keepa://prompts/"):
+        return _read_prompt_resource(uri)
     if uri.startswith("keepa://asin/"):
         return _read_asin_fixture_resource(uri, repo_root=repo_root)
     if uri.startswith("keepa://evidence/"):
@@ -223,6 +297,107 @@ def _read_cache_key_resource(uri: str) -> dict[str, str]:
         "params": dict(params),
         "cache_key": build_cache_key(command, params),
         "note": "Preview only; resources/read does not inspect live AgentSession memory.",
+    }
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _tools_index() -> dict[str, Any]:
+    return {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "default_toolset": "research",
+        "toolsets": [
+            {
+                "name": name,
+                "resource_uri": f"keepa://toolsets/{name}",
+                "description": "Use all only for debugging schema discovery." if name == "all" else f"Read the {name} MCP toolset manifest.",
+            }
+            for name in toolset_names()
+        ],
+        "tools": [
+            {
+                "name": tool["name"],
+                "description": tool.get("description"),
+                "service_command": (tool.get("x-keepa") or {}).get("service_command"),
+                "groups": (tool.get("x-keepa") or {}).get("groups", []),
+                "resource_uri": f"keepa://tools/{tool['name']}",
+            }
+            for tool in list_mcp_tools(toolsets="all")
+        ],
+    }
+
+
+def _read_toolset_resource(uri: str) -> dict[str, str]:
+    name = uri.removeprefix("keepa://toolsets/").strip()
+    if not name:
+        raise ValueError("toolset resource requires keepa://toolsets/{toolset}")
+    groups = resolve_toolset_groups(name)
+    tools = list_mcp_tools(groups=groups, toolsets="all" if name == "all" else None)
+    payload = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "toolset": name,
+        "available_toolsets": toolset_names(),
+        "tool_count": len(tools),
+        "tools": [
+            {
+                "name": tool["name"],
+                "description": tool.get("description"),
+                "service_command": (tool.get("x-keepa") or {}).get("service_command"),
+                "groups": (tool.get("x-keepa") or {}).get("groups", []),
+                "resource_uri": f"keepa://tools/{tool['name']}",
+            }
+            for tool in tools
+        ],
+    }
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _read_tool_resource(uri: str) -> dict[str, str]:
+    name = uri.removeprefix("keepa://tools/").strip()
+    tool = get_tool_definition(name)
+    if tool is None:
+        raise ValueError(f"unknown MCP tool resource: {name}")
+    payload = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "tool": tool.to_mcp_tool(),
+        "execution": {
+            "transport": "mcp tools/call",
+            "service_command": tool.command,
+            "argument_mode": "structured_json",
+            "cli_string_is_display_only": True,
+        },
+    }
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _prompts_index() -> dict[str, Any]:
+    return {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "prompt_count": len(prompt_names()),
+        "prompts": [
+            {
+                **prompt,
+                "resource_uri": f"keepa://prompts/{prompt['name']}",
+            }
+            for prompt in list_mcp_prompts()
+        ],
+    }
+
+
+def _read_prompt_resource(uri: str) -> dict[str, str]:
+    name = uri.removeprefix("keepa://prompts/").strip()
+    if not name:
+        raise ValueError("prompt resource requires keepa://prompts/{name}")
+    prompt_definition = next((prompt for prompt in list_mcp_prompts() if prompt.get("name") == name), None)
+    if prompt_definition is None:
+        raise ValueError(f"unknown MCP prompt resource: {name}")
+    required = [argument["name"] for argument in prompt_definition.get("arguments", []) if argument.get("required")]
+    payload = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "name": name,
+        "definition": prompt_definition,
+        "required_arguments": required,
+        "rendered_prompt": None if required else get_mcp_prompt(name, {}),
+        "note": "Prompts with required arguments should be called through prompts/get with arguments.",
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
 
@@ -399,6 +574,111 @@ def _recent_evidence(repo_root: Path) -> dict[str, Any]:
             for row in recent
         ],
     }
+
+
+def _zread_current(repo_root: Path) -> dict[str, Any]:
+    current_file = repo_root / ".zread/wiki/current"
+    current_raw = current_file.read_text(encoding="utf-8").strip()
+    version_id = current_raw.removeprefix("versions/").strip()
+    toc = _zread_toc(repo_root)
+    return {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "version": version_id,
+        "current_pointer": current_raw,
+        "language": toc.get("language"),
+        "page_count": len(toc.get("pages") or []),
+        "toc_resource": "keepa://zread/wiki/toc",
+        "pages_resource": "keepa://zread/wiki/pages",
+        "public_url": "https://zread.ai/cuNuo/Keepa-cli",
+        "github_pages_url": "https://cunuo.github.io/Keepa-cli/",
+        "local_browse_command": "zread browse",
+        "agent_browse_command": "zread browse --stdio",
+    }
+
+
+def _zread_toc(repo_root: Path) -> dict[str, Any]:
+    wiki_json = _zread_wiki_json_path(repo_root)
+    data = json.loads(wiki_json.read_text(encoding="utf-8"))
+    if isinstance(data, dict):
+        result = dict(data)
+        result.setdefault("schema_version", RESOURCE_SCHEMA_VERSION)
+        result.setdefault("resource_uri", "keepa://zread/wiki/toc")
+        return result
+    raise ValueError(f"zread wiki.json must contain an object: {wiki_json}")
+
+
+def _zread_pages(repo_root: Path) -> dict[str, Any]:
+    toc = _zread_toc(repo_root)
+    pages = toc.get("pages") if isinstance(toc.get("pages"), list) else []
+    items: list[dict[str, Any]] = []
+    for page in pages:
+        if not isinstance(page, Mapping):
+            continue
+        file_name = str(page.get("file") or "")
+        slug = str(page.get("slug") or Path(file_name).stem)
+        items.append(
+            {
+                "slug": slug,
+                "title": page.get("title"),
+                "file": file_name,
+                "section": page.get("section"),
+                "group": page.get("group"),
+                "level": page.get("level"),
+                "resource_uri": f"keepa://zread/wiki/page/{slug}",
+                "file_resource_uri": f"keepa://zread/wiki/page/{file_name}",
+            }
+        )
+    return {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "version": toc.get("id"),
+        "language": toc.get("language"),
+        "page_count": len(items),
+        "pages": items,
+    }
+
+
+def _read_zread_page_resource(uri: str, *, repo_root: Path) -> dict[str, str]:
+    name = uri.removeprefix("keepa://zread/wiki/page/").strip()
+    if not name:
+        raise ValueError("zread page resource requires a slug or markdown file name")
+    decoded = _base64url_decode(name) if name.startswith("b64:") else name
+    toc = _zread_toc(repo_root)
+    pages = toc.get("pages") if isinstance(toc.get("pages"), list) else []
+    target: Mapping[str, Any] | None = None
+    for page in pages:
+        if not isinstance(page, Mapping):
+            continue
+        file_name = str(page.get("file") or "")
+        slug = str(page.get("slug") or Path(file_name).stem)
+        title = str(page.get("title") or "")
+        candidates = {slug, file_name, Path(file_name).stem, title}
+        if decoded in candidates:
+            target = page
+            break
+    if target is None:
+        raise ValueError(f"zread page not found: {decoded}")
+    path = (_zread_version_dir(repo_root) / str(target.get("file"))).resolve()
+    if not _is_relative_to(path, _zread_version_dir(repo_root).resolve()):
+        raise ValueError(f"zread page path is outside wiki version directory: {path}")
+    return _read_text_resource(uri, path, "text/markdown")
+
+
+def _zread_wiki_json_path(repo_root: Path) -> Path:
+    return _zread_version_dir(repo_root) / "wiki.json"
+
+
+def _zread_version_dir(repo_root: Path) -> Path:
+    current_file = repo_root / ".zread/wiki/current"
+    current_raw = current_file.read_text(encoding="utf-8").strip()
+    if not current_raw:
+        raise ValueError("zread current pointer is empty")
+    version_id = current_raw.removeprefix("versions/").strip()
+    if "/" in version_id or "\\" in version_id or ".." in Path(version_id).parts:
+        raise ValueError(f"invalid zread version pointer: {current_raw}")
+    path = (repo_root / ".zread/wiki/versions" / version_id).resolve()
+    if not _is_relative_to(path, (repo_root / ".zread/wiki/versions").resolve()):
+        raise ValueError(f"zread version path is outside wiki versions: {path}")
+    return path
 
 
 def _cassette_promotion_guide() -> str:

@@ -17,6 +17,7 @@ DEFAULT_TOOLSET = "research"
 TOOLSET_GROUPS: dict[str, set[str] | None] = {
     "research": {"research"},
     "audit": {"audit"},
+    "docs": {"docs"},
     "reports": {"reports"},
     "tracking-readonly": {"tracking-readonly"},
     "all": None,
@@ -392,6 +393,26 @@ BROWSE_SNAPSHOT_SCHEMA: JsonSchema = {
 }
 
 
+DOCS_INDEX_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
+DOCS_READ_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "uri": _string_schema("MCP resource URI to read, for example keepa://zread/wiki/current."),
+        "page": _string_schema("zread page slug or markdown file name. Used when uri is omitted."),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
 TRACKING_LIST_SCHEMA: JsonSchema = {
     "type": "object",
     "additionalProperties": False,
@@ -588,6 +609,22 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=RESEARCH_GRAPH_MERGE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         groups=("research", "graph"),
+    ),
+    ToolDefinition(
+        name="keepa.docs_index",
+        command="docs.index",
+        description="List stable Keepa CLI documentation resources, including zread wiki, schema, evidence, and templates.",
+        input_schema=DOCS_INDEX_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("docs", "research"),
+    ),
+    ToolDefinition(
+        name="keepa.docs_read",
+        command="docs.read",
+        description="Read a local documentation resource by URI or zread page slug for clients that cannot use MCP resources/read.",
+        input_schema=DOCS_READ_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("docs", "research"),
     ),
     ToolDefinition(
         name="keepa.audit_cost",

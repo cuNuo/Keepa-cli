@@ -620,6 +620,24 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -630,7 +648,96 @@
       "mcp": {
         "default_toolset": "str",
         "entrypoint": "str",
+        "prompts": [
+          {
+            "arguments": [
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              },
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              },
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              }
+            ],
+            "description": "str",
+            "name": "str"
+          },
+          {
+            "arguments": [
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              },
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              },
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              }
+            ],
+            "description": "str",
+            "name": "str"
+          },
+          {
+            "arguments": [
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              },
+              {
+                "description": "str",
+                "name": "str",
+                "required": "bool"
+              }
+            ],
+            "description": "str",
+            "name": "str"
+          },
+          {
+            "arguments": [],
+            "description": "str",
+            "name": "str"
+          }
+        ],
         "resource_templates": [
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
           {
             "description": "str",
             "mimeType": "str",
@@ -675,6 +782,36 @@
           }
         ],
         "resources": [
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
           {
             "description": "str",
             "mimeType": "str",
@@ -2422,6 +2559,194 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "page": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "uri": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
                 "commands": {
                   "description": "str",
                   "items": {
@@ -3417,6 +3742,7 @@
           }
         ],
         "toolsets": [
+          "str",
           "str",
           "str",
           "str",
@@ -6164,6 +6490,36 @@
     "jsonrpc": "str",
     "result": {
       "resources": [
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
         {
           "description": "str",
           "mimeType": "str",

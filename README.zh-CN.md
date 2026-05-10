@@ -7,6 +7,7 @@
   <a href="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776ab"></a>
   <a href="https://www.npmjs.com/package/@cunuo/keepa-cli"><img alt="npm" src="https://img.shields.io/badge/npm-%40cunuo%2Fkeepa--cli-cb3837"></a>
+  <a href="https://cunuo.github.io/Keepa-cli/"><img alt="Docs" src="https://img.shields.io/badge/docs-pages-2563eb"></a>
   <a href="#agent-模式"><img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-6d28d9"></a>
   <a href="https://zread.ai/cuNuo/Keepa-cli"><img alt="zread" src="https://img.shields.io/badge/docs-zread-14b8a6"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-111827"></a>
@@ -193,11 +194,12 @@ kc --json domains list
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
 '{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' | kc --mcp
 '{"jsonrpc":"2.0","id":3,"method":"resources/templates/list","params":{}}' | kc --mcp
+'{"jsonrpc":"2.0","id":4,"method":"prompts/list","params":{}}' | kc --mcp
 ```
 
-MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan 与 `keepa.research_graph_merge`；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告和浏览快照；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
+MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/docs/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read 与 `keepa.research_graph_merge`；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告和浏览快照；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
 
-MCP resources 用于减少 `tools/list` 上下文：`keepa://schema/products-agent-view`、`keepa://fixtures/manifest`、`keepa://guides/cassette-promotion`、`keepa://evidence/recent`。`resources/templates/list` 会暴露 `keepa://schema/{name}`、`keepa://fixtures/{name}`、`keepa://cache-key/{command}/{encoded_params}`、`keepa://asin/{asin}/fixture`、`keepa://evidence/{encoded_logical_path}`、`keepa://chunk/{encoded_path}`、`keepa://output/{encoded_path}`，让 Agent 能发现 URI 形状而不是硬编码。大响应仍完整保留在 `structuredContent`，text fallback 只返回摘要和 `mcp_resource_manifest`，其中 `keepa://chunk/...` / `keepa://output/...` 可按需读取具体分块。
+MCP resources 用于减少 `tools/list` 上下文：`keepa://schema/products-agent-view`、`keepa://fixtures/manifest`、`keepa://guides/cassette-promotion`、`keepa://evidence/recent`、`keepa://tools/index`、`keepa://prompts/index`、`keepa://zread/wiki/current`、`keepa://zread/wiki/toc`、`keepa://zread/wiki/pages`。`resources/templates/list` 会暴露 `keepa://schema/{name}`、`keepa://fixtures/{name}`、`keepa://cache-key/{command}/{encoded_params}`、`keepa://toolsets/{toolset}`、`keepa://tools/{name}`、`keepa://prompts/{name}`、`keepa://asin/{asin}/fixture`、`keepa://evidence/{encoded_logical_path}`、`keepa://zread/wiki/page/{slug_or_file}`、`keepa://chunk/{encoded_path}`、`keepa://output/{encoded_path}`，让 Agent 能发现 URI 形状而不是硬编码。大响应仍完整保留在 `structuredContent`，text fallback 只返回摘要和 `mcp_resource_manifest`，其中 `keepa://chunk/...` / `keepa://output/...` 可按需读取具体分块。MCP prompts 提供 product research、category research、deal compare 与 project onboarding 起手式。
 
 跨命令研究图可本地合并，不访问 Keepa：
 
@@ -209,7 +211,9 @@ kc --json research-graph merge .\category.json .\compare.json .\seller.json --ro
 
 ## zread 文档
 
-仓库包含已提交的 `.zread/wiki/` 文档快照。打开本地浏览页面：
+稳定公开文档入口：[GitHub Pages](https://cunuo.github.io/Keepa-cli/)。生成式架构 wiki 入口：[zread](https://zread.ai/cuNuo/Keepa-cli)，仓库内同时保留 `.zread/wiki/` 快照。
+
+打开本地浏览页面：
 
 ```powershell
 zread browse
@@ -221,7 +225,7 @@ Agent 和脚本接入时使用 stdio 模式：
 zread browse --stdio
 ```
 
-当前本地快照索引为 [.zread/wiki/current](.zread/wiki/current) 与 [.zread/wiki/versions/2026-05-10-215740/wiki.json](.zread/wiki/versions/2026-05-10-215740/wiki.json)。顶部 zread badge 会链接到公开 zread 页面。架构大改后可重新生成：
+当前本地快照索引为 [.zread/wiki/current](.zread/wiki/current) 与 [.zread/wiki/versions/2026-05-10-215740/wiki.json](.zread/wiki/versions/2026-05-10-215740/wiki.json)。Agent 可通过 `keepa://zread/wiki/current`、`keepa://zread/wiki/toc` 与 `keepa://zread/wiki/page/{slug_or_file}` 读取同一份快照。架构大改后可重新生成：
 
 ```powershell
 zread generate -y --stdio --draft clear --skip-failed

@@ -1,6 +1,6 @@
 # Keepa CLI Agent 协议契约
 
-更新时间：2026-05-10 18:10 +08:00
+更新时间：2026-05-10 23:30 +08:00
 
 ## 1. 入口约定
 
@@ -154,6 +154,8 @@ kc = "keepa_cli.cli:main"
 - `keepa.topsellers_list` -> `topsellers.list`
 - `keepa.workflow_plan` -> `workflow.plan`
 - `keepa.research_graph_merge` -> `research_graph.merge`
+- `keepa.docs_index` -> `docs.index`
+- `keepa.docs_read` -> `docs.read`
 - `keepa.audit_cost` -> `audit.cost`
 
 MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时包含 `structuredContent` 和 `content[0].text` JSON fallback：
@@ -192,11 +194,23 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 - `keepa://fixtures/manifest`：fixture/evidence manifest。
 - `keepa://guides/cassette-promotion`：真实响应脱敏并提升为 fixture 的流程。
 - `keepa://evidence/recent`：最近 evidence 摘要。
+- `keepa://tools/index`：MCP toolset 与 tool schema 索引，适合先发现再按需读取。
+- `keepa://prompts/index`：MCP prompt 索引。
+- `keepa://zread/wiki/current`：当前 zread wiki 版本、公开文档链接和本地浏览命令。
+- `keepa://zread/wiki/toc`：当前 `.zread/wiki` 的完整目录。
+- `keepa://zread/wiki/pages`：紧凑页面清单，每页包含 `resource_uri`。
 
 `resources/templates/list` 返回可发现的 URI 模板：
 
 - `keepa://schema/{name}`：按 schema 稳定名读取，例如 `products-agent-view`。
 - `keepa://fixtures/{name}`：按 JSON fixture 文件名读取已脱敏 fixture。
+- `keepa://cache-key/{command}/{encoded_params}`：预览确定性的 AgentSession cache key。
+- `keepa://toolsets/{toolset}`：按 toolset 读取紧凑工具 manifest，避免 `tools/list all`。
+- `keepa://tools/{name}`：按 MCP tool 名读取单个完整 input/output schema。
+- `keepa://prompts/{name}`：按 MCP prompt 名读取定义；无必填参数的 prompt 会附带渲染结果。
+- `keepa://asin/{asin}/fixture`：按 ASIN 查找本地 fixture 候选。
+- `keepa://evidence/{encoded_logical_path}`：按 manifest logical path 读取 evidence task log。
+- `keepa://zread/wiki/page/{slug_or_file}`：按 zread slug 或 markdown 文件名读取页面。
 - `keepa://chunk/{encoded_path}`：读取 tool fallback manifest 引用的 chunk 文件。
 - `keepa://output/{encoded_path}`：读取 tool fallback manifest 引用的本地输出文件。
 
@@ -214,6 +228,15 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 ```
 
 Agent 应优先读取 `structuredContent`；当客户端只支持 text fallback 时，再用 manifest 中的 `keepa://chunk/...` 或 `keepa://output/...` 按需调用 `resources/read`。
+
+MCP prompts 给 Agent 提供稳定起手式，不执行任何请求：
+
+- `keepa.product_research`：单品研究，强调先 workflow plan，再低成本 full product view。
+- `keepa.category_research`：类目候选与 Finder scaffold，默认不隐式 hydrate。
+- `keepa.deal_compare`：多 ASIN deal 视图对比与 selection signals 审计。
+- `keepa.project_onboarding`：先读 zread/wiki 和 schema/evidence，再决定代码修改范围。
+
+不支持 `resources/read` 的 MCP 客户端可改用 `keepa.docs_index` 与 `keepa.docs_read` 工具。`docs.index` 返回 GitHub Pages、zread public、zread resource、schema、fixture manifest 和 evidence 的推荐读取顺序；`docs.read` 接受 `uri` 或 `page`，默认读取 `keepa://zread/wiki/current`。
 
 ## 5. 当前支持命令
 

@@ -35,6 +35,7 @@ keepa_cli/
   agent/
     __init__.py
     mcp.py          # MCP JSON-RPC stdio transport，薄协议适配层
+    prompts.py      # MCP prompts，提供产品/类目/对比/项目上手工作流起手式
     resources.py    # MCP resources 与 chunk/output resource manifest
     session.py      # AgentSession、cache_key、dedupe、budget ledger
     stdio.py        # 复用 AgentSession 的 JSON Lines transport
@@ -45,7 +46,8 @@ keepa_cli/
 
 - `tools.py`：定义工具名、描述、输入 schema、输出 schema 摘要、确认策略和 service command 映射。
 - `session.py`：维护本进程会话状态，包括 cache、dedupe、token ledger、blocked actions。
-- `mcp.py`：只处理 JSON-RPC：`initialize`、`tools/list`、`tools/call`、`resources/list`、`resources/templates/list`、`resources/read` 和协议错误。
+- `mcp.py`：只处理 JSON-RPC：`initialize`、`tools/list`、`tools/call`、`resources/list`、`resources/templates/list`、`resources/read`、`prompts/list`、`prompts/get` 和协议错误。
+- `prompts.py`：定义不执行请求的 Agent 起手式，帮助不同 MCP 客户端稳定启动 product/category/deal/project workflow。
 - `resources.py`：暴露 schema、fixture manifest、cassette 指南、最近 evidence、resource templates，并把大响应 chunk/output path 转为 `keepa://...` resource 引用。
 - `stdio.py`：继续提供现有 JSON Lines 协议，但调用同一个 `AgentSession`。
 - `service.py`：继续承载业务命令分发，MCP 不绕过 `run_command`。
@@ -68,10 +70,13 @@ keepa_cli/
 | `keepa.topsellers_list` | `topsellers.list` | Top Sellers 原始榜单 | 高；真实请求需确认 |
 | `keepa.workflow_plan` | `workflow.plan` | 本地生成 Agent 执行图 | 低，本地计算 |
 | `keepa.research_graph_merge` | `research_graph.merge` | 合并 category/products/compare/seller/deals 输出中的研究图 | 低，本地计算 |
+| `keepa.docs_index` | `docs.index` | 列出 zread/schema/evidence/fixture 文档资源 | 低，本地读取 |
+| `keepa.docs_read` | `docs.read` | 按 URI 或 zread 页面 slug 读取文档资源 | 低，本地读取 |
 
 当前 MCP 默认只返回 `research` toolset，避免 `tools/list` 一次暴露过多 schema。可在 `tools/list.params.toolset` 中显式选择：
 
-- `research`：产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、research graph merge。
+- `research`：产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、research graph merge。
+- `docs`：只暴露 `keepa.docs_index`、`keepa.docs_read`，用于不支持 `resources/read` 的客户端。
 - `audit`：`keepa.audit_cost`、`keepa.cassettes_sanitize`、`keepa.cassettes_promote`。
 - `reports`：`keepa.reports_build`、`keepa.browse_snapshot`，只处理本地文件。
 - `tracking-readonly`：`keepa.tracking_list`、`keepa.tracking_list_names`、`keepa.tracking_get`、`keepa.tracking_notifications`。
@@ -169,14 +174,23 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 | `keepa://fixtures/manifest` | `evidence/manifest.csv` | 查 fixture/evidence 是否已有离线样本 |
 | `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升流程 |
 | `keepa://evidence/recent` | 最近 evidence 摘要 JSON | 快速了解近期验证与变更 |
+| `keepa://tools/index` | toolset 与 tool schema 索引 | 先发现工具，再按需读取单个 schema |
+| `keepa://prompts/index` | prompt 索引 | 发现可复用 Agent 起手式 |
+| `keepa://zread/wiki/current` | 当前 zread 版本与公开文档链接 | Agent 项目上手入口 |
+| `keepa://zread/wiki/toc` | `.zread/wiki` 当前目录 | 按需选择 wiki 页面 |
+| `keepa://zread/wiki/pages` | 紧凑页面清单与 resource URI | 避免 Agent 拼本地路径 |
 
 资源模板用于按规则寻址本地资产：
 
 - `keepa://schema/{name}`：按稳定名称读取 schema。
 - `keepa://fixtures/{name}`：按文件名读取双份 fixture 中的 JSON 样本。
 - `keepa://cache-key/{command}/{encoded_params}`：对 base64url JSON 参数预览 `AgentSession` cache key，不读取会话内存。
+- `keepa://toolsets/{toolset}`：按 toolset 读取紧凑 manifest，包含工具名、service command、分组和单 tool 资源 URI。
+- `keepa://tools/{name}`：按 MCP tool 名读取完整 input/output schema 与执行说明。
+- `keepa://prompts/{name}`：按 MCP prompt 名读取 prompt 定义；无必填参数时附带渲染结果。
 - `keepa://asin/{asin}/fixture`：查找文件名包含 ASIN 的本地 fixture 候选。
 - `keepa://evidence/{encoded_logical_path}`：按 manifest 中的 logical path 读取 evidence task log。
+- `keepa://zread/wiki/page/{slug_or_file}`：按 zread slug、标题 slug 或 markdown 文件名读取 wiki 页面。
 - `keepa://chunk/<base64-path>`：由 `data.chunks[*].path` 派生，通常是产品 Agent view section JSON。
 - `keepa://output/<base64-path>`：由 `output.path` 派生，通常是报告、graph 或大 body 输出。
 
@@ -214,6 +228,20 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 ```
 
 这条规则让只支持 text fallback 的 Agent 也能先看摘要，再按需读取 heavy sections；支持 `structuredContent` 的客户端则直接读取完整结构化结果。
+
+## MCP Prompts 与文档入口
+
+MCP prompts 用来减少 Agent 启动时的路线漂移，不执行 Keepa 请求：
+
+- `keepa.product_research`：单品研究，先 workflow plan，再 `products_get` 的低成本 full/agent view。
+- `keepa.category_research`：关键词找类目、生成 Finder scaffold，并明确 `categories_products` 需要确认。
+- `keepa.deal_compare`：多 ASIN deal 对比，强调 `selection_signals`、`risk_taxonomy` 与 evidence。
+- `keepa.project_onboarding`：先读 zread wiki、schema 与 recent evidence，再决定修改范围。
+
+公开文档入口分两层：
+
+- GitHub Pages：`https://cunuo.github.io/Keepa-cli/`，稳定链接，适合 README 和 GitHub About。
+- zread：`https://zread.ai/cuNuo/Keepa-cli`，可读性更强，适合架构浏览；同一份快照也通过 `keepa://zread/wiki/...` 暴露给 Agent。
 
 ## Session Cache 与 Dedupe
 

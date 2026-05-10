@@ -20,24 +20,37 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.16")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.18")
         self.assertIn("tui", payload["data"]["protocols"])
         self.assertIn("mcp", payload["data"]["protocols"])
         self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
         self.assertEqual(payload["data"]["mcp"]["default_toolset"], "research")
+        self.assertIn("docs", payload["data"]["mcp"]["toolsets"])
         self.assertIn("tracking-readonly", payload["data"]["mcp"]["toolsets"])
         self.assertGreaterEqual(len(payload["data"]["mcp"]["resource_templates"]), 4)
+        self.assertGreaterEqual(len(payload["data"]["mcp"]["prompts"]), 4)
+        resource_uris = {item["uri"] for item in payload["data"]["mcp"]["resources"]}
+        self.assertIn("keepa://tools/index", resource_uris)
+        self.assertIn("keepa://prompts/index", resource_uris)
+        resource_templates = {item["uriTemplate"] for item in payload["data"]["mcp"]["resource_templates"]}
+        self.assertIn("keepa://toolsets/{toolset}", resource_templates)
+        self.assertIn("keepa://tools/{name}", resource_templates)
+        self.assertIn("keepa://prompts/{name}", resource_templates)
         mcp_tool_names = {item["name"] for item in payload["data"]["mcp"]["tools"]}
         self.assertIn("keepa.products_get", mcp_tool_names)
         self.assertIn("keepa.products_compare", mcp_tool_names)
         self.assertIn("keepa.categories_finder_selection", mcp_tool_names)
         self.assertIn("keepa.research_graph_merge", mcp_tool_names)
+        self.assertIn("keepa.docs_index", mcp_tool_names)
+        self.assertIn("keepa.docs_read", mcp_tool_names)
         self.assertIn("keepa.audit_cost", mcp_tool_names)
         self.assertIn("keepa.cassettes_promote", mcp_tool_names)
         self.assertIn("keepa.reports_build", mcp_tool_names)
         self.assertIn("keepa.tracking_list", mcp_tool_names)
         command_names = {item["name"] for item in payload["data"]["commands"]}
         self.assertIn("products.compare", command_names)
+        self.assertIn("docs.index", command_names)
+        self.assertIn("docs.read", command_names)
         self.assertIn("categories.products", command_names)
         self.assertIn("categories.finder-selection", command_names)
         self.assertIn("workflow.plan", command_names)
@@ -70,7 +83,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.16")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.18")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -78,7 +91,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.16")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.18")
 
 
 if __name__ == "__main__":

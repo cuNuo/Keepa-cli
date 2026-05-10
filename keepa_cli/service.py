@@ -29,6 +29,8 @@ from keepa_cli.commands.common import live_cache_options as _live_cache_options
 from keepa_cli.commands.common import param as _param
 from keepa_cli.commands.deals import can_handle as can_handle_deals_command
 from keepa_cli.commands.deals import handle_deals_command
+from keepa_cli.commands.docs import can_handle as can_handle_docs_command
+from keepa_cli.commands.docs import handle_docs_command
 from keepa_cli.commands.finder import can_handle as can_handle_finder_command
 from keepa_cli.commands.finder import handle_finder_command
 from keepa_cli.commands.history import can_handle as can_handle_history_command
@@ -514,6 +516,8 @@ def run_command(
             )
         if can_handle_cache_command(command):
             return handle_cache_command(command, params, env=env)
+        if can_handle_docs_command(command):
+            return handle_docs_command(command, params)
         if can_handle_workflow_command(command):
             return handle_workflow_command(command, params)
         if can_handle_product_command(command):

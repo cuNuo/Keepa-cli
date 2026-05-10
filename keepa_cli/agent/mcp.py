@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from keepa_cli import __version__
+from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
 from keepa_cli.agent.resources import compact_payload_for_mcp, list_mcp_resource_templates, list_mcp_resources, read_mcp_resource
 from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.tools import (
@@ -57,7 +58,11 @@ def _initialize_result() -> dict[str, Any]:
     return {
         "protocolVersion": MCP_PROTOCOL_VERSION,
         "serverInfo": {"name": "keepa", "version": __version__},
-        "capabilities": {"tools": {"listChanged": False}, "resources": {"listChanged": False, "templatesChanged": False}},
+        "capabilities": {
+            "tools": {"listChanged": False},
+            "resources": {"listChanged": False, "templatesChanged": False},
+            "prompts": {"listChanged": False},
+        },
         "instructions": (
             "Use Keepa MCP tools with structured params. Prefer fixture or dry_run before live calls. "
             "High-cost requests return confirmation_required unless yes=true is supplied."
@@ -127,6 +132,18 @@ def handle_mcp_message(
         except (OSError, ValueError) as exc:
             return _jsonrpc_error(message_id, -32602, "Unknown resource", {"uri": uri, "message": str(exc)})
         return _jsonrpc_result(message_id, {"contents": [content]})
+    if method == "prompts/list":
+        return _jsonrpc_result(message_id, {"prompts": list_mcp_prompts()})
+    if method == "prompts/get":
+        name = str(params.get("name", ""))
+        arguments = params.get("arguments") or {}
+        if not isinstance(arguments, dict):
+            return _jsonrpc_error(message_id, -32602, "Invalid prompt arguments", {"prompt": name})
+        try:
+            prompt = get_mcp_prompt(name, arguments)
+        except ValueError as exc:
+            return _jsonrpc_error(message_id, -32602, "Unknown prompt", {"prompt": name, "message": str(exc), "available_prompts": prompt_names()})
+        return _jsonrpc_result(message_id, prompt)
 
     return _jsonrpc_error(message_id, -32601, "Method not found", {"method": method})
 

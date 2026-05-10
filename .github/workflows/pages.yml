@@ -1,0 +1,37 @@
+# .github/workflows/pages.yml
+# 文件说明：发布 Keepa CLI docs/ 静态文档到 GitHub Pages。
+# 主要职责：提供稳定公开文档入口，并链接 README、zread、Agent contract 与 schema。
+# 依赖边界：不读取 KEEPA_API_KEY，不访问真实 Keepa API。
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v5

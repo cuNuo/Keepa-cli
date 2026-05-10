@@ -7,6 +7,7 @@
   <a href="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776ab"></a>
   <a href="https://www.npmjs.com/package/@cunuo/keepa-cli"><img alt="npm" src="https://img.shields.io/badge/npm-%40cunuo%2Fkeepa--cli-cb3837"></a>
+  <a href="https://cunuo.github.io/Keepa-cli/"><img alt="Docs" src="https://img.shields.io/badge/docs-pages-2563eb"></a>
   <a href="#agent-mode"><img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-6d28d9"></a>
   <a href="https://zread.ai/cuNuo/Keepa-cli"><img alt="zread" src="https://img.shields.io/badge/docs-zread-14b8a6"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-111827"></a>
@@ -279,11 +280,12 @@ MCP JSON-RPC over stdio:
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
 '{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' | kc --mcp
 '{"jsonrpc":"2.0","id":3,"method":"resources/templates/list","params":{}}' | kc --mcp
+'{"jsonrpc":"2.0","id":4,"method":"prompts/list","params":{}}' | kc --mcp
 ```
 
-MCP defaults to the compact `research` toolset and accepts structured JSON arguments, not CLI strings. Use `tools/list` with `toolset` set to `research`, `audit`, `reports`, `tracking-readonly`, or `all` to control context size. Research tools include product, category, local Finder scaffold, Finder, Deals, seller, ranking, workflow planning, and `keepa.research_graph_merge`; audit tools include cost estimation plus cassette sanitize/promote; reports tools expose local report and browse snapshot builders; tracking only exposes read-only operations. Agent results include `risk_taxonomy` where applicable and a cross-command `research_graph`; tool envelopes include `structuredContent`, compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger`.
+MCP defaults to the compact `research` toolset and accepts structured JSON arguments, not CLI strings. Use `tools/list` with `toolset` set to `research`, `docs`, `audit`, `reports`, `tracking-readonly`, or `all` to control context size. Research tools include product, category, local Finder scaffold, Finder, Deals, seller, ranking, workflow planning, docs index/read, and `keepa.research_graph_merge`; audit tools include cost estimation plus cassette sanitize/promote; reports tools expose local report and browse snapshot builders; tracking only exposes read-only operations. Agent results include `risk_taxonomy` where applicable and a cross-command `research_graph`; tool envelopes include `structuredContent`, compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger`.
 
-MCP resources expose stable reference material without enlarging `tools/list`: `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` also advertises `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://cache-key/{command}/{encoded_params}`, `keepa://asin/{asin}/fixture`, `keepa://evidence/{encoded_logical_path}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}` so Agents can discover resource URI shapes instead of hard-coding them. Large tool responses keep the full payload in `structuredContent`; the text fallback returns a summary plus `mcp_resource_manifest` entries so Agents can load heavy sections only when needed.
+MCP resources expose stable reference material without enlarging `tools/list`: `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, `keepa://evidence/recent`, `keepa://tools/index`, `keepa://prompts/index`, `keepa://zread/wiki/current`, `keepa://zread/wiki/toc`, and `keepa://zread/wiki/pages`. `resources/templates/list` also advertises `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://cache-key/{command}/{encoded_params}`, `keepa://toolsets/{toolset}`, `keepa://tools/{name}`, `keepa://prompts/{name}`, `keepa://asin/{asin}/fixture`, `keepa://evidence/{encoded_logical_path}`, `keepa://zread/wiki/page/{slug_or_file}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}` so Agents can discover resource URI shapes instead of hard-coding them. Large tool responses keep the full payload in `structuredContent`; the text fallback returns a summary plus `mcp_resource_manifest` entries so Agents can load heavy sections only when needed. MCP prompts include product research, category research, deal comparison, and project onboarding playbooks.
 
 Contracts:
 
@@ -295,7 +297,9 @@ Agent-facing result profiles use the same top-level shape where possible: `agent
 
 ## zread Docs
 
-This repository includes a committed zread wiki snapshot under `.zread/wiki/`. Open the generated documentation locally:
+Stable public docs entry: [GitHub Pages](https://cunuo.github.io/Keepa-cli/). The generated architecture wiki is available at [zread](https://zread.ai/cuNuo/Keepa-cli), with a committed snapshot under `.zread/wiki/`.
+
+Open the generated documentation locally:
 
 ```powershell
 zread browse
@@ -307,7 +311,7 @@ Agents and scripts should prefer stdio mode:
 zread browse --stdio
 ```
 
-The current local snapshot is indexed by [.zread/wiki/current](.zread/wiki/current) and [.zread/wiki/versions/2026-05-10-215740/wiki.json](.zread/wiki/versions/2026-05-10-215740/wiki.json). The badge above links to the public zread page when available. For local development, regenerate after large architecture changes:
+The current local snapshot is indexed by [.zread/wiki/current](.zread/wiki/current) and [.zread/wiki/versions/2026-05-10-215740/wiki.json](.zread/wiki/versions/2026-05-10-215740/wiki.json). Agents can read the same snapshot through `keepa://zread/wiki/current`, `keepa://zread/wiki/toc`, and `keepa://zread/wiki/page/{slug_or_file}`. For local development, regenerate after large architecture changes:
 
 ```powershell
 zread generate -y --stdio --draft clear --skip-failed
@@ -342,6 +346,7 @@ npm pack --dry-run --json
 ## Documentation
 
 - [Implementation research report](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
+- [Stable documentation entry](https://cunuo.github.io/Keepa-cli/)
 - [zread wiki snapshot](.zread/wiki/versions/2026-05-10-215740/wiki.json)
 - [Development roadmap](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
 - [service.py / cli.py split plan](docs/architecture/service-cli-split-plan.md)

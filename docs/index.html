@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Keepa CLI Documentation</title>
+    <meta
+      name="description"
+      content="Stable documentation entry for Keepa CLI, an Agent-first Keepa API CLI with JSON, stdio, MCP, fixtures, token budgeting, and zread wiki docs."
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0f172a;
+        --fg: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #14b8a6;
+        --panel: #111827;
+        --line: #334155;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      main {
+        width: min(960px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 72px 0;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(32px, 6vw, 58px);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+      p {
+        margin: 0 0 24px;
+        color: var(--muted);
+        max-width: 760px;
+      }
+      nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-top: 32px;
+      }
+      a {
+        color: inherit;
+      }
+      .link {
+        display: block;
+        min-height: 112px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        text-decoration: none;
+      }
+      .link strong {
+        display: block;
+        color: var(--accent);
+        margin-bottom: 8px;
+      }
+      .link span {
+        color: var(--muted);
+      }
+      code {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Keepa CLI Docs</h1>
+      <p>
+        Stable entry point for Agent-first Keepa API workflows. Start with zread for architecture,
+        then use the README, Agent contract, schema, and MCP resources for exact command behavior.
+      </p>
+      <p>Agent entry: <code>kc --mcp</code> exposes tools, prompts, zread wiki resources, schemas, fixtures, and evidence.</p>
+      <nav aria-label="Documentation links">
+        <a class="link" href="https://zread.ai/cuNuo/Keepa-cli">
+          <strong>zread public wiki</strong>
+          <span>Readable generated project documentation.</span>
+        </a>
+        <a class="link" href="https://github.com/cuNuo/Keepa-cli#readme">
+          <strong>README</strong>
+          <span>Install, configure tokens, run TUI, use JSON, stdio, and MCP.</span>
+        </a>
+        <a class="link" href="https://github.com/cuNuo/Keepa-cli/blob/main/docs/agent-contract.md">
+          <strong>Agent contract</strong>
+          <span>Stable envelopes, Agent views, MCP tools, resources, and workflow plans.</span>
+        </a>
+        <a class="link" href="schema/products.agent-view.schema.json">
+          <strong>Product Agent schema</strong>
+          <span>JSON schema for product research views.</span>
+        </a>
+        <a class="link" href="https://github.com/cuNuo/Keepa-cli/tree/main/.zread/wiki">
+          <strong>Committed zread snapshot</strong>
+          <span>Offline wiki snapshot stored in the repository.</span>
+        </a>
+        <a class="link" href="https://github.com/cuNuo/Keepa-cli/blob/main/docs/architecture/mcp-agent-tools.md">
+          <strong>MCP architecture</strong>
+          <span>Toolsets, resources, prompts, session cache, and budget ledger design.</span>
+        </a>
+      </nav>
+    </main>
+  </body>
+</html>

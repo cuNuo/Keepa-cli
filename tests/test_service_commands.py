@@ -16,6 +16,20 @@ FIXTURES = Path("tests/fixtures")
 
 
 class ServiceCommandTests(unittest.TestCase):
+    def test_docs_commands_expose_zread_resources(self):
+        index = run_command("docs.index", env={})
+        self.assertTrue(index["ok"])
+        self.assertEqual(index["data"]["stable_entrypoints"]["zread_current"], "keepa://zread/wiki/current")
+
+        current = run_command("docs.read", {"uri": "keepa://zread/wiki/current"}, env={})
+        self.assertTrue(current["ok"])
+        self.assertEqual(current["data"]["json"]["version"], "2026-05-10-215740")
+
+        page = run_command("docs.read", {"page": "1-gai-lan"}, env={})
+        self.assertTrue(page["ok"])
+        self.assertEqual(page["data"]["mime_type"], "text/markdown")
+        self.assertIn("Keepa CLI", page["data"]["text"])
+
     def test_products_get_builds_official_product_request_with_fixture(self):
         payload = run_command(
             "products.get",

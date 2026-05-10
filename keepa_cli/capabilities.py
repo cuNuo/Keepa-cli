@@ -9,12 +9,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from keepa_cli.agent.prompts import list_mcp_prompts
 from keepa_cli.agent.resources import list_mcp_resource_templates, list_mcp_resources
 from keepa_cli.agent.tools import list_mcp_tools, toolset_names
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.16"
+SCHEMA_VERSION = "2026-05-10.18"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -24,6 +25,8 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "config.set-language", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "config.set-max-tokens", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "domains.list", "supports_fixture": False, "supports_live": False, "output": "json"},
+    {"name": "docs.index", "supports_fixture": False, "supports_live": False, "output": "json-agent-docs"},
+    {"name": "docs.read", "supports_fixture": False, "supports_live": False, "output": "text-or-json-agent-docs"},
     {"name": "browse.snapshot", "supports_fixture": True, "supports_live": False, "output": "html-directory"},
     {"name": "batch.asins", "supports_fixture": True, "supports_live": False, "output": "json-file-optional"},
     {"name": "templates.list", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -96,6 +99,7 @@ def build_capabilities() -> dict[str, Any]:
             "tools": list_mcp_tools(toolsets="all"),
             "resources": list_mcp_resources(),
             "resource_templates": list_mcp_resource_templates(),
+            "prompts": list_mcp_prompts(),
         },
         "commands": commands,
     }
