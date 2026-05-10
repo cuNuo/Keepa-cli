@@ -13,6 +13,8 @@
     {"path": "data.category_candidate_count", "min": 1},
     {"path": "data.category_candidates.0.category_id", "equals": "1055398"},
     {"path": "data.category_candidates.0.next_actions.0.tool", "equals": "categories.products"},
+    {"path": "data.category_candidates.0.next_actions", "next_actions_executable": true},
+    {"path": "data.next_actions", "next_actions_executable": true},
     {"path": "data.agent_brief.key_facts.top_category_id", "equals": "1055398"},
     {"path": "data.data_quality.confidence", "equals": "high"},
     {"path": "data.evidence_index.category_candidates.path", "equals": "category_candidates"}

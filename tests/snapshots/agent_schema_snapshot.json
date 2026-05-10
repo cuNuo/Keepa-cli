@@ -630,6 +630,32 @@
       "mcp": {
         "default_toolset": "str",
         "entrypoint": "str",
+        "resource_templates": [
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          }
+        ],
         "resources": [
           {
             "description": "str",
@@ -1322,6 +1348,131 @@
             },
             "x-keepa": {
               "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "category": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "min_reviews": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "per_page": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "sales_rank_max": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
                 "str",
                 "str"
               ],
@@ -4223,6 +4374,1799 @@
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }
+    }
+  },
+  "mcp_chunk_products_get": {
+    "id": "str",
+    "jsonrpc": "str",
+    "result": {
+      "content": [
+        {
+          "text": "str",
+          "type": "str"
+        }
+      ],
+      "isError": "bool",
+      "structuredContent": {
+        "budget_ledger": {
+          "blocked_actions": [],
+          "cache_hits": "int",
+          "consumed_source": "str",
+          "remaining_limit": "null",
+          "session_consumed": "int",
+          "session_estimated": "int"
+        },
+        "cache_hit": "bool",
+        "cache_key": "str",
+        "command": "str",
+        "data": {
+          "cache_provenance": {
+            "cache_hit": "bool",
+            "endpoint": "str",
+            "fixture": "str",
+            "params_hash": "str",
+            "source": "str"
+          },
+          "chunks": [
+            {
+              "asin": "str",
+              "format": "str",
+              "name": "str",
+              "path": "str",
+              "size_bytes": "int"
+            },
+            {
+              "asin": "str",
+              "format": "str",
+              "name": "str",
+              "path": "str",
+              "size_bytes": "int"
+            },
+            {
+              "asin": "str",
+              "format": "str",
+              "name": "str",
+              "path": "str",
+              "size_bytes": "int"
+            },
+            {
+              "asin": "str",
+              "format": "str",
+              "name": "str",
+              "path": "str",
+              "size_bytes": "int"
+            },
+            {
+              "asin": "str",
+              "format": "str",
+              "name": "str",
+              "path": "str",
+              "size_bytes": "int"
+            },
+            {
+              "asin": "str",
+              "format": "str",
+              "name": "str",
+              "path": "str",
+              "size_bytes": "int"
+            }
+          ],
+          "field_notes": [
+            "str",
+            "str",
+            "str"
+          ],
+          "product_count": "int",
+          "products": [
+            {
+              "agent_brief": {
+                "confidence": "str",
+                "decision_context": {
+                  "competition": {
+                    "total_offer_count": "int"
+                  },
+                  "content_quality": {
+                    "aplus_available": "bool",
+                    "aplus_module_count": "int",
+                    "image_count": "int",
+                    "video_count": "int"
+                  },
+                  "data_quality": {
+                    "confidence": "str",
+                    "missing_count": "int",
+                    "notes": [
+                      "str",
+                      "str"
+                    ],
+                    "present_count": "int"
+                  },
+                  "demand": {
+                    "monthly_sold": "int",
+                    "sales_rank": "int",
+                    "sales_rank_drops": {
+                      "180": "int",
+                      "30": "int",
+                      "365": "int",
+                      "90": "int"
+                    }
+                  },
+                  "price_stability": {
+                    "current_buy_box": "float",
+                    "current_new": "float",
+                    "history_series": "int",
+                    "new_price_change_pct": "float",
+                    "new_price_trend": "str",
+                    "new_price_volatility_cv": "float",
+                    "sales_rank_change_pct": "float",
+                    "sales_rank_trend": "str"
+                  },
+                  "risk_taxonomy": {
+                    "codes": [
+                      "str",
+                      "str"
+                    ],
+                    "highest_severity": "str",
+                    "risk_count": "int"
+                  }
+                },
+                "highest_risk_severity": "str",
+                "key_facts": {
+                  "asin": "str",
+                  "brand": "str",
+                  "current_buy_box_price": "float",
+                  "current_new_price": "float",
+                  "monthly_sold": "int",
+                  "rating": "float",
+                  "review_count": "int",
+                  "title": "str"
+                },
+                "missing_data": [
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "one_line": "str",
+                "read_order": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "recommended_next_actions": [
+                  {
+                    "cli": "str",
+                    "command": "str",
+                    "estimated_tokens": "int",
+                    "params": {
+                      "agent_view": "bool",
+                      "asin": "str",
+                      "domain": "str",
+                      "full": "bool",
+                      "offers": "str",
+                      "view": "str"
+                    },
+                    "reason": "str",
+                    "requires_confirmation": "bool",
+                    "tool": "str"
+                  }
+                ],
+                "research_graph_entities": {
+                  "brand": "int",
+                  "category": "int",
+                  "manufacturer": "int",
+                  "product": "int",
+                  "seller": "int"
+                },
+                "risk_codes": [
+                  "str",
+                  "str"
+                ],
+                "temporal_by_window": {
+                  "recent_180d": {
+                    "series": {
+                      "buy_box_shipping": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_fba_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "rating": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "review_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "sales_rank": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    },
+                    "series_count": "int",
+                    "signal_summary": {
+                      "buy_box_change_pct": "float",
+                      "buy_box_direction": "str",
+                      "new_offer_count_change_pct": "float",
+                      "new_offer_count_direction": "str",
+                      "new_price_change_pct": "float",
+                      "new_price_direction": "str",
+                      "rank_improved": "bool",
+                      "rating_change_pct": "float",
+                      "rating_direction": "str",
+                      "review_count_change_pct": "float",
+                      "review_count_direction": "str",
+                      "sales_rank_change_pct": "float",
+                      "sales_rank_direction": "str"
+                    }
+                  },
+                  "recent_30d": {
+                    "series": {
+                      "buy_box_shipping": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_fba_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "rating": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "review_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "sales_rank": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    },
+                    "series_count": "int",
+                    "signal_summary": {
+                      "buy_box_change_pct": "float",
+                      "buy_box_direction": "str",
+                      "new_offer_count_change_pct": "float",
+                      "new_offer_count_direction": "str",
+                      "new_price_change_pct": "float",
+                      "new_price_direction": "str",
+                      "rank_improved": "bool",
+                      "rating_change_pct": "float",
+                      "rating_direction": "str",
+                      "review_count_change_pct": "float",
+                      "review_count_direction": "str",
+                      "sales_rank_change_pct": "float",
+                      "sales_rank_direction": "str"
+                    }
+                  },
+                  "recent_365d": {
+                    "series": {
+                      "buy_box_shipping": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_fba_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "rating": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "review_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "sales_rank": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    },
+                    "series_count": "int",
+                    "signal_summary": {
+                      "buy_box_change_pct": "float",
+                      "buy_box_direction": "str",
+                      "new_offer_count_change_pct": "float",
+                      "new_offer_count_direction": "str",
+                      "new_price_change_pct": "float",
+                      "new_price_direction": "str",
+                      "rank_improved": "bool",
+                      "rating_change_pct": "float",
+                      "rating_direction": "str",
+                      "review_count_change_pct": "float",
+                      "review_count_direction": "str",
+                      "sales_rank_change_pct": "float",
+                      "sales_rank_direction": "str"
+                    }
+                  },
+                  "recent_7d": {
+                    "series": {
+                      "buy_box_shipping": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_fba_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "rating": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "review_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "sales_rank": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    },
+                    "series_count": "int",
+                    "signal_summary": {
+                      "buy_box_change_pct": "float",
+                      "buy_box_direction": "str",
+                      "new_offer_count_change_pct": "float",
+                      "new_offer_count_direction": "str",
+                      "new_price_change_pct": "float",
+                      "new_price_direction": "str",
+                      "rank_improved": "bool",
+                      "rating_change_pct": "float",
+                      "rating_direction": "str",
+                      "review_count_change_pct": "float",
+                      "review_count_direction": "str",
+                      "sales_rank_change_pct": "float",
+                      "sales_rank_direction": "str"
+                    }
+                  },
+                  "recent_90d": {
+                    "series": {
+                      "buy_box_shipping": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_fba_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "new_offer_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "rating": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "review_count": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "sales_rank": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    },
+                    "series_count": "int",
+                    "signal_summary": {
+                      "buy_box_change_pct": "float",
+                      "buy_box_direction": "str",
+                      "new_offer_count_change_pct": "float",
+                      "new_offer_count_direction": "str",
+                      "new_price_change_pct": "float",
+                      "new_price_direction": "str",
+                      "rank_improved": "bool",
+                      "rating_change_pct": "float",
+                      "rating_direction": "str",
+                      "review_count_change_pct": "float",
+                      "review_count_direction": "str",
+                      "sales_rank_change_pct": "float",
+                      "sales_rank_direction": "str"
+                    }
+                  }
+                },
+                "temporal_takeaways": [
+                  {
+                    "all_time": {
+                      "change_abs": "float",
+                      "change_pct": "float",
+                      "direction": "str",
+                      "previous_change_abs": "float",
+                      "previous_change_pct": "float",
+                      "slope_per_day": "float"
+                    },
+                    "coverage": {
+                      "avg_interval_days": "float",
+                      "duration_days": "float",
+                      "max_gap_days": "float",
+                      "median_interval_days": "float",
+                      "point_count": "int",
+                      "points_per_30d": "float"
+                    },
+                    "label": "str",
+                    "level": {
+                      "first": "float",
+                      "latest": "float",
+                      "latest_percentile": "float",
+                      "latest_zscore": "float",
+                      "max": "float",
+                      "mean": "float",
+                      "median": "float",
+                      "min": "float",
+                      "previous": "float"
+                    },
+                    "momentum": {
+                      "avg_abs_step": "float",
+                      "direction_change_count": "int",
+                      "down_steps": "int",
+                      "flat_steps": "int",
+                      "last_step": "float",
+                      "max_abs_step": "float",
+                      "up_steps": "int"
+                    },
+                    "outliers": {
+                      "count": "int",
+                      "method": "str",
+                      "ratio": "float",
+                      "threshold": "float"
+                    },
+                    "series": "str",
+                    "shape": {
+                      "latest_vs_max_pct": "float",
+                      "latest_vs_min_pct": "float",
+                      "longest_down_streak": "int",
+                      "longest_up_streak": "int",
+                      "max_drawdown_abs": "float",
+                      "max_runup_abs": "float"
+                    },
+                    "volatility": {
+                      "iqr": "float",
+                      "mad": "float",
+                      "q1": "float",
+                      "q3": "float",
+                      "range_abs": "float",
+                      "range_pct_of_mean": "float",
+                      "volatility_cv": "float"
+                    },
+                    "windows": {
+                      "recent_180d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_30d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_365d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_7d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_90d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    }
+                  },
+                  {
+                    "all_time": {
+                      "change_abs": "float",
+                      "change_pct": "float",
+                      "direction": "str",
+                      "previous_change_abs": "float",
+                      "previous_change_pct": "float",
+                      "slope_per_day": "float"
+                    },
+                    "coverage": {
+                      "avg_interval_days": "float",
+                      "duration_days": "float",
+                      "max_gap_days": "float",
+                      "median_interval_days": "float",
+                      "point_count": "int",
+                      "points_per_30d": "float"
+                    },
+                    "label": "str",
+                    "level": {
+                      "first": "float",
+                      "latest": "float",
+                      "latest_percentile": "float",
+                      "latest_zscore": "float",
+                      "max": "float",
+                      "mean": "float",
+                      "median": "float",
+                      "min": "float",
+                      "previous": "float"
+                    },
+                    "momentum": {
+                      "avg_abs_step": "float",
+                      "direction_change_count": "int",
+                      "down_steps": "int",
+                      "flat_steps": "int",
+                      "last_step": "float",
+                      "max_abs_step": "float",
+                      "up_steps": "int"
+                    },
+                    "outliers": {
+                      "count": "int",
+                      "method": "str"
+                    },
+                    "series": "str",
+                    "shape": {
+                      "latest_vs_max_pct": "float",
+                      "latest_vs_min_pct": "float",
+                      "longest_down_streak": "int",
+                      "longest_up_streak": "int",
+                      "max_drawdown_abs": "float",
+                      "max_runup_abs": "float"
+                    },
+                    "volatility": {
+                      "iqr": "float",
+                      "mad": "float",
+                      "q1": "float",
+                      "q3": "float",
+                      "range_abs": "float",
+                      "range_pct_of_mean": "float",
+                      "volatility_cv": "float"
+                    },
+                    "windows": {
+                      "recent_180d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_30d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_365d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_7d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_90d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    }
+                  },
+                  {
+                    "all_time": {
+                      "change_abs": "float",
+                      "change_pct": "float",
+                      "direction": "str",
+                      "previous_change_abs": "float",
+                      "previous_change_pct": "float",
+                      "slope_per_day": "float"
+                    },
+                    "coverage": {
+                      "avg_interval_days": "float",
+                      "duration_days": "float",
+                      "max_gap_days": "float",
+                      "median_interval_days": "float",
+                      "point_count": "int",
+                      "points_per_30d": "float"
+                    },
+                    "label": "str",
+                    "level": {
+                      "first": "float",
+                      "latest": "float",
+                      "latest_percentile": "float",
+                      "latest_zscore": "float",
+                      "max": "float",
+                      "mean": "float",
+                      "median": "float",
+                      "min": "float",
+                      "previous": "float"
+                    },
+                    "momentum": {
+                      "avg_abs_step": "float",
+                      "direction_change_count": "int",
+                      "down_steps": "int",
+                      "flat_steps": "int",
+                      "last_step": "float",
+                      "max_abs_step": "float",
+                      "up_steps": "int"
+                    },
+                    "outliers": {
+                      "count": "int",
+                      "method": "str",
+                      "ratio": "float",
+                      "threshold": "float"
+                    },
+                    "series": "str",
+                    "shape": {
+                      "latest_vs_max_pct": "float",
+                      "latest_vs_min_pct": "float",
+                      "longest_down_streak": "int",
+                      "longest_up_streak": "int",
+                      "max_drawdown_abs": "float",
+                      "max_runup_abs": "float"
+                    },
+                    "volatility": {
+                      "iqr": "float",
+                      "mad": "float",
+                      "q1": "float",
+                      "q3": "float",
+                      "range_abs": "float",
+                      "range_pct_of_mean": "float",
+                      "volatility_cv": "float"
+                    },
+                    "windows": {
+                      "recent_180d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_30d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_365d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_7d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_90d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    }
+                  },
+                  {
+                    "all_time": {
+                      "change_abs": "float",
+                      "change_pct": "float",
+                      "direction": "str",
+                      "previous_change_abs": "float",
+                      "previous_change_pct": "float",
+                      "slope_per_day": "float"
+                    },
+                    "coverage": {
+                      "avg_interval_days": "float",
+                      "duration_days": "float",
+                      "max_gap_days": "float",
+                      "median_interval_days": "float",
+                      "point_count": "int",
+                      "points_per_30d": "float"
+                    },
+                    "label": "str",
+                    "level": {
+                      "first": "float",
+                      "latest": "float",
+                      "latest_percentile": "float",
+                      "latest_zscore": "float",
+                      "max": "float",
+                      "mean": "float",
+                      "median": "float",
+                      "min": "float",
+                      "previous": "float"
+                    },
+                    "momentum": {
+                      "avg_abs_step": "float",
+                      "direction_change_count": "int",
+                      "down_steps": "int",
+                      "flat_steps": "int",
+                      "last_step": "float",
+                      "max_abs_step": "float",
+                      "up_steps": "int"
+                    },
+                    "outliers": {
+                      "count": "int",
+                      "method": "str",
+                      "ratio": "float",
+                      "threshold": "float"
+                    },
+                    "series": "str",
+                    "shape": {
+                      "latest_vs_max_pct": "float",
+                      "latest_vs_min_pct": "float",
+                      "longest_down_streak": "int",
+                      "longest_up_streak": "int",
+                      "max_drawdown_abs": "float",
+                      "max_runup_abs": "float"
+                    },
+                    "volatility": {
+                      "iqr": "float",
+                      "mad": "float",
+                      "q1": "float",
+                      "q3": "float",
+                      "range_abs": "float",
+                      "range_pct_of_mean": "float",
+                      "volatility_cv": "float"
+                    },
+                    "windows": {
+                      "recent_180d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_30d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_365d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_7d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_90d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    }
+                  },
+                  {
+                    "all_time": {
+                      "change_abs": "float",
+                      "change_pct": "float",
+                      "direction": "str",
+                      "previous_change_abs": "float",
+                      "previous_change_pct": "float",
+                      "slope_per_day": "float"
+                    },
+                    "coverage": {
+                      "avg_interval_days": "float",
+                      "duration_days": "float",
+                      "max_gap_days": "float",
+                      "median_interval_days": "float",
+                      "point_count": "int",
+                      "points_per_30d": "float"
+                    },
+                    "label": "str",
+                    "level": {
+                      "first": "float",
+                      "latest": "float",
+                      "latest_percentile": "float",
+                      "latest_zscore": "float",
+                      "max": "float",
+                      "mean": "float",
+                      "median": "float",
+                      "min": "float",
+                      "previous": "float"
+                    },
+                    "momentum": {
+                      "avg_abs_step": "float",
+                      "direction_change_count": "int",
+                      "down_steps": "int",
+                      "flat_steps": "int",
+                      "last_step": "float",
+                      "max_abs_step": "float",
+                      "up_steps": "int"
+                    },
+                    "outliers": {
+                      "count": "int",
+                      "method": "str",
+                      "ratio": "float",
+                      "threshold": "float"
+                    },
+                    "series": "str",
+                    "shape": {
+                      "latest_vs_max_pct": "float",
+                      "latest_vs_min_pct": "float",
+                      "longest_down_streak": "int",
+                      "longest_up_streak": "int",
+                      "max_drawdown_abs": "float",
+                      "max_runup_abs": "float"
+                    },
+                    "volatility": {
+                      "iqr": "float",
+                      "mad": "float",
+                      "q1": "float",
+                      "q3": "float",
+                      "range_abs": "float",
+                      "range_pct_of_mean": "float",
+                      "volatility_cv": "float"
+                    },
+                    "windows": {
+                      "recent_180d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_30d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_365d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_7d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_90d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    }
+                  },
+                  {
+                    "all_time": {
+                      "change_abs": "float",
+                      "change_pct": "float",
+                      "direction": "str",
+                      "previous_change_abs": "float",
+                      "previous_change_pct": "float",
+                      "slope_per_day": "float"
+                    },
+                    "coverage": {
+                      "avg_interval_days": "float",
+                      "duration_days": "float",
+                      "max_gap_days": "float",
+                      "median_interval_days": "float",
+                      "point_count": "int",
+                      "points_per_30d": "float"
+                    },
+                    "label": "str",
+                    "level": {
+                      "first": "float",
+                      "latest": "float",
+                      "latest_percentile": "float",
+                      "latest_zscore": "float",
+                      "max": "float",
+                      "mean": "float",
+                      "median": "float",
+                      "min": "float",
+                      "previous": "float"
+                    },
+                    "momentum": {
+                      "avg_abs_step": "float",
+                      "direction_change_count": "int",
+                      "down_steps": "int",
+                      "flat_steps": "int",
+                      "last_step": "float",
+                      "max_abs_step": "float",
+                      "up_steps": "int"
+                    },
+                    "outliers": {
+                      "count": "int",
+                      "method": "str",
+                      "ratio": "float",
+                      "threshold": "float"
+                    },
+                    "series": "str",
+                    "shape": {
+                      "latest_vs_max_pct": "float",
+                      "latest_vs_min_pct": "float",
+                      "longest_down_streak": "int",
+                      "longest_up_streak": "int",
+                      "max_drawdown_abs": "float",
+                      "max_runup_abs": "float"
+                    },
+                    "volatility": {
+                      "iqr": "float",
+                      "mad": "float",
+                      "q1": "float",
+                      "q3": "float",
+                      "range_abs": "float",
+                      "range_pct_of_mean": "float",
+                      "volatility_cv": "float"
+                    },
+                    "windows": {
+                      "recent_180d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_30d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_365d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_7d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      },
+                      "recent_90d": {
+                        "baseline": "float",
+                        "change_abs": "float",
+                        "change_pct": "float",
+                        "direction": "str",
+                        "latest": "float",
+                        "observed_days": "float"
+                      }
+                    }
+                  }
+                ]
+              },
+              "data_quality": {
+                "confidence": "str",
+                "missing": [
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ],
+                "notes": [
+                  "str",
+                  "str"
+                ],
+                "present": [
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str",
+                  "str"
+                ]
+              },
+              "evidence_index": {
+                "aplus": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "buy_box": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "content_assets": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "current_pricing": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "data_quality": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "decision_brief": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "demand": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "history_samples": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "identity": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "offer_summary": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "rating": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "raw_presence": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "research_graph": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "risk_taxonomy": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "selection_signals": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                },
+                "temporal_features": {
+                  "load_hint": "str",
+                  "path": "str",
+                  "section": "str",
+                  "why": "str"
+                }
+              },
+              "identity": {
+                "asin": "str",
+                "brand": "str",
+                "domain_id": "int",
+                "is_adult_product": "bool",
+                "is_redirect_asin": "bool",
+                "item_type_keyword": "str",
+                "manufacturer": "str",
+                "part_number": "str",
+                "product_type": "int",
+                "title": "str",
+                "type": "str",
+                "url_slug": "str"
+              },
+              "next_actions": [
+                {
+                  "cli": "str",
+                  "command": "str",
+                  "estimated_tokens": "int",
+                  "params": {
+                    "agent_view": "bool",
+                    "asin": "str",
+                    "domain": "str",
+                    "full": "bool",
+                    "offers": "str",
+                    "view": "str"
+                  },
+                  "reason": "str",
+                  "requires_confirmation": "bool",
+                  "tool": "str"
+                }
+              ],
+              "pricing": {
+                "avg180": {
+                  "buy_box_shipping": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "list_price": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "new": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  }
+                },
+                "avg30": {
+                  "buy_box_shipping": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "list_price": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "new": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  }
+                },
+                "avg90": {
+                  "buy_box_shipping": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "list_price": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "new": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  }
+                },
+                "buy_box": {
+                  "availability_message": "str",
+                  "condition": "int",
+                  "is_amazon": "bool",
+                  "is_fba": "bool",
+                  "is_free_shipping_eligible": "bool",
+                  "is_prime_eligible": "bool",
+                  "price": {
+                    "amount": "float",
+                    "raw_value": "int",
+                    "unit": "str"
+                  },
+                  "saving_basis": {
+                    "amount": "float",
+                    "raw_value": "int",
+                    "unit": "str"
+                  },
+                  "saving_basis_type": "str",
+                  "saving_percentage": "int",
+                  "seller_id": "str",
+                  "shipping": {
+                    "amount": "float",
+                    "raw_value": "int",
+                    "unit": "str"
+                  }
+                },
+                "competitive_price_threshold": {
+                  "amount": "float",
+                  "raw_value": "int",
+                  "unit": "str"
+                },
+                "coupon_history": {
+                  "last_points": [
+                    {
+                      "keepa_minute": "int",
+                      "timestamp": "str",
+                      "value": "int"
+                    },
+                    {
+                      "keepa_minute": "int",
+                      "timestamp": "str",
+                      "value": "int"
+                    },
+                    {
+                      "keepa_minute": "int",
+                      "timestamp": "str",
+                      "value": "int"
+                    },
+                    {
+                      "keepa_minute": "int",
+                      "timestamp": "str",
+                      "value": "int"
+                    },
+                    {
+                      "keepa_minute": "int",
+                      "timestamp": "str",
+                      "value": "int"
+                    }
+                  ],
+                  "latest": {
+                    "keepa_minute": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  },
+                  "omitted_points": "int",
+                  "point_count": "int"
+                },
+                "current": {
+                  "buy_box_shipping": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "list_price": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  },
+                  "new": {
+                    "amount": "float",
+                    "currency_value": "float",
+                    "raw_value": "int",
+                    "unit": "str",
+                    "value": "float"
+                  }
+                },
+                "promotions": [
+                  {
+                    "amount": "int",
+                    "discountPercent": "int",
+                    "sellerId": "str",
+                    "snsBulkDiscountPercent": "null",
+                    "type": "str"
+                  }
+                ]
+              },
+              "research_graph": {
+                "edge_count": "int",
+                "edges": [
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  },
+                  {
+                    "evidence_path": "str",
+                    "source": "str",
+                    "target": "str",
+                    "type": "str"
+                  }
+                ],
+                "entity_counts": {
+                  "brand": "int",
+                  "category": "int",
+                  "manufacturer": "int",
+                  "product": "int",
+                  "seller": "int"
+                },
+                "node_count": "int",
+                "nodes": [
+                  {
+                    "attributes": {
+                      "manufacturer": "str"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "category_id": "int"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "category_id": "int"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "category_id": "int"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "category_id": "int"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "category_id": "int"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "asin": "str",
+                      "brand": "str",
+                      "item_type_keyword": "str"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  },
+                  {
+                    "attributes": {
+                      "is_amazon": "bool",
+                      "is_fba": "bool",
+                      "is_prime_eligible": "bool",
+                      "seller_id": "str"
+                    },
+                    "id": "str",
+                    "label": "str",
+                    "type": "str"
+                  }
+                ],
+                "root": "str",
+                "schema_version": "str"
+              },
+              "selection_signals": {
+                "competition": {
+                  "total_offer_count": "int"
+                },
+                "content_quality": {
+                  "aplus_available": "bool",
+                  "aplus_module_count": "int",
+                  "image_count": "int",
+                  "video_count": "int"
+                },
+                "demand": {
+                  "monthly_sold": "int",
+                  "sales_rank": "int",
+                  "sales_rank_drops": {
+                    "180": "int",
+                    "30": "int",
+                    "365": "int",
+                    "90": "int"
+                  }
+                },
+                "price_stability": {
+                  "current_buy_box": "float",
+                  "current_new": "float",
+                  "history_series": "int",
+                  "new_price_change_pct": "float",
+                  "new_price_trend": "str",
+                  "new_price_volatility_cv": "float",
+                  "sales_rank_change_pct": "float",
+                  "sales_rank_trend": "str"
+                },
+                "risk_codes": [
+                  "str",
+                  "str"
+                ],
+                "risk_flags": [],
+                "risk_taxonomy": {
+                  "codes": [
+                    "str",
+                    "str"
+                  ],
+                  "highest_severity": "str"
+                }
+              }
+            }
+          ],
+          "profile": "str",
+          "provenance": {
+            "mcp": {
+              "cache_hit": "bool",
+              "server": "str",
+              "session_cache_key": "str",
+              "tool": "str",
+              "transport": "str"
+            }
+          },
+          "raw": {
+            "body_omitted": "bool",
+            "fixture": "str",
+            "offline": "bool"
+          },
+          "schema_version": "str",
+          "view": "str"
+        },
+        "ok": "bool",
+        "request": {
+          "dry_run": "bool",
+          "endpoint": "str",
+          "method": "str",
+          "params_redacted": {
+            "asin": "str",
+            "domain": "str"
+          }
+        },
+        "token_bucket": {
+          "estimated": {
+            "components": [
+              {
+                "estimated_tokens": "int",
+                "name": "str",
+                "reason": "str",
+                "worst_case_tokens": "int"
+              }
+            ],
+            "estimated_tokens": "int",
+            "notes": [
+              "str"
+            ],
+            "requires_confirmation": "bool",
+            "worst_case_tokens": "int"
+          },
+          "refill_in_ms": "int",
+          "refill_rate": "int",
+          "tokens_consumed": "int",
+          "tokens_left": "int"
+        }
+      }
+    }
+  },
+  "mcp_resources_list": {
+    "id": "str",
+    "jsonrpc": "str",
+    "result": {
+      "resources": [
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        }
+      ]
     }
   },
   "products_compare": {
@@ -8077,6 +10021,673 @@
       "tokens_consumed": "int",
       "tokens_left": "int"
     }
+  },
+  "research_graph_merge": {
+    "command": "str",
+    "data": {
+      "agent_brief": {
+        "key_facts": {
+          "diagnostics": {
+            "conflict_count": "int",
+            "duplicate_node_count": "int",
+            "highest_source_weight": "int",
+            "orphan_node_count": "int"
+          },
+          "edge_count": "int",
+          "entity_counts": {
+            "brand": "int",
+            "category": "int",
+            "manufacturer": "int",
+            "product": "int",
+            "research_graph": "int",
+            "search_term": "int",
+            "seller": "int",
+            "seller_request": "int"
+          },
+          "node_count": "int",
+          "root": "str",
+          "schema_version": "str",
+          "source_count": "int"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str"
+        ]
+      },
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "present": [
+          "str",
+          "str",
+          "str",
+          "str"
+        ]
+      },
+      "diagnostics": {
+        "conflict_count": "int",
+        "duplicate_node_count": "int",
+        "duplicate_nodes": [
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          },
+          {
+            "id": "str",
+            "seen": "int"
+          }
+        ],
+        "highest_source_weight": "int",
+        "lowest_source_weight": "int",
+        "orphan_node_count": "int"
+      },
+      "evidence_index": {
+        "diagnostics": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        },
+        "graph": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        },
+        "sources": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        }
+      },
+      "graph": {
+        "diagnostics": {
+          "conflict_count": "int",
+          "duplicate_node_count": "int",
+          "duplicate_nodes": [
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            },
+            {
+              "id": "str",
+              "seen": "int"
+            }
+          ],
+          "highest_source_weight": "int",
+          "lowest_source_weight": "int",
+          "orphan_node_count": "int"
+        },
+        "edge_count": "int",
+        "edges": [
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          }
+        ],
+        "entity_counts": {
+          "brand": "int",
+          "category": "int",
+          "manufacturer": "int",
+          "product": "int",
+          "research_graph": "int",
+          "search_term": "int",
+          "seller": "int",
+          "seller_request": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "manufacturer": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "manufacturer": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "manufacturer": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "str",
+              "matched": "bool",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "brand": "str",
+              "item_type_keyword": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "brand": "str",
+              "item_type_keyword": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "brand": "str",
+              "item_type_keyword": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "graph_count": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "source_weight": "int",
+              "term": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "has_storefront": "bool",
+              "rating": "int",
+              "rating_count": "int",
+              "seller_id": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "is_amazon": "bool",
+              "is_fba": "bool",
+              "is_prime_eligible": "bool",
+              "seller_id": "str",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "seller_count": "int",
+              "source_weight": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str",
+        "sources": [
+          {
+            "confidence": "str",
+            "edge_count": "int",
+            "entity_counts": {
+              "category": "int",
+              "search_term": "int"
+            },
+            "index": "int",
+            "node_count": "int",
+            "root": "str",
+            "source_weight": "int"
+          },
+          {
+            "confidence": "str",
+            "edge_count": "int",
+            "entity_counts": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int"
+            },
+            "index": "int",
+            "node_count": "int",
+            "root": "str",
+            "source_weight": "int"
+          },
+          {
+            "confidence": "str",
+            "edge_count": "int",
+            "entity_counts": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int"
+            },
+            "index": "int",
+            "node_count": "int",
+            "root": "str",
+            "source_weight": "int"
+          },
+          {
+            "confidence": "str",
+            "edge_count": "int",
+            "entity_counts": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int"
+            },
+            "index": "int",
+            "node_count": "int",
+            "root": "str",
+            "source_weight": "int"
+          },
+          {
+            "confidence": "str",
+            "edge_count": "int",
+            "entity_counts": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int"
+            },
+            "index": "int",
+            "node_count": "int",
+            "root": "str",
+            "source_weight": "int"
+          },
+          {
+            "confidence": "str",
+            "edge_count": "int",
+            "entity_counts": {
+              "product": "int",
+              "seller": "int",
+              "seller_request": "int"
+            },
+            "index": "int",
+            "node_count": "int",
+            "root": "str",
+            "source_weight": "int"
+          }
+        ]
+      },
+      "input_graph_count": "int",
+      "provenance": {
+        "network": "bool",
+        "source": "str"
+      },
+      "sources": [
+        {
+          "graph_count": "int",
+          "kind": "str",
+          "path": "str"
+        },
+        {
+          "graph_count": "int",
+          "kind": "str",
+          "path": "str"
+        },
+        {
+          "graph_count": "int",
+          "kind": "str",
+          "path": "str"
+        }
+      ],
+      "summary": {
+        "diagnostics": {
+          "conflict_count": "int",
+          "duplicate_node_count": "int",
+          "highest_source_weight": "int",
+          "orphan_node_count": "int"
+        },
+        "edge_count": "int",
+        "entity_counts": {
+          "brand": "int",
+          "category": "int",
+          "manufacturer": "int",
+          "product": "int",
+          "research_graph": "int",
+          "search_term": "int",
+          "seller": "int",
+          "seller_request": "int"
+        },
+        "node_count": "int",
+        "root": "str",
+        "schema_version": "str",
+        "source_count": "int"
+      },
+      "view": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "transport": "str"
+    },
+    "token_bucket": {}
   },
   "schema_generate": {
     "command": "str",

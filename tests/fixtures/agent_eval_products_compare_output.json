@@ -1,0 +1,1032 @@
+{
+  "command": "products.compare",
+  "data": {
+    "product_count": 3,
+    "research_graph": {
+      "edge_count": 16,
+      "edges": [
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:11060451",
+          "target": "category:11060711",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:11060711",
+          "target": "category:11062031",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:11062031",
+          "target": "category:7792528011",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:3760911",
+          "target": "category:11060451",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "pricing.buy_box.seller_id",
+          "source": "product:B0D8W1YVBX",
+          "target": "seller:AFZNN5H6MIT2Z",
+          "type": "buybox_sold_by"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "product:B0D8W1YVBX",
+          "target": "category:7792528011",
+          "type": "in_category"
+        },
+        {
+          "evidence_path": "identity.brand",
+          "source": "product:B0D8W1YVBX",
+          "target": "brand:eqqualberry",
+          "type": "made_by"
+        },
+        {
+          "evidence_path": "identity.manufacturer",
+          "source": "product:B0D8W1YVBX",
+          "target": "manufacturer:boosters",
+          "type": "manufactured_by"
+        },
+        {
+          "evidence_path": "pricing.buy_box.seller_id",
+          "source": "product:B0EVALCMP1",
+          "target": "seller:AFZNN5H6MIT2Z",
+          "type": "buybox_sold_by"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "product:B0EVALCMP1",
+          "target": "category:7792528011",
+          "type": "in_category"
+        },
+        {
+          "evidence_path": "identity.brand",
+          "source": "product:B0EVALCMP1",
+          "target": "brand:evalbrand_a",
+          "type": "made_by"
+        },
+        {
+          "evidence_path": "identity.manufacturer",
+          "source": "product:B0EVALCMP1",
+          "target": "manufacturer:boosters",
+          "type": "manufactured_by"
+        },
+        {
+          "evidence_path": "pricing.buy_box.seller_id",
+          "source": "product:B0EVALCMP2",
+          "target": "seller:AFZNN5H6MIT2Z",
+          "type": "buybox_sold_by"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "product:B0EVALCMP2",
+          "target": "category:7792528011",
+          "type": "in_category"
+        },
+        {
+          "evidence_path": "identity.brand",
+          "source": "product:B0EVALCMP2",
+          "target": "brand:evalbrand_b",
+          "type": "made_by"
+        },
+        {
+          "evidence_path": "identity.manufacturer",
+          "source": "product:B0EVALCMP2",
+          "target": "manufacturer:boosters",
+          "type": "manufactured_by"
+        }
+      ],
+      "entity_counts": {
+        "brand": 3,
+        "category": 5,
+        "manufacturer": 1,
+        "product": 3,
+        "seller": 1
+      },
+      "node_count": 13,
+      "nodes": [
+        {
+          "attributes": {
+            "manufacturer": "boosters"
+          },
+          "id": "brand:eqqualberry",
+          "label": "EQQUALBERRY",
+          "type": "brand"
+        },
+        {
+          "attributes": {
+            "manufacturer": "boosters"
+          },
+          "id": "brand:evalbrand_a",
+          "label": "EvalBrand A",
+          "type": "brand"
+        },
+        {
+          "attributes": {
+            "manufacturer": "boosters"
+          },
+          "id": "brand:evalbrand_b",
+          "label": "EvalBrand B",
+          "type": "brand"
+        },
+        {
+          "attributes": {
+            "category_id": 11060451
+          },
+          "id": "category:11060451",
+          "label": "Skin Care",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 11060711
+          },
+          "id": "category:11060711",
+          "label": "Face",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 11062031
+          },
+          "id": "category:11062031",
+          "label": "Treatments & Masks",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 3760911
+          },
+          "id": "category:3760911",
+          "label": "Beauty & Personal Care",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 7792528011
+          },
+          "id": "category:7792528011",
+          "label": "Serums",
+          "type": "category"
+        },
+        {
+          "id": "manufacturer:boosters",
+          "label": "boosters",
+          "type": "manufacturer"
+        },
+        {
+          "attributes": {
+            "asin": "B0D8W1YVBX",
+            "brand": "EQQUALBERRY",
+            "item_type_keyword": "facial-serums"
+          },
+          "id": "product:B0D8W1YVBX",
+          "label": "EQQUALBERRY Vitamin Illuminating Serum",
+          "type": "product"
+        },
+        {
+          "attributes": {
+            "asin": "B0EVALCMP1",
+            "brand": "EvalBrand A",
+            "item_type_keyword": "facial-serums"
+          },
+          "id": "product:B0EVALCMP1",
+          "label": "Agent Eval Brightening Serum A",
+          "type": "product"
+        },
+        {
+          "attributes": {
+            "asin": "B0EVALCMP2",
+            "brand": "EvalBrand B",
+            "item_type_keyword": "facial-serums"
+          },
+          "id": "product:B0EVALCMP2",
+          "label": "Agent Eval Barrier Serum B",
+          "type": "product"
+        },
+        {
+          "attributes": {
+            "is_amazon": false,
+            "is_fba": true,
+            "is_prime_eligible": true,
+            "seller_id": "AFZNN5H6MIT2Z"
+          },
+          "id": "seller:AFZNN5H6MIT2Z",
+          "label": "AFZNN5H6MIT2Z",
+          "type": "seller"
+        }
+      ],
+      "schema_version": "2026-05-10.1"
+    },
+    "risk_summary": {
+      "by_code": {
+        "data_missing": 3
+      },
+      "by_severity": {
+        "medium": 3
+      },
+      "highest_severity": "medium",
+      "known_codes": [
+        "data_missing",
+        "price_unstable",
+        "rank_declining",
+        "low_review_count",
+        "offer_competition_high",
+        "buybox_missing",
+        "category_mismatch"
+      ],
+      "product_count": 3,
+      "schema_version": "2026-05-10.1"
+    },
+    "rows": [
+      {
+        "aplus_available": true,
+        "asin": "B0D8W1YVBX",
+        "brand": "EQQUALBERRY",
+        "buy_box_price": 18.89,
+        "data_quality": {
+          "confidence": "medium",
+          "missing": [
+            "liveOffersOrder",
+            "offers",
+            "offers.offers",
+            "variations"
+          ],
+          "notes": [
+            "some agent-relevant fields are absent or not requested",
+            "offer detail usually requires an explicit --offers request"
+          ],
+          "present": [
+            "aPlus",
+            "buyBoxSellerIdHistory",
+            "couponHistory",
+            "csv",
+            "images",
+            "monthlySoldHistory",
+            "reviews",
+            "stats",
+            "videos"
+          ]
+        },
+        "monthly_sold": 100000,
+        "new_price": 18.89,
+        "rating": 4.3,
+        "research_graph": {
+          "edge_count": 8,
+          "edges": [
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060451",
+              "target": "category:11060711",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060711",
+              "target": "category:11062031",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11062031",
+              "target": "category:7792528011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:3760911",
+              "target": "category:11060451",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "pricing.buy_box.seller_id",
+              "source": "product:B0D8W1YVBX",
+              "target": "seller:AFZNN5H6MIT2Z",
+              "type": "buybox_sold_by"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "product:B0D8W1YVBX",
+              "target": "category:7792528011",
+              "type": "in_category"
+            },
+            {
+              "evidence_path": "identity.brand",
+              "source": "product:B0D8W1YVBX",
+              "target": "brand:eqqualberry",
+              "type": "made_by"
+            },
+            {
+              "evidence_path": "identity.manufacturer",
+              "source": "product:B0D8W1YVBX",
+              "target": "manufacturer:boosters",
+              "type": "manufactured_by"
+            }
+          ],
+          "entity_counts": {
+            "brand": 1,
+            "category": 5,
+            "manufacturer": 1,
+            "product": 1,
+            "seller": 1
+          },
+          "node_count": 9,
+          "nodes": [
+            {
+              "attributes": {
+                "manufacturer": "boosters"
+              },
+              "id": "brand:eqqualberry",
+              "label": "EQQUALBERRY",
+              "type": "brand"
+            },
+            {
+              "attributes": {
+                "category_id": 11060451
+              },
+              "id": "category:11060451",
+              "label": "Skin Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11060711
+              },
+              "id": "category:11060711",
+              "label": "Face",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11062031
+              },
+              "id": "category:11062031",
+              "label": "Treatments & Masks",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 3760911
+              },
+              "id": "category:3760911",
+              "label": "Beauty & Personal Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 7792528011
+              },
+              "id": "category:7792528011",
+              "label": "Serums",
+              "type": "category"
+            },
+            {
+              "id": "manufacturer:boosters",
+              "label": "boosters",
+              "type": "manufacturer"
+            },
+            {
+              "attributes": {
+                "asin": "B0D8W1YVBX",
+                "brand": "EQQUALBERRY",
+                "item_type_keyword": "facial-serums"
+              },
+              "id": "product:B0D8W1YVBX",
+              "label": "EQQUALBERRY Vitamin Illuminating Serum",
+              "type": "product"
+            },
+            {
+              "attributes": {
+                "is_amazon": false,
+                "is_fba": true,
+                "is_prime_eligible": true,
+                "seller_id": "AFZNN5H6MIT2Z"
+              },
+              "id": "seller:AFZNN5H6MIT2Z",
+              "label": "AFZNN5H6MIT2Z",
+              "type": "seller"
+            }
+          ],
+          "root": "product:B0D8W1YVBX",
+          "schema_version": "2026-05-10.1"
+        },
+        "review_count": 11598,
+        "risk_taxonomy": {
+          "codes": [
+            "data_missing"
+          ],
+          "highest_severity": "medium",
+          "items": [
+            {
+              "code": "data_missing",
+              "evidence_path": "data_quality.missing",
+              "field": "offers.offers",
+              "follow_up": "Use structured next_actions to fill only missing high-value data.",
+              "reason": "Some expected Agent research fields are absent; inspect data_quality.missing before final decisions.",
+              "severity": "medium"
+            }
+          ],
+          "known_codes": [
+            "data_missing",
+            "price_unstable",
+            "rank_declining",
+            "low_review_count",
+            "offer_competition_high",
+            "buybox_missing",
+            "category_mismatch"
+          ],
+          "risk_count": 1,
+          "schema_version": "2026-05-10.1"
+        },
+        "sales_rank": 111,
+        "selection_signals": {
+          "competition": {
+            "total_offer_count": 5
+          },
+          "content_quality": {
+            "aplus_available": true,
+            "aplus_module_count": 7,
+            "image_count": 9,
+            "video_count": 11
+          },
+          "demand": {
+            "monthly_sold": 100000,
+            "sales_rank": 111,
+            "sales_rank_drops": {
+              "180": 165,
+              "30": 35,
+              "365": 424,
+              "90": 75
+            }
+          },
+          "price_stability": {
+            "current_buy_box": 18.89,
+            "current_new": 18.89,
+            "history_series": 15,
+            "new_price_change_pct": -9.574,
+            "new_price_trend": "down",
+            "new_price_volatility_cv": 0.0503,
+            "sales_rank_change_pct": -72.9927,
+            "sales_rank_trend": "down"
+          },
+          "risk_codes": [
+            "data_missing"
+          ],
+          "risk_flags": [],
+          "risk_taxonomy": {
+            "codes": [
+              "data_missing"
+            ],
+            "highest_severity": "medium"
+          }
+        },
+        "title": "EQQUALBERRY Vitamin Illuminating Serum",
+        "total_offer_count": 5,
+        "video_count": 11
+      },
+      {
+        "aplus_available": true,
+        "asin": "B0EVALCMP1",
+        "brand": "EvalBrand A",
+        "buy_box_price": 15.99,
+        "data_quality": {
+          "confidence": "medium",
+          "missing": [
+            "liveOffersOrder",
+            "offers",
+            "offers.offers",
+            "variations"
+          ],
+          "notes": [
+            "some agent-relevant fields are absent or not requested",
+            "offer detail usually requires an explicit --offers request"
+          ],
+          "present": [
+            "aPlus",
+            "buyBoxSellerIdHistory",
+            "couponHistory",
+            "csv",
+            "images",
+            "monthlySoldHistory",
+            "reviews",
+            "stats",
+            "videos"
+          ]
+        },
+        "monthly_sold": 45000,
+        "new_price": 15.99,
+        "rating": 4.3,
+        "research_graph": {
+          "edge_count": 8,
+          "edges": [
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060451",
+              "target": "category:11060711",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060711",
+              "target": "category:11062031",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11062031",
+              "target": "category:7792528011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:3760911",
+              "target": "category:11060451",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "pricing.buy_box.seller_id",
+              "source": "product:B0EVALCMP1",
+              "target": "seller:AFZNN5H6MIT2Z",
+              "type": "buybox_sold_by"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "product:B0EVALCMP1",
+              "target": "category:7792528011",
+              "type": "in_category"
+            },
+            {
+              "evidence_path": "identity.brand",
+              "source": "product:B0EVALCMP1",
+              "target": "brand:evalbrand_a",
+              "type": "made_by"
+            },
+            {
+              "evidence_path": "identity.manufacturer",
+              "source": "product:B0EVALCMP1",
+              "target": "manufacturer:boosters",
+              "type": "manufactured_by"
+            }
+          ],
+          "entity_counts": {
+            "brand": 1,
+            "category": 5,
+            "manufacturer": 1,
+            "product": 1,
+            "seller": 1
+          },
+          "node_count": 9,
+          "nodes": [
+            {
+              "attributes": {
+                "manufacturer": "boosters"
+              },
+              "id": "brand:evalbrand_a",
+              "label": "EvalBrand A",
+              "type": "brand"
+            },
+            {
+              "attributes": {
+                "category_id": 11060451
+              },
+              "id": "category:11060451",
+              "label": "Skin Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11060711
+              },
+              "id": "category:11060711",
+              "label": "Face",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11062031
+              },
+              "id": "category:11062031",
+              "label": "Treatments & Masks",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 3760911
+              },
+              "id": "category:3760911",
+              "label": "Beauty & Personal Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 7792528011
+              },
+              "id": "category:7792528011",
+              "label": "Serums",
+              "type": "category"
+            },
+            {
+              "id": "manufacturer:boosters",
+              "label": "boosters",
+              "type": "manufacturer"
+            },
+            {
+              "attributes": {
+                "asin": "B0EVALCMP1",
+                "brand": "EvalBrand A",
+                "item_type_keyword": "facial-serums"
+              },
+              "id": "product:B0EVALCMP1",
+              "label": "Agent Eval Brightening Serum A",
+              "type": "product"
+            },
+            {
+              "attributes": {
+                "is_amazon": false,
+                "is_fba": true,
+                "is_prime_eligible": true,
+                "seller_id": "AFZNN5H6MIT2Z"
+              },
+              "id": "seller:AFZNN5H6MIT2Z",
+              "label": "AFZNN5H6MIT2Z",
+              "type": "seller"
+            }
+          ],
+          "root": "product:B0EVALCMP1",
+          "schema_version": "2026-05-10.1"
+        },
+        "review_count": 11598,
+        "risk_taxonomy": {
+          "codes": [
+            "data_missing"
+          ],
+          "highest_severity": "medium",
+          "items": [
+            {
+              "code": "data_missing",
+              "evidence_path": "data_quality.missing",
+              "field": "offers.offers",
+              "follow_up": "Use structured next_actions to fill only missing high-value data.",
+              "reason": "Some expected Agent research fields are absent; inspect data_quality.missing before final decisions.",
+              "severity": "medium"
+            }
+          ],
+          "known_codes": [
+            "data_missing",
+            "price_unstable",
+            "rank_declining",
+            "low_review_count",
+            "offer_competition_high",
+            "buybox_missing",
+            "category_mismatch"
+          ],
+          "risk_count": 1,
+          "schema_version": "2026-05-10.1"
+        },
+        "sales_rank": 820,
+        "selection_signals": {
+          "competition": {
+            "total_offer_count": 5
+          },
+          "content_quality": {
+            "aplus_available": true,
+            "aplus_module_count": 7,
+            "image_count": 9,
+            "video_count": 11
+          },
+          "demand": {
+            "monthly_sold": 45000,
+            "sales_rank": 820,
+            "sales_rank_drops": {
+              "180": 165,
+              "30": 35,
+              "365": 424,
+              "90": 75
+            }
+          },
+          "price_stability": {
+            "current_buy_box": 15.99,
+            "current_new": 15.99,
+            "history_series": 15,
+            "new_price_change_pct": -11.1173,
+            "new_price_trend": "down",
+            "new_price_volatility_cv": 0.0589,
+            "sales_rank_change_pct": -26.7857,
+            "sales_rank_trend": "down"
+          },
+          "risk_codes": [
+            "data_missing"
+          ],
+          "risk_flags": [],
+          "risk_taxonomy": {
+            "codes": [
+              "data_missing"
+            ],
+            "highest_severity": "medium"
+          }
+        },
+        "title": "Agent Eval Brightening Serum A",
+        "total_offer_count": 5,
+        "video_count": 11
+      },
+      {
+        "aplus_available": true,
+        "asin": "B0EVALCMP2",
+        "brand": "EvalBrand B",
+        "buy_box_price": 22.99,
+        "data_quality": {
+          "confidence": "medium",
+          "missing": [
+            "liveOffersOrder",
+            "offers",
+            "offers.offers",
+            "variations"
+          ],
+          "notes": [
+            "some agent-relevant fields are absent or not requested",
+            "offer detail usually requires an explicit --offers request"
+          ],
+          "present": [
+            "aPlus",
+            "buyBoxSellerIdHistory",
+            "couponHistory",
+            "csv",
+            "images",
+            "monthlySoldHistory",
+            "reviews",
+            "stats",
+            "videos"
+          ]
+        },
+        "monthly_sold": 18000,
+        "new_price": 22.99,
+        "rating": 4.3,
+        "research_graph": {
+          "edge_count": 8,
+          "edges": [
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060451",
+              "target": "category:11060711",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060711",
+              "target": "category:11062031",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11062031",
+              "target": "category:7792528011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:3760911",
+              "target": "category:11060451",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "pricing.buy_box.seller_id",
+              "source": "product:B0EVALCMP2",
+              "target": "seller:AFZNN5H6MIT2Z",
+              "type": "buybox_sold_by"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "product:B0EVALCMP2",
+              "target": "category:7792528011",
+              "type": "in_category"
+            },
+            {
+              "evidence_path": "identity.brand",
+              "source": "product:B0EVALCMP2",
+              "target": "brand:evalbrand_b",
+              "type": "made_by"
+            },
+            {
+              "evidence_path": "identity.manufacturer",
+              "source": "product:B0EVALCMP2",
+              "target": "manufacturer:boosters",
+              "type": "manufactured_by"
+            }
+          ],
+          "entity_counts": {
+            "brand": 1,
+            "category": 5,
+            "manufacturer": 1,
+            "product": 1,
+            "seller": 1
+          },
+          "node_count": 9,
+          "nodes": [
+            {
+              "attributes": {
+                "manufacturer": "boosters"
+              },
+              "id": "brand:evalbrand_b",
+              "label": "EvalBrand B",
+              "type": "brand"
+            },
+            {
+              "attributes": {
+                "category_id": 11060451
+              },
+              "id": "category:11060451",
+              "label": "Skin Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11060711
+              },
+              "id": "category:11060711",
+              "label": "Face",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11062031
+              },
+              "id": "category:11062031",
+              "label": "Treatments & Masks",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 3760911
+              },
+              "id": "category:3760911",
+              "label": "Beauty & Personal Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 7792528011
+              },
+              "id": "category:7792528011",
+              "label": "Serums",
+              "type": "category"
+            },
+            {
+              "id": "manufacturer:boosters",
+              "label": "boosters",
+              "type": "manufacturer"
+            },
+            {
+              "attributes": {
+                "asin": "B0EVALCMP2",
+                "brand": "EvalBrand B",
+                "item_type_keyword": "facial-serums"
+              },
+              "id": "product:B0EVALCMP2",
+              "label": "Agent Eval Barrier Serum B",
+              "type": "product"
+            },
+            {
+              "attributes": {
+                "is_amazon": false,
+                "is_fba": true,
+                "is_prime_eligible": true,
+                "seller_id": "AFZNN5H6MIT2Z"
+              },
+              "id": "seller:AFZNN5H6MIT2Z",
+              "label": "AFZNN5H6MIT2Z",
+              "type": "seller"
+            }
+          ],
+          "root": "product:B0EVALCMP2",
+          "schema_version": "2026-05-10.1"
+        },
+        "review_count": 11598,
+        "risk_taxonomy": {
+          "codes": [
+            "data_missing"
+          ],
+          "highest_severity": "medium",
+          "items": [
+            {
+              "code": "data_missing",
+              "evidence_path": "data_quality.missing",
+              "field": "offers.offers",
+              "follow_up": "Use structured next_actions to fill only missing high-value data.",
+              "reason": "Some expected Agent research fields are absent; inspect data_quality.missing before final decisions.",
+              "severity": "medium"
+            }
+          ],
+          "known_codes": [
+            "data_missing",
+            "price_unstable",
+            "rank_declining",
+            "low_review_count",
+            "offer_competition_high",
+            "buybox_missing",
+            "category_mismatch"
+          ],
+          "risk_count": 1,
+          "schema_version": "2026-05-10.1"
+        },
+        "sales_rank": 2400,
+        "selection_signals": {
+          "competition": {
+            "total_offer_count": 5
+          },
+          "content_quality": {
+            "aplus_available": true,
+            "aplus_module_count": 7,
+            "image_count": 9,
+            "video_count": 11
+          },
+          "demand": {
+            "monthly_sold": 18000,
+            "sales_rank": 2400,
+            "sales_rank_drops": {
+              "180": 165,
+              "30": 35,
+              "365": 424,
+              "90": 75
+            }
+          },
+          "price_stability": {
+            "current_buy_box": 22.99,
+            "current_new": 22.99,
+            "history_series": 15,
+            "new_price_change_pct": -8.0032,
+            "new_price_trend": "down",
+            "new_price_volatility_cv": 0.0417,
+            "sales_rank_change_pct": -11.1111,
+            "sales_rank_trend": "down"
+          },
+          "risk_codes": [
+            "data_missing"
+          ],
+          "risk_flags": [],
+          "risk_taxonomy": {
+            "codes": [
+              "data_missing"
+            ],
+            "highest_severity": "medium"
+          }
+        },
+        "title": "Agent Eval Barrier Serum B",
+        "total_offer_count": 5,
+        "video_count": 11
+      }
+    ],
+    "schema_version": "2026-05-10.7",
+    "source_view": {
+      "chunks": null,
+      "profile": "deal",
+      "raw": {
+        "body_omitted": true,
+        "fixture": "products_compare_agent_eval.json",
+        "offline": true
+      }
+    },
+    "view": "products_compare"
+  },
+  "ok": true,
+  "request": {
+    "dry_run": false,
+    "endpoint": "/product",
+    "method": "GET",
+    "params_redacted": {
+      "aplus": "1",
+      "asin": "B0D8W1YVBX,B0EVALCMP1,B0EVALCMP2",
+      "domain": "1",
+      "history": "1",
+      "stats": "0",
+      "videos": "1"
+    }
+  },
+  "token_bucket": {
+    "estimated": {
+      "components": [
+        {
+          "estimated_tokens": 3,
+          "name": "base_product",
+          "reason": "Keepa Product Request base cost is 1 token per returned product.",
+          "worst_case_tokens": 3
+        }
+      ],
+      "estimated_tokens": 3,
+      "notes": [
+        "stats, history, days, videos, and aplus change payload shape but are not budgeted as extra token cost."
+      ],
+      "requires_confirmation": false,
+      "worst_case_tokens": 3
+    },
+    "refill_in_ms": 0,
+    "refill_rate": 60,
+    "tokens_consumed": 3,
+    "tokens_left": 39
+  }
+}

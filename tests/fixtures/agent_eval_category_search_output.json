@@ -1,0 +1,223 @@
+{
+  "command": "categories.search",
+  "data": {
+    "agent_brief": {
+      "key_facts": {
+        "candidate_count": 1,
+        "research_graph_entities": {
+          "category": 1,
+          "search_term": 1
+        },
+        "term": "home kitchen",
+        "top_category_id": "1055398"
+      },
+      "one_line": "1 category candidates for home kitchen",
+      "read_order": [
+        "agent_brief",
+        "data_quality",
+        "selection_signals",
+        "next_actions",
+        "evidence_index"
+      ],
+      "view": "category_search"
+    },
+    "body": {
+      "categories": {
+        "1055398": {
+          "catId": 1055398,
+          "children": [
+            284507
+          ],
+          "domainId": 1,
+          "matched": true,
+          "name": "Home & Kitchen",
+          "parent": 0
+        }
+      },
+      "refillIn": 0,
+      "refillRate": 20,
+      "tokensConsumed": 1,
+      "tokensLeft": 98
+    },
+    "cache_provenance": {
+      "cache_hit": false,
+      "endpoint": "/search",
+      "fixture": "category_search_home.json",
+      "params_hash": "42332cde6c1ccf370166b9ac44d6e222c83d8241463d2f6aa36e5790322703bf",
+      "source": "fixture"
+    },
+    "category_candidate_count": 1,
+    "category_candidates": [
+      {
+        "category_id": "1055398",
+        "children_count": 1,
+        "matched": true,
+        "name": "Home & Kitchen",
+        "next_actions": [
+          {
+            "cli": "categories products 1055398 --domain US --limit 25 --dry-run",
+            "command": "categories products 1055398 --domain US --limit 25 --dry-run",
+            "estimated_tokens": 0,
+            "params": {
+              "category": "1055398",
+              "domain": "US",
+              "dry_run": true,
+              "limit": 25
+            },
+            "reason": "preview the 50-token Best Sellers request before fetching ASIN candidates",
+            "requires_confirmation": false,
+            "tool": "categories.products"
+          },
+          {
+            "cli": "categories finder-selection 1055398 --domain US --out finder-category-1055398.json",
+            "command": "categories finder-selection 1055398 --domain US --out finder-category-1055398.json",
+            "estimated_tokens": 0,
+            "params": {
+              "category": "1055398",
+              "domain": "US",
+              "out": "finder-category-1055398.json"
+            },
+            "reason": "create a local Product Finder selection scaffold for this category",
+            "requires_confirmation": false,
+            "tool": "categories.finder-selection"
+          }
+        ],
+        "parent": 0
+      }
+    ],
+    "data_quality": {
+      "confidence": "high",
+      "missing": [],
+      "notes": [],
+      "present": [
+        "categories",
+        "category_candidates"
+      ]
+    },
+    "evidence_index": {
+      "category_candidates": {
+        "path": "category_candidates",
+        "section": "summary",
+        "why": "Candidate category ids derived from Keepa category search."
+      },
+      "next_actions": {
+        "path": "next_actions",
+        "section": "summary",
+        "why": "Structured category follow-up actions."
+      },
+      "provenance": {
+        "path": "cache_provenance",
+        "section": "audit",
+        "why": "Fixture/cache/source provenance for the category search."
+      },
+      "raw_categories": {
+        "path": "body.categories",
+        "section": "audit",
+        "why": "Raw Keepa category search response."
+      },
+      "research_graph": {
+        "path": "research_graph",
+        "section": "summary",
+        "why": "Search term, category candidate, and parent category entities."
+      }
+    },
+    "fixture": "category_search_home.json",
+    "next_actions": [
+      {
+        "cli": "categories products 1055398 --domain US --limit 25 --dry-run",
+        "command": "categories products 1055398 --domain US --limit 25 --dry-run",
+        "estimated_tokens": 0,
+        "params": {
+          "category": "1055398",
+          "domain": "US",
+          "dry_run": true,
+          "limit": 25
+        },
+        "reason": "preview the 50-token Best Sellers request before fetching ASIN candidates",
+        "requires_confirmation": false,
+        "tool": "categories.products"
+      },
+      {
+        "cli": "categories finder-selection 1055398 --domain US --out finder-category-1055398.json",
+        "command": "categories finder-selection 1055398 --domain US --out finder-category-1055398.json",
+        "estimated_tokens": 0,
+        "params": {
+          "category": "1055398",
+          "domain": "US",
+          "out": "finder-category-1055398.json"
+        },
+        "reason": "create a local Product Finder selection scaffold for this category",
+        "requires_confirmation": false,
+        "tool": "categories.finder-selection"
+      }
+    ],
+    "offline": true,
+    "research_graph": {
+      "edge_count": 1,
+      "edges": [
+        {
+          "evidence_path": "category_candidates.0",
+          "source": "search:home_kitchen",
+          "target": "category:1055398",
+          "type": "matched_category"
+        }
+      ],
+      "entity_counts": {
+        "category": 1,
+        "search_term": 1
+      },
+      "node_count": 2,
+      "nodes": [
+        {
+          "attributes": {
+            "category_id": "1055398",
+            "matched": true
+          },
+          "id": "category:1055398",
+          "label": "Home & Kitchen",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "term": "home kitchen"
+          },
+          "id": "search:home_kitchen",
+          "label": "home kitchen",
+          "type": "search_term"
+        }
+      ],
+      "root": "search:home_kitchen",
+      "schema_version": "2026-05-10.2"
+    },
+    "selection_signals": {
+      "candidate_count": 1,
+      "matched_count": 1
+    },
+    "term": "home kitchen",
+    "view": "category_search"
+  },
+  "ok": true,
+  "request": {
+    "dry_run": false,
+    "endpoint": "/search",
+    "method": "GET",
+    "params_redacted": {
+      "domain": "1",
+      "term": "home kitchen",
+      "type": "category"
+    }
+  },
+  "token_bucket": {
+    "estimated": {
+      "components": [],
+      "estimated_tokens": 1,
+      "notes": [],
+      "requires_confirmation": false,
+      "worst_case_tokens": 1
+    },
+    "refill_in_ms": 0,
+    "refill_rate": 20,
+    "tokens_consumed": 1,
+    "tokens_left": 98
+  }
+}

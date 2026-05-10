@@ -1,0 +1,33 @@
+{
+  "id": "session_budget_ledger",
+  "description": "长链路 Agent session 累积预算、确认阻断与 cache hit。",
+  "kind": "session",
+  "steps": [
+    {
+      "command": "categories.search",
+      "tool": "keepa.categories_search",
+      "params": {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"}
+    },
+    {
+      "command": "categories.search",
+      "tool": "keepa.categories_search",
+      "params": {"domain": "US", "fixture": "category_search_home.json", "term": "home kitchen"}
+    },
+    {
+      "command": "categories.products",
+      "tool": "keepa.categories_products",
+      "params": {"category": "172282", "domain": "US"}
+    }
+  ],
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "payloads", "length": 3},
+    {"path": "payloads.0.ok", "equals": true},
+    {"path": "payloads.1.cache_hit", "equals": true},
+    {"path": "payloads.2.ok", "equals": false},
+    {"path": "payloads.2.error.kind", "equals": "confirmation_required"},
+    {"path": "budget_ledger.cache_hits", "equals": 1},
+    {"path": "budget_ledger.session_estimated", "min": 51},
+    {"path": "budget_ledger.blocked_actions.0.tool", "equals": "keepa.categories_products"}
+  ]
+}

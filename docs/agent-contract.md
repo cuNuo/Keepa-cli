@@ -1,6 +1,6 @@
 # Keepa CLI Agent 协议契约
 
-更新时间：2026-05-09 20:20 +08:00
+更新时间：2026-05-10 18:10 +08:00
 
 ## 1. 入口约定
 
@@ -146,7 +146,14 @@ kc = "keepa_cli.cli:main"
 - `keepa.products_compare` -> `products.compare`
 - `keepa.categories_search` -> `categories.search`
 - `keepa.categories_products` -> `categories.products`
+- `keepa.categories_finder_selection` -> `categories.finder-selection`
 - `keepa.finder_query` -> `finder.query`
+- `keepa.deals_query` -> `deals.query`
+- `keepa.sellers_get` -> `sellers.get`
+- `keepa.bestsellers_get` -> `bestsellers.get`
+- `keepa.topsellers_list` -> `topsellers.list`
+- `keepa.workflow_plan` -> `workflow.plan`
+- `keepa.research_graph_merge` -> `research_graph.merge`
 - `keepa.audit_cost` -> `audit.cost`
 
 MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时包含 `structuredContent` 和 `content[0].text` JSON fallback：
@@ -178,6 +185,35 @@ MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时
 live GET JSON 响应另有 SQLite 持久缓存，默认路径来自平台缓存目录，可用 `KEEPA_CLI_CACHE_PATH` 或 `cache stats --cache-path <path>` 覆盖审计路径。TTL 默认读取配置里的 `cache_ttl_seconds`，也可用可缓存 live 命令的 `--cache-ttl <seconds>` 或 service 参数 `cache_ttl/cache_ttl_seconds` 显式覆盖；`--no-cache`、service 参数 `no_cache=true` 或 `KEEPA_CLI_NO_CACHE=1` 会禁用 live response cache。dry-run、fixture、binary、POST 与禁用缓存的请求不写入持久缓存。`cache explain-key --endpoint /product --param domain=1 --param asin=B001GZ6QEC` 可让 Agent 从 method、endpoint 与脱敏请求参数反查确定性的 SQLite cache key；`cache inspect <cache_key>` 只返回单条 key 元数据，不输出 cached body；`cache prune-expired --dry-run` / `cache prune-expired` 只统计或清理已过期条目。`cache stats` / `cache clear --dry-run` 只作用于 SQLite response cache，不删除 `tests/fixtures` 或进程内 session cache。release gate 会运行 `scripts/check_live_cache_options.py`，防止新增可缓存 live CLI 命令漏掉 `--cache-ttl` / `--no-cache`。
 
 高成本请求不会交互等待确认；无 `yes=true`、`dry_run=true` 或 `fixture` 时返回 `confirmation_required`，并把阻断记录写入 `budget_ledger.blocked_actions`。
+
+MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list`：
+
+- `keepa://schema/products-agent-view`：产品 Agent 视图 schema snapshot 文档。
+- `keepa://fixtures/manifest`：fixture/evidence manifest。
+- `keepa://guides/cassette-promotion`：真实响应脱敏并提升为 fixture 的流程。
+- `keepa://evidence/recent`：最近 evidence 摘要。
+
+`resources/templates/list` 返回可发现的 URI 模板：
+
+- `keepa://schema/{name}`：按 schema 稳定名读取，例如 `products-agent-view`。
+- `keepa://fixtures/{name}`：按 JSON fixture 文件名读取已脱敏 fixture。
+- `keepa://chunk/{encoded_path}`：读取 tool fallback manifest 引用的 chunk 文件。
+- `keepa://output/{encoded_path}`：读取 tool fallback manifest 引用的本地输出文件。
+
+`resources/read` 返回 `contents[0].uri/mimeType/text`。当 tool 响应包含 `data.chunks` 或 `output.path` 时，`structuredContent` 保留完整结果，`content[0].text` 会压缩为摘要并追加：
+
+```json
+{
+  "mcp_resource_manifest": {
+    "strategy": "summary_with_resource_refs",
+    "resources": [
+      {"uri": "keepa://chunk/...", "type": "chunk", "path": "...", "mimeType": "application/json"}
+    ]
+  }
+}
+```
+
+Agent 应优先读取 `structuredContent`；当客户端只支持 text fallback 时，再用 manifest 中的 `keepa://chunk/...` 或 `keepa://output/...` 按需调用 `resources/read`。
 
 ## 5. 当前支持命令
 
@@ -254,6 +290,14 @@ Agent 语义层：
 - `selection_signals.risk_codes` 与 `agent_brief.risk_codes` 会复用 `risk_taxonomy.codes`，便于批量筛选；深度审计时读取完整 `risk_taxonomy.items`。
 
 `products.compare` 复用 `/product`，返回 `view=products_compare`，用统一 rows 暴露 `asin/title/brand/new_price/buy_box_price/sales_rank/monthly_sold/rating/review_count/coupon/offer/media/aplus/selection_signals/risk_flags/risk_taxonomy/research_graph/data_quality`，适合 Agent 做多 ASIN横向比较。顶层同时返回 `risk_summary` 与合并后的 `research_graph`，用于评测和报告阶段直接断言语义质量。
+
+### research graph merge
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json research-graph merge .\category.json .\compare.json .\seller.json --root agent_selection_research --out .\research-graph.json
+```
+
+`research_graph.merge` 是纯本地命令，不访问 Keepa，不消耗 token。它会递归读取输入 JSON 中的 `research_graph` 字段，去重合并节点和边，添加 root 类型 `research_graph` 与 `includes_graph` 边，并返回 `view=research_graph_merge`、`summary`、`sources`、`diagnostics`、`data_quality`、`evidence_index` 与可选 `output.path`。`sources` 包含 `source_weight/confidence`，`diagnostics` 包含重复节点、孤立节点、label/type 冲突和 source weight 范围。MCP 对应工具为 `keepa.research_graph_merge`，适合把 category search -> category products -> products compare -> seller/deals 串成单个研究图。
 
 ### categories get/search
 
@@ -393,7 +437,10 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 
 - `doctor`
 - `products.get`
+- `products.compare`
 - `categories.search`
+- `categories.products`
+- `categories.finder-selection`
 - `history.trend`
 - `finder.query`
 - `bestsellers.get`
@@ -403,6 +450,9 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 - `lightningdeals.list`
 - `tracking.list`
 - `tracking.add`
+- `research_graph.merge`
+- `mcp resources/list`
+- `mcp products.get chunk fallback`
 - `stdio products.get` 事件流
 
 更新规则：

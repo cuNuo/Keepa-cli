@@ -1,0 +1,14 @@
+{
+  "id": "mcp_resources_contract",
+  "description": "MCP resources/list 暴露 schema、manifest、cassette 指南与最近 evidence。",
+  "kind": "mcp",
+  "method": "resources/list",
+  "params": {},
+  "assertions": [
+    {"path": "result.resources", "length_min": 4},
+    {"path": "result.resources.0.uri", "equals": "keepa://schema/products-agent-view"},
+    {"path": "result.resources.1.uri", "equals": "keepa://fixtures/manifest"},
+    {"path": "result.resources.2.uri", "equals": "keepa://guides/cassette-promotion"},
+    {"path": "result.resources.3.uri", "equals": "keepa://evidence/recent"}
+  ]
+}

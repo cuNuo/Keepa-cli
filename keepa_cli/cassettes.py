@@ -8,6 +8,7 @@ keepa_cli/cassettes.py
 from __future__ import annotations
 
 import json
+import csv
 import urllib.parse
 from pathlib import Path
 from typing import Any
@@ -47,6 +48,71 @@ def sanitize_cassette_file(input_path: Path | str, output_path: Path | str) -> d
         "size_bytes": target.stat().st_size,
         "redacted_secret_names": sorted(SECRET_NAMES),
     }
+
+
+def promote_cassette_fixture(
+    input_path: Path | str,
+    *,
+    name: str,
+    tests_dir: Path | str = "tests/fixtures",
+    package_dir: Path | str = "keepa_cli/fixtures",
+    manifest_path: Path | str | None = "evidence/manifest.csv",
+    title: str | None = None,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    fixture_name = _fixture_name(name)
+    source = Path(input_path)
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    redacted = redact_cassette_payload(payload)
+    targets = [Path(tests_dir) / fixture_name, Path(package_dir) / fixture_name]
+    content = json.dumps(redacted, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    if not dry_run:
+        for target in targets:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="utf-8", newline="\n")
+        if manifest_path:
+            _append_manifest_entry(Path(manifest_path), targets[0], title or fixture_name)
+    return {
+        "input": str(source),
+        "fixture_name": fixture_name,
+        "targets": [{"path": str(target), "exists": target.exists(), "size_bytes": target.stat().st_size if target.exists() else len(content.encode("utf-8"))} for target in targets],
+        "manifest": str(manifest_path) if manifest_path else None,
+        "manifest_updated": bool(manifest_path and not dry_run),
+        "dry_run": dry_run,
+        "format": "json",
+        "redacted_secret_names": sorted(SECRET_NAMES),
+    }
+
+
+def _fixture_name(value: str) -> str:
+    name = str(value).strip()
+    if not name:
+        raise ValueError("fixture name is required")
+    if any(part in name for part in ("..", "/", "\\")):
+        raise ValueError("fixture name must not contain path separators")
+    return name if name.endswith(".json") else f"{name}.json"
+
+
+def _append_manifest_entry(manifest_path: Path, fixture_path: Path, title: str) -> None:
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    logical_path = fixture_path.as_posix()
+    existing = manifest_path.read_text(encoding="utf-8") if manifest_path.exists() else ""
+    if logical_path in existing:
+        return
+    write_header = not existing.strip()
+    with manifest_path.open("a", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle, lineterminator="\n")
+        if write_header:
+            writer.writerow(["logical_path", "title", "status", "updated_at", "summary"])
+        writer.writerow(
+            [
+                logical_path,
+                title,
+                "active",
+                "2026-05-10",
+                "Promoted sanitized Keepa cassette fixture for offline regression.",
+            ]
+        )
 
 
 def _redact_url(value: str) -> str:

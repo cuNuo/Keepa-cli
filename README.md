@@ -141,6 +141,7 @@ kc --json products get B001GZ6QEC --domain US --full --agent-view --view summary
 kc --json products get B001GZ6QEC --domain US --full --agent-view --fields identity,pricing,demand,rating
 kc --json products get B001GZ6QEC --domain US --full --agent-view --view deal --chunks-dir .\agent-chunks
 kc --json products compare B001GZ6QEC B08N5WRWNW --domain US --full --view deal
+kc --json research-graph merge .\category.json .\compare.json .\seller.json --root agent_selection_research --out .\research-graph.json
 ```
 
 Agent profiles are `summary`, `research`, `deal`, and `audit`. Start from `agent_brief` for a compact decision layer, then use `evidence_index` to jump to deeper JSON paths when the Agent needs proof. `agent_brief` includes both series-first `temporal_takeaways` and window-first `temporal_by_window`, so an Agent can compare 7/30/90/180/365 day changes across price, rank, reviews, rating, and offer count without parsing raw Keepa `csv`. Product views also include `data_quality`, `next_actions`, `temporal_features`, and `selection_signals` for deeper audit and research workflows.
@@ -272,9 +273,13 @@ MCP JSON-RPC over stdio:
 
 ```powershell
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
+'{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' | kc --mcp
+'{"jsonrpc":"2.0","id":3,"method":"resources/templates/list","params":{}}' | kc --mcp
 ```
 
-MCP defaults to the compact `research` toolset and accepts structured JSON arguments, not CLI strings. Use `tools/list` with `toolset` set to `research`, `audit`, `reports`, `tracking-readonly`, or `all` to control context size. Research tools include product, category, Finder, Deals, seller, ranking, and workflow planning entrypoints; audit tools include cost estimation plus cassette sanitize/promote; reports tools expose local report and browse snapshot builders; tracking only exposes read-only operations. Agent results include `risk_taxonomy` where applicable and a cross-command `research_graph`; tool envelopes include `structuredContent`, compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger`.
+MCP defaults to the compact `research` toolset and accepts structured JSON arguments, not CLI strings. Use `tools/list` with `toolset` set to `research`, `audit`, `reports`, `tracking-readonly`, or `all` to control context size. Research tools include product, category, local Finder scaffold, Finder, Deals, seller, ranking, workflow planning, and `keepa.research_graph_merge`; audit tools include cost estimation plus cassette sanitize/promote; reports tools expose local report and browse snapshot builders; tracking only exposes read-only operations. Agent results include `risk_taxonomy` where applicable and a cross-command `research_graph`; tool envelopes include `structuredContent`, compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger`.
+
+MCP resources expose stable reference material without enlarging `tools/list`: `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` also advertises `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}` so Agents can discover resource URI shapes instead of hard-coding them. Large tool responses keep the full payload in `structuredContent`; the text fallback returns a summary plus `mcp_resource_manifest` entries so Agents can load heavy sections only when needed.
 
 Contracts:
 
@@ -282,7 +287,7 @@ Contracts:
 - [MCP Agent tools architecture](docs/architecture/mcp-agent-tools.md)
 - [Keepa official API notes](docs/keepa-official-api-notes.md)
 
-Agent-facing result profiles use the same top-level shape where possible: `agent_brief`, `data_quality`, `selection_signals`, `next_actions`, `evidence_index`, and `provenance`. `workflow plan` is local-only and returns an execution graph with step dependencies, parallel groups, token budgets, confirmation flags, and fixture replay hints.
+Agent-facing result profiles use the same top-level shape where possible: `agent_brief`, `data_quality`, `selection_signals`, `next_actions`, `evidence_index`, and `provenance`. `workflow plan` is local-only and returns an execution graph with step dependencies, parallel groups, token budgets, confirmation flags, and fixture replay hints. `research-graph merge` can combine category discovery, category products, product compare, deals, and seller outputs into one deduplicated graph for report generation or downstream Agent memory; the merged graph includes source weights plus duplicate/orphan/conflict diagnostics for audit.
 
 ## Development
 

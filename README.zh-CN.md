@@ -180,9 +180,21 @@ kc --json capabilities
 kc --json domains list
 '{"id":"1","method":"doctor","params":{}}' | kc --stdio
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
+'{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' | kc --mcp
+'{"jsonrpc":"2.0","id":3,"method":"resources/templates/list","params":{}}' | kc --mcp
 ```
 
-MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、Finder、Deals、Seller、榜单与 workflow plan；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告和浏览快照；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
+MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan 与 `keepa.research_graph_merge`；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告和浏览快照；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
+
+MCP resources 用于减少 `tools/list` 上下文：`keepa://schema/products-agent-view`、`keepa://fixtures/manifest`、`keepa://guides/cassette-promotion`、`keepa://evidence/recent`。`resources/templates/list` 会暴露 `keepa://schema/{name}`、`keepa://fixtures/{name}`、`keepa://chunk/{encoded_path}`、`keepa://output/{encoded_path}`，让 Agent 能发现 URI 形状而不是硬编码。大响应仍完整保留在 `structuredContent`，text fallback 只返回摘要和 `mcp_resource_manifest`，其中 `keepa://chunk/...` / `keepa://output/...` 可按需读取具体分块。
+
+跨命令研究图可本地合并，不访问 Keepa：
+
+```powershell
+kc --json research-graph merge .\category.json .\compare.json .\seller.json --root agent_selection_research --out .\research-graph.json
+```
+
+合并结果会给出 `source_weight`、重复节点、孤立节点和 label/type 冲突诊断，便于 Agent 在多来源结果不一致时先审计再写报告。
 
 ## 开发
 

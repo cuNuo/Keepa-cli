@@ -193,7 +193,7 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
     if normalized in {"tokens.status", "token.status"}:
         return BudgetEstimate(0, 0, False)
 
-    if normalized in {"workflow.plan"}:
+    if normalized in {"workflow.plan", "research_graph.merge", "research-graph.merge", "graph.merge"}:
         return BudgetEstimate(0, 0, False)
 
     if normalized in {"graphs.image", "graph.image"}:

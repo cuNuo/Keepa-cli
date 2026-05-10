@@ -1,0 +1,14 @@
+{
+  "id": "mcp_resource_templates_contract",
+  "description": "MCP resources/templates/list 暴露 schema、fixture 与 chunk/output 模板，便于 Agent 按需读取资源。",
+  "kind": "mcp",
+  "method": "resources/templates/list",
+  "params": {},
+  "assertions": [
+    {"path": "result.resourceTemplates", "length_min": 4},
+    {"path": "result.resourceTemplates.0.uriTemplate", "equals": "keepa://schema/{name}"},
+    {"path": "result.resourceTemplates.1.uriTemplate", "equals": "keepa://fixtures/{name}"},
+    {"path": "result.resourceTemplates.2.uriTemplate", "equals": "keepa://chunk/{encoded_path}"},
+    {"path": "result.resourceTemplates.3.uriTemplate", "equals": "keepa://output/{encoded_path}"}
+  ]
+}

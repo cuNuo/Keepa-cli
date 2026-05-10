@@ -1,0 +1,175 @@
+{
+  "command": "sellers.get",
+  "data": {
+    "agent_brief": {
+      "key_facts": {
+        "research_graph_entities": {
+          "product": 1,
+          "seller": 1,
+          "seller_request": 1
+        },
+        "seller_count": 1,
+        "storefront": true
+      },
+      "one_line": "1 seller ids requested",
+      "read_order": [
+        "agent_brief",
+        "data_quality",
+        "selection_signals",
+        "next_actions",
+        "evidence_index"
+      ],
+      "view": "sellers_get"
+    },
+    "body": {
+      "refillRate": 20,
+      "sellers": {
+        "A2L77EE7U53NWQ": {
+          "asinList": [
+            "B001GZ6QEC"
+          ],
+          "hasStorefront": true,
+          "rating": 96,
+          "ratingCount": 1240,
+          "sellerId": "A2L77EE7U53NWQ",
+          "sellerName": "Offline Seller Fixture"
+        }
+      },
+      "tokensConsumed": 1,
+      "tokensLeft": 88
+    },
+    "cache_provenance": {
+      "cache_hit": false,
+      "endpoint": "/seller",
+      "fixture": "seller_A2L77EE7U53NWQ.json",
+      "params_hash": "328a9d6c670339ffae75dfd946559f227ea6582d9d3b6324816b42a0aa80231e",
+      "source": "fixture"
+    },
+    "data_quality": {
+      "confidence": "high",
+      "missing": [],
+      "notes": [],
+      "present": [
+        "body",
+        "request"
+      ]
+    },
+    "evidence_index": {
+      "body": {
+        "path": "body.sellers",
+        "section": "summary",
+        "why": "Raw seller map when available."
+      },
+      "output": {
+        "path": "output",
+        "section": "audit",
+        "why": "Large response output path when --out is used."
+      },
+      "provenance": {
+        "path": "cache_provenance",
+        "section": "audit",
+        "why": "Fixture/cache/source provenance for the request."
+      },
+      "research_graph": {
+        "path": "research_graph",
+        "section": "summary",
+        "why": "Seller and storefront product entities."
+      },
+      "seller_ids": {
+        "path": "request.params_redacted.seller",
+        "section": "summary",
+        "why": "Seller ids requested from Keepa."
+      }
+    },
+    "fixture": "seller_A2L77EE7U53NWQ.json",
+    "offline": true,
+    "provenance": {
+      "cache_hit": false,
+      "endpoint": "/seller",
+      "fixture": "seller_A2L77EE7U53NWQ.json",
+      "params_hash": "328a9d6c670339ffae75dfd946559f227ea6582d9d3b6324816b42a0aa80231e",
+      "source": "fixture"
+    },
+    "research_graph": {
+      "edge_count": 2,
+      "edges": [
+        {
+          "evidence_path": "body.sellers.A2L77EE7U53NWQ.asinList.0",
+          "source": "seller:A2L77EE7U53NWQ",
+          "target": "product:B001GZ6QEC",
+          "type": "sells_product"
+        },
+        {
+          "evidence_path": "request.params_redacted.seller",
+          "source": "seller_request",
+          "target": "seller:A2L77EE7U53NWQ",
+          "type": "requests_seller"
+        }
+      ],
+      "entity_counts": {
+        "product": 1,
+        "seller": 1,
+        "seller_request": 1
+      },
+      "node_count": 3,
+      "nodes": [
+        {
+          "attributes": {
+            "asin": "B001GZ6QEC"
+          },
+          "id": "product:B001GZ6QEC",
+          "label": "B001GZ6QEC",
+          "type": "product"
+        },
+        {
+          "attributes": {
+            "has_storefront": true,
+            "rating": 96,
+            "rating_count": 1240,
+            "seller_id": "A2L77EE7U53NWQ"
+          },
+          "id": "seller:A2L77EE7U53NWQ",
+          "label": "Offline Seller Fixture",
+          "type": "seller"
+        },
+        {
+          "attributes": {
+            "seller_count": 1
+          },
+          "id": "seller_request",
+          "label": "seller request",
+          "type": "seller_request"
+        }
+      ],
+      "root": "seller_request",
+      "schema_version": "2026-05-10.2"
+    },
+    "selection_signals": {
+      "seller_count": 1,
+      "storefront_requested": true
+    }
+  },
+  "ok": true,
+  "request": {
+    "dry_run": false,
+    "endpoint": "/seller",
+    "method": "GET",
+    "params_redacted": {
+      "domain": "1",
+      "seller": "A2L77EE7U53NWQ",
+      "storefront": "1"
+    }
+  },
+  "token_bucket": {
+    "estimated": {
+      "components": [],
+      "estimated_tokens": 1,
+      "notes": [],
+      "requires_confirmation": false,
+      "worst_case_tokens": 1
+    },
+    "refill_rate": 20,
+    "tokens_consumed": 1,
+    "tokens_left": 88
+  }
+}

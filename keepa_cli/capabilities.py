@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from keepa_cli.agent.resources import list_mcp_resources
+from keepa_cli.agent.resources import list_mcp_resource_templates, list_mcp_resources
 from keepa_cli.agent.tools import list_mcp_tools, toolset_names
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.13"
+SCHEMA_VERSION = "2026-05-10.15"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -95,6 +95,7 @@ def build_capabilities() -> dict[str, Any]:
             "toolsets": toolset_names(),
             "tools": list_mcp_tools(toolsets="all"),
             "resources": list_mcp_resources(),
+            "resource_templates": list_mcp_resource_templates(),
         },
         "commands": commands,
     }

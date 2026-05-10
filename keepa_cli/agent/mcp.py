@@ -12,8 +12,17 @@ from collections.abc import Mapping
 from typing import Any
 
 from keepa_cli import __version__
+from keepa_cli.agent.resources import compact_payload_for_mcp, list_mcp_resource_templates, list_mcp_resources, read_mcp_resource
 from keepa_cli.agent.session import AgentSession
-from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, tool_params_to_command_params, validate_tool_arguments
+from keepa_cli.agent.tools import (
+    DEFAULT_TOOLSET,
+    get_tool_definition,
+    list_mcp_tools,
+    resolve_toolset_groups,
+    tool_params_to_command_params,
+    toolset_names,
+    validate_tool_arguments,
+)
 
 
 JSONRPC_VERSION = "2.0"
@@ -36,9 +45,10 @@ def _json_text(payload: Mapping[str, Any]) -> str:
 
 
 def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
+    content_payload = compact_payload_for_mcp(payload)
     return {
         "structuredContent": payload,
-        "content": [{"type": "text", "text": _json_text(payload)}],
+        "content": [{"type": "text", "text": _json_text(content_payload)}],
         "isError": not bool(payload.get("ok")),
     }
 
@@ -47,7 +57,7 @@ def _initialize_result() -> dict[str, Any]:
     return {
         "protocolVersion": MCP_PROTOCOL_VERSION,
         "serverInfo": {"name": "keepa", "version": __version__},
-        "capabilities": {"tools": {"listChanged": False}},
+        "capabilities": {"tools": {"listChanged": False}, "resources": {"listChanged": False, "templatesChanged": False}},
         "instructions": (
             "Use Keepa MCP tools with structured params. Prefer fixture or dry_run before live calls. "
             "High-cost requests return confirmation_required unless yes=true is supplied."
@@ -81,10 +91,42 @@ def handle_mcp_message(
         return None
     if method == "tools/list":
         groups = params.get("groups") if isinstance(params, dict) else None
+        toolset = params.get("toolset") if isinstance(params, dict) else None
+        toolsets = params.get("toolsets") if isinstance(params, dict) else None
         group_filter = set(groups) if isinstance(groups, list) else None
-        return _jsonrpc_result(message_id, {"tools": list_mcp_tools(groups=group_filter)})
+        use_all_toolsets = toolset == "all" or (isinstance(toolsets, list) and "all" in toolsets)
+        if group_filter is None:
+            toolset_filter = toolsets if toolsets is not None else toolset
+            try:
+                group_filter = resolve_toolset_groups(toolset_filter)
+            except ValueError as exc:
+                return _jsonrpc_error(
+                    message_id,
+                    -32602,
+                    "Invalid toolset",
+                    {"message": str(exc), "available_toolsets": toolset_names()},
+                )
+        return _jsonrpc_result(
+            message_id,
+            {
+                "tools": list_mcp_tools(groups=group_filter, toolsets="all" if use_all_toolsets else None),
+                "toolset": toolset or (toolsets if toolsets is not None else DEFAULT_TOOLSET),
+                "available_toolsets": toolset_names(),
+            },
+        )
     if method == "tools/call":
         return _handle_tools_call(message_id, params, env=env, session=session)
+    if method == "resources/list":
+        return _jsonrpc_result(message_id, {"resources": list_mcp_resources()})
+    if method == "resources/templates/list":
+        return _jsonrpc_result(message_id, {"resourceTemplates": list_mcp_resource_templates()})
+    if method == "resources/read":
+        uri = str(params.get("uri", ""))
+        try:
+            content = read_mcp_resource(uri)
+        except (OSError, ValueError) as exc:
+            return _jsonrpc_error(message_id, -32602, "Unknown resource", {"uri": uri, "message": str(exc)})
+        return _jsonrpc_result(message_id, {"contents": [content]})
 
     return _jsonrpc_error(message_id, -32601, "Method not found", {"method": method})
 

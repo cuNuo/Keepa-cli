@@ -6,15 +6,43 @@ tests/test_schema_snapshot.py
 """
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
+from keepa_cli.agent.mcp import handle_mcp_message
 from keepa_cli.agent.stdio import handle_stdio_message
 from keepa_cli.schema_snapshot import build_agent_schema_snapshot
 from keepa_cli.service import run_command
 
 
 SNAPSHOT = Path("tests/snapshots/agent_schema_snapshot.json")
+
+
+def _mcp_chunk_products_get() -> dict:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        return handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "chunks",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_get",
+                        "arguments": {
+                            "asin": "B0D8W1YVBX",
+                            "domain": "US",
+                            "fixture": "product_B0D8W1YVBX_agent_eval.json",
+                            "agent_view": True,
+                            "view": "summary",
+                            "fields": "agent_brief,identity,pricing,data_quality,next_actions,selection_signals,research_graph,evidence_index",
+                            "chunks_dir": str(Path(temp_dir) / "chunks"),
+                        },
+                    },
+                }
+            ),
+            env={},
+        )
 
 
 class SchemaSnapshotTests(unittest.TestCase):
@@ -155,6 +183,23 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"name": "category-research", "term": "home kitchen", "domain": "US", "hydrate_top": 1},
                 env={},
             ),
+            "research_graph_merge": run_command(
+                "research_graph.merge",
+                {
+                    "input": [
+                        "tests/fixtures/agent_eval_category_search_output.json",
+                        "tests/fixtures/agent_eval_products_compare_output.json",
+                        "tests/fixtures/agent_eval_seller_output.json",
+                    ],
+                    "root": "agent_selection_research",
+                },
+                env={},
+            ),
+            "mcp_resources_list": handle_mcp_message(
+                json.dumps({"jsonrpc": "2.0", "id": "resources", "method": "resources/list", "params": {}}),
+                env={},
+            ),
+            "mcp_chunk_products_get": _mcp_chunk_products_get(),
             "stdio_products_get": handle_stdio_message(
                 json.dumps(
                     {

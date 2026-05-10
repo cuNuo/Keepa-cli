@@ -17,6 +17,7 @@
     {"path": "data.selection.current_COUNT_REVIEWS_gte", "equals": 100},
     {"path": "data.selection.perPage", "equals": 25},
     {"path": "data.next_actions.0.tool", "equals": "finder.query"},
+    {"path": "data.next_actions", "next_actions_executable": true},
     {"path": "data.data_quality.confidence", "equals": "high"},
     {"path": "data.evidence_index.selection.path", "equals": "selection"}
   ]

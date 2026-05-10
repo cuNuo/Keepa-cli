@@ -35,6 +35,7 @@ keepa_cli/
   agent/
     __init__.py
     mcp.py          # MCP JSON-RPC stdio transport，薄协议适配层
+    resources.py    # MCP resources 与 chunk/output resource manifest
     session.py      # AgentSession、cache_key、dedupe、budget ledger
     stdio.py        # 复用 AgentSession 的 JSON Lines transport
     tools.py        # MCP tool registry、schema、service command mapping
@@ -44,7 +45,8 @@ keepa_cli/
 
 - `tools.py`：定义工具名、描述、输入 schema、输出 schema 摘要、确认策略和 service command 映射。
 - `session.py`：维护本进程会话状态，包括 cache、dedupe、token ledger、blocked actions。
-- `mcp.py`：只处理 JSON-RPC：`initialize`、`tools/list`、`tools/call` 和协议错误。
+- `mcp.py`：只处理 JSON-RPC：`initialize`、`tools/list`、`tools/call`、`resources/list`、`resources/templates/list`、`resources/read` 和协议错误。
+- `resources.py`：暴露 schema、fixture manifest、cassette 指南、最近 evidence、resource templates，并把大响应 chunk/output path 转为 `keepa://...` resource 引用。
 - `stdio.py`：继续提供现有 JSON Lines 协议，但调用同一个 `AgentSession`。
 - `service.py`：继续承载业务命令分发，MCP 不绕过 `run_command`。
 
@@ -58,17 +60,24 @@ keepa_cli/
 | `keepa.products_compare` | `products.compare` | 多 ASIN deal/research 横向对比，含统一风险汇总与合并图谱 | 低；`offers` 可能增量成本 |
 | `keepa.categories_search` | `categories.search` | 关键词找候选 category | 低 |
 | `keepa.categories_products` | `categories.products` | category 生成商品候选 | 高；真实请求需确认 |
+| `keepa.categories_finder_selection` | `categories.finder-selection` | 本地生成 Finder selection scaffold | 低，本地计算 |
 | `keepa.finder_query` | `finder.query` | Product Finder selection 查询 | 中高；真实请求需确认 |
-| `keepa.audit_cost` | `audit.cost` 或预算估算包装 | 估算命令成本和确认需求 | 低，本地计算 |
+| `keepa.deals_query` | `deals.query` | Deals selection 查询，返回 deal/product 图谱 | 中 |
+| `keepa.sellers_get` | `sellers.get` | Seller 与 storefront ASIN 研究 | 低 |
+| `keepa.bestsellers_get` | `bestsellers.get` | Best Sellers 原始榜单 | 高；真实请求需确认 |
+| `keepa.topsellers_list` | `topsellers.list` | Top Sellers 原始榜单 | 高；真实请求需确认 |
+| `keepa.workflow_plan` | `workflow.plan` | 本地生成 Agent 执行图 | 低，本地计算 |
+| `keepa.research_graph_merge` | `research_graph.merge` | 合并 category/products/compare/seller/deals 输出中的研究图 | 低，本地计算 |
 
-后续可选 toolset：
+当前 MCP 默认只返回 `research` toolset，避免 `tools/list` 一次暴露过多 schema。可在 `tools/list.params.toolset` 中显式选择：
 
-- `research`：产品、类目、finder、workflow plan。
-- `audit`：cost、cache explain、schema generate、cassette sanitize。
-- `reports`：batch、report、browse。
-- `tracking`：默认只读；写操作需要显式启用 toolset 和确认。
+- `research`：产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、research graph merge。
+- `audit`：`keepa.audit_cost`、`keepa.cassettes_sanitize`、`keepa.cassettes_promote`。
+- `reports`：`keepa.reports_build`、`keepa.browse_snapshot`，只处理本地文件。
+- `tracking-readonly`：`keepa.tracking_list`、`keepa.tracking_list_names`、`keepa.tracking_get`、`keepa.tracking_notifications`。
+- `all`：显式全量发现，用于调试和 schema 生成。
 
-第一阶段不做 toolset 开关，但工具 registry 应预留 `groups` 字段，后续可按客户端能力动态过滤。
+未知 toolset 会返回 JSON-RPC `Invalid toolset`，不静默回退。tracking 写操作仍不暴露给 MCP。
 
 ## Tool 命名与参数策略
 
@@ -149,6 +158,57 @@ keepa_cli/
 - `content[0].text` 是同一结果的紧凑 JSON fallback，不加 ANSI，不加解释性自然语言。
 - 大 raw body 不直接放进 `content`；优先返回 Agent view、chunk manifest 或 cache key。
 - 所有 secret-like 字段继续走现有 redaction 规则。
+
+## MCP Resources 与大响应分块
+
+MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/list` 被文档内容污染：
+
+| Resource URI | 内容 | 用途 |
+| --- | --- | --- |
+| `keepa://schema/products-agent-view` | `docs/schema/products.agent-view.schema.json` | 外部 Agent 校验产品 Agent 视图形状 |
+| `keepa://fixtures/manifest` | `evidence/manifest.csv` | 查 fixture/evidence 是否已有离线样本 |
+| `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升流程 |
+| `keepa://evidence/recent` | 最近 evidence 摘要 JSON | 快速了解近期验证与变更 |
+
+动态资源用于 chunk 与输出文件：
+
+- `keepa://chunk/<base64-path>`：由 `data.chunks[*].path` 派生，通常是产品 Agent view section JSON。
+- `keepa://output/<base64-path>`：由 `output.path` 派生，通常是报告、graph 或大 body 输出。
+
+读取限制：
+
+- 静态资源从项目根读取。
+- 动态资源只允许项目根或系统临时目录下的文件，防止 MCP 客户端任意读盘。
+- 单个 resource text 读取上限为 1 MB，超出会截断并标记。
+
+当 tool payload 包含 chunk/output 文件时，`structuredContent` 仍保持完整，`content[0].text` 会通过 `compact_payload_for_mcp()` 压缩：
+
+```json
+{
+  "data": {
+    "products": [
+      {
+        "agent_brief": {},
+        "identity": {},
+        "data_quality": {},
+        "risk_taxonomy": {},
+        "selection_signals": {},
+        "next_actions": [],
+        "research_graph_summary": {}
+      }
+    ]
+  },
+  "mcp_resource_manifest": {
+    "strategy": "summary_with_resource_refs",
+    "resource_count": 4,
+    "resources": [
+      {"uri": "keepa://chunk/...", "type": "chunk", "name": "identity"}
+    ]
+  }
+}
+```
+
+这条规则让只支持 text fallback 的 Agent 也能先看摘要，再按需读取 heavy sections；支持 `structuredContent` 的客户端则直接读取完整结构化结果。
 
 ## Session Cache 与 Dedupe
 
@@ -248,7 +308,9 @@ MCP 输出必须延续现有 Agent profile：
 
 `risk_taxonomy` 使用稳定枚举，当前已知 code 为 `data_missing`、`price_unstable`、`rank_declining`、`low_review_count`、`offer_competition_high`、`buybox_missing`、`category_mismatch`。每个 item 必须给出 `severity`、`reason`、`evidence_path`，可补充 `metric` 与 `follow_up`，让 Agent 能做确定性断言而不是解析自然语言。
 
-`research_graph` 使用轻量实体关系结构：`nodes` 包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation` 等类型；`edges` 包含 `made_by`、`manufactured_by`、`in_category`、`parent_of`、`buybox_sold_by`、`variation_of`、`has_variation`。`products.compare` 会额外输出合并后的 `research_graph` 与 `risk_summary`，便于多 ASIN 研究。
+`research_graph` 使用轻量实体关系结构：产品命令的 `nodes` 包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation` 等类型；category/finder/deals/seller/ranking 命令还会输出 `search_term`、`selection`、`deal_set`、`deal`、`seller_request`、`seller_ranking`。`products.compare` 会额外输出合并后的 `research_graph` 与 `risk_summary`；`categories.search/products`、`finder.query`、`deals.query`、`sellers.get`、`bestsellers.get`、`topsellers.list` 都提供同名字段，便于跨命令拼接实体记忆。
+
+`research_graph.merge` / `keepa.research_graph_merge` 负责把多条命令结果合并为单个研究图。它支持文件输入和 inline graph/payload 输入，递归抽取所有 `research_graph`，合并时去重节点/边，添加 `research_graph` root 节点与 `includes_graph` 边，并返回 `summary.entity_counts`、`sources`、`diagnostics`、`data_quality` 和 `evidence_index`。`sources` 给出 `source_weight/confidence`，`diagnostics` 记录重复节点、孤立节点、label/type 冲突和 source weight 范围。典型链路是 `categories.search -> categories.products -> products.compare -> sellers.get`。
 
 新增 MCP 层 provenance：
 
@@ -289,9 +351,15 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 
 - `tests/test_mcp.py`
   - `initialize` 返回 server info 和 protocol version。
-  - `tools/list` 包含产品、类目、finder、audit tools。
+  - `tools/list` 默认只返回 research，并能按 `audit/reports/tracking-readonly/all` 过滤。
   - `tools/call keepa.categories_search` 使用 fixture 返回 `category_candidates`。
+  - `tools/call keepa.categories_finder_selection` 本地生成 Finder scaffold，不累计 token。
+  - `tools/call keepa.deals_query` 使用 fixture 返回 deal/product `research_graph`。
   - `tools/call keepa.products_compare` 使用 fixture 返回风险汇总与合并图谱。
+  - `tools/call keepa.research_graph_merge` 合并 inline graph/payload。
+  - `resources/list/read` 暴露 schema、manifest、cassette 指南和最近 evidence。
+  - `resources/templates/list` 暴露 schema、fixture、chunk 和 output resource URI 模板。
+  - 大响应 chunk tool 调用在 text fallback 中返回 `mcp_resource_manifest`。
   - 未知 tool 返回 JSON-RPC error。
   - 高成本 tool 无 `yes` 且无 fixture 时返回 `confirmation_required`。
 - `tests/test_agent_session.py`
@@ -304,6 +372,9 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
   - 比较 3 个 ASIN 的 deal view。
   - 判断是否需要补 offers。
   - 从 category 生成 finder scaffold。
+  - 合并 category/compare/seller research graph。
+  - MCP resources、chunk resource manifest、长链路 budget ledger。
+  - `next_actions` 的 `tool + params` 可被 service 或 MCP registry 校验。
 
 所有测试默认 fixture/dry-run，不访问真实 Keepa API。
 
@@ -317,22 +388,28 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 6. 更新 `capabilities`，暴露 MCP server 启动方式和 tool schema 版本。（已完成）
 7. 补测试、README、`docs/agent-contract.md`。（已完成）
 8. 落地 `research_graph`、统一 `risk_taxonomy`，并让 evaluation specs 断言 Agent 语义质量。（已完成）
-9. 再进入 P2：`fixtures promote` 与 toolset 动态过滤。
+9. 落地 cassette promote workflow：真实响应 -> sanitize -> 双份 fixture -> manifest。（已完成）
+10. 落地 MCP toolset 动态过滤：`research/audit/reports/tracking-readonly/all`。（已完成）
+11. 把 `research_graph` 扩展到 category/finder/deals/seller/ranking 输出。（已完成）
+12. 落地 `research_graph.merge` 与 `keepa.research_graph_merge`，合并 category -> products -> compare -> seller 研究图。（已完成）
+13. 落地 MCP resources 与 chunk/output resource manifest，大响应 text fallback 只返回摘要和资源引用。（已完成）
+14. 扩展 Agent eval，断言 graph merge、risk taxonomy、next_actions 可执行性和长链路 budget ledger。（已完成）
 
 ## 迁移风险
 
 - MCP 客户端对 `structuredContent` 支持不一致：用 JSON text fallback 降级。
-- tool schema 太大导致上下文污染：只暴露少量任务导向 tools，后续按 toolset 动态加载。
+- tool schema 太大导致上下文污染：默认只暴露 `research` toolset，审计、报告、tracking 只读工具需要显式选择。
 - session cache 意外缓存 live raw body：第一阶段只进程内、只缓存 redacted envelope。
 - CLI 与 MCP 参数别名漂移：所有映射集中在 `agent/tools.py`，测试直接验证 tool params 到 service command。
 - 预算账本和真实 token 消耗不一致：真实响应优先，缺失时显式标记 `consumed_source=estimated_fallback`。
 
 ## 后续最佳方向
 
-完成本设计后，最适合的实现顺序是：
+当前最适合继续完善的是：
 
-1. 做 cassette promotion workflow，把真实响应脱敏后稳定沉淀为 fixture。
-2. 增加 toolset 过滤，按 `research/audit/reports/tracking` 控制 MCP 工具暴露面。
-3. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
+1. 为 `reports` 与 `tracking-readonly` 增加 Agent evaluation fixtures，断言本地文件输出、只读 tracking 参数和 ledger。
+2. 继续扩展 MCP resource templates，例如按 `cache_key`、ASIN、graph root 查询缓存命中和图谱摘要。
+3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。
+4. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
-这样可以先稳定 Agent 调用边界，再增强产品研究语义，避免协议层和分析层互相耦合。
+这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。
