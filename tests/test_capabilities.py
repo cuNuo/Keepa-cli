@@ -20,8 +20,13 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.8")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.9")
         self.assertIn("tui", payload["data"]["protocols"])
+        self.assertIn("mcp", payload["data"]["protocols"])
+        self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
+        mcp_tool_names = {item["name"] for item in payload["data"]["mcp"]["tools"]}
+        self.assertIn("keepa.products_get", mcp_tool_names)
+        self.assertIn("keepa.audit_cost", mcp_tool_names)
         command_names = {item["name"] for item in payload["data"]["commands"]}
         self.assertIn("products.compare", command_names)
         self.assertIn("categories.products", command_names)
@@ -50,7 +55,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.8")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.9")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -58,7 +63,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.8")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.9")
 
 
 if __name__ == "__main__":

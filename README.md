@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Keepa CLI</h1>
-  <p align="center">Agent-first Keepa API tooling with JSON, stdio, fixtures, token budgeting, and a command-first TUI.</p>
+  <p align="center">Agent-first Keepa API tooling with JSON, stdio, MCP, fixtures, token budgeting, and a command-first TUI.</p>
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@ Keepa CLI wraps Keepa API workflows into a stable command-line surface for agent
 
 - Equivalent `keepa-cli` and `kc` entrypoints.
 - Stable `--json` envelopes for automation.
-- JSON Lines `--stdio` protocol for long-running agent sessions.
+- JSON Lines `--stdio` protocol and MCP `--mcp` server for long-running agent sessions.
 - Prompt-toolkit TUI with slash completion, command history, a bottom status bar, and copyable output.
 - Fixture/offline mode, dry-run requests, token budget hints, and secret redaction.
 - Safe `/graphimage` handling with explicit `--out` for binary PNG output.
@@ -259,9 +259,18 @@ stdio JSON Lines:
 '{"id":"1","method":"doctor","params":{}}' | kc --stdio
 ```
 
+MCP JSON-RPC over stdio:
+
+```powershell
+'{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
+```
+
+The initial MCP tools are `keepa.products_get`, `keepa.categories_search`, `keepa.categories_products`, `keepa.finder_query`, and `keepa.audit_cost`. They accept structured JSON arguments and call the same command service as the CLI. Tool results include `structuredContent`, a compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger` so Agent sessions can dedupe repeated ASIN/category work and track cumulative token exposure.
+
 Contracts:
 
 - [Agent contract](docs/agent-contract.md)
+- [MCP Agent tools architecture](docs/architecture/mcp-agent-tools.md)
 - [Keepa official API notes](docs/keepa-official-api-notes.md)
 
 Agent-facing result profiles use the same top-level shape where possible: `agent_brief`, `data_quality`, `selection_signals`, `next_actions`, `evidence_index`, and `provenance`. `workflow plan` is local-only and returns an execution graph with step dependencies, parallel groups, token budgets, confirmation flags, and fixture replay hints.

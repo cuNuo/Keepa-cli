@@ -11,8 +11,8 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
+from keepa_cli.agent.session import AgentSession
 from keepa_cli.envelope import error_envelope
-from keepa_cli.service import run_command
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -22,20 +22,12 @@ def _event(message_id: str | None, event: str, **fields: Any) -> dict[str, Any]:
     return payload
 
 
-def _confirmation_required(command: str, budget: dict[str, Any]) -> dict[str, Any]:
-    return error_envelope(
-        command=command,
-        kind="confirmation_required",
-        message="request requires explicit confirmation because it may consume significant Keepa tokens",
-        details={
-            "resume_with": "--yes",
-            "estimated_tokens": budget["estimated_tokens"],
-            "worst_case_tokens": budget["worst_case_tokens"],
-        },
-    )
-
-
-def handle_stdio_message(raw_message: str, *, env: Mapping[str, str] | None = None) -> list[dict[str, Any]]:
+def handle_stdio_message(
+    raw_message: str,
+    *,
+    env: Mapping[str, str] | None = None,
+    session: AgentSession | None = None,
+) -> list[dict[str, Any]]:
     try:
         message = json.loads(raw_message)
     except json.JSONDecodeError as exc:
@@ -62,13 +54,8 @@ def handle_stdio_message(raw_message: str, *, env: Mapping[str, str] | None = No
     budget = estimate_request_budget(method, params).to_dict()
     events.append(_event(message_id, "budget_estimated", **budget))
 
-    bypass_confirmation = bool(params.get("yes") or params.get("dry_run") or params.get("dry-run") or params.get("fixture"))
-    if budget["requires_confirmation"] and not bypass_confirmation:
-        events.append(_event(message_id, "response", payload=_confirmation_required(method, budget)))
-        events.append(_event(message_id, "done"))
-        return events
-
-    payload = run_command(method, params, env=env)
+    active_session = session or AgentSession(env=env)
+    payload = active_session.execute(method, params)
 
     events.append(_event(message_id, "response", payload=payload))
     events.append(_event(message_id, "done"))
@@ -77,9 +64,10 @@ def handle_stdio_message(raw_message: str, *, env: Mapping[str, str] | None = No
 
 def iter_stdio_output(input_text: str, *, env: Mapping[str, str] | None = None) -> list[str]:
     lines: list[str] = []
+    session = AgentSession(env=env)
     for raw_line in input_text.splitlines():
         if not raw_line.strip():
             continue
-        for event in handle_stdio_message(raw_line, env=env):
+        for event in handle_stdio_message(raw_line, env=env, session=session):
             lines.append(json.dumps(event, ensure_ascii=False, separators=(",", ":")))
     return lines

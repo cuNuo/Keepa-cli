@@ -15,6 +15,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from keepa_cli import __version__
+from keepa_cli.agent.mcp import iter_mcp_output
 from keepa_cli.agent.stdio import iter_stdio_output
 from keepa_cli.cli_builders.workflows import add_workflow_parsers, maybe_run_workflow_command
 from keepa_cli.envelope import error_envelope, success_envelope
@@ -41,6 +42,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"keepa-cli {__version__}")
     parser.add_argument("--json", action="store_true", help="输出稳定 JSON envelope，供 Agent 调用。")
     parser.add_argument("--stdio", action="store_true", help="启用 JSON Lines 长会话协议。")
+    parser.add_argument("--mcp", action="store_true", help="启用 MCP JSON-RPC stdio server。")
     parser.add_argument("--yes", action="store_true", help="确认执行可能消耗较高 token 的请求。")
 
     subparsers = parser.add_subparsers(dest="command")
@@ -817,6 +819,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.stdio:
         input_text = sys.stdin.read()
         for line in iter_stdio_output(input_text, env=os.environ):
+            sys.stdout.write(line + "\n")
+        return 0
+
+    if args.mcp:
+        input_text = sys.stdin.read()
+        for line in iter_mcp_output(input_text, env=os.environ):
             sys.stdout.write(line + "\n")
         return 0
 

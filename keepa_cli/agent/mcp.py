@@ -1,0 +1,126 @@
+"""
+keepa_cli/agent/mcp.py
+文件说明：实现最小 MCP JSON-RPC stdio server。
+主要职责：处理 initialize、tools/list、tools/call，并复用 AgentSession 执行业务工具。
+依赖边界：不直接访问 Keepa API，不解析 CLI 字符串。
+"""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Mapping
+from typing import Any
+
+from keepa_cli import __version__
+from keepa_cli.agent.session import AgentSession
+from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, tool_params_to_command_params, validate_tool_arguments
+
+
+JSONRPC_VERSION = "2.0"
+MCP_PROTOCOL_VERSION = "2025-06-18"
+
+
+def _jsonrpc_result(message_id: Any, result: Mapping[str, Any]) -> dict[str, Any]:
+    return {"jsonrpc": JSONRPC_VERSION, "id": message_id, "result": dict(result)}
+
+
+def _jsonrpc_error(message_id: Any, code: int, message: str, data: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    error: dict[str, Any] = {"code": code, "message": message}
+    if data is not None:
+        error["data"] = dict(data)
+    return {"jsonrpc": JSONRPC_VERSION, "id": message_id, "error": error}
+
+
+def _json_text(payload: Mapping[str, Any]) -> str:
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str)
+
+
+def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "structuredContent": payload,
+        "content": [{"type": "text", "text": _json_text(payload)}],
+        "isError": not bool(payload.get("ok")),
+    }
+
+
+def _initialize_result() -> dict[str, Any]:
+    return {
+        "protocolVersion": MCP_PROTOCOL_VERSION,
+        "serverInfo": {"name": "keepa", "version": __version__},
+        "capabilities": {"tools": {"listChanged": False}},
+        "instructions": (
+            "Use Keepa MCP tools with structured params. Prefer fixture or dry_run before live calls. "
+            "High-cost requests return confirmation_required unless yes=true is supplied."
+        ),
+    }
+
+
+def handle_mcp_message(
+    raw_message: str,
+    *,
+    env: Mapping[str, str] | None = None,
+    session: AgentSession | None = None,
+) -> dict[str, Any] | None:
+    try:
+        message = json.loads(raw_message)
+    except json.JSONDecodeError as exc:
+        return _jsonrpc_error(None, -32700, "Parse error", {"message": str(exc)})
+
+    if not isinstance(message, dict):
+        return _jsonrpc_error(None, -32600, "Invalid Request", {"message": "JSON-RPC request must be an object"})
+
+    message_id = message.get("id")
+    method = str(message.get("method", ""))
+    params = message.get("params") or {}
+    if params is not None and not isinstance(params, dict):
+        return _jsonrpc_error(message_id, -32602, "Invalid params", {"message": "params must be an object"})
+
+    if method == "initialize":
+        return _jsonrpc_result(message_id, _initialize_result())
+    if method == "notifications/initialized":
+        return None
+    if method == "tools/list":
+        groups = params.get("groups") if isinstance(params, dict) else None
+        group_filter = set(groups) if isinstance(groups, list) else None
+        return _jsonrpc_result(message_id, {"tools": list_mcp_tools(groups=group_filter)})
+    if method == "tools/call":
+        return _handle_tools_call(message_id, params, env=env, session=session)
+
+    return _jsonrpc_error(message_id, -32601, "Method not found", {"method": method})
+
+
+def _handle_tools_call(
+    message_id: Any,
+    params: Mapping[str, Any],
+    *,
+    env: Mapping[str, str] | None,
+    session: AgentSession | None,
+) -> dict[str, Any]:
+    name = str(params.get("name", ""))
+    tool = get_tool_definition(name)
+    if tool is None:
+        return _jsonrpc_error(message_id, -32602, "Unknown tool", {"tool": name})
+
+    arguments = params.get("arguments") or {}
+    if not isinstance(arguments, dict):
+        return _jsonrpc_error(message_id, -32602, "Invalid tool arguments", {"tool": name})
+    validation_errors = validate_tool_arguments(tool, arguments)
+    if validation_errors:
+        return _jsonrpc_error(message_id, -32602, "Invalid tool arguments", {"tool": name, "errors": validation_errors})
+
+    command_params = tool_params_to_command_params(tool, arguments)
+    active_session = session or AgentSession(env=env)
+    payload = active_session.execute(tool.command, command_params, tool=tool.name)
+    return _jsonrpc_result(message_id, _tool_result(payload))
+
+
+def iter_mcp_output(input_text: str, *, env: Mapping[str, str] | None = None) -> list[str]:
+    lines: list[str] = []
+    session = AgentSession(env=env)
+    for raw_line in input_text.splitlines():
+        if not raw_line.strip():
+            continue
+        response = handle_mcp_message(raw_line, env=env, session=session)
+        if response is not None:
+            lines.append(json.dumps(response, ensure_ascii=False, separators=(",", ":"), default=str))
+    return lines

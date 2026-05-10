@@ -18,6 +18,7 @@ kc = "keepa_cli.cli:main"
 .\.venv\Scripts\python.exe -m keepa_cli --json doctor
 .\.venv\Scripts\python.exe -m keepa_cli --json domains list
 .\.venv\Scripts\python.exe -m keepa_cli --stdio
+.\.venv\Scripts\python.exe -m keepa_cli --mcp
 ```
 
 安装到本项目虚拟环境后可调用：
@@ -108,7 +109,74 @@ kc = "keepa_cli.cli:main"
 }
 ```
 
-## 4. 当前支持命令
+## 4. MCP JSON-RPC stdio
+
+`--mcp` 用于 Codex、Claude Code 和其他 MCP 客户端。stdin 每行一个 JSON-RPC 请求，stdout 每行一个 JSON-RPC 响应。
+
+列出工具：
+
+```powershell
+'{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
+```
+
+调用工具：
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "keepa.products_get",
+    "arguments": {
+      "asin": "B001GZ6QEC",
+      "domain": "US",
+      "full": true,
+      "agent_view": true,
+      "view": "summary",
+      "fixture": "product_B001GZ6QEC.json"
+    }
+  }
+}
+```
+
+首批工具：
+
+- `keepa.products_get` -> `products.get`
+- `keepa.categories_search` -> `categories.search`
+- `keepa.categories_products` -> `categories.products`
+- `keepa.finder_query` -> `finder.query`
+- `keepa.audit_cost` -> `audit.cost`
+
+MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时包含 `structuredContent` 和 `content[0].text` JSON fallback：
+
+```json
+{
+  "structuredContent": {
+    "ok": true,
+    "command": "products.get",
+    "cache_key": "products.get:...",
+    "cache_hit": false,
+    "budget_ledger": {
+      "session_estimated": 1,
+      "session_consumed": 1,
+      "remaining_limit": null,
+      "blocked_actions": [],
+      "cache_hits": 0,
+      "consumed_source": "token_bucket"
+    },
+    "data": {}
+  },
+  "content": [{"type": "text", "text": "{\"ok\":true}"}],
+  "isError": false
+}
+```
+
+同一 MCP/stdin 会话内会自动缓存成功响应。重复的 command+params 会返回 `cache_hit=true`，也可以用 `from_cache` 显式复用 `cache_key`。缓存只在进程内存在，不跨会话持久化。
+
+高成本请求不会交互等待确认；无 `yes=true`、`dry_run=true` 或 `fixture` 时返回 `confirmation_required`，并把阻断记录写入 `budget_ledger.blocked_actions`。
+
+## 5. 当前支持命令
 
 ### doctor
 
@@ -245,7 +313,7 @@ Agent 视图 profile：
 
 `tokens.status` 映射到 `/token`，用于读取 token bucket 状态。`graphs.image` 映射到 `/graphimage`，当前只冻结 dry-run/fixture 信息流；真实响应是 PNG 二进制，live 下载要等专用 binary transport。`lightningdeals.list` 映射到 `/lightningdeal`。`tracking.list`、`tracking.list-names`、`tracking.get`、`tracking.notifications` 是只读链路；`tracking.add`、`tracking.remove`、`tracking.remove-all`、`tracking.webhook` 是有副作用链路，真实请求必须显式 `--yes`，Agent 模式不能交互等待确认。
 
-## 5. Fixture
+## 6. Fixture
 
 当前 fixture：
 
@@ -276,7 +344,7 @@ tests/fixtures/tracking_list.json
 - 为新增官方缺口链路提供 token、lightning deals 与 tracking 离线样本。
 - CI 默认只跑 fixture，不消耗真实 Keepa token。
 
-## 6. TUI 边界
+## 7. TUI 边界
 
 默认无参数执行 `keepa-cli` 或 `kc` 会进入标准库 TUI 工作台。当前支持 slash 命令：
 
@@ -298,7 +366,7 @@ tests/fixtures/tracking_list.json
 
 TUI 不直接构造 Keepa request，也不读取 API key；它只解析人类输入并调用 `keepa_cli.service.run_command`。
 
-## 7. 后续冻结项
+## 8. 后续冻结项
 
 Phase 6 之后如要扩展 TUI、缓存或真实 API 调用，应保持以下不变：
 
@@ -307,7 +375,7 @@ Phase 6 之后如要扩展 TUI、缓存或真实 API 调用，应保持以下不
 - `--json` 和 `--stdio` 的 stdout 继续保持纯机器协议。
 - 新增命令先补 Agent schema 与 fixture 测试，再接入人类界面。
 
-## 8. Schema Snapshot
+## 9. Schema Snapshot
 
 Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 snapshot 只记录字段与类型形状，不锁定完整业务数据，避免 Product Object 字段扩展造成无意义噪音。
 
@@ -333,7 +401,7 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 - 确认兼容后再更新 snapshot。
 - 不能为了让测试通过而删除 schema 字段；要先说明迁移影响。
 
-## 9. Record/Replay Transport
+## 10. Record/Replay Transport
 
 `keepa_cli.transport` 提供未来真实 live smoke 的接口：
 
@@ -342,7 +410,7 @@ Agent 契约通过 `tests/snapshots/agent_schema_snapshot.json` 冻结。该 sna
 
 当前测试只使用 fake opener，不请求真实 Keepa API。cassette 中会把 query 参数里的 `key`、`api_key`、`apikey`、`token` 替换为 `[REDACTED]`。
 
-## 10. npm Wrapper
+## 11. npm Wrapper
 
 开源发布目标支持 npm 全局安装：
 

@@ -536,7 +536,756 @@
         "str",
         "str"
       ],
+      "mcp": {
+        "entrypoint": "str",
+        "server_name": "str",
+        "tools": [
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "agent_view": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "aplus": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "asin": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
+                "buybox": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "code": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
+                "days": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fields": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "full": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "history": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "history_limit": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "offers": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "rating": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "stats": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "stats_window": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "temporal_window_days": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    },
+                    {
+                      "type": "str"
+                    }
+                  ]
+                },
+                "videos": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "view": {
+                  "default": "str",
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "term": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "category": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "history_limit": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "hydrate_top": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "limit": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "product_fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "temporal_window_days": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    },
+                    {
+                      "type": "str"
+                    }
+                  ]
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "anyOf": [
+                {
+                  "required": [
+                    "str"
+                  ]
+                },
+                {
+                  "required": [
+                    "str"
+                  ]
+                }
+              ],
+              "properties": {
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "max_tokens": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "selection": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "selection_file": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "commands": {
+                  "description": "str",
+                  "items": {
+                    "properties": {
+                      "command": {
+                        "description": "str",
+                        "type": "str"
+                      },
+                      "params": {
+                        "type": "str"
+                      }
+                    },
+                    "required": [
+                      "str"
+                    ],
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "params": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "target_command": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
+          }
+        ],
+        "transport": "str"
+      },
       "protocols": [
+        "str",
         "str",
         "str",
         "str"
@@ -4869,6 +5618,16 @@
       "event": "str",
       "id": "str",
       "payload": {
+        "budget_ledger": {
+          "blocked_actions": [],
+          "cache_hits": "int",
+          "consumed_source": "str",
+          "remaining_limit": "null",
+          "session_consumed": "int",
+          "session_estimated": "int"
+        },
+        "cache_hit": "bool",
+        "cache_key": "str",
         "command": "str",
         "data": {
           "body": {

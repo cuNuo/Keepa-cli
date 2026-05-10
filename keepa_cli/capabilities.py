@@ -9,10 +9,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from keepa_cli.agent.tools import list_mcp_tools
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.8"
+SCHEMA_VERSION = "2026-05-10.9"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -76,7 +77,13 @@ def build_capabilities() -> dict[str, Any]:
         )
     return {
         "schema_version": SCHEMA_VERSION,
-        "protocols": ["json", "stdio", "tui"],
+        "protocols": ["json", "stdio", "mcp", "tui"],
         "entrypoints": ["keepa-cli", "kc", "python -m keepa_cli"],
+        "mcp": {
+            "server_name": "keepa",
+            "transport": "stdio",
+            "entrypoint": "keepa-cli --mcp",
+            "tools": list_mcp_tools(),
+        },
         "commands": commands,
     }

@@ -8,6 +8,7 @@ tests/test_stdio.py
 import json
 import unittest
 
+from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.stdio import handle_stdio_message
 
 
@@ -112,6 +113,26 @@ class StdioProtocolTests(unittest.TestCase):
 
         self.assertTrue(response["payload"]["ok"])
         self.assertEqual(response["payload"]["data"]["asins"], ["B001GZ6QEC"])
+
+    def test_stdio_session_reuses_cache_and_reports_ledger(self):
+        session = AgentSession(env={})
+        raw = json.dumps(
+            {
+                "id": "7",
+                "method": "categories.search",
+                "params": {
+                    "term": "home kitchen",
+                    "domain": "US",
+                    "fixture": "category_search_home.json",
+                },
+            }
+        )
+        first = next(event for event in handle_stdio_message(raw, env={}, session=session) if event["event"] == "response")
+        second = next(event for event in handle_stdio_message(raw, env={}, session=session) if event["event"] == "response")
+
+        self.assertFalse(first["payload"]["cache_hit"])
+        self.assertTrue(second["payload"]["cache_hit"])
+        self.assertEqual(second["payload"]["budget_ledger"]["cache_hits"], 1)
 
 
 if __name__ == "__main__":
