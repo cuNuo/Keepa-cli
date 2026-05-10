@@ -128,6 +128,12 @@ For large live responses, write the full body to a file and keep the terminal en
 kc --json products get B001GZ6QEC --domain US --full --out .\product-full.json
 ```
 
+For Agent ingestion, prefer the compact product view. It keeps identity, category, pricing, demand, rating, offers, media, A+ content, logistics, stats summaries, and bounded history samples in stable fields while omitting raw `csv` arrays from stdout:
+
+```powershell
+kc --json products get B001GZ6QEC --domain US --full --agent-view --history-limit 10 --out .\product-full.json
+```
+
 Use explicit flags when you need tighter history windows or specialized fields:
 
 ```powershell

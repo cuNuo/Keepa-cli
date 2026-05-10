@@ -32,6 +32,17 @@ class SchemaSnapshotTests(unittest.TestCase):
                 },
                 env={},
             ),
+            "products_get_agent_view": run_command(
+                "products.get",
+                {
+                    "asin": ["B0TESTAGENT"],
+                    "domain": "US",
+                    "fixture": "product_agent_view_B0TEST.json",
+                    "agent_view": True,
+                    "history_limit": 2,
+                },
+                env={},
+            ),
             "categories_search": run_command(
                 "categories.search",
                 {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},

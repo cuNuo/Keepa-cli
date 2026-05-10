@@ -163,6 +163,29 @@ class CliTests(unittest.TestCase):
         self.assertEqual(params["historical-variations"], "1")
         self.assertEqual(params["only-live-offers"], "1")
 
+    def test_products_get_cli_returns_agent_view(self):
+        result = self.run_module(
+            "--json",
+            "products",
+            "get",
+            "B0TESTAGENT",
+            "--domain",
+            "US",
+            "--fixture",
+            "product_agent_view_B0TEST.json",
+            "--agent-view",
+            "--history-limit",
+            "1",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["view"], "agent_product")
+        product = payload["data"]["products"][0]
+        self.assertEqual(product["identity"]["asin"], "B0TESTAGENT")
+        self.assertEqual(len(product["history_summary"]["series"]["new"]["last_points"]), 1)
+
     def test_categories_search_fixture_returns_category_data(self):
         result = self.run_module(
             "--json",

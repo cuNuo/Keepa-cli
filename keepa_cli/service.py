@@ -25,6 +25,7 @@ from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.high_value import attach_output_if_requested, load_selection, selection_to_query_value
 from keepa_cli.history_export import build_history_export_data, extract_history_rows, normalize_series_names
+from keepa_cli.product_view import build_agent_product_view
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -121,7 +122,15 @@ def _product_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
         dry_run=bool(params.get("dry_run")),
         fixture=params.get("fixture"),
     )
-    return attach_output_if_requested(payload, _param(params, "out", "output"))
+    payload = attach_output_if_requested(payload, _param(params, "out", "output"))
+    view = str(_param(params, "view", "output_view") or "").strip().lower()
+    if _bool_option(params, "agent_view", "agent-view") or view == "agent":
+        data = payload.get("data")
+        if payload.get("ok") and isinstance(data, dict) and not data.get("dry_run"):
+            history_limit = int(_param(params, "history_limit", "history-limit") or 10)
+            data = build_agent_product_view(data, history_limit=history_limit)
+            payload["data"] = data
+    return payload
 
 
 def _product_search(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:

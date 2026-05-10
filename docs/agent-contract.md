@@ -149,10 +149,13 @@ kc = "keepa_cli.cli:main"
 .\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
 .\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --full --dry-run
 .\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --full --out .\product-full.json
+.\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --full --agent-view --history-limit 10 --out .\product-full.json
 .\.venv\Scripts\python.exe -m keepa_cli --json products search "coffee grinder" --domain US --fixture product_search_coffee.json
 ```
 
-`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`--full` 是低成本完整详情预设，会请求 `history=1`、`stats=180`、`videos=1`、`aplus=1`，不自动开启 `offers`。CLI 也显式支持 `--days`、`--rating`、`--buybox`、`--stock`、`--historical-variations`、`--code-limit`、`--only-live-offers` 等官方 Product Request 参数。完整响应可能很大，`products.get` 支持 `--out` 把 body 写入 JSON 文件。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
+`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`--full` 是低成本完整详情预设，会请求 `history=1`、`stats=180`、`videos=1`、`aplus=1`，不自动开启 `offers`。CLI 也显式支持 `--days`、`--rating`、`--buybox`、`--stock`、`--historical-variations`、`--code-limit`、`--only-live-offers` 等官方 Product Request 参数。完整响应可能很大，`products.get` 支持 `--out` 把 body 写入 JSON 文件。`--agent-view` 或 `--view agent` 会把 Product Object 转成稳定 Agent 视图：保留 identity、category、pricing、demand、rating、offers、media、aplus、content、logistics、stats_summary、history_summary 与 raw/output provenance，省略原始 `body.products[].csv` 大数组；`--history-limit` 控制每个历史序列的最近点数量。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
+
+Agent 视图中 `history_summary.series` 使用 Keepa 官方 CsvType 位置命名，例如 `new`、`sales_rank`、`rating`、`review_count`、`buy_box_shipping`、`new_fba_offer_count`、`new_fbm_offer_count`。价格类字段同时保留小数 `amount/value` 与原始整数 `raw_value`，避免 Agent 在后续审计时丢失 Keepa 原始单位。若需要完整原文，必须同时传 `--out` 并读取 `data.raw.output.path`。
 
 ### categories get/search
 

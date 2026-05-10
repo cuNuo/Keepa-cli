@@ -754,6 +754,1030 @@
       "tokens_left": "int"
     }
   },
+  "products_get_agent_view": {
+    "command": "str",
+    "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "field_notes": [
+        "str",
+        "str",
+        "str"
+      ],
+      "product_count": "int",
+      "products": [
+        {
+          "aplus": {
+            "available": "bool",
+            "block_count": "int",
+            "image_alt_text": [
+              "str"
+            ],
+            "image_count": "int",
+            "images": [
+              "str"
+            ],
+            "module_count": "int",
+            "text_samples": [
+              "str"
+            ],
+            "video_count": "int"
+          },
+          "category": {
+            "category_ids": [
+              "int",
+              "int"
+            ],
+            "category_tree": [
+              {
+                "id": "int",
+                "name": "str"
+              },
+              {
+                "id": "int",
+                "name": "str"
+              }
+            ],
+            "root_category": "int",
+            "sales_rank_current": {
+              "raw_value": "int",
+              "unit": "str",
+              "value": "int"
+            },
+            "sales_rank_display_group": "str",
+            "sales_rank_reference": "int"
+          },
+          "compliance_and_logistics": {
+            "fba_fees": {
+              "pickAndPackFee": "int"
+            },
+            "package": {
+              "height": "int",
+              "length": "int",
+              "weight": "int",
+              "width": "int"
+            }
+          },
+          "content": {
+            "active_ingredients": [
+              "str",
+              "str"
+            ],
+            "description": "str",
+            "features": [
+              "str",
+              "str"
+            ],
+            "scent": "str",
+            "size": "str",
+            "special_ingredients": [
+              "str"
+            ]
+          },
+          "demand": {
+            "monthly_sold": "int",
+            "monthly_sold_history": {
+              "last_points": [
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                }
+              ],
+              "latest": {
+                "keepa_minute": "int",
+                "timestamp": "str",
+                "value": "int"
+              },
+              "omitted_points": "int",
+              "point_count": "int"
+            },
+            "sales_rank_drops": {
+              "180": "int",
+              "30": "int",
+              "365": "int",
+              "90": "int"
+            }
+          },
+          "history_summary": {
+            "available": "bool",
+            "series": {
+              "amazon": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "null"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "null"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "null"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "null"
+                },
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "buy_box_shipping": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_shipping": "int",
+                  "raw_value": "int",
+                  "shipping": "float",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_shipping": "int",
+                    "raw_value": "int",
+                    "shipping": "float",
+                    "timestamp": "str",
+                    "value": "float"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_shipping": "int",
+                    "raw_value": "int",
+                    "shipping": "float",
+                    "timestamp": "str",
+                    "value": "float"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_shipping": "int",
+                  "raw_value": "int",
+                  "shipping": "float",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max_value": "float",
+                "min_value": "float",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "list_price": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "float"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max_value": "float",
+                "min_value": "float",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "new": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "float"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "float"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max_value": "float",
+                "min_value": "float",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "new_fba": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "float"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max_value": "float",
+                "min_value": "float",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "new_fbm_shipping": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_shipping": "int",
+                  "raw_value": "int",
+                  "shipping": "float",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_shipping": "int",
+                    "raw_value": "int",
+                    "shipping": "float",
+                    "timestamp": "str",
+                    "value": "float"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_shipping": "int",
+                  "raw_value": "int",
+                  "shipping": "float",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max_value": "float",
+                "min_value": "float",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "new_offer_count": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                "max_value": "int",
+                "min_value": "int",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "rating": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "float"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "float"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "float"
+                },
+                "max_value": "float",
+                "min_value": "float",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "review_count": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                "max_value": "int",
+                "min_value": "int",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              },
+              "sales_rank": {
+                "first": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                "index": "int",
+                "last_points": [
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  },
+                  {
+                    "keepa_minute": "int",
+                    "raw_value": "int",
+                    "timestamp": "str",
+                    "value": "int"
+                  }
+                ],
+                "latest": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                "max_value": "int",
+                "min_value": "int",
+                "omitted_points": "int",
+                "point_count": "int",
+                "unit": "str"
+              }
+            },
+            "series_count": "int"
+          },
+          "identity": {
+            "asin": "str",
+            "brand": "str",
+            "domain_id": "int",
+            "item_type_keyword": "str",
+            "manufacturer": "str",
+            "product_group": "str",
+            "product_type": "int",
+            "title": "str",
+            "type": "str",
+            "url_slug": "str"
+          },
+          "media": {
+            "image_count": "int",
+            "images": [
+              {
+                "large": "str",
+                "large_height": "int",
+                "large_width": "int",
+                "medium": "str"
+              }
+            ],
+            "video_count": "int",
+            "videos": [
+              {
+                "duration_seconds": "int",
+                "title": "str",
+                "url": "str"
+              }
+            ]
+          },
+          "offers": {
+            "buy_box_eligible_offer_counts": {
+              "new_fba": "int",
+              "new_fbm": "int",
+              "used_fba": "int",
+              "used_fbm": "int"
+            },
+            "offer_count_fba": "int",
+            "offer_count_fbm": "int",
+            "retrieved_offer_count": "int",
+            "total_offer_count": "int"
+          },
+          "pricing": {
+            "avg30": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              }
+            },
+            "avg90": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              }
+            },
+            "buy_box": {
+              "is_fba": "bool",
+              "is_prime_eligible": "bool",
+              "price": {
+                "amount": "float",
+                "raw_value": "int",
+                "unit": "str"
+              },
+              "seller_id": "str",
+              "shipping": {
+                "amount": "float",
+                "raw_value": "int",
+                "unit": "str"
+              }
+            },
+            "coupon": [
+              "int",
+              "int"
+            ],
+            "coupon_history": {
+              "last_points": [
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                }
+              ],
+              "latest": {
+                "keepa_minute": "int",
+                "timestamp": "str",
+                "value": "int"
+              },
+              "omitted_points": "int",
+              "point_count": "int"
+            },
+            "current": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              }
+            }
+          },
+          "rating": {
+            "rating": {
+              "raw_value": "int",
+              "unit": "str",
+              "value": "float"
+            },
+            "review_count": {
+              "raw_value": "int",
+              "unit": "str",
+              "value": "int"
+            },
+            "reviews_object_available": "bool"
+          },
+          "raw_field_presence": {
+            "aPlus": "bool",
+            "buyBoxSellerIdHistory": "bool",
+            "couponHistory": "bool",
+            "csv": "bool",
+            "images": "bool",
+            "liveOffersOrder": "bool",
+            "monthlySoldHistory": "bool",
+            "offers": "bool",
+            "reviews": "bool",
+            "stats": "bool",
+            "variations": "bool",
+            "videos": "bool"
+          },
+          "stats_summary": {
+            "avg30": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "new_fbm_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "new_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "rating": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "review_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "sales_rank": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              }
+            },
+            "avg90": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "new_fbm_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "new_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "rating": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "review_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "sales_rank": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              }
+            },
+            "current": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "extra_info_updates": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "new_fbm_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "new_offer_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "rating": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "review_count": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              },
+              "sales_rank": {
+                "raw_value": "int",
+                "unit": "str",
+                "value": "int"
+              }
+            },
+            "ranges": {
+              "max": {
+                "buy_box_shipping": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "list_price": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "new": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "new_fba": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "new_offer_count": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "int"
+                },
+                "rating": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "review_count": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "int"
+                },
+                "sales_rank": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "int"
+                }
+              },
+              "min": {
+                "buy_box_shipping": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "list_price": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "new": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "new_fba": {
+                  "amount": "float",
+                  "currency_value": "float",
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "new_offer_count": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "int"
+                },
+                "rating": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "float"
+                },
+                "review_count": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "int"
+                },
+                "sales_rank": {
+                  "keepa_minute": "int",
+                  "raw_value": "int",
+                  "timestamp": "str",
+                  "unit": "str",
+                  "value": "int"
+                }
+              }
+            }
+          },
+          "variations": {
+            "sample": [
+              {
+                "asin": "str",
+                "attributes": [
+                  {
+                    "dimension": "str",
+                    "value": "str"
+                  }
+                ]
+              }
+            ],
+            "variation_count": "int"
+          }
+        }
+      ],
+      "raw": {
+        "body_omitted": "bool",
+        "fixture": "str",
+        "offline": "bool"
+      },
+      "schema_version": "str",
+      "view": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "asin": "str",
+        "domain": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_in_ms": "int",
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
   "sellers_get": {
     "command": "str",
     "data": {

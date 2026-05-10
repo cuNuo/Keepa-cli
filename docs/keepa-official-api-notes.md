@@ -53,7 +53,7 @@
 - `days` 可限制返回历史窗口，适合在保留 `history=1` 时控制响应体大小。
 - `update=0` 可能额外消耗 1 token。
 - `offers` 官方范围 20 到 100，按找到的 offer page 计费，每页最多 10 offers，每页 6 tokens。
-- Product Object 的 `csv` 字段包含价格、销量排名等历史数组；当前实现只展开常用序列：`amazon`、`new`、`used`、`sales_rank`。
+- Product Object 的 `csv` 字段包含价格、销量排名、rating、review count、Buy Box、offer count 等历史数组；`products get --agent-view` 会按官方 CsvType 位置输出摘要，`history export/trend` 仍只展开常用序列：`amazon`、`new`、`used`、`sales_rank`。
 - Keepa 历史时间按 Keepa minute 表示，本仓库按官方 Java helper 的 epoch 语义转换为 UTC：`0` 对应 `2011-01-01T00:00:00Z`。
 
 当前命令：
@@ -61,6 +61,7 @@
 ```powershell
 .\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
 .\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --full --dry-run
+.\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --full --agent-view --history-limit 10 --out .\product-full.json
 ```
 
 ## History Export / Trend
@@ -82,7 +83,7 @@
 
 - `history export` 展开 Product Object 的 `csv`，支持 `json`、`jsonl`、`csv`，也支持 `--out` 写文件。
 - `history trend` 返回 all-time 与窗口统计，默认窗口为 30 / 90 / 180 天。
-- 当前只支持 `amazon`、`new`、`used`、`sales_rank` 四个序列；其他 Keepa csv index 后续按官方字段逐步增加。
+- `history export/trend` 当前只支持 `amazon`、`new`、`used`、`sales_rank` 四个序列；如果 Agent 需要产品级综合判断，优先用 `products get --agent-view`，它会把更多 csv/stat 位置映射为摘要字段但不输出完整历史数组。
 - 价格序列按分转为主币种金额；`sales_rank` 保留整数排名。
 - `-1` 缺失值默认过滤，可用 `--include-missing` 保留为 `null`。
 

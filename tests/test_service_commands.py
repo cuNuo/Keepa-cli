@@ -86,6 +86,46 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertEqual(payload["data"]["output"]["path"], str(out_path))
             self.assertEqual(payload["data"]["output"]["result_count"], 1)
 
+    def test_products_get_agent_view_summarizes_large_product_fields(self):
+        with TemporaryDirectory() as temp_dir:
+            out_path = Path(temp_dir) / "raw-product.json"
+            payload = run_command(
+                "products.get",
+                {
+                    "asin": ["B0TESTAGENT"],
+                    "domain": "US",
+                    "fixture": "product_agent_view_B0TEST.json",
+                    "agent_view": True,
+                    "history_limit": 2,
+                    "out": str(out_path),
+                },
+                fixture_dir=FIXTURES,
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            data = payload["data"]
+            product = data["products"][0]
+            self.assertEqual(data["view"], "agent_product")
+            self.assertEqual(data["product_count"], 1)
+            self.assertNotIn("body", data)
+            self.assertTrue(out_path.is_file())
+            self.assertEqual(data["raw"]["output"]["path"], str(out_path))
+            self.assertEqual(product["identity"]["asin"], "B0TESTAGENT")
+            self.assertEqual(product["pricing"]["current"]["new"]["amount"], 14.99)
+            self.assertEqual(product["pricing"]["buy_box"]["seller_id"], "A1FIXTURE")
+            self.assertEqual(product["demand"]["monthly_sold"], 100000)
+            self.assertEqual(product["rating"]["rating"]["value"], 4.3)
+            self.assertEqual(product["rating"]["review_count"]["value"], 11598)
+            self.assertEqual(product["offers"]["total_offer_count"], 6)
+            self.assertEqual(product["media"]["video_count"], 1)
+            self.assertEqual(product["aplus"]["module_count"], 1)
+            new_history = product["history_summary"]["series"]["new"]
+            self.assertEqual(new_history["point_count"], 3)
+            self.assertEqual(len(new_history["last_points"]), 2)
+            self.assertEqual(new_history["omitted_points"], 1)
+            self.assertTrue(product["raw_field_presence"]["csv"])
+
     def test_categories_get_uses_category_endpoint_and_parents_flag(self):
         payload = run_command(
             "categories.get",

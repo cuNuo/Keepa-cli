@@ -95,6 +95,9 @@ def _build_parser() -> argparse.ArgumentParser:
     products_get.add_argument("--buybox", help="1 表示包含 Buy Box 历史。")
     products_get.add_argument("--stock", help="1 表示包含 stock 信息，通常需配合 offers。")
     products_get.add_argument("--historical-variations", help="1 表示包含历史 variation 数据。")
+    products_get.add_argument("--agent-view", action="store_true", help="返回 Agent 友好的稳定摘要视图，省略原始大 body。")
+    products_get.add_argument("--view", choices=("raw", "agent"), default="raw", help="输出视图；raw 为默认原始 Keepa body。")
+    products_get.add_argument("--history-limit", type=int, default=10, help="Agent 视图中每个历史序列保留的最近点数。")
     products_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     products_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     products_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
@@ -361,6 +364,9 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "buybox": args.buybox,
                 "stock": args.stock,
                 "historical_variations": args.historical_variations,
+                "agent_view": bool(args.agent_view),
+                "view": args.view,
+                "history_limit": args.history_limit,
                 "fixture": args.fixture,
                 "out": args.out,
                 "dry_run": bool(args.dry_run),
