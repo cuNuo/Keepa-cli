@@ -71,7 +71,7 @@ def _bool_option(params: Mapping[str, Any], *names: str) -> bool:
 def _product_query_options(params: Mapping[str, Any]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     if _bool_option(params, "full", "full_detail", "full-detail"):
-        result.update({"history": "1", "stats": "180", "videos": "1", "aplus": "1", "rating": "1"})
+        result.update({"history": "1", "stats": "180", "videos": "1", "aplus": "1"})
 
     for canonical in (
         "stats",

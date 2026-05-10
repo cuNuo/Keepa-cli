@@ -52,7 +52,7 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertEqual(params["stats"], "180")
         self.assertEqual(params["videos"], "1")
         self.assertEqual(params["aplus"], "1")
-        self.assertEqual(params["rating"], "1")
+        self.assertNotIn("rating", params)
         self.assertNotIn("offers", params)
         self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 1)
 

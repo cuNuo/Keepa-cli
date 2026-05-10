@@ -5,7 +5,18 @@
       "items": [
         {
           "command": "str",
+          "components": [
+            {
+              "estimated_tokens": "int",
+              "name": "str",
+              "reason": "str",
+              "worst_case_tokens": "int"
+            }
+          ],
           "estimated_tokens": "int",
+          "notes": [
+            "str"
+          ],
           "params": {
             "asin": [
               "str"
@@ -56,7 +67,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }
@@ -498,7 +511,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -556,7 +571,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }
@@ -590,7 +607,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }
@@ -694,7 +713,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -726,7 +747,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }
@@ -841,14 +864,24 @@
         "asin": "str",
         "domain": "str",
         "history": "str",
-        "rating": "str",
         "stats": "str",
         "videos": "str"
       }
     },
     "token_bucket": {
       "estimated": {
+        "components": [
+          {
+            "estimated_tokens": "int",
+            "name": "str",
+            "reason": "str",
+            "worst_case_tokens": "int"
+          }
+        ],
         "estimated_tokens": "int",
+        "notes": [
+          "str"
+        ],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -897,7 +930,18 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [
+          {
+            "estimated_tokens": "int",
+            "name": "str",
+            "reason": "str",
+            "worst_case_tokens": "int"
+          }
+        ],
         "estimated_tokens": "int",
+        "notes": [
+          "str"
+        ],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -1481,7 +1525,18 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [
+          {
+            "estimated_tokens": "int",
+            "name": "str",
+            "reason": "str",
+            "worst_case_tokens": "int"
+          }
+        ],
         "estimated_tokens": "int",
+        "notes": [
+          "str"
+        ],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -1548,7 +1603,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -1564,9 +1621,20 @@
       "method": "str"
     },
     {
+      "components": [
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "reason": "str",
+          "worst_case_tokens": "int"
+        }
+      ],
       "estimated_tokens": "int",
       "event": "str",
       "id": "str",
+      "notes": [
+        "str"
+      ],
       "requires_confirmation": "bool",
       "worst_case_tokens": "int"
     },
@@ -1612,7 +1680,18 @@
         },
         "token_bucket": {
           "estimated": {
+            "components": [
+              {
+                "estimated_tokens": "int",
+                "name": "str",
+                "reason": "str",
+                "worst_case_tokens": "int"
+              }
+            ],
             "estimated_tokens": "int",
+            "notes": [
+              "str"
+            ],
             "requires_confirmation": "bool",
             "worst_case_tokens": "int"
           },
@@ -1689,7 +1768,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -1728,7 +1809,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }
@@ -1757,7 +1840,9 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [],
         "estimated_tokens": "int",
+        "notes": [],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       }

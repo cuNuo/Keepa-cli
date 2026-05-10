@@ -580,7 +580,18 @@
     },
     "token_bucket": {
       "estimated": {
+        "components": [
+          {
+            "estimated_tokens": "int",
+            "name": "str",
+            "reason": "str",
+            "worst_case_tokens": "int"
+          }
+        ],
         "estimated_tokens": "int",
+        "notes": [
+          "str"
+        ],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },

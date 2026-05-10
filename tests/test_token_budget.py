@@ -17,6 +17,31 @@ class TokenBudgetTests(unittest.TestCase):
         self.assertEqual(estimate.estimated_tokens, 2)
         self.assertEqual(estimate.worst_case_tokens, 2)
         self.assertFalse(estimate.requires_confirmation)
+        self.assertEqual(estimate.components[0].name, "base_product")
+
+    def test_product_budget_counts_rating_and_buybox_when_explicit(self):
+        estimate = estimate_request_budget("products.get", {"asin": ["A", "B"], "rating": "1", "buybox": "1"})
+
+        self.assertEqual(estimate.estimated_tokens, 6)
+        self.assertEqual(estimate.worst_case_tokens, 6)
+        self.assertFalse(estimate.requires_confirmation)
+        self.assertEqual([component.name for component in estimate.components], ["base_product", "rating", "buybox"])
+
+    def test_product_budget_counts_offer_pages_on_top_of_base_cost(self):
+        estimate = estimate_request_budget("products.get", {"asin": "A", "offers": "20"})
+
+        self.assertEqual(estimate.estimated_tokens, 13)
+        self.assertEqual(estimate.worst_case_tokens, 13)
+        self.assertTrue(estimate.requires_confirmation)
+        self.assertEqual([component.name for component in estimate.components], ["base_product", "offers"])
+
+    def test_product_budget_tracks_update_zero_as_worst_case_refresh(self):
+        estimate = estimate_request_budget("products.get", {"asin": ["A", "B"], "update": "0"})
+
+        self.assertEqual(estimate.estimated_tokens, 2)
+        self.assertEqual(estimate.worst_case_tokens, 4)
+        self.assertTrue(estimate.requires_confirmation)
+        self.assertEqual([component.name for component in estimate.components], ["base_product", "update_refresh"])
 
     def test_bestsellers_budget_requires_confirmation(self):
         estimate = estimate_request_budget("bestsellers.get", {"category": "123"})
@@ -39,6 +64,8 @@ class TokenBudgetTests(unittest.TestCase):
                 "estimated_tokens": 1,
                 "worst_case_tokens": 6,
                 "requires_confirmation": True,
+                "components": [],
+                "notes": [],
             },
         )
 

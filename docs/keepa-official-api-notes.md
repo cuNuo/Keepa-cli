@@ -50,9 +50,10 @@
 - `history=0` 可排除历史字段，降低响应体大小。
 - `stats` 无额外 token 成本。
 - `videos=1`、`aplus=1` 可在单次产品请求中补媒体与 A+ 信息；本项目的 `--full` 预设默认开启。
+- `rating=1` 不属于本项目 `--full` 默认项；若 Agent 可从网页获取评分，优先不消耗 Keepa 额外刷新成本。
 - `days` 可限制返回历史窗口，适合在保留 `history=1` 时控制响应体大小。
 - `update=0` 可能额外消耗 1 token。
-- `offers` 官方范围 20 到 100，按找到的 offer page 计费，每页最多 10 offers，每页 6 tokens。
+- `offers` 官方范围 20 到 100，按找到的 offer page 计费，每页最多 10 offers，每页 6 tokens；预算器按基础产品成本加 offer page 成本累计。
 - Product Object 的 `csv` 字段包含价格、销量排名、rating、review count、Buy Box、offer count 等历史数组；`products get --agent-view` 会按官方 CsvType 位置输出摘要，`history export/trend` 仍只展开常用序列：`amazon`、`new`、`used`、`sales_rank`。
 - Keepa 历史时间按 Keepa minute 表示，本仓库按官方 Java helper 的 epoch 语义转换为 UTC：`0` 对应 `2011-01-01T00:00:00Z`。
 
