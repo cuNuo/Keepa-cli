@@ -32,7 +32,7 @@ ANSI_CYAN = "\033[36m"
 TEXT: dict[str, dict[str, str]] = {
     "en": {
         "brand": "Keepa CLI",
-        "ready": "Type / for commands, /json for the last response, Ctrl-L to clear.",
+        "ready": "Type / for commands. Ctrl-L clears.",
         "setup_token": "No token. Run /login <64-char Keepa key> or export KEEPA_API_KEY.",
         "setup_budget": "Default request cap is 20 tokens. Raise it with /max-tokens 250.",
         "bye": "bye",
@@ -63,7 +63,7 @@ TEXT: dict[str, dict[str, str]] = {
     },
     "zh": {
         "brand": "Keepa CLI",
-        "ready": "输入 / 查看命令，/json 查看上一条完整响应，Ctrl-L 清屏。",
+        "ready": "输入 / 查看命令。Ctrl-L 清屏。",
         "setup_token": "未配置 token。运行 /login <64字符 Keepa key> 或导出 KEEPA_API_KEY。",
         "setup_budget": "默认单次请求上限为 20 tokens，可用 /max-tokens 250 调宽。",
         "bye": "再见",
@@ -471,7 +471,7 @@ def _summarize_success_english(payload: dict[str, Any]) -> list[str]:
                 count = len(asin_list) if isinstance(asin_list, list) else 0
                 lines.append(f"Best sellers category={bestsellers.get('categoryId', '')} count={count}")
                 return lines
-    lines.append("Done    Structured response received; use --json or the JSON block for the full envelope")
+    lines.append("Done    Structured response received")
     return lines
 
 
@@ -494,14 +494,18 @@ def _status_bar(env: Mapping[str, str] | None) -> str:
         auth_fragment = f"<style fg='ansiyellow'>auth:{auth}</style>"
     else:
         auth_fragment = f"<style fg='ansigreen'>auth:{auth}</style>"
-    status = (
-        f" {auth_fragment}"
+    content = (
+        f"{auth_fragment}"
         f"  <style fg='ansibrightblack'>{html.escape(str(default_domain))}</style>"
         f"  <style fg='ansibrightblack'>max:{html.escape(str(max_tokens))}</style>"
         f"  <style fg='ansibrightblack'>{html.escape(language)}</style>"
-        "  <style fg='ansibrightblack'>/help /json /quit</style> "
+        "  <style fg='ansibrightblack'>/help /json /quit</style>"
     )
-    return status
+    return f"<style bg='#111315'> {content} </style>"
+
+
+def _json_hint(text: Mapping[str, str]) -> str:
+    return _ansi(ANSI_DIM, f"json: /json")
 
 
 def _startup_lines(env: Mapping[str, str] | None) -> list[str]:
@@ -562,7 +566,7 @@ def _create_session(*, language: str = "en"):
     style = Style.from_dict(
         {
             "prompt": "ansicyan bold",
-            "bottom-toolbar": "bg:#202124 #c7c7c7",
+            "bottom-toolbar": "bg:#111315 #7f858d",
             "completion-menu.completion": "bg:#202124 #d0d0d0",
             "completion-menu.completion.current": "bg:#2d333b #ffffff",
             "completion-menu.meta.completion": "bg:#202124 #8a8f98",
@@ -636,7 +640,7 @@ def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = Non
         print()
         print(_colorize_transcript(_redact_transcript_command(value)))
         print(_colorize_summary(_format_result(payload, language=language)))
-        print(_ansi(ANSI_DIM, f"({text['json']}: /json)"))
+        print(_json_hint(text))
         language = _active_language(env)
         text = TEXT[language]
 

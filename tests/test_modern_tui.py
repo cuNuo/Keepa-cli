@@ -156,6 +156,7 @@ class ModernTuiTests(unittest.TestCase):
     def test_status_bar_marks_missing_auth_without_escaping_markup(self):
         rendered = modern_tui._status_bar({})
 
+        self.assertIn("bg='#111315'", rendered)
         self.assertIn("fg='ansiyellow'", rendered)
         self.assertIn("auth:missing", rendered)
 
@@ -182,7 +183,7 @@ class ModernTuiTests(unittest.TestCase):
         self.assertIn("$ kc /doctor", plain)
         self.assertIn("[doctor] OK", plain)
         self.assertIn("\033[32m[doctor] OK", rendered)
-        self.assertIn("(Full JSON: /json)", plain)
+        self.assertIn("json: /json", plain)
         self.assertNotIn('"command": "doctor"', plain)
 
     def test_prompt_loop_prints_last_json_on_demand(self):
@@ -262,6 +263,8 @@ class ModernTuiTests(unittest.TestCase):
         rendered = "\n".join(lines)
         self.assertNotIn("/token", rendered)
         self.assertNotIn("/max-tokens", rendered)
+        self.assertIn("Type / for commands", rendered)
+        self.assertNotIn("/json for the last response", rendered)
 
 
 if __name__ == "__main__":
