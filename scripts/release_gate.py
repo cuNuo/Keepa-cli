@@ -1,7 +1,7 @@
 """
 scripts/release_gate.py
 文件说明：本地发布前质量门禁。
-主要职责：串联编译、单元测试、fixture 同步、入口 smoke 与 npm 打包 dry-run。
+主要职责：串联编译、单元测试、fixture/Agent 评测同步、入口 smoke 与 npm 打包 dry-run。
 依赖边界：默认不安装依赖、不访问真实 Keepa API。
 """
 
@@ -46,6 +46,7 @@ def main() -> int:
         _run([python, "-m", "compileall", "-q", "keepa_cli", "scripts"], root)
         _run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], root)
         _run([python, "scripts/check_fixture_sync.py"], root)
+        _run([python, "scripts/check_agent_eval_fixtures.py"], root)
         install_verify = [python, "scripts/install_verify.py"]
         if args.skip_npm_pack:
             install_verify.append("--skip-npm-pack")

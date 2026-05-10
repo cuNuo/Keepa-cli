@@ -54,7 +54,8 @@ keepa_cli/
 
 | MCP tool | service command | 目的 | 默认风险 |
 | --- | --- | --- | --- |
-| `keepa.products_get` | `products.get` | 单 ASIN/少量 ASIN 产品研究 | 低；`offers`、`rating`、`buybox` 可能增量成本 |
+| `keepa.products_get` | `products.get` | 单 ASIN/少量 ASIN 产品研究，含 `risk_taxonomy` 与 `research_graph` | 低；`offers`、`rating`、`buybox` 可能增量成本 |
+| `keepa.products_compare` | `products.compare` | 多 ASIN deal/research 横向对比，含统一风险汇总与合并图谱 | 低；`offers` 可能增量成本 |
 | `keepa.categories_search` | `categories.search` | 关键词找候选 category | 低 |
 | `keepa.categories_products` | `categories.products` | category 生成商品候选 | 高；真实请求需确认 |
 | `keepa.finder_query` | `finder.query` | Product Finder selection 查询 | 中高；真实请求需确认 |
@@ -239,9 +240,15 @@ MCP 输出必须延续现有 Agent profile：
 - `agent_brief`
 - `data_quality`
 - `selection_signals`
+- `risk_taxonomy`
+- `research_graph`
 - `next_actions`
 - `evidence_index`
 - `provenance`
+
+`risk_taxonomy` 使用稳定枚举，当前已知 code 为 `data_missing`、`price_unstable`、`rank_declining`、`low_review_count`、`offer_competition_high`、`buybox_missing`、`category_mismatch`。每个 item 必须给出 `severity`、`reason`、`evidence_path`，可补充 `metric` 与 `follow_up`，让 Agent 能做确定性断言而不是解析自然语言。
+
+`research_graph` 使用轻量实体关系结构：`nodes` 包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation` 等类型；`edges` 包含 `made_by`、`manufactured_by`、`in_category`、`parent_of`、`buybox_sold_by`、`variation_of`、`has_variation`。`products.compare` 会额外输出合并后的 `research_graph` 与 `risk_summary`，便于多 ASIN 研究。
 
 新增 MCP 层 provenance：
 
@@ -282,8 +289,9 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 
 - `tests/test_mcp.py`
   - `initialize` 返回 server info 和 protocol version。
-  - `tools/list` 包含 5 个初始 tools。
+  - `tools/list` 包含产品、类目、finder、audit tools。
   - `tools/call keepa.categories_search` 使用 fixture 返回 `category_candidates`。
+  - `tools/call keepa.products_compare` 使用 fixture 返回风险汇总与合并图谱。
   - 未知 tool 返回 JSON-RPC error。
   - 高成本 tool 无 `yes` 且无 fixture 时返回 `confirmation_required`。
 - `tests/test_agent_session.py`
@@ -308,12 +316,13 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 5. 在 `cli.py` 增加 `--mcp` 入口，避免扩展过多 argparse 子树。（已完成）
 6. 更新 `capabilities`，暴露 MCP server 启动方式和 tool schema 版本。（已完成）
 7. 补测试、README、`docs/agent-contract.md`。（已完成）
-8. 再进入 P2：`research_graph`、统一 `risk_taxonomy`、`fixtures promote`。
+8. 落地 `research_graph`、统一 `risk_taxonomy`，并让 evaluation specs 断言 Agent 语义质量。（已完成）
+9. 再进入 P2：`fixtures promote` 与 toolset 动态过滤。
 
 ## 迁移风险
 
 - MCP 客户端对 `structuredContent` 支持不一致：用 JSON text fallback 降级。
-- tool schema 太大导致上下文污染：第一阶段只暴露 5 个 tools，后续按 toolset 动态加载。
+- tool schema 太大导致上下文污染：只暴露少量任务导向 tools，后续按 toolset 动态加载。
 - session cache 意外缓存 live raw body：第一阶段只进程内、只缓存 redacted envelope。
 - CLI 与 MCP 参数别名漂移：所有映射集中在 `agent/tools.py`，测试直接验证 tool params 到 service command。
 - 预算账本和真实 token 消耗不一致：真实响应优先，缺失时显式标记 `consumed_source=estimated_fallback`。
@@ -322,8 +331,8 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 
 完成本设计后，最适合的实现顺序是：
 
-1. 继续做 Agent evaluation fixtures，用固定任务集验证 tool 选择和最终 JSON。
-2. 再做 P2 的 product research graph、risk taxonomy 与 cassette promotion workflow。
-3. 后续按需增加 toolset 过滤、远程 MCP transport 或官方 Python SDK 适配。
+1. 做 cassette promotion workflow，把真实响应脱敏后稳定沉淀为 fixture。
+2. 增加 toolset 过滤，按 `research/audit/reports/tracking` 控制 MCP 工具暴露面。
+3. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样可以先稳定 Agent 调用边界，再增强产品研究语义，避免协议层和分析层互相耦合。

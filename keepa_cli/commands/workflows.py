@@ -17,7 +17,6 @@ from keepa_cli.workflows import (
     build_browse_snapshot,
     build_workflow_plan,
     build_report,
-    explain_cache,
     list_templates,
     show_template,
 )
@@ -29,7 +28,6 @@ WORKFLOW_COMMANDS = {
     "templates.list",
     "templates.show",
     "reports.build",
-    "cache.explain",
     "audit.cost",
     "workflow.plan",
 }
@@ -76,12 +74,6 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
             output_format=str(_param(params, "format", default="markdown")),
             out=_param(params, "out", "output"),
             title=str(_param(params, "title", default="Keepa Report")),
-        )
-    elif command == "cache.explain":
-        data = explain_cache(
-            input_path=_param(params, "input", "input_path"),
-            command=_param(params, "target_command", "command"),
-            endpoint=_param(params, "endpoint"),
         )
     elif command == "audit.cost":
         specs = params.get("commands")

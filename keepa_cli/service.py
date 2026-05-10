@@ -19,6 +19,8 @@ from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.capabilities import build_capabilities
 from keepa_cli.cassettes import sanitize_cassette_file
 from keepa_cli.client import KeepaClient
+from keepa_cli.commands.cache import can_handle as can_handle_cache_command
+from keepa_cli.commands.cache import handle_cache_command
 from keepa_cli.commands.workflows import can_handle as can_handle_workflow_command
 from keepa_cli.commands.workflows import handle_workflow_command
 from keepa_cli.config import build_config_report, init_config, set_api_token, set_language, set_max_tokens_per_request
@@ -1277,6 +1279,8 @@ def run_command(
                 request={"transport": "service"},
                 token_bucket={},
             )
+        if can_handle_cache_command(command):
+            return handle_cache_command(command, params, env=env)
         if can_handle_workflow_command(command):
             return handle_workflow_command(command, params)
         if command == "config.show":

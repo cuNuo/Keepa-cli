@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from keepa_cli.agent_contract import build_action, build_evidence_index
-from keepa_cli.cache import build_cache_provenance
+from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -520,6 +520,26 @@ def explain_cache(*, input_path: str | None, command: str | None, endpoint: str 
         "estimated_tokens_if_live": estimated["estimated_tokens"],
         "worst_case_tokens_if_live": estimated["worst_case_tokens"],
     }
+
+
+def cache_stats(*, cache_path: str | None = None) -> dict[str, Any]:
+    cache = SQLiteResponseCache(cache_path or default_cache_path())
+    stats = cache.stats()
+    stats["notes"] = [
+        "SQLite response cache stores successful live GET JSON responses only.",
+        "dry-run, fixture, binary, POST, and disabled-cache requests are not persisted.",
+    ]
+    return stats
+
+
+def clear_cache(*, dry_run: bool, cache_path: str | None = None) -> dict[str, Any]:
+    cache = SQLiteResponseCache(cache_path or default_cache_path())
+    result = cache.clear(dry_run=dry_run)
+    result["notes"] = [
+        "SQLite response cache clear does not affect tests/fixtures or in-process Agent session cache.",
+        "Use --dry-run before destructive cache cleanup when auditing release artifacts.",
+    ]
+    return result
 
 
 def audit_cost(command_specs: list[Mapping[str, Any]]) -> dict[str, Any]:

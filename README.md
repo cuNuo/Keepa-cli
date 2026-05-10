@@ -29,7 +29,7 @@ Keepa CLI wraps Keepa API workflows into a stable command-line surface for agent
 - Fixture/offline mode, dry-run requests, token budget hints, and secret redaction.
 - Safe `/graphimage` handling with explicit `--out` for binary PNG output.
 - Finder, Deals, Seller, Best Sellers, Top Sellers, Tracking, and webhook command families.
-- Local browse snapshots, batch ASIN plans, workflow templates, markdown/JSON/CSV reports, cache explain, and cost audit.
+- Local browse snapshots, batch ASIN plans, workflow templates, markdown/JSON/CSV reports, SQLite response cache, cache explain, and cost audit.
 - Release gate for compile, tests, fixture sync, Python/Node smoke, and npm pack dry-run.
 
 ## Installation
@@ -151,6 +151,8 @@ Use explicit flags when you need tighter history windows or specialized fields:
 
 ```powershell
 kc --json products get B001GZ6QEC --domain US --history 1 --stats 180 --videos 1 --aplus 1 --days 365 --dry-run
+kc --json products by-code 9780786222728 --domain US --code-limit 5 --dry-run
+kc --json products summary B0D8W1YVBX --domain US --fixture product_agent_view_B0TEST.json
 kc --json products get B001GZ6QEC --domain US --full --stats-window 365 --temporal-window-days 30 --temporal-window-days 180,365 --agent-view
 ```
 
@@ -194,8 +196,12 @@ Explain provenance and estimate token cost before live work:
 
 ```powershell
 kc --json cache explain --input .\batch.json --command products.get
+kc --json cache stats
+kc --json cache clear --dry-run
 kc --json audit cost products.get --param asin=B001GZ6QEC
 ```
+
+Live GET JSON responses are cached in SQLite by default using `cache_ttl_seconds` from config. Dry-run, fixture, binary, POST, and disabled-cache requests are not persisted. Override the cache file for audits with `--cache-path` or `KEEPA_CLI_CACHE_PATH`, and disable live response caching with `KEEPA_CLI_NO_CACHE=1`.
 
 Tracking and webhook write paths stay dry-run by default in examples:
 
@@ -265,7 +271,7 @@ MCP JSON-RPC over stdio:
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
 ```
 
-The initial MCP tools are `keepa.products_get`, `keepa.categories_search`, `keepa.categories_products`, `keepa.finder_query`, and `keepa.audit_cost`. They accept structured JSON arguments and call the same command service as the CLI. Tool results include `structuredContent`, a compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger` so Agent sessions can dedupe repeated ASIN/category work and track cumulative token exposure.
+The MCP tools are `keepa.products_get`, `keepa.products_compare`, `keepa.categories_search`, `keepa.categories_products`, `keepa.finder_query`, and `keepa.audit_cost`. They accept structured JSON arguments and call the same command service as the CLI. Product results include `risk_taxonomy` and `research_graph`; tool envelopes include `structuredContent`, a compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger` so Agent sessions can dedupe repeated ASIN/category work and track cumulative token exposure.
 
 Contracts:
 

@@ -17,6 +17,7 @@ from typing import Any
 from keepa_cli import __version__
 from keepa_cli.agent.mcp import iter_mcp_output
 from keepa_cli.agent.stdio import iter_stdio_output
+from keepa_cli.cli_builders.cache import add_cache_parser, maybe_run_cache_command
 from keepa_cli.cli_builders.workflows import add_workflow_parsers, maybe_run_workflow_command
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.service import run_command
@@ -75,6 +76,7 @@ def _build_parser() -> argparse.ArgumentParser:
     domains_subparsers = domains.add_subparsers(dest="domains_command")
     domains_subparsers.add_parser("list", help="列出 Keepa 支持的 Amazon domain。")
 
+    add_cache_parser(subparsers)
     add_workflow_parsers(subparsers)
 
     products = subparsers.add_parser("products", help="产品查询命令。")
@@ -131,6 +133,23 @@ def _build_parser() -> argparse.ArgumentParser:
     products_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
     products_search.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     products_search.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    products_by_code = products_subparsers.add_parser("by-code", help="按 UPC、EAN 或 ISBN-13 查询产品。")
+    products_by_code.add_argument("code", nargs="+", help="一个或多个 UPC、EAN 或 ISBN-13。")
+    products_by_code.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    products_by_code.add_argument("--code-limit", help="限制按 code 查询返回的商品数量。")
+    products_by_code.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    products_by_code.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    products_by_code.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    products_summary = products_subparsers.add_parser("summary", help="返回 Agent-safe 产品摘要。")
+    products_summary.add_argument("asin", nargs="+", help="一个或多个 ASIN。")
+    products_summary.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    products_summary.add_argument("--view", choices=("summary", "research", "deal", "audit"), default="summary", help="摘要 profile。")
+    products_summary.add_argument("--fields", help="逗号分隔 Agent 视图字段。")
+    products_summary.add_argument("--history-limit", type=int, default=10, help="每个历史序列保留的最近点数。")
+    products_summary.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
+    products_summary.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    products_summary.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
+    products_summary.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
 
     categories = subparsers.add_parser("categories", help="分类查询命令。")
     categories_subparsers = categories.add_subparsers(dest="categories_command")
@@ -365,6 +384,10 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
         payload = run_command("domains.list")
         return 0 if payload["ok"] else 1, payload
 
+    cache_result = maybe_run_cache_command(args)
+    if cache_result is not None:
+        return cache_result
+
     workflow_result = maybe_run_workflow_command(args, parse_params=_parse_params)
     if workflow_result is not None:
         return workflow_result
@@ -461,6 +484,38 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "term": args.term,
                 "domain": args.domain,
                 "fixture": args.fixture,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "products" and args.products_command == "by-code":
+        payload = run_command(
+            "products.get",
+            {
+                "code": args.code,
+                "domain": args.domain,
+                "code_limit": args.code_limit,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "products" and args.products_command == "summary":
+        payload = run_command(
+            "products.get",
+            {
+                "asin": args.asin,
+                "domain": args.domain,
+                "agent_view": True,
+                "view": args.view,
+                "fields": args.fields,
+                "history_limit": args.history_limit,
+                "temporal_windows": args.temporal_window_days,
+                "fixture": args.fixture,
+                "chunks_dir": args.chunks_dir,
                 "dry_run": bool(args.dry_run),
             },
         )

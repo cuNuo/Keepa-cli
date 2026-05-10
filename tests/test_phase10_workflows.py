@@ -54,6 +54,17 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertTrue(cache["ok"])
             self.assertEqual(cache["data"]["source"], "local")
 
+            cache_path = root / "keepa-cache.sqlite"
+            stats = run_command("cache.stats", {"cache_path": str(cache_path)}, env={})
+            self.assertTrue(stats["ok"])
+            self.assertTrue(stats["data"]["persistent_cache_enabled"])
+            self.assertEqual(stats["data"]["backend"], "sqlite")
+
+            clear = run_command("cache.clear", {"cache_path": str(cache_path), "dry_run": True}, env={})
+            self.assertTrue(clear["ok"])
+            self.assertTrue(clear["data"]["dry_run"])
+            self.assertEqual(clear["data"]["entries_removed"], 0)
+
             cost = run_command("audit.cost", {"target_command": "products.get", "params": {"asin": ["B001GZ6QEC"]}}, env={})
             self.assertTrue(cost["ok"])
             self.assertEqual(cost["data"]["totals"]["estimated_tokens"], 1)
@@ -130,6 +141,17 @@ class Phase10WorkflowTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["command"], "batch.asins")
+
+            stats_result = subprocess.run(
+                [sys.executable, "-m", "keepa_cli", "--json", "cache", "stats"],
+                text=True,
+                encoding="utf-8",
+                capture_output=True,
+                check=True,
+            )
+            stats_payload = json.loads(stats_result.stdout)
+            self.assertTrue(stats_payload["ok"])
+            self.assertEqual(stats_payload["command"], "cache.stats")
 
 
 if __name__ == "__main__":

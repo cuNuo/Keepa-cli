@@ -13,7 +13,7 @@ from keepa_cli.agent.tools import list_mcp_tools
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.9"
+SCHEMA_VERSION = "2026-05-10.11"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -29,6 +29,8 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "templates.show", "supports_fixture": False, "supports_live": False, "output": "json-file-optional"},
     {"name": "reports.build", "supports_fixture": True, "supports_live": False, "output": "text-json-csv-file-optional"},
     {"name": "cache.explain", "supports_fixture": True, "supports_live": False, "output": "json"},
+    {"name": "cache.stats", "supports_fixture": False, "supports_live": False, "output": "json"},
+    {"name": "cache.clear", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "audit.cost", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "workflow.plan", "supports_fixture": False, "supports_live": False, "output": "json-agent-plan"},
     {"name": "products.get", "supports_fixture": True, "supports_live": True, "output": "json-or-agent-view"},

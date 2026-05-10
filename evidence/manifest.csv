@@ -13,3 +13,5 @@ evidence/tasks/20260510-mcp-agent-tools架构设计.md,MCP Agent Tools 架构设
 evidence/tasks/20260510-mcp-agent-tools实现.md,MCP Agent Tools 实现,active,2026-05-10,"记录第一阶段 MCP Agent tools 实现：tool registry、AgentSession cache/ledger、stdio 复用、MCP JSON-RPC stdio server、--mcp 入口、capabilities 与文档测试同步。"
 evidence/tasks/20260510-agent-evaluation-fixtures.md,Agent Evaluation Fixtures,active,2026-05-10,"记录从本地 B0D8W1YVBX full runtime log 派生离线评测 fixture，新增类目候选、三 ASIN deal compare、offers 缺口判断和 Finder scaffold 固定任务集。"
 evidence/tasks/20260510-phase1-12验收收口.md,Phase 1-12 验收收口,active,2026-05-10,"记录 Phase 1-12 路线图逐项验收结论，补齐 products by-code、products summary、cache stats/clear 兼容入口，并说明真实 GitHub Release 尚未执行。"
+evidence/tasks/20260510-risk-taxonomy-research-graph-mcp-skill.md,risk taxonomy 与 research graph MCP 语义增强,active,2026-05-10,"记录统一 risk_taxonomy、research_graph、products_compare MCP tool、Agent evaluation semantic assertions、schema/docs 与 companion skills 更新。"
+evidence/tasks/20260510-sqlite-cache与agent-eval门禁.md,SQLite cache 与 Agent eval 门禁,active,2026-05-10,"记录 SQLite response cache、cache stats/clear 真正落地、cache 命令族拆分、Agent evaluation fixtures 独立检查脚本与 release gate 接入。"

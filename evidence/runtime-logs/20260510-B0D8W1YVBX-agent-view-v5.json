@@ -1,0 +1,2573 @@
+{
+  "field_notes": [
+    "raw Keepa body is omitted from agent view; use --out to persist the full response",
+    "csv/history and stats arrays are mapped by official Keepa CsvType index names",
+    "currency values keep raw integer cents plus decimal value for agent safety"
+  ],
+  "product_count": 1,
+  "products": [
+    {
+      "aplus": {
+        "available": true,
+        "block_count": 1,
+        "image_alt_text": [
+          "eqqualberry, equalberry, vitamin, vitamin c, serum, illuminating, k-beauty, skincare, korean beauty",
+          "eqqualberry, equalberry, vitamin, vitamin c, serum, illuminating, k-beauty, skincare, korean beauty",
+          "eqqualberry, equalberry, vitamin, vitamin c, serum, illuminating, k-beauty, skincare, korean beauty",
+          "eqqualberry, equalberry, vitamin, vitamin c, serum, illuminating, k-beauty, skincare, korean beauty",
+          "eqqualberry, equalberry, vitamin, vitamin c, serum, illuminating, k-beauty, skincare, korean beauty"
+        ],
+        "image_count": 15,
+        "images": [
+          "https://m.media-amazon.com/images/S/aplus-media-library-service-media/ee9fc34d-eca1-4728-98be-e3fc647df7a3.png",
+          "https://m.media-amazon.com/images/S/aplus-media-library-service-media/336d1597-e450-49bf-912c-ba99be1f496d.jpg",
+          "https://m.media-amazon.com/images/S/aplus-media-library-service-media/430de89c-f90e-42ee-911f-4f91a0142779.jpg",
+          "https://m.media-amazon.com/images/S/aplus-media-library-service-media/f5111a66-9c59-4b65-a9c1-a45ec4c781f2.jpg",
+          "https://m.media-amazon.com/images/S/aplus-media-library-service-media/5d533ce3-987e-40ce-9478-560bbb68bba2.jpg"
+        ],
+        "module_count": 7,
+        "video_count": 0
+      },
+      "category": {
+        "category_ids": [
+          7792528011
+        ],
+        "category_tree": [
+          {
+            "id": 3760911,
+            "name": "Beauty & Personal Care"
+          },
+          {
+            "id": 11060451,
+            "name": "Skin Care"
+          },
+          {
+            "id": 11060711,
+            "name": "Face"
+          },
+          {
+            "id": 11062031,
+            "name": "Treatments & Masks"
+          },
+          {
+            "id": 7792528011,
+            "name": "Serums"
+          }
+        ],
+        "root_category": 3760911,
+        "sales_rank_current": {
+          "raw_value": 24,
+          "unit": "rank",
+          "value": 24
+        },
+        "sales_rank_display_group": "beauty_display_on_website",
+        "sales_rank_reference": 3760911,
+        "sales_ranks": {
+          "3760911": {
+            "last_points": [
+              {
+                "keepa_minute": 8073304,
+                "timestamp": "2026-05-08T11:04:00Z",
+                "value": 25
+              },
+              {
+                "keepa_minute": 8075600,
+                "timestamp": "2026-05-10T01:20:00Z",
+                "value": 23
+              },
+              {
+                "keepa_minute": 8075852,
+                "timestamp": "2026-05-10T05:32:00Z",
+                "value": 24
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8075852,
+              "timestamp": "2026-05-10T05:32:00Z",
+              "value": 24
+            },
+            "omitted_points": 2733,
+            "point_count": 2736
+          },
+          "7792528011": {
+            "last_points": [
+              {
+                "keepa_minute": 8072572,
+                "timestamp": "2026-05-07T22:52:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8073004,
+                "timestamp": "2026-05-08T06:04:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8073304,
+                "timestamp": "2026-05-08T11:04:00Z",
+                "value": 1
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8073304,
+              "timestamp": "2026-05-08T11:04:00Z",
+              "value": 1
+            },
+            "omitted_points": 1769,
+            "point_count": 1772
+          }
+        }
+      },
+      "compliance_and_logistics": {
+        "fba_fees": {
+          "lastUpdate": 8074468,
+          "pickAndPackFee": 409
+        },
+        "is_eligible_for_super_saver_shipping": true,
+        "is_eligible_for_trade_in": false,
+        "is_heat_sensitive": false,
+        "item": {
+          "height": 100,
+          "length": 54,
+          "weight": 28,
+          "width": 35
+        },
+        "package": {
+          "height": 35,
+          "length": 104,
+          "quantity": 1,
+          "weight": 141,
+          "width": 55
+        },
+        "referral_fee_percent": 15,
+        "referral_fee_percentage": 15.01,
+        "unit_count": {
+          "unitType": "Fl Oz",
+          "unitValue": 1.01
+        }
+      },
+      "content": {
+        "active_ingredients": [
+          "hyaluronic_acid"
+        ],
+        "color": "Acerola Vitamin C Serum",
+        "features": [
+          "NATURAL VITAMIN C RADIANCE : VITAQUEEN Acerola 40% delivers a dewy infusion, toning skin, restoring glow, and boosting health for radiant, glass-like skin – hello, glow-up!",
+          "TRIPLE BEAUTY REMEDY : Niacinamide 4% + Arbutin 2% swoop in to visibly improve the look of spots, help skin look clearer and even for a flawless complexion.",
+          "ANTI-AGING & SKIN VIBRANCE SOLUTION: Vitamin E, Ferulic Acid & Tranexamic Acid enhance radiance, reduce wrinkles, and support a youthful, smooth texture.",
+          "DEEP MOISTURE & BARRIER REPAIR : 5 ceramides + 8 hyaluronic acids lock in hydration, strengthen your barrier, and leave skin soft, supple – perfect for people with sensitive skin too!",
+          "LIGHTWEIGHT, NON-STICKY SELF CARE : EWG Green Grade, silicone/paraben-free drops formula absorbs fast, perfect for neck, face, body application.",
+          "EWG VERIFIED: Every ingredient is carefully selected to meet the highest standards for purity and safety."
+        ],
+        "ingredients": "Malpighia Glabra (Acerola) Fruit Water, Water, Butylene Glycol, Glycerin, Cetyl Ethylhexanoate, Niacinamide, 1,2-Hexanediol, Arbutin, Hydrogenated Lecithin, Pentaerythrityl Tetrabehenate, Diethoxyethyl Succinate, Betaine, Ceramide NP, Hydroxyethyl Urea, Caprylic/Capric Triglyceride, Melia Azadirachta Leaf Extract, Cetearyl Alcohol, Squalane, Melia Azadirachta Flower Extract, Panthenol, Curcuma Longa (Turmeric) Root Extract, Tocopherol, Carbomer, Butyrospermum Parkii (Shea) Butter, Tromethamine, Xanthan Gum, Allantoin, Ethylhexylglycerin, 2,3-Butanediol, Ocimum Sanctum Leaf Extract, Disodium EDTA, Sodium Hyaluronate, Sodium Carboxymethyl Beta-Glucan, Corallina Officinalis Extract, Malpighia Glabra (Acerola) Fruit Extract, Glyceryl Stearate, Hydrolyzed Hyaluronic Acid, Hydrolyzed Sodium Hyaluronate, Hyaluronic Acid, Hydroxypropyltrimonium Hyaluronate, Potassium Hyaluronate, Rubus Fruticosus (Blackberry) Fruit Extract, Vaccinium Macrocarpon (Cranberry) Fruit Extract, Vaccinium Angustif...",
+        "item_form": "Drop",
+        "product_benefit": "Brightening",
+        "recommended_uses_for_product": [
+          "Dark Spots"
+        ],
+        "safety_warning": "For External use only. Avoid contact with eyes. If any adverse reaction occurs, stop using the product. Inform your doctor if your condition persists.",
+        "scent": "Unscented",
+        "size": "1.01 Fl Oz (Pack of 1)",
+        "special_ingredients": [
+          "Acerola(Vitamin C)"
+        ],
+        "target_audience_keyword": [
+          "Unisex Adult"
+        ]
+      },
+      "data_quality": {
+        "confidence": "medium",
+        "missing": [
+          "buyBoxSellerIdHistory",
+          "liveOffersOrder",
+          "offers",
+          "offers.offers",
+          "rating.rating",
+          "reviews",
+          "variations"
+        ],
+        "notes": [
+          "some agent-relevant fields are absent or not requested",
+          "offer detail usually requires an explicit --offers request"
+        ],
+        "present": [
+          "aPlus",
+          "couponHistory",
+          "csv",
+          "images",
+          "monthlySoldHistory",
+          "stats",
+          "videos"
+        ]
+      },
+      "demand": {
+        "delta_percent_90_monthly_sold": -2,
+        "last_sold_update": {
+          "keepa_minute": 8075852,
+          "timestamp": "2026-05-10T05:32:00Z"
+        },
+        "listed_since": {
+          "keepa_minute": 7105472,
+          "timestamp": "2024-07-05T08:32:00Z"
+        },
+        "monthly_sold": 100000,
+        "monthly_sold_history": {
+          "last_points": [
+            {
+              "keepa_minute": 8072724,
+              "timestamp": "2026-05-08T01:24:00Z",
+              "value": 90000
+            },
+            {
+              "keepa_minute": 8072734,
+              "timestamp": "2026-05-08T01:34:00Z",
+              "value": 100000
+            },
+            {
+              "keepa_minute": 8072782,
+              "timestamp": "2026-05-08T02:22:00Z",
+              "value": 90000
+            },
+            {
+              "keepa_minute": 8072812,
+              "timestamp": "2026-05-08T02:52:00Z",
+              "value": 100000
+            },
+            {
+              "keepa_minute": 8073144,
+              "timestamp": "2026-05-08T08:24:00Z",
+              "value": 90000
+            },
+            {
+              "keepa_minute": 8074238,
+              "timestamp": "2026-05-09T02:38:00Z",
+              "value": 100000
+            },
+            {
+              "keepa_minute": 8074268,
+              "timestamp": "2026-05-09T03:08:00Z",
+              "value": 90000
+            },
+            {
+              "keepa_minute": 8074304,
+              "timestamp": "2026-05-09T03:44:00Z",
+              "value": 100000
+            },
+            {
+              "keepa_minute": 8074506,
+              "timestamp": "2026-05-09T07:06:00Z",
+              "value": 90000
+            },
+            {
+              "keepa_minute": 8074524,
+              "timestamp": "2026-05-09T07:24:00Z",
+              "value": 100000
+            },
+            {
+              "keepa_minute": 8074710,
+              "timestamp": "2026-05-09T10:30:00Z",
+              "value": 90000
+            },
+            {
+              "keepa_minute": 8074728,
+              "timestamp": "2026-05-09T10:48:00Z",
+              "value": 100000
+            }
+          ],
+          "latest": {
+            "keepa_minute": 8074728,
+            "timestamp": "2026-05-09T10:48:00Z",
+            "value": 100000
+          },
+          "omitted_points": 373,
+          "point_count": 385
+        },
+        "sales_rank_drops": {
+          "180": 165,
+          "30": 35,
+          "365": 424,
+          "90": 74
+        },
+        "tracking_since": {
+          "keepa_minute": 7207224,
+          "timestamp": "2024-09-14T00:24:00Z"
+        }
+      },
+      "history_summary": {
+        "available": true,
+        "series": {
+          "amazon": {
+            "first": {
+              "keepa_minute": 7207224,
+              "raw_value": -1,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "value": null
+            },
+            "index": 0,
+            "last_points": [
+              {
+                "keepa_minute": 7207224,
+                "raw_value": -1,
+                "timestamp": "2024-09-14T00:24:00Z",
+                "value": null
+              }
+            ],
+            "latest": {
+              "keepa_minute": 7207224,
+              "raw_value": -1,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "value": null
+            },
+            "omitted_points": 0,
+            "point_count": 1,
+            "unit": "currency"
+          },
+          "lightning_deal": {
+            "first": {
+              "keepa_minute": 7363744,
+              "raw_value": 1599,
+              "timestamp": "2024-12-31T17:04:00Z",
+              "value": 15.99
+            },
+            "index": 8,
+            "last_points": [
+              {
+                "keepa_minute": 7539524,
+                "raw_value": 1599,
+                "timestamp": "2025-05-02T18:44:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7540216,
+                "raw_value": -1,
+                "timestamp": "2025-05-03T06:16:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7670376,
+                "raw_value": 1599,
+                "timestamp": "2025-08-01T15:36:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7671064,
+                "raw_value": -1,
+                "timestamp": "2025-08-02T03:04:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7987376,
+                "raw_value": 1599,
+                "timestamp": "2026-03-09T18:56:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7988064,
+                "raw_value": -1,
+                "timestamp": "2026-03-10T06:24:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 8002890,
+                "raw_value": 1550,
+                "timestamp": "2026-03-20T13:30:00Z",
+                "value": 15.5
+              },
+              {
+                "keepa_minute": 8003610,
+                "raw_value": -1,
+                "timestamp": "2026-03-21T01:30:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 8028824,
+                "raw_value": 1499,
+                "timestamp": "2026-04-07T13:44:00Z",
+                "value": 14.99
+              },
+              {
+                "keepa_minute": 8029516,
+                "raw_value": -1,
+                "timestamp": "2026-04-08T01:16:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 8040456,
+                "raw_value": 1499,
+                "timestamp": "2026-04-15T15:36:00Z",
+                "value": 14.99
+              },
+              {
+                "keepa_minute": 8041144,
+                "raw_value": -1,
+                "timestamp": "2026-04-16T03:04:00Z",
+                "value": null
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8041144,
+              "raw_value": -1,
+              "timestamp": "2026-04-16T03:04:00Z",
+              "value": null
+            },
+            "max_value": 15.99,
+            "min_value": 14.99,
+            "omitted_points": 18,
+            "point_count": 30,
+            "unit": "currency"
+          },
+          "list_price": {
+            "first": {
+              "keepa_minute": 7210836,
+              "raw_value": 2499,
+              "timestamp": "2024-09-16T12:36:00Z",
+              "value": 24.99
+            },
+            "index": 4,
+            "last_points": [
+              {
+                "keepa_minute": 7210836,
+                "raw_value": 2499,
+                "timestamp": "2024-09-16T12:36:00Z",
+                "value": 24.99
+              },
+              {
+                "keepa_minute": 7211364,
+                "raw_value": -1,
+                "timestamp": "2024-09-16T21:24:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7231676,
+                "raw_value": 2499,
+                "timestamp": "2024-09-30T23:56:00Z",
+                "value": 24.99
+              },
+              {
+                "keepa_minute": 7231818,
+                "raw_value": -1,
+                "timestamp": "2024-10-01T02:18:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7244664,
+                "raw_value": 2499,
+                "timestamp": "2024-10-10T00:24:00Z",
+                "value": 24.99
+              },
+              {
+                "keepa_minute": 7245192,
+                "raw_value": -1,
+                "timestamp": "2024-10-10T09:12:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7246852,
+                "raw_value": 2499,
+                "timestamp": "2024-10-11T12:52:00Z",
+                "value": 24.99
+              },
+              {
+                "keepa_minute": 7322768,
+                "raw_value": -1,
+                "timestamp": "2024-12-03T06:08:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7322954,
+                "raw_value": 2499,
+                "timestamp": "2024-12-03T09:14:00Z",
+                "value": 24.99
+              },
+              {
+                "keepa_minute": 7624600,
+                "raw_value": -1,
+                "timestamp": "2025-06-30T20:40:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7625312,
+                "raw_value": 2499,
+                "timestamp": "2025-07-01T08:32:00Z",
+                "value": 24.99
+              }
+            ],
+            "latest": {
+              "keepa_minute": 7625312,
+              "raw_value": 2499,
+              "timestamp": "2025-07-01T08:32:00Z",
+              "value": 24.99
+            },
+            "max_value": 24.99,
+            "min_value": 24.99,
+            "omitted_points": 0,
+            "point_count": 11,
+            "unit": "currency"
+          },
+          "new": {
+            "first": {
+              "keepa_minute": 7207224,
+              "raw_value": 2499,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "value": 24.99
+            },
+            "index": 1,
+            "last_points": [
+              {
+                "keepa_minute": 8054752,
+                "raw_value": 1950,
+                "timestamp": "2026-04-25T13:52:00Z",
+                "value": 19.5
+              },
+              {
+                "keepa_minute": 8054968,
+                "raw_value": 1599,
+                "timestamp": "2026-04-25T17:28:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 8055252,
+                "raw_value": 1950,
+                "timestamp": "2026-04-25T22:12:00Z",
+                "value": 19.5
+              },
+              {
+                "keepa_minute": 8055532,
+                "raw_value": 1599,
+                "timestamp": "2026-04-26T02:52:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 8055592,
+                "raw_value": 1950,
+                "timestamp": "2026-04-26T03:52:00Z",
+                "value": 19.5
+              },
+              {
+                "keepa_minute": 8056360,
+                "raw_value": 1599,
+                "timestamp": "2026-04-26T16:40:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 8056508,
+                "raw_value": 1950,
+                "timestamp": "2026-04-26T19:08:00Z",
+                "value": 19.5
+              },
+              {
+                "keepa_minute": 8056596,
+                "raw_value": 1599,
+                "timestamp": "2026-04-26T20:36:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 8056678,
+                "raw_value": 1950,
+                "timestamp": "2026-04-26T21:58:00Z",
+                "value": 19.5
+              },
+              {
+                "keepa_minute": 8056804,
+                "raw_value": 1599,
+                "timestamp": "2026-04-27T00:04:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 8056832,
+                "raw_value": 1950,
+                "timestamp": "2026-04-27T00:32:00Z",
+                "value": 19.5
+              },
+              {
+                "keepa_minute": 8057266,
+                "raw_value": 1499,
+                "timestamp": "2026-04-27T07:46:00Z",
+                "value": 14.99
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8057266,
+              "raw_value": 1499,
+              "timestamp": "2026-04-27T07:46:00Z",
+              "value": 14.99
+            },
+            "max_value": 24.99,
+            "min_value": 14.99,
+            "omitted_points": 117,
+            "point_count": 129,
+            "unit": "currency"
+          },
+          "new_fba_offer_count": {
+            "first": {
+              "keepa_minute": 7947768,
+              "raw_value": 2,
+              "timestamp": "2026-02-10T06:48:00Z",
+              "value": 2
+            },
+            "index": 34,
+            "last_points": [
+              {
+                "keepa_minute": 8012038,
+                "raw_value": 3,
+                "timestamp": "2026-03-26T21:58:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8015472,
+                "raw_value": 2,
+                "timestamp": "2026-03-29T07:12:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8023544,
+                "raw_value": 3,
+                "timestamp": "2026-04-03T21:44:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8037586,
+                "raw_value": 4,
+                "timestamp": "2026-04-13T15:46:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8037852,
+                "raw_value": 3,
+                "timestamp": "2026-04-13T20:12:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8047094,
+                "raw_value": 2,
+                "timestamp": "2026-04-20T06:14:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8059470,
+                "raw_value": 3,
+                "timestamp": "2026-04-28T20:30:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8063404,
+                "raw_value": 4,
+                "timestamp": "2026-05-01T14:04:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8065220,
+                "raw_value": 3,
+                "timestamp": "2026-05-02T20:20:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8066930,
+                "raw_value": 2,
+                "timestamp": "2026-05-04T00:50:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8075762,
+                "raw_value": 3,
+                "timestamp": "2026-05-10T04:02:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8075830,
+                "raw_value": 2,
+                "timestamp": "2026-05-10T05:10:00Z",
+                "value": 2
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8075830,
+              "raw_value": 2,
+              "timestamp": "2026-05-10T05:10:00Z",
+              "value": 2
+            },
+            "max_value": 4,
+            "min_value": 1,
+            "omitted_points": 17,
+            "point_count": 29,
+            "unit": "count"
+          },
+          "new_fbm_offer_count": {
+            "first": {
+              "keepa_minute": 7947768,
+              "raw_value": 1,
+              "timestamp": "2026-02-10T06:48:00Z",
+              "value": 1
+            },
+            "index": 35,
+            "last_points": [
+              {
+                "keepa_minute": 8055252,
+                "raw_value": 1,
+                "timestamp": "2026-04-25T22:12:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8055532,
+                "raw_value": 2,
+                "timestamp": "2026-04-26T02:52:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8056508,
+                "raw_value": 1,
+                "timestamp": "2026-04-26T19:08:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8056596,
+                "raw_value": 2,
+                "timestamp": "2026-04-26T20:36:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8056678,
+                "raw_value": 1,
+                "timestamp": "2026-04-26T21:58:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8056804,
+                "raw_value": 2,
+                "timestamp": "2026-04-27T00:04:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8056832,
+                "raw_value": 1,
+                "timestamp": "2026-04-27T00:32:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8059992,
+                "raw_value": 2,
+                "timestamp": "2026-04-29T05:12:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8060368,
+                "raw_value": 1,
+                "timestamp": "2026-04-29T11:28:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8061420,
+                "raw_value": 2,
+                "timestamp": "2026-04-30T05:00:00Z",
+                "value": 2
+              },
+              {
+                "keepa_minute": 8062058,
+                "raw_value": 1,
+                "timestamp": "2026-04-30T15:38:00Z",
+                "value": 1
+              },
+              {
+                "keepa_minute": 8072348,
+                "raw_value": 2,
+                "timestamp": "2026-05-07T19:08:00Z",
+                "value": 2
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8072348,
+              "raw_value": 2,
+              "timestamp": "2026-05-07T19:08:00Z",
+              "value": 2
+            },
+            "max_value": 3,
+            "min_value": 1,
+            "omitted_points": 62,
+            "point_count": 74,
+            "unit": "count"
+          },
+          "new_offer_count": {
+            "first": {
+              "keepa_minute": 7207224,
+              "raw_value": 1,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "value": 1
+            },
+            "index": 11,
+            "last_points": [
+              {
+                "keepa_minute": 8056832,
+                "raw_value": 3,
+                "timestamp": "2026-04-27T00:32:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8059470,
+                "raw_value": 4,
+                "timestamp": "2026-04-28T20:30:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8059992,
+                "raw_value": 5,
+                "timestamp": "2026-04-29T05:12:00Z",
+                "value": 5
+              },
+              {
+                "keepa_minute": 8060368,
+                "raw_value": 4,
+                "timestamp": "2026-04-29T11:28:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8061420,
+                "raw_value": 5,
+                "timestamp": "2026-04-30T05:00:00Z",
+                "value": 5
+              },
+              {
+                "keepa_minute": 8062058,
+                "raw_value": 4,
+                "timestamp": "2026-04-30T15:38:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8063404,
+                "raw_value": 5,
+                "timestamp": "2026-05-01T14:04:00Z",
+                "value": 5
+              },
+              {
+                "keepa_minute": 8065220,
+                "raw_value": 4,
+                "timestamp": "2026-05-02T20:20:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8066930,
+                "raw_value": 3,
+                "timestamp": "2026-05-04T00:50:00Z",
+                "value": 3
+              },
+              {
+                "keepa_minute": 8072348,
+                "raw_value": 4,
+                "timestamp": "2026-05-07T19:08:00Z",
+                "value": 4
+              },
+              {
+                "keepa_minute": 8075762,
+                "raw_value": 5,
+                "timestamp": "2026-05-10T04:02:00Z",
+                "value": 5
+              },
+              {
+                "keepa_minute": 8075830,
+                "raw_value": 4,
+                "timestamp": "2026-05-10T05:10:00Z",
+                "value": 4
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8075830,
+              "raw_value": 4,
+              "timestamp": "2026-05-10T05:10:00Z",
+              "value": 4
+            },
+            "max_value": 5,
+            "min_value": 1,
+            "omitted_points": 184,
+            "point_count": 196,
+            "unit": "count"
+          },
+          "prime_exclusive": {
+            "first": {
+              "keepa_minute": 7243412,
+              "raw_value": 1599,
+              "timestamp": "2024-10-09T03:32:00Z",
+              "value": 15.99
+            },
+            "index": 33,
+            "last_points": [
+              {
+                "keepa_minute": 7243412,
+                "raw_value": 1599,
+                "timestamp": "2024-10-09T03:32:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7245192,
+                "raw_value": -1,
+                "timestamp": "2024-10-10T09:12:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7305770,
+                "raw_value": 1599,
+                "timestamp": "2024-11-21T10:50:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7322954,
+                "raw_value": -1,
+                "timestamp": "2024-12-03T09:14:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7635536,
+                "raw_value": 1599,
+                "timestamp": "2025-07-08T10:56:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7635784,
+                "raw_value": -1,
+                "timestamp": "2025-07-08T15:04:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7635860,
+                "raw_value": 1599,
+                "timestamp": "2025-07-08T16:20:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7637012,
+                "raw_value": -1,
+                "timestamp": "2025-07-09T11:32:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7637030,
+                "raw_value": 1599,
+                "timestamp": "2025-07-09T11:50:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7641206,
+                "raw_value": -1,
+                "timestamp": "2025-07-12T09:26:00Z",
+                "value": null
+              },
+              {
+                "keepa_minute": 7766372,
+                "raw_value": 1599,
+                "timestamp": "2025-10-07T07:32:00Z",
+                "value": 15.99
+              },
+              {
+                "keepa_minute": 7769262,
+                "raw_value": -1,
+                "timestamp": "2025-10-09T07:42:00Z",
+                "value": null
+              }
+            ],
+            "latest": {
+              "keepa_minute": 7769262,
+              "raw_value": -1,
+              "timestamp": "2025-10-09T07:42:00Z",
+              "value": null
+            },
+            "max_value": 15.99,
+            "min_value": 15.99,
+            "omitted_points": 0,
+            "point_count": 12,
+            "unit": "currency"
+          },
+          "refurbished_offer_count": {
+            "first": {
+              "keepa_minute": 7940170,
+              "raw_value": -1,
+              "timestamp": "2026-02-05T00:10:00Z",
+              "value": null
+            },
+            "index": 13,
+            "last_points": [
+              {
+                "keepa_minute": 7940170,
+                "raw_value": -1,
+                "timestamp": "2026-02-05T00:10:00Z",
+                "value": null
+              }
+            ],
+            "latest": {
+              "keepa_minute": 7940170,
+              "raw_value": -1,
+              "timestamp": "2026-02-05T00:10:00Z",
+              "value": null
+            },
+            "omitted_points": 0,
+            "point_count": 1,
+            "unit": "count"
+          },
+          "sales_rank": {
+            "first": {
+              "keepa_minute": 7208104,
+              "raw_value": 272670,
+              "timestamp": "2024-09-14T15:04:00Z",
+              "value": 272670
+            },
+            "index": 3,
+            "last_points": [
+              {
+                "keepa_minute": 8066868,
+                "raw_value": 22,
+                "timestamp": "2026-05-03T23:48:00Z",
+                "value": 22
+              },
+              {
+                "keepa_minute": 8067140,
+                "raw_value": 23,
+                "timestamp": "2026-05-04T04:20:00Z",
+                "value": 23
+              },
+              {
+                "keepa_minute": 8068496,
+                "raw_value": 24,
+                "timestamp": "2026-05-05T02:56:00Z",
+                "value": 24
+              },
+              {
+                "keepa_minute": 8068684,
+                "raw_value": 26,
+                "timestamp": "2026-05-05T06:04:00Z",
+                "value": 26
+              },
+              {
+                "keepa_minute": 8070100,
+                "raw_value": 28,
+                "timestamp": "2026-05-06T05:40:00Z",
+                "value": 28
+              },
+              {
+                "keepa_minute": 8071208,
+                "raw_value": 25,
+                "timestamp": "2026-05-07T00:08:00Z",
+                "value": 25
+              },
+              {
+                "keepa_minute": 8071568,
+                "raw_value": 26,
+                "timestamp": "2026-05-07T06:08:00Z",
+                "value": 26
+              },
+              {
+                "keepa_minute": 8072572,
+                "raw_value": 24,
+                "timestamp": "2026-05-07T22:52:00Z",
+                "value": 24
+              },
+              {
+                "keepa_minute": 8073004,
+                "raw_value": 26,
+                "timestamp": "2026-05-08T06:04:00Z",
+                "value": 26
+              },
+              {
+                "keepa_minute": 8073304,
+                "raw_value": 25,
+                "timestamp": "2026-05-08T11:04:00Z",
+                "value": 25
+              },
+              {
+                "keepa_minute": 8075600,
+                "raw_value": 23,
+                "timestamp": "2026-05-10T01:20:00Z",
+                "value": 23
+              },
+              {
+                "keepa_minute": 8075852,
+                "raw_value": 24,
+                "timestamp": "2026-05-10T05:32:00Z",
+                "value": 24
+              }
+            ],
+            "latest": {
+              "keepa_minute": 8075852,
+              "raw_value": 24,
+              "timestamp": "2026-05-10T05:32:00Z",
+              "value": 24
+            },
+            "max_value": 968736,
+            "min_value": 9,
+            "omitted_points": 2729,
+            "point_count": 2741,
+            "unit": "rank"
+          },
+          "used": {
+            "first": {
+              "keepa_minute": 7207224,
+              "raw_value": -1,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "value": null
+            },
+            "index": 2,
+            "last_points": [
+              {
+                "keepa_minute": 7207224,
+                "raw_value": -1,
+                "timestamp": "2024-09-14T00:24:00Z",
+                "value": null
+              }
+            ],
+            "latest": {
+              "keepa_minute": 7207224,
+              "raw_value": -1,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "value": null
+            },
+            "omitted_points": 0,
+            "point_count": 1,
+            "unit": "currency"
+          }
+        },
+        "series_count": 11
+      },
+      "identity": {
+        "asin": "B0D8W1YVBX",
+        "brand": "EQQUALBERRY",
+        "domain_id": 1,
+        "is_adult_product": false,
+        "is_redirect_asin": false,
+        "item_type_keyword": "facial-serums",
+        "manufacturer": "boosters",
+        "part_number": "EQQ-DC-VTM",
+        "product_type": 0,
+        "title": "EQQUALBERRY Vitamin Illuminating Serum | Niacinamide 4% + Brightening Vitamin C Face Serum with Hyaluronic Acid & Vitamin E | Dark Spot, Uneven Tone Care | Korean Skincare, 1.01 fl.oz",
+        "type": "SKIN_SERUM",
+        "url_slug": "EQQUALBERRY-Vitamin-Illuminating-Serum-Brightening"
+      },
+      "media": {
+        "image_count": 9,
+        "images": [
+          {
+            "large": "https://m.media-amazon.com/images/I/614vlOIc8YL.jpg",
+            "large_height": 1500,
+            "large_width": 1500,
+            "medium": "https://m.media-amazon.com/images/I/41yge5fmwKL.jpg"
+          },
+          {
+            "large": "https://m.media-amazon.com/images/I/71DguQxEgBL.jpg",
+            "large_height": 1500,
+            "large_width": 1500,
+            "medium": "https://m.media-amazon.com/images/I/51IuT9UD83L.jpg"
+          },
+          {
+            "large": "https://m.media-amazon.com/images/I/61SfukLoJmL.jpg",
+            "large_height": 1500,
+            "large_width": 1500,
+            "medium": "https://m.media-amazon.com/images/I/41VEkmUmywL.jpg"
+          },
+          {
+            "large": "https://m.media-amazon.com/images/I/71BmMnxG3wL.jpg",
+            "large_height": 1500,
+            "large_width": 1500,
+            "medium": "https://m.media-amazon.com/images/I/41BM2ctKeaL.jpg"
+          },
+          {
+            "large": "https://m.media-amazon.com/images/I/71VSvStetFL.jpg",
+            "large_height": 1500,
+            "large_width": 1500,
+            "medium": "https://m.media-amazon.com/images/I/51SURU7JUtL.jpg"
+          }
+        ],
+        "video_count": 11,
+        "videos": [
+          {
+            "creator": "Main",
+            "image": "https://m.media-amazon.com/images/I/71iyuLOFc4L.jpg",
+            "url": "https://m.media-amazon.com/images/S/vse-vms-transcoding-artifact-us-east-1-prod/699dd45a-39bf-4a71-83d5-cdd15ac9886f/default.vertical.jobtemplate.hls.m3u8"
+          },
+          {
+            "creator": "Influencer",
+            "duration_seconds": 40,
+            "image": "https://m.media-amazon.com/images/I/7194KqgQQqL.jpg",
+            "title": "Excellent for Strawberry Skin",
+            "url": "https://m.media-amazon.com/images/S/vse-vms-transcoding-artifact-us-east-1-prod/0cf62cb5-a3b6-4b29-b0a4-8cbb071d2876/default.vertical.jobtemplate.hls.m3u8"
+          },
+          {
+            "creator": "Customer",
+            "duration_seconds": 59,
+            "image": "https://m.media-amazon.com/images/I/51Lc5rKFR1L.jpg",
+            "title": "I feel really soft when you’re applying the cream",
+            "url": "https://m.media-amazon.com/images/S/vse-vms-transcoding-artifact-us-east-1-prod/6c068f87-2d9e-43c5-8a16-47e933ea93fc/default.vertical.jobtemplate.hls.m3u8"
+          },
+          {
+            "creator": "Influencer",
+            "duration_seconds": 129,
+            "image": "https://m.media-amazon.com/images/I/81fEFTiIJVL.png",
+            "title": "Radiant and hydrated skin",
+            "url": "https://m.media-amazon.com/images/S/vse-vms-transcoding-artifact-us-east-1-prod/fa2ce2d8-d697-4900-9255-1fef814b3304/default.jobtemplate.hls.m3u8"
+          },
+          {
+            "creator": "Influencer",
+            "duration_seconds": 62,
+            "image": "https://m.media-amazon.com/images/I/71Ss6Gb+pKL.jpg",
+            "title": "Watch my skin change drastically!",
+            "url": "https://m.media-amazon.com/images/S/vse-vms-transcoding-artifact-us-east-1-prod/a9edae89-9161-4ed9-9eec-3d1ec89968eb/default.vertical.jobtemplate.hls.m3u8"
+          }
+        ]
+      },
+      "next_actions": [
+        {
+          "command": "products get B0D8W1YVBX --domain <DOMAIN> --full --offers 20 --agent-view --view deal",
+          "estimated_tokens": 6,
+          "reason": "offer detail is missing; request one offer page only if seller-level competition matters"
+        },
+        {
+          "command": "products get B0D8W1YVBX --domain <DOMAIN> --full --rating 1 --agent-view --view research",
+          "estimated_tokens": 1,
+          "reason": "rating or review count is missing"
+        }
+      ],
+      "offers": {
+        "buy_box_eligible_offer_counts": {
+          "collectible_fba": 0,
+          "collectible_fbm": 0,
+          "new_fba": 2,
+          "new_fbm": 2,
+          "refurbished_fba": 0,
+          "refurbished_fbm": 0,
+          "used_fba": 0,
+          "used_fbm": 0
+        },
+        "offers_successful": false,
+        "out_of_stock_percentage": {
+          "180": {
+            "amazon": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "lightning_deal": {
+              "raw_value": 99,
+              "unit": "percent",
+              "value": 99
+            },
+            "new": {
+              "raw_value": 0,
+              "unit": "percent",
+              "value": 0
+            },
+            "prime_exclusive": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "used": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            }
+          },
+          "30": {
+            "amazon": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "lightning_deal": {
+              "raw_value": 99,
+              "unit": "percent",
+              "value": 99
+            },
+            "new": {
+              "raw_value": 0,
+              "unit": "percent",
+              "value": 0
+            },
+            "prime_exclusive": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "used": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            }
+          },
+          "365": {
+            "amazon": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "lightning_deal": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "new": {
+              "raw_value": 0,
+              "unit": "percent",
+              "value": 0
+            },
+            "prime_exclusive": {
+              "raw_value": 99,
+              "unit": "percent",
+              "value": 99
+            },
+            "used": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            }
+          },
+          "90": {
+            "amazon": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "lightning_deal": {
+              "raw_value": 98,
+              "unit": "percent",
+              "value": 98
+            },
+            "new": {
+              "raw_value": 0,
+              "unit": "percent",
+              "value": 0
+            },
+            "prime_exclusive": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            },
+            "used": {
+              "raw_value": 100,
+              "unit": "percent",
+              "value": 100
+            }
+          }
+        },
+        "total_offer_count": 4
+      },
+      "pricing": {
+        "avg180": {
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 18.49,
+            "currency_value": 18.49,
+            "raw_value": 1849,
+            "unit": "currency",
+            "value": 18.49
+          }
+        },
+        "avg30": {
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 17.41,
+            "currency_value": 17.41,
+            "raw_value": 1741,
+            "unit": "currency",
+            "value": 17.41
+          }
+        },
+        "avg90": {
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 17.97,
+            "currency_value": 17.97,
+            "raw_value": 1797,
+            "unit": "currency",
+            "value": 17.97
+          }
+        },
+        "competitive_price_threshold": {
+          "amount": 26.24,
+          "raw_value": 2624,
+          "unit": "currency"
+        },
+        "coupon_history": {
+          "last_points": [
+            {
+              "keepa_minute": -10,
+              "timestamp": "2010-12-31T23:50:00Z",
+              "value": 7463730
+            },
+            {
+              "keepa_minute": 0,
+              "timestamp": "2011-01-01T00:00:00Z",
+              "value": 0
+            },
+            {
+              "keepa_minute": 7901972,
+              "timestamp": "2026-01-09T11:32:00Z",
+              "value": -10
+            },
+            {
+              "keepa_minute": 0,
+              "timestamp": "2011-01-01T00:00:00Z",
+              "value": 7906322
+            },
+            {
+              "keepa_minute": 0,
+              "timestamp": "2011-01-01T00:00:00Z",
+              "value": 0
+            }
+          ],
+          "latest": {
+            "keepa_minute": 0,
+            "timestamp": "2011-01-01T00:00:00Z",
+            "value": 0
+          },
+          "omitted_points": 13,
+          "point_count": 18
+        },
+        "current": {
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 14.99,
+            "currency_value": 14.99,
+            "raw_value": 1499,
+            "unit": "currency",
+            "value": 14.99
+          }
+        },
+        "promotions": [
+          {
+            "amount": 1799,
+            "discountPercent": 10,
+            "sellerId": "AFZNN5H6MIT2Z",
+            "snsBulkDiscountPercent": null,
+            "type": "SNS"
+          }
+        ]
+      },
+      "rating": {
+        "has_reviews": true,
+        "last_rating_update": {
+          "keepa_minute": 8075852,
+          "timestamp": "2026-05-10T05:32:00Z"
+        },
+        "reviews_object_available": false
+      },
+      "raw_field_presence": {
+        "aPlus": true,
+        "buyBoxSellerIdHistory": false,
+        "couponHistory": true,
+        "csv": true,
+        "images": true,
+        "liveOffersOrder": false,
+        "monthlySoldHistory": true,
+        "offers": false,
+        "reviews": false,
+        "stats": true,
+        "variations": false,
+        "videos": true
+      },
+      "selection_signals": {
+        "competition": {
+          "total_offer_count": 4
+        },
+        "content_quality": {
+          "aplus_available": true,
+          "aplus_module_count": 7,
+          "image_count": 9,
+          "video_count": 11
+        },
+        "demand": {
+          "monthly_sold": 100000,
+          "sales_rank": 24,
+          "sales_rank_drops": {
+            "180": 165,
+            "30": 35,
+            "365": 424,
+            "90": 74
+          }
+        },
+        "price_stability": {
+          "current_new": 14.99,
+          "history_series": 11,
+          "new_price_change_pct": -40.016,
+          "new_price_trend": "down",
+          "new_price_volatility_cv": 0.1149,
+          "sales_rank_change_pct": -99.9912,
+          "sales_rank_trend": "down"
+        },
+        "risk_flags": [
+          "missing_rating",
+          "missing_review_count"
+        ]
+      },
+      "stats_summary": {
+        "avg180": {
+          "lightning_deal": {
+            "amount": 15.36,
+            "currency_value": 15.36,
+            "raw_value": 1536,
+            "unit": "currency",
+            "value": 15.36
+          },
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 18.49,
+            "currency_value": 18.49,
+            "raw_value": 1849,
+            "unit": "currency",
+            "value": 18.49
+          },
+          "new_fba_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "new_fbm_offer_count": {
+            "raw_value": 1,
+            "unit": "count",
+            "value": 1
+          },
+          "new_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "sales_rank": {
+            "raw_value": 63,
+            "unit": "rank",
+            "value": 63
+          }
+        },
+        "avg30": {
+          "lightning_deal": {
+            "amount": 14.98,
+            "currency_value": 14.98,
+            "raw_value": 1498,
+            "unit": "currency",
+            "value": 14.98
+          },
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 17.41,
+            "currency_value": 17.41,
+            "raw_value": 1741,
+            "unit": "currency",
+            "value": 17.41
+          },
+          "new_fba_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "new_fbm_offer_count": {
+            "raw_value": 1,
+            "unit": "count",
+            "value": 1
+          },
+          "new_offer_count": {
+            "raw_value": 3,
+            "unit": "count",
+            "value": 3
+          },
+          "sales_rank": {
+            "raw_value": 43,
+            "unit": "rank",
+            "value": 43
+          }
+        },
+        "avg365": {
+          "lightning_deal": {
+            "amount": 15.49,
+            "currency_value": 15.49,
+            "raw_value": 1549,
+            "unit": "currency",
+            "value": 15.49
+          },
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 19.08,
+            "currency_value": 19.08,
+            "raw_value": 1908,
+            "unit": "currency",
+            "value": 19.08
+          },
+          "new_fba_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "new_fbm_offer_count": {
+            "raw_value": 1,
+            "unit": "count",
+            "value": 1
+          },
+          "new_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "prime_exclusive": {
+            "amount": 15.98,
+            "currency_value": 15.98,
+            "raw_value": 1598,
+            "unit": "currency",
+            "value": 15.98
+          },
+          "sales_rank": {
+            "raw_value": 655,
+            "unit": "rank",
+            "value": 655
+          }
+        },
+        "avg90": {
+          "lightning_deal": {
+            "amount": 15.36,
+            "currency_value": 15.36,
+            "raw_value": 1536,
+            "unit": "currency",
+            "value": 15.36
+          },
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 17.97,
+            "currency_value": 17.97,
+            "raw_value": 1797,
+            "unit": "currency",
+            "value": 17.97
+          },
+          "new_fba_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "new_fbm_offer_count": {
+            "raw_value": 1,
+            "unit": "count",
+            "value": 1
+          },
+          "new_offer_count": {
+            "raw_value": 3,
+            "unit": "count",
+            "value": 3
+          },
+          "sales_rank": {
+            "raw_value": 27,
+            "unit": "rank",
+            "value": 27
+          }
+        },
+        "current": {
+          "list_price": {
+            "amount": 24.99,
+            "currency_value": 24.99,
+            "raw_value": 2499,
+            "unit": "currency",
+            "value": 24.99
+          },
+          "new": {
+            "amount": 14.99,
+            "currency_value": 14.99,
+            "raw_value": 1499,
+            "unit": "currency",
+            "value": 14.99
+          },
+          "new_fba_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "new_fbm_offer_count": {
+            "raw_value": 2,
+            "unit": "count",
+            "value": 2
+          },
+          "new_offer_count": {
+            "raw_value": 4,
+            "unit": "count",
+            "value": 4
+          },
+          "sales_rank": {
+            "raw_value": 24,
+            "unit": "rank",
+            "value": 24
+          }
+        },
+        "ranges": {
+          "max": {
+            "lightning_deal": {
+              "amount": 15.99,
+              "currency_value": 15.99,
+              "keepa_minute": 7363744,
+              "raw_value": 1599,
+              "timestamp": "2024-12-31T17:04:00Z",
+              "unit": "currency",
+              "value": 15.99
+            },
+            "list_price": {
+              "amount": 24.99,
+              "currency_value": 24.99,
+              "keepa_minute": 7210836,
+              "raw_value": 2499,
+              "timestamp": "2024-09-16T12:36:00Z",
+              "unit": "currency",
+              "value": 24.99
+            },
+            "new": {
+              "amount": 24.99,
+              "currency_value": 24.99,
+              "keepa_minute": 7207224,
+              "raw_value": 2499,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "unit": "currency",
+              "value": 24.99
+            },
+            "new_fba_offer_count": {
+              "keepa_minute": 8037586,
+              "raw_value": 4,
+              "timestamp": "2026-04-13T15:46:00Z",
+              "unit": "count",
+              "value": 4
+            },
+            "new_fbm_offer_count": {
+              "keepa_minute": 7988412,
+              "raw_value": 3,
+              "timestamp": "2026-03-10T12:12:00Z",
+              "unit": "count",
+              "value": 3
+            },
+            "new_offer_count": {
+              "keepa_minute": 7994424,
+              "raw_value": 5,
+              "timestamp": "2026-03-14T16:24:00Z",
+              "unit": "count",
+              "value": 5
+            },
+            "prime_exclusive": {
+              "amount": 15.99,
+              "currency_value": 15.99,
+              "keepa_minute": 7243412,
+              "raw_value": 1599,
+              "timestamp": "2024-10-09T03:32:00Z",
+              "unit": "currency",
+              "value": 15.99
+            },
+            "sales_rank": {
+              "keepa_minute": 7240032,
+              "raw_value": 968736,
+              "timestamp": "2024-10-06T19:12:00Z",
+              "unit": "rank",
+              "value": 968736
+            }
+          },
+          "min": {
+            "lightning_deal": {
+              "amount": 14.99,
+              "currency_value": 14.99,
+              "keepa_minute": 8028824,
+              "raw_value": 1499,
+              "timestamp": "2026-04-07T13:44:00Z",
+              "unit": "currency",
+              "value": 14.99
+            },
+            "list_price": {
+              "amount": 24.99,
+              "currency_value": 24.99,
+              "keepa_minute": 7210836,
+              "raw_value": 2499,
+              "timestamp": "2024-09-16T12:36:00Z",
+              "unit": "currency",
+              "value": 24.99
+            },
+            "new": {
+              "amount": 14.99,
+              "currency_value": 14.99,
+              "keepa_minute": 8009716,
+              "raw_value": 1499,
+              "timestamp": "2026-03-25T07:16:00Z",
+              "unit": "currency",
+              "value": 14.99
+            },
+            "new_fba_offer_count": {
+              "keepa_minute": 7982512,
+              "raw_value": 1,
+              "timestamp": "2026-03-06T09:52:00Z",
+              "unit": "count",
+              "value": 1
+            },
+            "new_fbm_offer_count": {
+              "keepa_minute": 7947768,
+              "raw_value": 1,
+              "timestamp": "2026-02-10T06:48:00Z",
+              "unit": "count",
+              "value": 1
+            },
+            "new_offer_count": {
+              "keepa_minute": 7207224,
+              "raw_value": 1,
+              "timestamp": "2024-09-14T00:24:00Z",
+              "unit": "count",
+              "value": 1
+            },
+            "prime_exclusive": {
+              "amount": 15.99,
+              "currency_value": 15.99,
+              "keepa_minute": 7243412,
+              "raw_value": 1599,
+              "timestamp": "2024-10-09T03:32:00Z",
+              "unit": "currency",
+              "value": 15.99
+            },
+            "sales_rank": {
+              "keepa_minute": 7968592,
+              "raw_value": 9,
+              "timestamp": "2026-02-24T17:52:00Z",
+              "unit": "rank",
+              "value": 9
+            }
+          }
+        }
+      },
+      "temporal_features": {
+        "available": true,
+        "series": {
+          "new": {
+            "change_abs": -10.0,
+            "change_pct": -40.016,
+            "change_profile": {
+              "avg_abs_step": 2.8891,
+              "direction_change_count": 112,
+              "down_steps": 67,
+              "flat_steps": 0,
+              "last_step": -4.51,
+              "max_abs_step": 9.0,
+              "up_steps": 61
+            },
+            "dispersion": {
+              "iqr": 3.49,
+              "mad": 0.49,
+              "median": 19.5,
+              "q1": 16.5,
+              "q3": 19.99
+            },
+            "duration_days": 590.307,
+            "first_value": 24.99,
+            "latest_percentile": 0.0155,
+            "latest_value": 14.99,
+            "latest_zscore": -1.7051,
+            "max_value": 24.99,
+            "mean_value": 18.6411,
+            "median_value": 19.5,
+            "min_value": 14.99,
+            "name": "new",
+            "outliers": {
+              "count": 50,
+              "method": "mad",
+              "ratio": 0.3876,
+              "threshold": 2.1794
+            },
+            "point_count": 129,
+            "previous_change_abs": -4.51,
+            "previous_change_pct": -23.1282,
+            "previous_value": 19.5,
+            "range_abs": 10.0,
+            "range_pct_of_mean": 53.6449,
+            "recent_180d": {
+              "baseline_timestamp": "2025-11-07T08:56:00Z",
+              "baseline_value": 15.99,
+              "change_abs": -1.0,
+              "change_pct": -6.2539,
+              "latest_timestamp": "2026-04-27T07:46:00Z",
+              "latest_value": 14.99,
+              "observed_days": 170.951,
+              "trend_direction": "down"
+            },
+            "recent_30d": {
+              "baseline_timestamp": "2026-04-01T07:36:00Z",
+              "baseline_value": 19.99,
+              "change_abs": -5.0,
+              "change_pct": -25.0125,
+              "latest_timestamp": "2026-04-27T07:46:00Z",
+              "latest_value": 14.99,
+              "observed_days": 26.007,
+              "trend_direction": "down"
+            },
+            "recent_365d": {
+              "baseline_timestamp": "2025-05-05T08:32:00Z",
+              "baseline_value": 15.99,
+              "change_abs": -1.0,
+              "change_pct": -6.2539,
+              "latest_timestamp": "2026-04-27T07:46:00Z",
+              "latest_value": 14.99,
+              "observed_days": 356.968,
+              "trend_direction": "down"
+            },
+            "recent_7d": {
+              "baseline_timestamp": "2026-04-20T17:44:00Z",
+              "baseline_value": 17.2,
+              "change_abs": -2.21,
+              "change_pct": -12.8488,
+              "latest_timestamp": "2026-04-27T07:46:00Z",
+              "latest_value": 14.99,
+              "observed_days": 6.585,
+              "trend_direction": "down"
+            },
+            "recent_90d": {
+              "baseline_timestamp": "2026-02-06T08:20:00Z",
+              "baseline_value": 17.99,
+              "change_abs": -3.0,
+              "change_pct": -16.6759,
+              "latest_timestamp": "2026-04-27T07:46:00Z",
+              "latest_value": 14.99,
+              "observed_days": 79.976,
+              "trend_direction": "down"
+            },
+            "sampling": {
+              "avg_interval_days": 4.6118,
+              "max_gap_days": 71.9403,
+              "median_interval_days": 0.4757,
+              "points_per_30d": 6.5559
+            },
+            "shape": {
+              "latest_vs_max_pct": -40.016,
+              "latest_vs_min_pct": 0.0,
+              "longest_down_streak": 3,
+              "longest_up_streak": 2,
+              "max_drawdown_abs": -10.0,
+              "max_runup_abs": 9.0
+            },
+            "slope_per_day": -0.0169,
+            "trend_direction": "down",
+            "unit": "currency",
+            "volatility_cv": 0.1149,
+            "windows": {
+              "recent_180d": {
+                "baseline_timestamp": "2025-11-07T08:56:00Z",
+                "baseline_value": 15.99,
+                "change_abs": -1.0,
+                "change_pct": -6.2539,
+                "latest_timestamp": "2026-04-27T07:46:00Z",
+                "latest_value": 14.99,
+                "observed_days": 170.951,
+                "trend_direction": "down"
+              },
+              "recent_30d": {
+                "baseline_timestamp": "2026-04-01T07:36:00Z",
+                "baseline_value": 19.99,
+                "change_abs": -5.0,
+                "change_pct": -25.0125,
+                "latest_timestamp": "2026-04-27T07:46:00Z",
+                "latest_value": 14.99,
+                "observed_days": 26.007,
+                "trend_direction": "down"
+              },
+              "recent_365d": {
+                "baseline_timestamp": "2025-05-05T08:32:00Z",
+                "baseline_value": 15.99,
+                "change_abs": -1.0,
+                "change_pct": -6.2539,
+                "latest_timestamp": "2026-04-27T07:46:00Z",
+                "latest_value": 14.99,
+                "observed_days": 356.968,
+                "trend_direction": "down"
+              },
+              "recent_7d": {
+                "baseline_timestamp": "2026-04-20T17:44:00Z",
+                "baseline_value": 17.2,
+                "change_abs": -2.21,
+                "change_pct": -12.8488,
+                "latest_timestamp": "2026-04-27T07:46:00Z",
+                "latest_value": 14.99,
+                "observed_days": 6.585,
+                "trend_direction": "down"
+              },
+              "recent_90d": {
+                "baseline_timestamp": "2026-02-06T08:20:00Z",
+                "baseline_value": 17.99,
+                "change_abs": -3.0,
+                "change_pct": -16.6759,
+                "latest_timestamp": "2026-04-27T07:46:00Z",
+                "latest_value": 14.99,
+                "observed_days": 79.976,
+                "trend_direction": "down"
+              }
+            }
+          },
+          "new_fba_offer_count": {
+            "change_abs": 0.0,
+            "change_pct": 0.0,
+            "change_profile": {
+              "avg_abs_step": 1.0,
+              "direction_change_count": 21,
+              "down_steps": 14,
+              "flat_steps": 0,
+              "last_step": -1.0,
+              "max_abs_step": 1.0,
+              "up_steps": 14
+            },
+            "dispersion": {
+              "iqr": 1.0,
+              "mad": 1.0,
+              "median": 2.0,
+              "q1": 2.0,
+              "q3": 3.0
+            },
+            "duration_days": 88.932,
+            "first_value": 2.0,
+            "latest_percentile": 0.6897,
+            "latest_value": 2.0,
+            "latest_zscore": -0.1604,
+            "max_value": 4.0,
+            "mean_value": 2.1379,
+            "median_value": 2.0,
+            "min_value": 1.0,
+            "name": "new_fba_offer_count",
+            "outliers": {
+              "count": 0,
+              "method": "mad",
+              "ratio": 0.0,
+              "threshold": 4.4478
+            },
+            "point_count": 29,
+            "previous_change_abs": -1.0,
+            "previous_change_pct": -33.3333,
+            "previous_value": 3.0,
+            "range_abs": 3.0,
+            "range_pct_of_mean": 140.3226,
+            "recent_180d": {
+              "baseline_timestamp": "2026-02-10T06:48:00Z",
+              "baseline_value": 2.0,
+              "change_abs": 0.0,
+              "change_pct": 0.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 2.0,
+              "observed_days": 88.932,
+              "trend_direction": "flat"
+            },
+            "recent_30d": {
+              "baseline_timestamp": "2026-04-13T15:46:00Z",
+              "baseline_value": 4.0,
+              "change_abs": -2.0,
+              "change_pct": -50.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 2.0,
+              "observed_days": 26.558,
+              "trend_direction": "down"
+            },
+            "recent_365d": {
+              "baseline_timestamp": "2026-02-10T06:48:00Z",
+              "baseline_value": 2.0,
+              "change_abs": 0.0,
+              "change_pct": 0.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 2.0,
+              "observed_days": 88.932,
+              "trend_direction": "flat"
+            },
+            "recent_7d": {
+              "baseline_timestamp": "2026-05-04T00:50:00Z",
+              "baseline_value": 2.0,
+              "change_abs": 0.0,
+              "change_pct": 0.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 2.0,
+              "observed_days": 6.181,
+              "trend_direction": "flat"
+            },
+            "recent_90d": {
+              "baseline_timestamp": "2026-02-10T06:48:00Z",
+              "baseline_value": 2.0,
+              "change_abs": 0.0,
+              "change_pct": 0.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 2.0,
+              "observed_days": 88.932,
+              "trend_direction": "flat"
+            },
+            "sampling": {
+              "avg_interval_days": 3.1761,
+              "max_gap_days": 23.4972,
+              "median_interval_days": 1.1868,
+              "points_per_30d": 9.7828
+            },
+            "shape": {
+              "latest_vs_max_pct": -50.0,
+              "latest_vs_min_pct": 100.0,
+              "longest_down_streak": 2,
+              "longest_up_streak": 2,
+              "max_drawdown_abs": -2.0,
+              "max_runup_abs": 3.0
+            },
+            "slope_per_day": 0.0,
+            "trend_direction": "flat",
+            "unit": "count",
+            "volatility_cv": 0.4023,
+            "windows": {
+              "recent_180d": {
+                "baseline_timestamp": "2026-02-10T06:48:00Z",
+                "baseline_value": 2.0,
+                "change_abs": 0.0,
+                "change_pct": 0.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 2.0,
+                "observed_days": 88.932,
+                "trend_direction": "flat"
+              },
+              "recent_30d": {
+                "baseline_timestamp": "2026-04-13T15:46:00Z",
+                "baseline_value": 4.0,
+                "change_abs": -2.0,
+                "change_pct": -50.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 2.0,
+                "observed_days": 26.558,
+                "trend_direction": "down"
+              },
+              "recent_365d": {
+                "baseline_timestamp": "2026-02-10T06:48:00Z",
+                "baseline_value": 2.0,
+                "change_abs": 0.0,
+                "change_pct": 0.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 2.0,
+                "observed_days": 88.932,
+                "trend_direction": "flat"
+              },
+              "recent_7d": {
+                "baseline_timestamp": "2026-05-04T00:50:00Z",
+                "baseline_value": 2.0,
+                "change_abs": 0.0,
+                "change_pct": 0.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 2.0,
+                "observed_days": 6.181,
+                "trend_direction": "flat"
+              },
+              "recent_90d": {
+                "baseline_timestamp": "2026-02-10T06:48:00Z",
+                "baseline_value": 2.0,
+                "change_abs": 0.0,
+                "change_pct": 0.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 2.0,
+                "observed_days": 88.932,
+                "trend_direction": "flat"
+              }
+            }
+          },
+          "new_offer_count": {
+            "change_abs": 3.0,
+            "change_pct": 300.0,
+            "change_profile": {
+              "avg_abs_step": 1.0,
+              "direction_change_count": 167,
+              "down_steps": 96,
+              "flat_steps": 0,
+              "last_step": -1.0,
+              "max_abs_step": 1.0,
+              "up_steps": 99
+            },
+            "dispersion": {
+              "iqr": 2.0,
+              "mad": 1.0,
+              "median": 3.0,
+              "q1": 2.0,
+              "q3": 4.0
+            },
+            "duration_days": 603.199,
+            "first_value": 1.0,
+            "latest_percentile": 0.9643,
+            "latest_value": 4.0,
+            "latest_zscore": 1.1582,
+            "max_value": 5.0,
+            "mean_value": 2.6735,
+            "median_value": 3.0,
+            "min_value": 1.0,
+            "name": "new_offer_count",
+            "outliers": {
+              "count": 0,
+              "method": "mad",
+              "ratio": 0.0,
+              "threshold": 4.4478
+            },
+            "point_count": 196,
+            "previous_change_abs": -1.0,
+            "previous_change_pct": -20.0,
+            "previous_value": 5.0,
+            "range_abs": 4.0,
+            "range_pct_of_mean": 149.6183,
+            "recent_180d": {
+              "baseline_timestamp": "2025-11-18T23:28:00Z",
+              "baseline_value": 2.0,
+              "change_abs": 2.0,
+              "change_pct": 100.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 4.0,
+              "observed_days": 172.238,
+              "trend_direction": "up"
+            },
+            "recent_30d": {
+              "baseline_timestamp": "2026-04-13T15:46:00Z",
+              "baseline_value": 5.0,
+              "change_abs": -1.0,
+              "change_pct": -20.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 4.0,
+              "observed_days": 26.558,
+              "trend_direction": "down"
+            },
+            "recent_365d": {
+              "baseline_timestamp": "2025-05-15T10:14:00Z",
+              "baseline_value": 2.0,
+              "change_abs": 2.0,
+              "change_pct": 100.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 4.0,
+              "observed_days": 359.789,
+              "trend_direction": "up"
+            },
+            "recent_7d": {
+              "baseline_timestamp": "2026-05-04T00:50:00Z",
+              "baseline_value": 3.0,
+              "change_abs": 1.0,
+              "change_pct": 33.3333,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 4.0,
+              "observed_days": 6.181,
+              "trend_direction": "up"
+            },
+            "recent_90d": {
+              "baseline_timestamp": "2026-02-10T13:56:00Z",
+              "baseline_value": 4.0,
+              "change_abs": 0.0,
+              "change_pct": 0.0,
+              "latest_timestamp": "2026-05-10T05:10:00Z",
+              "latest_value": 4.0,
+              "observed_days": 88.635,
+              "trend_direction": "flat"
+            },
+            "sampling": {
+              "avg_interval_days": 3.0933,
+              "max_gap_days": 133.4917,
+              "median_interval_days": 0.5514,
+              "points_per_30d": 9.748
+            },
+            "shape": {
+              "latest_vs_max_pct": -20.0,
+              "latest_vs_min_pct": 300.0,
+              "longest_down_streak": 3,
+              "longest_up_streak": 3,
+              "max_drawdown_abs": -4.0,
+              "max_runup_abs": 4.0
+            },
+            "slope_per_day": 0.005,
+            "trend_direction": "up",
+            "unit": "count",
+            "volatility_cv": 0.4284,
+            "windows": {
+              "recent_180d": {
+                "baseline_timestamp": "2025-11-18T23:28:00Z",
+                "baseline_value": 2.0,
+                "change_abs": 2.0,
+                "change_pct": 100.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 4.0,
+                "observed_days": 172.238,
+                "trend_direction": "up"
+              },
+              "recent_30d": {
+                "baseline_timestamp": "2026-04-13T15:46:00Z",
+                "baseline_value": 5.0,
+                "change_abs": -1.0,
+                "change_pct": -20.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 4.0,
+                "observed_days": 26.558,
+                "trend_direction": "down"
+              },
+              "recent_365d": {
+                "baseline_timestamp": "2025-05-15T10:14:00Z",
+                "baseline_value": 2.0,
+                "change_abs": 2.0,
+                "change_pct": 100.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 4.0,
+                "observed_days": 359.789,
+                "trend_direction": "up"
+              },
+              "recent_7d": {
+                "baseline_timestamp": "2026-05-04T00:50:00Z",
+                "baseline_value": 3.0,
+                "change_abs": 1.0,
+                "change_pct": 33.3333,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 4.0,
+                "observed_days": 6.181,
+                "trend_direction": "up"
+              },
+              "recent_90d": {
+                "baseline_timestamp": "2026-02-10T13:56:00Z",
+                "baseline_value": 4.0,
+                "change_abs": 0.0,
+                "change_pct": 0.0,
+                "latest_timestamp": "2026-05-10T05:10:00Z",
+                "latest_value": 4.0,
+                "observed_days": 88.635,
+                "trend_direction": "flat"
+              }
+            }
+          },
+          "sales_rank": {
+            "change_abs": -272646.0,
+            "change_pct": -99.9912,
+            "change_profile": {
+              "avg_abs_step": 1088.6623,
+              "direction_change_count": 1210,
+              "down_steps": 1107,
+              "flat_steps": 1,
+              "last_step": 1.0,
+              "max_abs_step": 723481.0,
+              "up_steps": 1628
+            },
+            "dispersion": {
+              "iqr": 2783.0,
+              "mad": 1245.0,
+              "median": 2961.0,
+              "q1": 1188.0,
+              "q3": 3971.0
+            },
+            "duration_days": 602.603,
+            "first_value": 272670.0,
+            "latest_percentile": 0.034,
+            "latest_value": 24.0,
+            "latest_zscore": -0.1715,
+            "max_value": 968736.0,
+            "mean_value": 15514.836,
+            "median_value": 2961.0,
+            "min_value": 9.0,
+            "name": "sales_rank",
+            "outliers": {
+              "count": 148,
+              "method": "mad",
+              "ratio": 0.0541,
+              "threshold": 5537.511
+            },
+            "point_count": 2737,
+            "previous_change_abs": 1.0,
+            "previous_change_pct": 4.3478,
+            "previous_value": 23.0,
+            "range_abs": 968727.0,
+            "range_pct_of_mean": 6243.8752,
+            "recent_180d": {
+              "baseline_timestamp": "2025-11-11T07:30:00Z",
+              "baseline_value": 35.0,
+              "change_abs": -11.0,
+              "change_pct": -31.4286,
+              "latest_timestamp": "2026-05-10T05:32:00Z",
+              "latest_value": 24.0,
+              "observed_days": 179.918,
+              "trend_direction": "down"
+            },
+            "recent_30d": {
+              "baseline_timestamp": "2026-04-10T09:12:00Z",
+              "baseline_value": 37.0,
+              "change_abs": -13.0,
+              "change_pct": -35.1351,
+              "latest_timestamp": "2026-05-10T05:32:00Z",
+              "latest_value": 24.0,
+              "observed_days": 29.847,
+              "trend_direction": "down"
+            },
+            "recent_365d": {
+              "baseline_timestamp": "2025-05-10T07:12:00Z",
+              "baseline_value": 2231.0,
+              "change_abs": -2207.0,
+              "change_pct": -98.9242,
+              "latest_timestamp": "2026-05-10T05:32:00Z",
+              "latest_value": 24.0,
+              "observed_days": 364.931,
+              "trend_direction": "down"
+            },
+            "recent_7d": {
+              "baseline_timestamp": "2026-05-03T05:36:00Z",
+              "baseline_value": 23.0,
+              "change_abs": 1.0,
+              "change_pct": 4.3478,
+              "latest_timestamp": "2026-05-10T05:32:00Z",
+              "latest_value": 24.0,
+              "observed_days": 6.997,
+              "trend_direction": "up"
+            },
+            "recent_90d": {
+              "baseline_timestamp": "2026-02-09T07:32:00Z",
+              "baseline_value": 21.0,
+              "change_abs": 3.0,
+              "change_pct": 14.2857,
+              "latest_timestamp": "2026-05-10T05:32:00Z",
+              "latest_value": 24.0,
+              "observed_days": 89.917,
+              "trend_direction": "up"
+            },
+            "sampling": {
+              "avg_interval_days": 0.2202,
+              "max_gap_days": 3.5222,
+              "median_interval_days": 0.1333,
+              "points_per_30d": 136.2589
+            },
+            "shape": {
+              "latest_vs_max_pct": -99.9975,
+              "latest_vs_min_pct": 166.6667,
+              "longest_down_streak": 10,
+              "longest_up_streak": 34,
+              "max_drawdown_abs": -968727.0,
+              "max_runup_abs": 696066.0
+            },
+            "slope_per_day": -452.4473,
+            "trend_direction": "down",
+            "unit": "rank",
+            "volatility_cv": 5.8218,
+            "windows": {
+              "recent_180d": {
+                "baseline_timestamp": "2025-11-11T07:30:00Z",
+                "baseline_value": 35.0,
+                "change_abs": -11.0,
+                "change_pct": -31.4286,
+                "latest_timestamp": "2026-05-10T05:32:00Z",
+                "latest_value": 24.0,
+                "observed_days": 179.918,
+                "trend_direction": "down"
+              },
+              "recent_30d": {
+                "baseline_timestamp": "2026-04-10T09:12:00Z",
+                "baseline_value": 37.0,
+                "change_abs": -13.0,
+                "change_pct": -35.1351,
+                "latest_timestamp": "2026-05-10T05:32:00Z",
+                "latest_value": 24.0,
+                "observed_days": 29.847,
+                "trend_direction": "down"
+              },
+              "recent_365d": {
+                "baseline_timestamp": "2025-05-10T07:12:00Z",
+                "baseline_value": 2231.0,
+                "change_abs": -2207.0,
+                "change_pct": -98.9242,
+                "latest_timestamp": "2026-05-10T05:32:00Z",
+                "latest_value": 24.0,
+                "observed_days": 364.931,
+                "trend_direction": "down"
+              },
+              "recent_7d": {
+                "baseline_timestamp": "2026-05-03T05:36:00Z",
+                "baseline_value": 23.0,
+                "change_abs": 1.0,
+                "change_pct": 4.3478,
+                "latest_timestamp": "2026-05-10T05:32:00Z",
+                "latest_value": 24.0,
+                "observed_days": 6.997,
+                "trend_direction": "up"
+              },
+              "recent_90d": {
+                "baseline_timestamp": "2026-02-09T07:32:00Z",
+                "baseline_value": 21.0,
+                "change_abs": 3.0,
+                "change_pct": 14.2857,
+                "latest_timestamp": "2026-05-10T05:32:00Z",
+                "latest_value": 24.0,
+                "observed_days": 89.917,
+                "trend_direction": "up"
+              }
+            }
+          }
+        },
+        "series_count": 4,
+        "windows_days": [
+          7,
+          30,
+          90,
+          180,
+          365
+        ]
+      },
+      "variations": {
+        "parent_asin_history": {
+          "last_points": [
+            {
+              "keepa_minute": 7281540,
+              "timestamp": "2024-11-04T15:00:00Z",
+              "value": "-1"
+            },
+            {
+              "keepa_minute": 7775884,
+              "timestamp": "2025-10-13T22:04:00Z",
+              "value": "B0DLWLLHFK"
+            },
+            {
+              "keepa_minute": 7967748,
+              "timestamp": "2026-02-24T03:48:00Z",
+              "value": "-1"
+            },
+            {
+              "keepa_minute": 8008744,
+              "timestamp": "2026-03-24T15:04:00Z",
+              "value": "B0GPVVZS91"
+            }
+          ],
+          "latest": {
+            "keepa_minute": 8008744,
+            "timestamp": "2026-03-24T15:04:00Z",
+            "value": "B0GPVVZS91"
+          },
+          "omitted_points": 0,
+          "point_count": 4
+        }
+      }
+    }
+  ],
+  "profile": "research",
+  "raw": {
+    "body_omitted": true,
+    "offline": false,
+    "source_runtime_log": "evidence\\runtime-logs\\20260510-B0D8W1YVBX-agent-temporal-v5.json"
+  },
+  "schema_version": "2026-05-10.5",
+  "view": "agent_product"
+}

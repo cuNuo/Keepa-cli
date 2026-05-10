@@ -52,6 +52,7 @@ class TransportTests(unittest.TestCase):
                 method="GET",
                 path="/product",
                 params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env={"KEEPA_CLI_NO_CACHE": "1"},
             )
 
             cassette_text = cassette.read_text(encoding="utf-8")
@@ -66,11 +67,12 @@ class TransportTests(unittest.TestCase):
                 method="GET",
                 path="/product",
                 params={"domain": "1", "asin": "B001GZ6QEC", "key": "DIFFERENT_SECRET"},
+                env={"KEEPA_CLI_NO_CACHE": "1"},
             )
 
             self.assertTrue(replayed_payload["ok"])
             self.assertEqual(replayed_payload["token_bucket"]["tokens_left"], 7)
-            self.assertEqual(replayed_payload["data"]["products"][0]["asin"], "B001GZ6QEC")
+            self.assertEqual(replayed_payload["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
 
 
 if __name__ == "__main__":

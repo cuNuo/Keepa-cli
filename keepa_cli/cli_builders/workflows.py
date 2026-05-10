@@ -48,13 +48,6 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     reports_build.add_argument("--out", help="写入报告文件。")
     reports_build.add_argument("--title", default="Keepa Report", help="报告标题。")
 
-    cache = subparsers.add_parser("cache", help="缓存与 provenance 审计命令。")
-    cache_subparsers = cache.add_subparsers(dest="cache_command")
-    cache_explain = cache_subparsers.add_parser("explain", help="解释 JSON envelope 中的缓存来源和节省估算。")
-    cache_explain.add_argument("--input", help="包含 cache_provenance 的 JSON 文件。")
-    cache_explain.add_argument("--command", dest="target_command", help="用于估算 token 成本的命令名。")
-    cache_explain.add_argument("--endpoint", help="覆盖 endpoint 显示。")
-
     audit = subparsers.add_parser("audit", help="本地成本审计命令。")
     audit_subparsers = audit.add_subparsers(dest="audit_command")
     audit_cost = audit_subparsers.add_parser("cost", help="估算一个命令或命令清单的 Keepa token 成本。")
@@ -110,13 +103,6 @@ def maybe_run_workflow_command(
         payload = run_command(
             "reports.build",
             {"input": args.input, "format": args.format, "out": args.out, "title": args.title},
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "cache" and args.cache_command == "explain":
-        payload = run_command(
-            "cache.explain",
-            {"input": args.input, "target_command": args.target_command, "endpoint": args.endpoint},
         )
         return 0 if payload["ok"] else 1, payload
 

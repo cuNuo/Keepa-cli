@@ -14,6 +14,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
+from keepa_cli.cache import SQLiteResponseCache
 from keepa_cli.client import KeepaClient
 
 
@@ -91,11 +92,73 @@ class KeepaClientTests(unittest.TestCase):
             method="GET",
             path="/product",
             params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
         )
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["token_bucket"]["tokens_left"], 9)
         self.assertEqual(payload["token_bucket"]["tokens_consumed"], 1)
+        self.assertEqual(payload["data"]["body"]["products"], [])
+        self.assertFalse(payload["data"]["cache_provenance"]["cache_hit"])
+
+    def test_live_get_response_uses_sqlite_cache_without_second_network_call(self):
+        body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": [{"asin": "B001GZ6QEC"}]}).encode(
+            "utf-8"
+        )
+        opener = SequenceOpener([FakeResponse(body)])
+        with TemporaryDirectory() as temp_dir:
+            cache = SQLiteResponseCache(Path(temp_dir) / "keepa-cache.sqlite")
+            client = KeepaClient(opener=opener, response_cache=cache)
+            env = {"KEEPA_CLI_CACHE_PATH": str(cache.path)}
+
+            first = client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+            )
+            second = client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+            )
+
+        self.assertTrue(first["ok"])
+        self.assertTrue(second["ok"])
+        self.assertEqual(opener.calls, 1)
+        self.assertFalse(first["data"]["cache_provenance"]["cache_hit"])
+        self.assertTrue(second["data"]["cache_provenance"]["cache_hit"])
+        self.assertEqual(second["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
+        self.assertEqual(second["token_bucket"]["tokens_consumed"], 0)
+        self.assertEqual(second["token_bucket"]["cached_tokens_consumed"], 1)
+
+    def test_live_cache_can_be_disabled_by_environment(self):
+        body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
+        opener = SequenceOpener([FakeResponse(body), FakeResponse(body)])
+        with TemporaryDirectory() as temp_dir:
+            cache = SQLiteResponseCache(Path(temp_dir) / "keepa-cache.sqlite")
+            client = KeepaClient(opener=opener, response_cache=cache)
+            env = {"KEEPA_CLI_NO_CACHE": "1", "KEEPA_CLI_CACHE_PATH": str(cache.path)}
+
+            client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+            )
+            client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+            )
+
+        self.assertEqual(opener.calls, 2)
 
     def test_live_response_can_read_api_key_from_config_without_leaking_it(self):
         body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
@@ -110,7 +173,7 @@ class KeepaClientTests(unittest.TestCase):
                 method="GET",
                 path="/product",
                 params={"domain": "1", "asin": "B001GZ6QEC"},
-                env={"KEEPA_CLI_CONFIG": str(config_path)},
+                env={"KEEPA_CLI_CONFIG": str(config_path), "KEEPA_CLI_NO_CACHE": "1"},
             )
 
         encoded = json.dumps(payload)
@@ -136,6 +199,7 @@ class KeepaClientTests(unittest.TestCase):
             method="GET",
             path="/product",
             params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
         )
 
         encoded = json.dumps(payload)
@@ -166,6 +230,7 @@ class KeepaClientTests(unittest.TestCase):
             method="GET",
             path="/product",
             params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
         )
 
         self.assertTrue(payload["ok"])

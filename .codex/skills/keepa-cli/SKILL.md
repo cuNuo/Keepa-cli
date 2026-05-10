@@ -43,6 +43,14 @@ kc --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001
 kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run
 ```
 
+For Agent sessions, prefer MCP when the client supports it:
+
+```powershell
+kc --mcp
+```
+
+Use `keepa.products_get` for single-product research and `keepa.products_compare` for multi-ASIN deal comparison. Product Agent views include `agent_brief`, `risk_taxonomy`, `research_graph`, `data_quality`, `selection_signals`, `next_actions`, and `evidence_index`; read those before loading raw output or chunks.
+
 For local workflows:
 
 ```powershell
@@ -68,6 +76,14 @@ Only run live `tracking add/remove/remove-all/webhook` with `--yes` after the us
 kc --json audit cost products.get --param asin=B001GZ6QEC
 kc --json cache explain --input envelope.json --command products.get
 ```
+
+## Agent Semantics
+
+`risk_taxonomy.known_codes` is the stable risk enum. Treat `data_missing`, `price_unstable`, `rank_declining`, `low_review_count`, `offer_competition_high`, `buybox_missing`, and `category_mismatch` as machine-readable codes, not prose labels.
+
+`research_graph` exposes product, brand, category, seller, and variation nodes with typed edges. Use it for reports, comparison graphs, and downstream entity memory.
+
+Do not commit `evidence/runtime-logs/`. Sanitize and promote live responses to fixtures before using them in tests.
 
 ## Raw Escape Hatch
 

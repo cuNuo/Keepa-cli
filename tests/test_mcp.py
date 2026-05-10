@@ -27,11 +27,15 @@ class McpProtocolTests(unittest.TestCase):
 
         self.assertEqual(set(tool_names()), names)
         self.assertIn("keepa.products_get", names)
+        self.assertIn("keepa.products_compare", names)
         self.assertIn("keepa.categories_search", names)
         products = next(item for item in response["result"]["tools"] if item["name"] == "keepa.products_get")
         self.assertIn("inputSchema", products)
         self.assertIn("outputSchema", products)
         self.assertEqual(products["x-keepa"]["service_command"], "products.get")
+        compare = next(item for item in response["result"]["tools"] if item["name"] == "keepa.products_compare")
+        self.assertEqual(compare["x-keepa"]["service_command"], "products.compare")
+        self.assertIn("risk", compare["description"])
 
     def test_tools_call_categories_search_uses_fixture(self):
         response = handle_mcp_message(
@@ -63,6 +67,37 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(structured["data"]["category_candidates"])
         text_payload = json.loads(result["content"][0]["text"])
         self.assertEqual(text_payload["command"], "categories.search")
+
+    def test_tools_call_products_compare_returns_semantic_agent_quality(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "compare",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_compare",
+                        "arguments": {
+                            "asin": ["B0D8W1YVBX", "B0EVALCMP1", "B0EVALCMP2"],
+                            "domain": "US",
+                            "fixture": "products_compare_agent_eval.json",
+                            "full": True,
+                            "view": "deal",
+                        },
+                    },
+                }
+            ),
+            env={},
+        )
+
+        result = response["result"]
+        structured = result["structuredContent"]
+        self.assertFalse(result["isError"])
+        self.assertTrue(structured["ok"])
+        self.assertEqual(structured["command"], "products.compare")
+        self.assertEqual(structured["data"]["product_count"], 3)
+        self.assertIn("data_missing", structured["data"]["risk_summary"]["by_code"])
+        self.assertGreaterEqual(structured["data"]["research_graph"]["entity_counts"]["product"], 3)
 
     def test_unknown_tool_returns_json_rpc_error(self):
         response = handle_mcp_message(

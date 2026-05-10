@@ -112,6 +112,36 @@ PRODUCTS_GET_SCHEMA: JsonSchema = {
 }
 
 
+PRODUCTS_COMPARE_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["asin"],
+    "properties": {
+        "asin": {"type": "array", "items": {"type": "string"}, "description": "Two or more ASINs to compare."},
+        "domain": _string_schema("Keepa domain code, id, or host suffix.", default="US"),
+        "full": _boolean_schema("Use the low-cost complete detail preset."),
+        "view": {
+            "type": "string",
+            "enum": ["summary", "research", "deal", "audit"],
+            "default": "deal",
+            "description": "Agent view profile used before comparing rows.",
+        },
+        "fields": _string_schema("Comma-separated Agent view sections."),
+        "history_limit": _integer_schema("Recent points retained per history series.", minimum=0, default=5),
+        "temporal_window_days": {
+            "oneOf": [{"type": "integer"}, {"type": "array", "items": {"type": "integer"}}, {"type": "string"}],
+            "description": "Temporal feature windows in days.",
+        },
+        "stats_window": _string_schema("--full stats window; 0 means Keepa maximum/all history.", default="0"),
+        "offers": _string_schema("Offer count, official range 20..100; high-cost."),
+        "fixture": _string_schema("Fixture filename under tests/fixtures."),
+        "dry_run": _boolean_schema("Build request spec without calling Keepa."),
+        "yes": _boolean_schema("Confirm high-cost request execution."),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
 CATEGORIES_SEARCH_SCHEMA: JsonSchema = {
     "type": "object",
     "additionalProperties": False,
@@ -220,10 +250,18 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
         name="keepa.products_get",
         command="products.get",
-        description="Fetch Keepa product data and optionally return an Agent-safe product view.",
+        description="Fetch Keepa product data and return Agent-safe product views with risk_taxonomy, research_graph, data_quality, and next_actions.",
         input_schema=PRODUCTS_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         groups=("research", "product"),
+    ),
+    ToolDefinition(
+        name="keepa.products_compare",
+        command="products.compare",
+        description="Compare ASINs using Agent-safe deal/research rows with unified risk summary and merged research graph.",
+        input_schema=PRODUCTS_COMPARE_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("research", "product", "compare"),
     ),
     ToolDefinition(
         name="keepa.categories_search",
@@ -282,6 +320,10 @@ def tool_params_to_command_params(tool: ToolDefinition, arguments: Mapping[str, 
         if params.get("view") and params.get("view") != "raw":
             params.setdefault("agent_view", True)
         return params
+    if tool.command == "products.compare":
+        if "temporal_window_days" in params and "temporal_windows" not in params:
+            params["temporal_windows"] = params.pop("temporal_window_days")
+        return params
     if tool.command == "categories.products":
         if "temporal_window_days" in params and "temporal_windows" not in params:
             params["temporal_windows"] = params.pop("temporal_window_days")
@@ -309,6 +351,8 @@ def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] |
         errors.append("one of selection or selection_file is required")
     if tool.name == "keepa.products_get" and arguments.get("asin") and arguments.get("code"):
         errors.append("asin and code cannot be combined")
+    if tool.name == "keepa.products_compare" and len(arguments.get("asin") or []) < 2:
+        errors.append("asin must contain at least two ASINs")
     return errors
 
 

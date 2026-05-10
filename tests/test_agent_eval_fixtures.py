@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from scripts.check_agent_eval_fixtures import check_agent_eval_fixtures
 from keepa_cli.service import run_command
 
 
@@ -31,13 +32,8 @@ def _resolve_path(payload: dict[str, Any], path: str) -> Any:
 
 class AgentEvaluationFixtureTests(unittest.TestCase):
     def test_agent_evaluation_specs_have_stable_outcomes(self):
-        specs = sorted(EVAL_DIR.glob("*.json"))
-        self.assertGreaterEqual(len(specs), 4)
-        for path in specs:
-            with self.subTest(spec=path.name):
-                spec = json.loads(path.read_text(encoding="utf-8"))
-                payload = run_command(spec["command"], spec.get("params") or {}, fixture_dir=FIXTURE_DIR, env={})
-                self._assert_spec(payload, spec)
+        checked = check_agent_eval_fixtures(EVAL_DIR, FIXTURE_DIR)
+        self.assertGreaterEqual(len(checked), 4)
 
     def test_agent_evaluation_product_fixtures_are_synced(self):
         for name in ("product_B0D8W1YVBX_agent_eval.json", "products_compare_agent_eval.json"):
@@ -59,6 +55,10 @@ class AgentEvaluationFixtureTests(unittest.TestCase):
                 self.assertIn(assertion["contains"], value, assertion["path"])
             if "length" in assertion:
                 self.assertEqual(len(value), assertion["length"], assertion["path"])
+            if "length_min" in assertion:
+                self.assertGreaterEqual(len(value), assertion["length_min"], assertion["path"])
+            if "contains_any" in assertion:
+                self.assertTrue(set(assertion["contains_any"]).intersection(value), assertion["path"])
 
 
 if __name__ == "__main__":

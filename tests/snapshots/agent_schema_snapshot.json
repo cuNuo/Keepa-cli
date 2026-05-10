@@ -529,6 +529,24 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -758,6 +776,178 @@
             },
             "x-keepa": {
               "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "asin": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fields": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "full": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "history_limit": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "offers": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "stats_window": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "temporal_window_days": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    },
+                    {
+                      "type": "str"
+                    }
+                  ]
+                },
+                "view": {
+                  "default": "str",
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
                 "str",
                 "str"
               ],
@@ -2092,6 +2282,143 @@
     "command": "str",
     "data": {
       "product_count": "int",
+      "research_graph": {
+        "edge_count": "int",
+        "edges": [
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          }
+        ],
+        "entity_counts": {
+          "brand": "int",
+          "category": "int",
+          "manufacturer": "int",
+          "product": "int",
+          "seller": "int",
+          "variation": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "manufacturer": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "category_id": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "brand": "str",
+              "item_type_keyword": "str",
+              "product_group": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "is_fba": "bool",
+              "is_prime_eligible": "bool",
+              "seller_id": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "attributes": [
+                {
+                  "dimension": "str",
+                  "value": "str"
+                }
+              ]
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "schema_version": "str"
+      },
+      "risk_summary": {
+        "by_code": {
+          "data_missing": "int"
+        },
+        "by_severity": {
+          "medium": "int"
+        },
+        "highest_severity": "str",
+        "known_codes": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "product_count": "int",
+        "schema_version": "str"
+      },
       "rows": [
         {
           "aplus_available": "bool",
@@ -2129,7 +2456,152 @@
           "monthly_sold": "int",
           "new_price": "float",
           "rating": "float",
+          "research_graph": {
+            "edge_count": "int",
+            "edges": [
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              }
+            ],
+            "entity_counts": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int",
+              "variation": "int"
+            },
+            "node_count": "int",
+            "nodes": [
+              {
+                "attributes": {
+                  "manufacturer": "str"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "category_id": "int"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "category_id": "int"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "asin": "str",
+                  "brand": "str",
+                  "item_type_keyword": "str",
+                  "product_group": "str"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "is_fba": "bool",
+                  "is_prime_eligible": "bool",
+                  "seller_id": "str"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "asin": "str",
+                  "attributes": [
+                    {
+                      "dimension": "str",
+                      "value": "str"
+                    }
+                  ]
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              }
+            ],
+            "root": "str",
+            "schema_version": "str"
+          },
           "review_count": "int",
+          "risk_taxonomy": {
+            "codes": [
+              "str"
+            ],
+            "highest_severity": "str",
+            "items": [
+              {
+                "code": "str",
+                "evidence_path": "str",
+                "field": "str",
+                "follow_up": "str",
+                "reason": "str",
+                "severity": "str"
+              }
+            ],
+            "known_codes": [
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str"
+            ],
+            "risk_count": "int",
+            "schema_version": "str"
+          },
           "sales_rank": "int",
           "selection_signals": {
             "competition": {
@@ -2168,7 +2640,16 @@
               "sales_rank_change_pct": "float",
               "sales_rank_trend": "str"
             },
-            "risk_flags": []
+            "risk_codes": [
+              "str"
+            ],
+            "risk_flags": [],
+            "risk_taxonomy": {
+              "codes": [
+                "str"
+              ],
+              "highest_severity": "str"
+            }
           },
           "title": "str",
           "total_offer_count": "int",
@@ -2349,8 +2830,16 @@
                 "new_price_volatility_cv": "float",
                 "sales_rank_change_pct": "float",
                 "sales_rank_trend": "str"
+              },
+              "risk_taxonomy": {
+                "codes": [
+                  "str"
+                ],
+                "highest_severity": "str",
+                "risk_count": "int"
               }
             },
+            "highest_risk_severity": "str",
             "key_facts": {
               "asin": "str",
               "brand": "str",
@@ -2393,6 +2882,17 @@
                 "requires_confirmation": "bool",
                 "tool": "str"
               }
+            ],
+            "research_graph_entities": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int",
+              "variation": "int"
+            },
+            "risk_codes": [
+              "str"
             ],
             "temporal_by_window": {
               "recent_180d": {
@@ -3526,6 +4026,18 @@
               "section": "str",
               "why": "str"
             },
+            "research_graph": {
+              "load_hint": "str",
+              "path": "str",
+              "section": "str",
+              "why": "str"
+            },
+            "risk_taxonomy": {
+              "load_hint": "str",
+              "path": "str",
+              "section": "str",
+              "why": "str"
+            },
             "selection_signals": {
               "load_hint": "str",
               "path": "str",
@@ -4099,6 +4611,151 @@
             "variations": "bool",
             "videos": "bool"
           },
+          "research_graph": {
+            "edge_count": "int",
+            "edges": [
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              },
+              {
+                "evidence_path": "str",
+                "source": "str",
+                "target": "str",
+                "type": "str"
+              }
+            ],
+            "entity_counts": {
+              "brand": "int",
+              "category": "int",
+              "manufacturer": "int",
+              "product": "int",
+              "seller": "int",
+              "variation": "int"
+            },
+            "node_count": "int",
+            "nodes": [
+              {
+                "attributes": {
+                  "manufacturer": "str"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "category_id": "int"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "category_id": "int"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "asin": "str",
+                  "brand": "str",
+                  "item_type_keyword": "str",
+                  "product_group": "str"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "is_fba": "bool",
+                  "is_prime_eligible": "bool",
+                  "seller_id": "str"
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              },
+              {
+                "attributes": {
+                  "asin": "str",
+                  "attributes": [
+                    {
+                      "dimension": "str",
+                      "value": "str"
+                    }
+                  ]
+                },
+                "id": "str",
+                "label": "str",
+                "type": "str"
+              }
+            ],
+            "root": "str",
+            "schema_version": "str"
+          },
+          "risk_taxonomy": {
+            "codes": [
+              "str"
+            ],
+            "highest_severity": "str",
+            "items": [
+              {
+                "code": "str",
+                "evidence_path": "str",
+                "field": "str",
+                "follow_up": "str",
+                "reason": "str",
+                "severity": "str"
+              }
+            ],
+            "known_codes": [
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str"
+            ],
+            "risk_count": "int",
+            "schema_version": "str"
+          },
           "selection_signals": {
             "competition": {
               "offer_count_fba": "int",
@@ -4136,7 +4793,16 @@
               "sales_rank_change_pct": "float",
               "sales_rank_trend": "str"
             },
-            "risk_flags": []
+            "risk_codes": [
+              "str"
+            ],
+            "risk_flags": [],
+            "risk_taxonomy": {
+              "codes": [
+                "str"
+              ],
+              "highest_severity": "str"
+            }
           },
           "stats_summary": {
             "avg30": {

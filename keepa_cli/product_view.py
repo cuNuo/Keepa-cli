@@ -17,6 +17,17 @@ from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
 PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.7"
+RISK_TAXONOMY_SCHEMA_VERSION = "2026-05-10.1"
+RESEARCH_GRAPH_SCHEMA_VERSION = "2026-05-10.1"
+RISK_TAXONOMY_CODES = (
+    "data_missing",
+    "price_unstable",
+    "rank_declining",
+    "low_review_count",
+    "offer_competition_high",
+    "buybox_missing",
+    "category_mismatch",
+)
 
 DEFAULT_TEMPORAL_WINDOWS = (7, 30, 90, 180, 365)
 
@@ -40,6 +51,8 @@ PROFILE_FIELDS = {
         "demand",
         "rating",
         "selection_signals",
+        "risk_taxonomy",
+        "research_graph",
         "evidence_index",
         "data_quality",
         "next_actions",
@@ -57,6 +70,8 @@ PROFILE_FIELDS = {
         "aplus",
         "temporal_features",
         "selection_signals",
+        "risk_taxonomy",
+        "research_graph",
         "evidence_index",
         "data_quality",
         "next_actions",
@@ -69,6 +84,8 @@ PROFILE_FIELDS = {
         "next_actions",
         "temporal_features",
         "selection_signals",
+        "risk_taxonomy",
+        "research_graph",
         "evidence_index",
         "raw_field_presence",
     ],
@@ -198,6 +215,8 @@ def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
         category = product.get("category") if isinstance(product.get("category"), Mapping) else {}
         current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
         buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
+        risk_taxonomy = product.get("risk_taxonomy") if isinstance(product.get("risk_taxonomy"), Mapping) else {}
+        research_graph = product.get("research_graph") if isinstance(product.get("research_graph"), Mapping) else {}
         rows.append(
             _compact(
                 {
@@ -215,6 +234,8 @@ def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
                     "video_count": media.get("video_count"),
                     "aplus_available": aplus.get("available"),
                     "selection_signals": product.get("selection_signals"),
+                    "risk_taxonomy": risk_taxonomy,
+                    "research_graph": research_graph,
                     "risk_flags": (product.get("selection_signals") or {}).get("risk_flags")
                     if isinstance(product.get("selection_signals"), Mapping)
                     else None,
@@ -227,12 +248,72 @@ def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
         "schema_version": PRODUCT_VIEW_SCHEMA_VERSION,
         "product_count": len(rows),
         "rows": rows,
+        "risk_summary": _compare_risk_summary(rows),
+        "research_graph": _merge_research_graphs(rows),
         "source_view": {
             "profile": agent_view.get("profile"),
             "raw": agent_view.get("raw"),
             "chunks": agent_view.get("chunks"),
         },
     }
+
+
+def _compare_risk_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    by_code: dict[str, int] = {}
+    by_severity: dict[str, int] = {}
+    highest: str | None = None
+    severity_order = {"low": 1, "medium": 2, "high": 3}
+    for row in rows:
+        taxonomy = row.get("risk_taxonomy") if isinstance(row.get("risk_taxonomy"), Mapping) else {}
+        for code in taxonomy.get("codes") or []:
+            by_code[str(code)] = by_code.get(str(code), 0) + 1
+        for item in taxonomy.get("items") or []:
+            if not isinstance(item, Mapping):
+                continue
+            severity = str(item.get("severity") or "low")
+            by_severity[severity] = by_severity.get(severity, 0) + 1
+            if severity_order.get(severity, 0) > severity_order.get(highest or "", 0):
+                highest = severity
+    return _compact(
+        {
+            "schema_version": RISK_TAXONOMY_SCHEMA_VERSION,
+            "known_codes": list(RISK_TAXONOMY_CODES),
+            "product_count": len(rows),
+            "by_code": dict(sorted(by_code.items())),
+            "by_severity": dict(sorted(by_severity.items())),
+            "highest_severity": highest,
+        }
+    )
+
+
+def _merge_research_graphs(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    nodes: dict[str, dict[str, Any]] = {}
+    edges: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for row in rows:
+        graph = row.get("research_graph") if isinstance(row.get("research_graph"), Mapping) else {}
+        for node in graph.get("nodes") or []:
+            if isinstance(node, Mapping) and node.get("id"):
+                nodes[str(node["id"])] = dict(node)
+        for edge in graph.get("edges") or []:
+            if not isinstance(edge, Mapping):
+                continue
+            source = str(edge.get("source") or "")
+            target = str(edge.get("target") or "")
+            relation = str(edge.get("type") or "")
+            if source and target and relation:
+                edges[(source, target, relation)] = dict(edge)
+    ordered_nodes = sorted(nodes.values(), key=lambda item: (str(item.get("type") or ""), str(item.get("id") or "")))
+    ordered_edges = sorted(edges.values(), key=lambda item: (str(item.get("source") or ""), str(item.get("type") or ""), str(item.get("target") or "")))
+    return _compact(
+        {
+            "schema_version": RESEARCH_GRAPH_SCHEMA_VERSION,
+            "node_count": len(ordered_nodes),
+            "edge_count": len(ordered_edges),
+            "entity_counts": _entity_counts(ordered_nodes),
+            "nodes": ordered_nodes,
+            "edges": ordered_edges,
+        }
+    )
 
 
 def write_agent_view_chunks(agent_view: Mapping[str, Any], chunks_dir: Path | str) -> list[dict[str, Any]]:
@@ -254,6 +335,8 @@ def write_agent_view_chunks(agent_view: Mapping[str, Any], chunks_dir: Path | st
             "media",
             "aplus",
             "selection_signals",
+            "risk_taxonomy",
+            "research_graph",
             "evidence_index",
             "history_summary",
             "temporal_features",
@@ -301,8 +384,17 @@ def _product_to_agent_view(
     }
     result["temporal_features"] = _temporal_features(product, windows=temporal_windows)
     result["data_quality"] = _data_quality(product, result)
-    result["next_actions"] = _next_actions(result)
     result["selection_signals"] = _selection_signals(result)
+    result["risk_taxonomy"] = _risk_taxonomy(result)
+    result["selection_signals"]["risk_taxonomy"] = _compact(
+        {
+            "codes": result["risk_taxonomy"].get("codes"),
+            "highest_severity": result["risk_taxonomy"].get("highest_severity"),
+        }
+    )
+    result["selection_signals"]["risk_codes"] = result["risk_taxonomy"].get("codes")
+    result["research_graph"] = _research_graph(result)
+    result["next_actions"] = _next_actions(result)
     result["agent_brief"] = _agent_brief(result)
     result["evidence_index"] = _evidence_index(result)
     return _filter_product_view(result, view_profile=view_profile, fields=fields)
@@ -1300,6 +1392,8 @@ def _agent_brief(view: Mapping[str, Any]) -> dict[str, Any]:
     rating = view.get("rating") if isinstance(view.get("rating"), Mapping) else {}
     quality = view.get("data_quality") if isinstance(view.get("data_quality"), Mapping) else {}
     signals = view.get("selection_signals") if isinstance(view.get("selection_signals"), Mapping) else {}
+    taxonomy = view.get("risk_taxonomy") if isinstance(view.get("risk_taxonomy"), Mapping) else {}
+    graph = view.get("research_graph") if isinstance(view.get("research_graph"), Mapping) else {}
     current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
     buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
     risk_flags = list(signals.get("risk_flags") or [])
@@ -1331,6 +1425,9 @@ def _agent_brief(view: Mapping[str, Any]) -> dict[str, Any]:
             "temporal_takeaways": temporal_takeaways,
             "temporal_by_window": _temporal_by_window(view),
             "risk_flags": risk_flags,
+            "risk_codes": list(taxonomy.get("codes") or []),
+            "highest_risk_severity": taxonomy.get("highest_severity"),
+            "research_graph_entities": graph.get("entity_counts"),
             "missing_data": list(quality.get("missing") or [])[:8],
             "confidence": quality.get("confidence"),
             "recommended_next_actions": list(view.get("next_actions") or [])[:3],
@@ -1367,6 +1464,7 @@ def _brief_line(key_facts: Mapping[str, Any], signals: Mapping[str, Any]) -> str
 def _decision_context(view: Mapping[str, Any]) -> dict[str, Any]:
     signals = view.get("selection_signals") if isinstance(view.get("selection_signals"), Mapping) else {}
     quality = view.get("data_quality") if isinstance(view.get("data_quality"), Mapping) else {}
+    taxonomy = view.get("risk_taxonomy") if isinstance(view.get("risk_taxonomy"), Mapping) else {}
     return _compact(
         {
             "demand": signals.get("demand"),
@@ -1374,6 +1472,13 @@ def _decision_context(view: Mapping[str, Any]) -> dict[str, Any]:
             "price_stability": signals.get("price_stability"),
             "content_quality": signals.get("content_quality"),
             "risk_flags": signals.get("risk_flags"),
+            "risk_taxonomy": _compact(
+                {
+                    "codes": taxonomy.get("codes"),
+                    "highest_severity": taxonomy.get("highest_severity"),
+                    "risk_count": taxonomy.get("risk_count"),
+                }
+            ),
             "data_quality": _compact(
                 {
                     "confidence": quality.get("confidence"),
@@ -1605,6 +1710,8 @@ def _evidence_index(view: Mapping[str, Any]) -> dict[str, Any]:
         "content_assets": ("media", "deal", "Images and videos used for content-quality checks."),
         "aplus": ("aplus", "deal", "A+ availability, module counts, and samples."),
         "selection_signals": ("selection_signals", "summary", "Agent-safe derived signals for demand, competition, stability, and risk."),
+        "risk_taxonomy": ("risk_taxonomy", "summary", "Stable risk enum codes with severity, evidence paths, and follow-up hints."),
+        "research_graph": ("research_graph", "summary", "Product, brand, category, seller, and variation entity graph for downstream Agent planning."),
         "temporal_features": ("temporal_features", "audit", "Computed time-series features from full Keepa csv history."),
         "history_samples": ("history_summary", "research", "Bounded recent history samples for inspection or display."),
         "data_quality": ("data_quality", "summary", "Present/missing fields, confidence, and notes."),
@@ -1700,7 +1807,288 @@ def _selection_signals(view: Mapping[str, Any]) -> dict[str, Any]:
             }
         ),
         "risk_flags": risk_flags,
+        "risk_codes": (view.get("risk_taxonomy") or {}).get("codes") if isinstance(view.get("risk_taxonomy"), Mapping) else None,
     }
+
+
+def _risk_taxonomy(view: Mapping[str, Any]) -> dict[str, Any]:
+    quality = view.get("data_quality") if isinstance(view.get("data_quality"), Mapping) else {}
+    pricing = view.get("pricing") if isinstance(view.get("pricing"), Mapping) else {}
+    rating = view.get("rating") if isinstance(view.get("rating"), Mapping) else {}
+    offers = view.get("offers") if isinstance(view.get("offers"), Mapping) else {}
+    signals = view.get("selection_signals") if isinstance(view.get("selection_signals"), Mapping) else {}
+    stability = signals.get("price_stability") if isinstance(signals.get("price_stability"), Mapping) else {}
+    competition = signals.get("competition") if isinstance(signals.get("competition"), Mapping) else {}
+    temporal = view.get("temporal_features") if isinstance(view.get("temporal_features"), Mapping) else {}
+    series_map = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
+    rank_series = series_map.get("sales_rank") if isinstance(series_map.get("sales_rank"), Mapping) else {}
+    items: list[dict[str, Any]] = []
+
+    missing = list(quality.get("missing") or [])
+    if missing:
+        important = [field for field in missing if field in {"offers.offers", "history.csv", "pricing.current", "demand.monthly_sold", "rating.rating"}]
+        items.append(
+            _risk_item(
+                "data_missing",
+                "medium" if important else "low",
+                "Some expected Agent research fields are absent; inspect data_quality.missing before final decisions.",
+                evidence_path="data_quality.missing",
+                field=",".join(important[:4] or missing[:4]),
+                follow_up="Use structured next_actions to fill only missing high-value data.",
+            )
+        )
+
+    volatility = stability.get("new_price_volatility_cv")
+    range_pct = None
+    new_series = series_map.get("new") if isinstance(series_map.get("new"), Mapping) else {}
+    if isinstance(new_series.get("range_pct_of_mean"), (int, float)):
+        range_pct = float(new_series["range_pct_of_mean"])
+    if (isinstance(volatility, (int, float)) and volatility >= 0.18) or (isinstance(range_pct, float) and range_pct >= 35):
+        items.append(
+            _risk_item(
+                "price_unstable",
+                "medium",
+                "New price history shows meaningful volatility or a wide range relative to mean.",
+                evidence_path="temporal_features.series.new",
+                metric={"volatility_cv": volatility, "range_pct_of_mean": range_pct},
+                follow_up="Compare recent windows and buy box history before deal decisions.",
+            )
+        )
+
+    rank_change = stability.get("sales_rank_change_pct")
+    rank_trend = stability.get("sales_rank_trend") or rank_series.get("trend_direction")
+    if rank_trend == "up" and isinstance(rank_change, (int, float)) and rank_change >= 25:
+        items.append(
+            _risk_item(
+                "rank_declining",
+                "medium",
+                "Sales rank increased materially; in Keepa rank semantics, higher rank is weaker demand.",
+                evidence_path="temporal_features.series.sales_rank",
+                metric={"change_pct": rank_change, "trend": rank_trend},
+                follow_up="Check shorter windows and category peers before assuming demand strength.",
+            )
+        )
+
+    review_count = _plain_value(rating.get("review_count"))
+    if isinstance(review_count, (int, float)) and review_count < 50:
+        items.append(
+            _risk_item(
+                "low_review_count",
+                "medium",
+                "Review count is low enough to make rating and conversion signals less stable.",
+                evidence_path="rating.review_count",
+                metric={"review_count": review_count},
+                follow_up="Validate on-page reviews or use rating refresh only when necessary.",
+            )
+        )
+
+    offer_count = offers.get("total_offer_count") or competition.get("total_offer_count")
+    if isinstance(offer_count, (int, float)) and offer_count > 20:
+        items.append(
+            _risk_item(
+                "offer_competition_high",
+                "medium",
+                "Offer count suggests a crowded listing and possible buy box competition.",
+                evidence_path="offers.total_offer_count",
+                metric={"total_offer_count": offer_count},
+                follow_up="Request offers=20 only if seller-level competition matters.",
+            )
+        )
+
+    buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
+    current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
+    if not buy_box.get("seller_id") and not (buy_box.get("price") or current.get("buy_box_shipping")):
+        items.append(
+            _risk_item(
+                "buybox_missing",
+                "medium",
+                "Buy Box seller and price are absent from stats.",
+                evidence_path="pricing.buy_box",
+                follow_up="Use buybox=1 or inspect live page when Buy Box ownership is central.",
+            )
+        )
+
+    codes = sorted({str(item["code"]) for item in items if item.get("code")})
+    severity_order = {"low": 1, "medium": 2, "high": 3}
+    highest = None
+    for item in items:
+        severity = str(item.get("severity") or "low")
+        if severity_order.get(severity, 0) > severity_order.get(highest or "", 0):
+            highest = severity
+    return _compact(
+        {
+            "schema_version": RISK_TAXONOMY_SCHEMA_VERSION,
+            "known_codes": list(RISK_TAXONOMY_CODES),
+            "codes": codes,
+            "highest_severity": highest,
+            "risk_count": len(items),
+            "items": items,
+        }
+    )
+
+
+def _risk_item(
+    code: str,
+    severity: str,
+    reason: str,
+    *,
+    evidence_path: str,
+    field: str | None = None,
+    metric: Mapping[str, Any] | None = None,
+    follow_up: str | None = None,
+) -> dict[str, Any]:
+    return _compact(
+        {
+            "code": code,
+            "severity": severity,
+            "reason": reason,
+            "field": field,
+            "metric": dict(metric) if isinstance(metric, Mapping) else None,
+            "evidence_path": evidence_path,
+            "follow_up": follow_up,
+        }
+    )
+
+
+def _research_graph(view: Mapping[str, Any]) -> dict[str, Any]:
+    identity = view.get("identity") if isinstance(view.get("identity"), Mapping) else {}
+    category = view.get("category") if isinstance(view.get("category"), Mapping) else {}
+    pricing = view.get("pricing") if isinstance(view.get("pricing"), Mapping) else {}
+    variations = view.get("variations") if isinstance(view.get("variations"), Mapping) else {}
+    asin = str(identity.get("asin") or "").strip()
+    nodes: list[dict[str, Any]] = []
+    edges: list[dict[str, Any]] = []
+    if not asin:
+        return {"schema_version": RESEARCH_GRAPH_SCHEMA_VERSION, "nodes": [], "edges": []}
+
+    product_id = f"product:{asin}"
+    nodes.append(
+        _graph_node(
+            product_id,
+            "product",
+            identity.get("title") or asin,
+            asin=asin,
+            brand=identity.get("brand"),
+            product_group=identity.get("product_group"),
+            item_type_keyword=identity.get("item_type_keyword"),
+            parent_asin=identity.get("parent_asin") or variations.get("parent_asin"),
+        )
+    )
+
+    brand = identity.get("brand")
+    if brand:
+        brand_id = f"brand:{_graph_id_part(brand)}"
+        nodes.append(_graph_node(brand_id, "brand", brand, manufacturer=identity.get("manufacturer")))
+        edges.append(_graph_edge(product_id, brand_id, "made_by", evidence_path="identity.brand"))
+
+    manufacturer = identity.get("manufacturer")
+    if manufacturer and manufacturer != brand:
+        manufacturer_id = f"manufacturer:{_graph_id_part(manufacturer)}"
+        nodes.append(_graph_node(manufacturer_id, "manufacturer", manufacturer))
+        edges.append(_graph_edge(product_id, manufacturer_id, "manufactured_by", evidence_path="identity.manufacturer"))
+
+    category_tree = category.get("category_tree") if isinstance(category.get("category_tree"), list) else []
+    previous_category_id: str | None = None
+    for item in category_tree:
+        if not isinstance(item, Mapping) or not item.get("id"):
+            continue
+        category_id = f"category:{item['id']}"
+        nodes.append(_graph_node(category_id, "category", item.get("name") or item["id"], category_id=item.get("id")))
+        if previous_category_id:
+            edges.append(_graph_edge(previous_category_id, category_id, "parent_of", evidence_path="category.category_tree"))
+        previous_category_id = category_id
+    if previous_category_id:
+        edges.append(_graph_edge(product_id, previous_category_id, "in_category", evidence_path="category.category_tree"))
+
+    buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
+    seller_id = buy_box.get("seller_id")
+    if seller_id:
+        seller_node_id = f"seller:{seller_id}"
+        nodes.append(
+            _graph_node(
+                seller_node_id,
+                "seller",
+                seller_id,
+                seller_id=seller_id,
+                is_fba=buy_box.get("is_fba"),
+                is_amazon=buy_box.get("is_amazon"),
+                is_prime_eligible=buy_box.get("is_prime_eligible"),
+            )
+        )
+        edges.append(_graph_edge(product_id, seller_node_id, "buybox_sold_by", evidence_path="pricing.buy_box.seller_id"))
+
+    parent_asin = identity.get("parent_asin") or variations.get("parent_asin")
+    if parent_asin:
+        parent_id = f"product:{parent_asin}"
+        nodes.append(_graph_node(parent_id, "product", parent_asin, asin=parent_asin, role="parent"))
+        edges.append(_graph_edge(product_id, parent_id, "variation_of", evidence_path="variations.parent_asin"))
+
+    for item in variations.get("sample") or []:
+        if not isinstance(item, Mapping) or not item.get("asin"):
+            continue
+        variation_asin = str(item["asin"])
+        variation_id = f"product:{variation_asin}"
+        nodes.append(_graph_node(variation_id, "variation", variation_asin, asin=variation_asin, attributes=item.get("attributes")))
+        edges.append(_graph_edge(product_id, variation_id, "has_variation", evidence_path="variations.sample"))
+
+    nodes = _dedupe_graph_nodes(nodes)
+    edges = _dedupe_graph_edges(edges)
+    return _compact(
+        {
+            "schema_version": RESEARCH_GRAPH_SCHEMA_VERSION,
+            "root": product_id,
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+            "entity_counts": _entity_counts(nodes),
+            "nodes": nodes,
+            "edges": edges,
+        }
+    )
+
+
+def _graph_node(node_id: str, node_type: str, label: Any, **attributes: Any) -> dict[str, Any]:
+    return _compact(
+        {
+            "id": node_id,
+            "type": node_type,
+            "label": _truncate_text(label, 120),
+            "attributes": _compact(dict(attributes)),
+        }
+    )
+
+
+def _graph_edge(source: str, target: str, relation: str, *, evidence_path: str) -> dict[str, Any]:
+    return {"source": source, "target": target, "type": relation, "evidence_path": evidence_path}
+
+
+def _graph_id_part(value: Any) -> str:
+    return str(value).strip().lower().replace(" ", "_")[:80]
+
+
+def _dedupe_graph_nodes(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: dict[str, dict[str, Any]] = {}
+    for node in nodes:
+        node_id = str(node.get("id") or "")
+        if node_id:
+            deduped[node_id] = node
+    return sorted(deduped.values(), key=lambda item: (str(item.get("type") or ""), str(item.get("id") or "")))
+
+
+def _dedupe_graph_edges(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for edge in edges:
+        key = (str(edge.get("source") or ""), str(edge.get("target") or ""), str(edge.get("type") or ""))
+        if all(key):
+            deduped[key] = edge
+    return sorted(deduped.values(), key=lambda item: (str(item.get("source") or ""), str(item.get("type") or ""), str(item.get("target") or "")))
+
+
+def _entity_counts(nodes: list[dict[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for node in nodes:
+        node_type = str(node.get("type") or "unknown")
+        counts[node_type] = counts.get(node_type, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def _filter_product_view(result: dict[str, Any], *, view_profile: str, fields: list[str]) -> dict[str, Any]:

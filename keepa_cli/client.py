@@ -17,7 +17,15 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Callable, Mapping
 
-from keepa_cli.cache import build_cache_provenance
+from keepa_cli.cache import (
+    CACHE_DISABLE_ENV,
+    SQLiteResponseCache,
+    build_cache_provenance,
+    build_response_cache_key,
+    default_cache_path,
+    parse_bool,
+    resolve_cache_ttl_seconds,
+)
 from keepa_cli.config import load_config
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.request_spec import build_request_spec
@@ -42,12 +50,14 @@ class KeepaClient:
         timeout_seconds: float = 20.0,
         opener: Callable[[urllib.request.Request, float], Any] | None = None,
         sleeper: Callable[[float], None] | None = None,
+        response_cache: SQLiteResponseCache | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.fixture_dir = Path(fixture_dir) if fixture_dir is not None else None
         self.timeout_seconds = timeout_seconds
         self.opener = opener or urllib.request.urlopen
         self.sleeper = sleeper or time.sleep
+        self.response_cache = response_cache
 
     def request(
         self,
@@ -94,7 +104,8 @@ class KeepaClient:
             return self._fixture_response(command, fixture, request_payload, budget)
 
         env = os.environ if env is None else env
-        api_key = params.get("key") or env.get("KEEPA_API_KEY") or load_config(env=env).get("api_key")
+        config = load_config(env=env)
+        api_key = params.get("key") or env.get("KEEPA_API_KEY") or config.get("api_key")
         if not api_key:
             return error_envelope(
                 command=command,
@@ -105,6 +116,11 @@ class KeepaClient:
             )
 
         params["key"] = str(api_key)
+        cache_ttl_seconds = resolve_cache_ttl_seconds(config, env=env)
+        cache_disabled = parse_bool(env.get(CACHE_DISABLE_ENV)) or cache_ttl_seconds <= 0
+        response_cache = None
+        if not cache_disabled and method == "GET" and json_body is None:
+            response_cache = self.response_cache or SQLiteResponseCache(default_cache_path(env))
         if binary:
             if not out:
                 return error_envelope(
@@ -115,7 +131,17 @@ class KeepaClient:
                     token_bucket={"estimated": budget},
                 )
             return self._live_binary_response(command, method, spec.endpoint, params, json_body, request_payload, budget, out)
-        return self._live_response(command, method, spec.endpoint, params, json_body, request_payload, budget)
+        return self._live_response(
+            command,
+            method,
+            spec.endpoint,
+            params,
+            json_body,
+            request_payload,
+            budget,
+            response_cache=response_cache,
+            cache_ttl_seconds=cache_ttl_seconds,
+        )
 
     def _fixture_response(
         self,
@@ -169,7 +195,49 @@ class KeepaClient:
         json_body: dict[str, Any] | list[Any] | None,
         request_payload: dict[str, Any],
         budget: dict[str, Any],
+        *,
+        response_cache: SQLiteResponseCache | None = None,
+        cache_ttl_seconds: int = 0,
     ) -> dict[str, Any]:
+        public_params = {key: value for key, value in params.items() if key != "key"}
+        cache_key = None
+        if response_cache is not None:
+            cache_key = build_response_cache_key(
+                method=method,
+                endpoint=endpoint,
+                params=public_params,
+                json_body=json_body,
+            )
+            cached = response_cache.get(cache_key)
+            if cached is not None:
+                cached_token_bucket = dict(cached["token_bucket"])
+                cache_token_bucket: dict[str, Any] = {
+                    "estimated": cached_token_bucket.get("estimated", budget),
+                    "cache_hit": True,
+                    "tokens_consumed": 0,
+                }
+                if cached_token_bucket.get("tokens_consumed") is not None:
+                    cache_token_bucket["cached_tokens_consumed"] = cached_token_bucket["tokens_consumed"]
+                return success_envelope(
+                    command=command,
+                    data={
+                        "offline": False,
+                        "body": cached["body"],
+                        "cache_provenance": build_cache_provenance(
+                            endpoint=endpoint,
+                            params=public_params,
+                            source="sqlite",
+                            cache_hit=True,
+                            cache_key=cache_key,
+                            cache_path=str(response_cache.path),
+                            created_at=cached["created_at"],
+                            expires_at=cached["expires_at"],
+                        ),
+                    },
+                    request=cached["request"],
+                    token_bucket=cache_token_bucket,
+                )
+
         query = urllib.parse.urlencode(params, doseq=True)
         url = f"{self.base_url}{endpoint}?{query}"
         body_bytes = None
@@ -215,11 +283,38 @@ class KeepaClient:
                     secret_values=secret_values,
                 )
 
+        token_bucket = self._token_bucket_from_body(response_body, budget)
+        cache_metadata = None
+        if response_cache is not None and cache_key is not None:
+            cache_metadata = response_cache.set(
+                cache_key=cache_key,
+                method=method,
+                endpoint=endpoint,
+                params=public_params,
+                request=request_payload,
+                body=response_body,
+                token_bucket=token_bucket,
+                ttl_seconds=cache_ttl_seconds,
+            )
+
         return success_envelope(
             command=command,
-            data=response_body,
+            data={
+                "offline": False,
+                "body": response_body,
+                "cache_provenance": build_cache_provenance(
+                    endpoint=endpoint,
+                    params=public_params,
+                    source="live",
+                    cache_hit=False,
+                    cache_key=cache_key,
+                    cache_path=str(response_cache.path) if response_cache is not None else None,
+                    created_at=cache_metadata["created_at"] if cache_metadata else None,
+                    expires_at=cache_metadata["expires_at"] if cache_metadata else None,
+                ),
+            },
             request=request_payload,
-            token_bucket=self._token_bucket_from_body(response_body, budget),
+            token_bucket=token_bucket,
         )
 
     def _live_binary_response(

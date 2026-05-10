@@ -143,6 +143,7 @@ kc = "keepa_cli.cli:main"
 首批工具：
 
 - `keepa.products_get` -> `products.get`
+- `keepa.products_compare` -> `products.compare`
 - `keepa.categories_search` -> `categories.search`
 - `keepa.categories_products` -> `categories.products`
 - `keepa.finder_query` -> `finder.query`
@@ -172,7 +173,9 @@ MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时
 }
 ```
 
-同一 MCP/stdin 会话内会自动缓存成功响应。重复的 command+params 会返回 `cache_hit=true`，也可以用 `from_cache` 显式复用 `cache_key`。缓存只在进程内存在，不跨会话持久化。
+同一 MCP/stdin 会话内会自动缓存成功响应。重复的 command+params 会返回 `cache_hit=true`，也可以用 `from_cache` 显式复用 `cache_key`。该层是进程内 Agent session cache，用于一次长会话内去重。
+
+live GET JSON 响应另有 SQLite 持久缓存，默认路径来自平台缓存目录，可用 `KEEPA_CLI_CACHE_PATH` 或 `cache stats --cache-path <path>` 覆盖审计路径。TTL 默认读取配置里的 `cache_ttl_seconds`，也可用 `KEEPA_CLI_CACHE_TTL_SECONDS` 覆盖；`KEEPA_CLI_NO_CACHE=1` 会禁用 live response cache。dry-run、fixture、binary、POST 与禁用缓存的请求不写入持久缓存。`cache stats` / `cache clear --dry-run` 只作用于 SQLite response cache，不删除 `tests/fixtures` 或进程内 session cache。
 
 高成本请求不会交互等待确认；无 `yes=true`、`dry_run=true` 或 `fixture` 时返回 `confirmation_required`，并把阻断记录写入 `budget_ledger.blocked_actions`。
 
@@ -244,7 +247,13 @@ Agent 视图 profile：
 
 `--fields` 会覆盖 profile，只返回指定 product section；`--chunks-dir` 会把 agent_brief、identity、pricing、demand、rating、offers、media、aplus、selection_signals、evidence_index、history_summary、temporal_features 等 section 写成独立 JSON chunk，并在 `data.chunks` 返回路径。每个 product 都会包含 `agent_brief`、`data_quality`、`next_actions`、`temporal_features` 和 `selection_signals`，用于 Agent 判断是否需要补 `--offers 20`、`--rating 1`、`--aplus 1` 或 `--history 1`。`next_actions` 保留旧的 `command` 字符串，同时新增 `tool`、`params`、`cli`、`estimated_tokens` 和 `requires_confirmation`，Agent 应优先使用 `tool+params` 执行，只有展示给人时使用 `command/cli`。
 
-`products.compare` 复用 `/product`，返回 `view=products_compare`，用统一 rows 暴露 `asin/title/brand/new_price/buy_box_price/sales_rank/monthly_sold/rating/review_count/coupon/offer/media/aplus/selection_signals/risk_flags/data_quality`，适合 Agent 做多 ASIN 横向比较。
+Agent 语义层：
+
+- `risk_taxonomy`：稳定风险枚举，当前 `known_codes` 包含 `data_missing`、`price_unstable`、`rank_declining`、`low_review_count`、`offer_competition_high`、`buybox_missing`、`category_mismatch`。每个风险 item 给出 `severity`、`reason`、`evidence_path`，并尽量补充 `metric` 与 `follow_up`。
+- `research_graph`：轻量实体关系图，节点类型包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation`，边类型包含 `made_by`、`manufactured_by`、`in_category`、`parent_of`、`buybox_sold_by`、`variation_of`、`has_variation`。
+- `selection_signals.risk_codes` 与 `agent_brief.risk_codes` 会复用 `risk_taxonomy.codes`，便于批量筛选；深度审计时读取完整 `risk_taxonomy.items`。
+
+`products.compare` 复用 `/product`，返回 `view=products_compare`，用统一 rows 暴露 `asin/title/brand/new_price/buy_box_price/sales_rank/monthly_sold/rating/review_count/coupon/offer/media/aplus/selection_signals/risk_flags/risk_taxonomy/research_graph/data_quality`，适合 Agent 做多 ASIN横向比较。顶层同时返回 `risk_summary` 与合并后的 `research_graph`，用于评测和报告阶段直接断言语义质量。
 
 ### categories get/search
 
