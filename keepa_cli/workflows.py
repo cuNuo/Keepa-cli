@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from keepa_cli.agent_contract import build_action, build_evidence_index
+from keepa_cli.agent.tools import is_tool_active_for_profile, profile_allowed_tools, profile_names
 from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path, explain_response_cache_key
 from keepa_cli.research_graph import extract_research_graphs, graph_summary
 from keepa_cli.token_budget import estimate_request_budget
@@ -243,6 +244,30 @@ def show_template(name: str, out: str | None = None) -> dict[str, Any]:
     return template
 
 
+def _mcp_tool_name(tool: str) -> str:
+    return "keepa." + tool.replace(".", "_").replace("-", "_")
+
+
+def _step_profile(tool: str, *, requires_confirmation: bool) -> str:
+    if tool in {"categories.search", "categories.products", "categories.finder-selection", "finder.query", "deals.query", "bestsellers.get", "topsellers.list"}:
+        return "dry_run_default"
+    if tool in {"products.get", "products.compare", "sellers.get"}:
+        return "live_read_allowed"
+    if requires_confirmation:
+        return "live_read_allowed"
+    return "offline_fixture_only"
+
+
+def _execution_mode(*, estimated_tokens: int, requires_confirmation: bool, fixture_replay: str | None) -> str:
+    if estimated_tokens == 0:
+        return "local_only"
+    if fixture_replay:
+        return "fixture_replay_preferred"
+    if requires_confirmation:
+        return "confirmation_required"
+    return "live_read_or_fixture"
+
+
 def _plan_step(
     *,
     step_id: str,
@@ -253,10 +278,26 @@ def _plan_step(
     fixture_replay: str | None = None,
 ) -> dict[str, Any]:
     budget = estimate_request_budget(action["tool"], dict(action.get("params") or {})).to_dict()
+    mcp_tool = _mcp_tool_name(action["tool"])
+    step_profile = _step_profile(action["tool"], requires_confirmation=bool(action["requires_confirmation"]))
+    execution: dict[str, Any] = {
+        "mode": _execution_mode(
+            estimated_tokens=int(action["estimated_tokens"]),
+            requires_confirmation=bool(action["requires_confirmation"]),
+            fixture_replay=fixture_replay,
+        ),
+        "safe_default": not bool(action["requires_confirmation"]),
+        "cache_strategy": "reuse cache_key or from_cache before repeating the same step",
+        "fixture_replay": fixture_replay,
+    }
+    if action["requires_confirmation"]:
+        execution["confirmation_params"] = {"yes": True}
+        execution["confirmation_reason"] = "requires explicit user approval before a live call"
     return {
         "id": step_id,
         "title": title,
         "tool": action["tool"],
+        "mcp_tool": mcp_tool,
         "params": action["params"],
         "cli": action["cli"],
         "command": action["command"],
@@ -267,6 +308,14 @@ def _plan_step(
         "worst_case_tokens": budget["worst_case_tokens"],
         "requires_confirmation": action["requires_confirmation"],
         "fixture_replay": fixture_replay,
+        "mcp": {
+            "tool": mcp_tool,
+            "toolset": "research",
+            "profile": step_profile,
+            "active_in_profile": is_tool_active_for_profile(mcp_tool, step_profile),
+            "call": {"name": mcp_tool, "arguments": {**dict(action["params"]), "profile": step_profile}},
+        },
+        "execution": execution,
     }
 
 
@@ -300,10 +349,9 @@ def _category_research_plan(*, term: str, domain: str, hydrate_top: int) -> list
             title="Fetch category ASIN candidates",
             action=build_action(
                 tool="categories.products",
-                params={"category": "<CATEGORY_ID>", "domain": domain, "limit": 25, "hydrate_top": hydrate_top, "yes": True},
+                params={"category": "<CATEGORY_ID>", "domain": domain, "limit": 25, "hydrate_top": hydrate_top},
                 cli=f"categories products <CATEGORY_ID> --domain {domain} --limit 25"
-                + (f" --hydrate-top {hydrate_top}" if hydrate_top else "")
-                + " --yes",
+                + (f" --hydrate-top {hydrate_top}" if hydrate_top else ""),
                 reason="fetch Best Sellers ASIN candidates for the chosen category",
             ),
             depends_on=["search-categories"],
@@ -354,6 +402,98 @@ def _product_research_plan(*, asin: str, domain: str, goal: str) -> list[dict[st
     ]
 
 
+def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str, Any]) -> dict[str, Any]:
+    recommended_profile = "dry_run_default" if name == "category-research" else "live_read_allowed"
+    allowed = profile_allowed_tools(recommended_profile)
+    workflow_tools = [str(step["mcp"]["tool"]) for step in steps]
+    active_tools = [tool for tool in workflow_tools if allowed is None or tool in allowed]
+    inactive_tools = []
+    switch_points = [
+        {
+            "before_step": steps[0]["id"] if steps else None,
+            "profile": recommended_profile,
+            "reason": "start workflow execution with the smallest profile that covers the first safe steps",
+        }
+    ]
+    for step in steps:
+        mcp_tool = str(step["mcp"]["tool"])
+        active_in_recommended = allowed is None or mcp_tool in allowed
+        step["mcp"]["recommended_profile"] = recommended_profile
+        step["mcp"]["active_in_recommended_profile"] = active_in_recommended
+        if not active_in_recommended:
+            inactive_tools.append(
+                {
+                    "step_id": step["id"],
+                    "tool": mcp_tool,
+                    "profile": recommended_profile,
+                    "recommended_profile": step["mcp"]["profile"],
+                    "reason": f"profile {recommended_profile} does not allow {mcp_tool}; switch only when dependencies and budget are satisfied",
+                }
+            )
+            switch_points.append(
+                {
+                    "before_step": step["id"],
+                    "profile": step["mcp"]["profile"],
+                    "reason": f"enable {mcp_tool} after dependencies are complete",
+                }
+            )
+        if step["requires_confirmation"]:
+            switch_points.append(
+                {
+                    "before_step": step["id"],
+                    "profile": step["mcp"]["profile"],
+                    "requires_confirmation": True,
+                    "confirmation_params": {"yes": True},
+                    "reason": "pause for user approval before adding confirmation params",
+                }
+            )
+
+    return {
+        "recommended_toolset": "research",
+        "planning_profile": "offline_fixture_only",
+        "recommended_profile": recommended_profile,
+        "available_profiles": profile_names(),
+        "workflow_tools": workflow_tools,
+        "allowed_tools": active_tools,
+        "inactive_tools": inactive_tools,
+        "profile_switch_points": switch_points,
+        "confirmation_policy": {
+            "requires_confirmation": bool(totals.get("requires_confirmation")),
+            "step_ids": [str(step["id"]) for step in steps if step["requires_confirmation"]],
+            "resume_param": "yes",
+            "default": "do not execute live high-cost steps until the user confirms the exact step",
+        },
+        "budget_ledger_seed": {
+            "session_estimated": 0,
+            "planned_estimated": int(totals.get("estimated_tokens") or 0),
+            "planned_worst_case": int(totals.get("worst_case_tokens") or 0),
+            "blocked_actions": [
+                {
+                    "step_id": step["id"],
+                    "tool": step["mcp"]["tool"],
+                    "estimated_tokens": step["estimated_tokens"],
+                    "worst_case_tokens": step["worst_case_tokens"],
+                    "reason": "confirmation_required",
+                }
+                for step in steps
+                if step["requires_confirmation"]
+            ],
+        },
+        "tool_discovery": {
+            "method": "tools/list",
+            "params": {
+                "toolset": "research",
+                "profile": recommended_profile,
+                "allow_tools": workflow_tools,
+            },
+        },
+        "cache_policy": {
+            "reuse": "prefer from_cache with a prior cache_key before repeating a step",
+            "audit_resource": "keepa://research/{cache_key}",
+        },
+    }
+
+
 def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain: str, goal: str, hydrate_top: int) -> dict[str, Any]:
     if name == "category-research":
         if not term:
@@ -371,6 +511,7 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
         "worst_case_tokens": sum(int(step["worst_case_tokens"]) for step in steps),
         "requires_confirmation": any(bool(step["requires_confirmation"]) for step in steps),
     }
+    workflow_policy = _workflow_policy(name, steps, totals)
     return {
         "view": "workflow_plan",
         "name": name,
@@ -379,19 +520,25 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
         "steps": steps,
         "totals": totals,
         "parallel_groups": sorted({str(step["parallel_group"]) for step in steps if step.get("parallel_group")}),
+        "workflow_policy": workflow_policy,
         "agent_brief": {
             "view": "workflow_plan",
             "one_line": f"{name} plan with {len(steps)} steps; estimated {totals['estimated_tokens']} tokens",
-            "key_facts": {"name": name, "step_count": len(steps), **totals},
-            "read_order": ["agent_brief", "steps", "totals", "evidence_index"],
+            "key_facts": {"name": name, "step_count": len(steps), "recommended_profile": workflow_policy["recommended_profile"], **totals},
+            "read_order": ["agent_brief", "workflow_policy", "steps", "totals", "evidence_index"],
         },
         "data_quality": {
-            "present": ["steps", "totals", "next_actions"],
+            "present": ["steps", "totals", "workflow_policy", "next_actions"],
             "missing": [],
             "confidence": "high",
             "notes": ["workflow plan is local-only and does not consume Keepa tokens"],
         },
-        "selection_signals": {"step_count": len(steps), "parallel_group_count": len({step["parallel_group"] for step in steps if step.get("parallel_group")})},
+        "selection_signals": {
+            "step_count": len(steps),
+            "parallel_group_count": len({step["parallel_group"] for step in steps if step.get("parallel_group")}),
+            "confirmation_step_count": len(workflow_policy["confirmation_policy"]["step_ids"]),
+            "inactive_tool_count": len(workflow_policy["inactive_tools"]),
+        },
         "next_actions": [
             build_action(
                 tool=step["tool"],
@@ -408,6 +555,7 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
             {
                 "steps": ("steps", "summary", "Ordered execution graph with dependencies and budgets."),
                 "totals": ("totals", "summary", "Total estimated and worst-case token budget."),
+                "workflow_policy": ("workflow_policy", "summary", "MCP profile, toolset, confirmation, cache, and budget policy for the plan."),
                 "next_actions": ("next_actions", "summary", "Root actions safe for an Agent to start from."),
                 "fixture_replay": ("steps[].fixture_replay", "audit", "Suggested fixture names for offline replay."),
             }

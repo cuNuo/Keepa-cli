@@ -15,7 +15,7 @@ from keepa_cli.agent.tools import list_mcp_tools, profile_names, toolset_names
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-11.4"
+SCHEMA_VERSION = "2026-05-11.5"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -73,6 +73,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "schema.generate", "supports_fixture": False, "supports_live": False, "output": "json-file"},
     {"name": "cassettes.sanitize", "supports_fixture": False, "supports_live": False, "output": "json-file"},
     {"name": "cassettes.promote", "supports_fixture": False, "supports_live": False, "output": "json-file"},
+    {"name": "cassettes.promote_and_verify", "supports_fixture": False, "supports_live": False, "output": "json-fixture-audit"},
     {"name": "request.get", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "request.post", "supports_fixture": True, "supports_live": True, "output": "json"},
 )

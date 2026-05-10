@@ -113,6 +113,12 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "mimeType": "application/json",
     },
     {
+        "uriTemplate": "keepa://workflow/{encoded_params}/policy",
+        "name": "workflow-policy-preview",
+        "description": "Read workflow.plan policy for base64url JSON params without loading the full plan.",
+        "mimeType": "application/json",
+    },
+    {
         "uriTemplate": "keepa://research/{cache_key}",
         "name": "session-research-by-cache-key",
         "description": "Audit a cached AgentSession result by cache key, including graph summary, evidence index, provenance, and ledger.",
@@ -226,6 +232,8 @@ def read_mcp_resource(
         return _read_zread_page_resource(uri, repo_root=repo_root)
     if uri.startswith("keepa://cache-key/"):
         return _read_cache_key_resource(uri)
+    if uri.startswith("keepa://workflow/"):
+        return _read_workflow_policy_resource(uri)
     if uri.startswith("keepa://research/"):
         return _read_research_cache_resource(uri, session_cache=session_cache)
     if uri.startswith("keepa://graphs/"):
@@ -340,6 +348,48 @@ def _read_cache_key_resource(uri: str) -> dict[str, str]:
         "params": dict(params),
         "cache_key": build_cache_key(command, params),
         "note": "Preview only; resources/read does not inspect live AgentSession memory.",
+    }
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _read_workflow_policy_resource(uri: str) -> dict[str, str]:
+    rest = uri.removeprefix("keepa://workflow/")
+    token, separator, suffix = rest.partition("/")
+    if not token or separator != "/" or suffix != "policy":
+        raise ValueError("workflow policy resource requires keepa://workflow/{encoded_params}/policy")
+    params = json.loads(_base64url_decode(token))
+    if not isinstance(params, Mapping):
+        raise ValueError("workflow policy encoded params must decode to a JSON object")
+
+    from keepa_cli.service import run_command
+
+    envelope = run_command("workflow.plan", dict(params), env={})
+    if not envelope.get("ok"):
+        raise ValueError(str(envelope.get("error", {}).get("message") or "workflow.plan failed"))
+    data = envelope.get("data") or {}
+    if not isinstance(data, Mapping):
+        raise ValueError("workflow.plan did not return a data object")
+    steps = data.get("steps") if isinstance(data.get("steps"), list) else []
+    payload = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "view": "workflow_policy_resource",
+        "command": "workflow.plan",
+        "params": dict(params),
+        "workflow_policy": data.get("workflow_policy") or {},
+        "totals": data.get("totals") or {},
+        "step_summary": [
+            {
+                "id": step.get("id"),
+                "tool": step.get("tool"),
+                "mcp_tool": step.get("mcp_tool"),
+                "profile": (step.get("mcp") or {}).get("profile") if isinstance(step.get("mcp"), Mapping) else None,
+                "requires_confirmation": step.get("requires_confirmation"),
+                "estimated_tokens": step.get("estimated_tokens"),
+            }
+            for step in steps
+            if isinstance(step, Mapping)
+        ],
+        "recommended_read_order": ["workflow_policy", "step_summary", "totals"],
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
 

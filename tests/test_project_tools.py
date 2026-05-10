@@ -6,13 +6,15 @@ tests/test_project_tools.py
 """
 
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from keepa_cli.service import run_command
+from keepa_cli.fixture_sync import compare_fixture_dirs
 from scripts.check_live_cache_options import missing_live_cache_options
-from scripts.check_fixture_sync import compare_fixture_dirs
 from scripts.redact_cassette import redact_cassette_payload
 
 
@@ -113,6 +115,74 @@ class ProjectToolTests(unittest.TestCase):
             manifest_content = manifest.read_text(encoding="utf-8")
             self.assertIn("logical_path,title,status,updated_at,summary", manifest_content)
             self.assertIn("promoted_product.json", manifest_content)
+
+    def test_cassette_promote_and_verify_checks_fixture_parity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "live.json"
+            tests_dir = root / "tests" / "fixtures"
+            package_dir = root / "keepa_cli" / "fixtures"
+            manifest = root / "evidence" / "manifest.csv"
+            input_path.write_text(
+                json.dumps({"url": "https://api.keepa.com/product?key=SECRET", "body": {"token": "SECRET", "ok": True}}),
+                encoding="utf-8",
+            )
+
+            payload = run_command(
+                "cassettes.promote_and_verify",
+                {
+                    "input": str(input_path),
+                    "name": "verified_product",
+                    "tests_dir": str(tests_dir),
+                    "package_dir": str(package_dir),
+                    "manifest": str(manifest),
+                    "title": "Verified Product Fixture",
+                },
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["command"], "cassettes.promote_and_verify")
+            self.assertEqual(payload["data"]["view"], "cassette_promote_and_verify")
+            self.assertTrue(payload["data"]["fixture_sync"]["ok"])
+            self.assertIsNone(payload["data"]["agent_eval"])
+            self.assertNotIn("SECRET", (tests_dir / "verified_product.json").read_text(encoding="utf-8"))
+
+    def test_cassette_promote_and_verify_cli_dry_run(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "live.json"
+            input_path.write_text(json.dumps({"url": "https://api.keepa.com/product?key=SECRET"}), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "keepa_cli",
+                    "--json",
+                    "cassettes",
+                    "promote-and-verify",
+                    str(input_path),
+                    "--name",
+                    "verified_cli_product",
+                    "--tests-dir",
+                    str(root / "tests" / "fixtures"),
+                    "--package-dir",
+                    str(root / "keepa_cli" / "fixtures"),
+                    "--manifest",
+                    str(root / "evidence" / "manifest.csv"),
+                    "--dry-run",
+                ],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["data"]["promotion"]["fixture_name"], "verified_cli_product.json")
+            self.assertEqual(payload["data"]["fixture_sync"]["skipped"], "dry_run")
 
 
 if __name__ == "__main__":

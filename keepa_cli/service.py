@@ -47,6 +47,7 @@ from keepa_cli.config import build_config_report, init_config, set_api_token, se
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
+from keepa_cli.fixture_sync import compare_fixture_dirs
 from keepa_cli.high_value import attach_output_if_requested
 from keepa_cli.research_graph import (
     build_category_products_graph,
@@ -411,6 +412,82 @@ def _cassettes_promote(params: Mapping[str, Any]) -> dict[str, Any]:
     )
 
 
+def _cassettes_promote_and_verify(params: Mapping[str, Any]) -> dict[str, Any]:
+    input_path = params.get("input") or params.get("in")
+    name = params.get("name")
+    if not input_path or not name:
+        return error_envelope(
+            command="cassettes.promote_and_verify",
+            kind="invalid_argument",
+            message="cassettes.promote_and_verify requires input and name",
+        )
+
+    tests_dir = Path(str(params.get("tests_dir") or params.get("tests-dir") or "tests/fixtures"))
+    package_dir = Path(str(params.get("package_dir") or params.get("package-dir") or "keepa_cli/fixtures"))
+    eval_dir = Path(str(params.get("eval_dir") or params.get("eval-dir") or "tests/agent_eval_fixtures"))
+    run_eval = _bool_option(params, "run_eval", "run-eval")
+    dry_run = _bool_option(params, "dry_run", "dry-run")
+    metadata = promote_cassette_fixture(
+        Path(str(input_path)),
+        name=str(name),
+        tests_dir=tests_dir,
+        package_dir=package_dir,
+        manifest_path=None if _bool_option(params, "no_manifest", "no-manifest") else Path(str(params.get("manifest") or "evidence/manifest.csv")),
+        title=str(params.get("title") or name),
+        dry_run=dry_run,
+    )
+
+    fixture_sync = None
+    agent_eval = None
+    if not dry_run:
+        sync = compare_fixture_dirs(tests_dir, package_dir)
+        fixture_sync = sync.to_dict()
+        if run_eval:
+            try:
+                from keepa_cli.agent_eval import check_agent_eval_fixtures
+
+                checked = check_agent_eval_fixtures(eval_dir, tests_dir)
+                agent_eval = {"ok": True, "checked_specs": checked, "count": len(checked), "eval_dir": str(eval_dir)}
+            except AssertionError as exc:
+                agent_eval = {"ok": False, "error": str(exc), "eval_dir": str(eval_dir)}
+    else:
+        fixture_sync = {"ok": None, "skipped": "dry_run"}
+        if run_eval:
+            agent_eval = {"ok": None, "skipped": "dry_run"}
+
+    ok = bool(fixture_sync.get("ok")) if not dry_run else True
+    if agent_eval is not None and agent_eval.get("ok") is False:
+        ok = False
+
+    payload = success_envelope if ok else error_envelope
+    if ok:
+        return payload(
+            command="cassettes.promote_and_verify",
+            data={
+                "view": "cassette_promote_and_verify",
+                "promotion": metadata,
+                "fixture_sync": fixture_sync,
+                "agent_eval": agent_eval,
+                "next_actions": [
+                    {
+                        "label": "Re-run promotion parity after editing Agent eval specs",
+                        "tool": "keepa.cassettes_promote_and_verify",
+                        "params": {"input": str(input_path), "name": metadata["fixture_name"], "run_eval": True},
+                    },
+                    {"label": "Review evidence manifest entry before committing", "path": str(metadata.get("manifest") or "")},
+                ],
+            },
+            request={"transport": "service", "dry_run": dry_run, "run_eval": run_eval},
+            token_bucket={},
+        )
+    return payload(
+        command="cassettes.promote_and_verify",
+        kind="fixture_sync_failed",
+        message="promoted cassette fixture did not pass fixture sync verification",
+        details={"promotion": metadata, "fixture_sync": fixture_sync, "agent_eval": agent_eval},
+    )
+
+
 def _research_graph_merge(params: Mapping[str, Any]) -> dict[str, Any]:
     graphs: list[dict[str, Any]] = []
     sources: list[dict[str, Any]] = []
@@ -642,6 +719,8 @@ def run_command(
             return _cassettes_sanitize(params)
         if command in {"cassettes.promote", "cassette.promote", "fixtures.promote", "fixture.promote"}:
             return _cassettes_promote(params)
+        if command in {"cassettes.promote_and_verify", "cassettes.promote-and-verify", "cassette.promote_and_verify", "fixture.promote_and_verify"}:
+            return _cassettes_promote_and_verify(params)
         if command in {"research_graph.merge", "research-graph.merge", "graph.merge"}:
             return _research_graph_merge(params)
         if command in {"research_brief.export", "research-brief.export", "brief.export"}:

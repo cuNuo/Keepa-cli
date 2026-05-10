@@ -208,6 +208,17 @@ def _build_parser() -> argparse.ArgumentParser:
     cassettes_promote.add_argument("--title", help="manifest 标题。")
     cassettes_promote.add_argument("--no-manifest", action="store_true", help="不更新 evidence manifest。")
     cassettes_promote.add_argument("--dry-run", action="store_true", help="只返回计划，不写文件。")
+    cassettes_promote_verify = cassettes_subparsers.add_parser("promote-and-verify", help="提升 cassette 并验证 fixture/eval 一致性。")
+    cassettes_promote_verify.add_argument("input", help="输入真实或已脱敏 cassette JSON 文件。")
+    cassettes_promote_verify.add_argument("--name", required=True, help="fixture 文件名，不含路径；可省略 .json。")
+    cassettes_promote_verify.add_argument("--tests-dir", default="tests/fixtures", help="测试 fixture 目录。")
+    cassettes_promote_verify.add_argument("--package-dir", default="keepa_cli/fixtures", help="包内 fixture 目录。")
+    cassettes_promote_verify.add_argument("--eval-dir", default="tests/agent_eval_fixtures", help="Agent eval 规格目录。")
+    cassettes_promote_verify.add_argument("--manifest", default="evidence/manifest.csv", help="evidence manifest 路径。")
+    cassettes_promote_verify.add_argument("--title", help="manifest 标题。")
+    cassettes_promote_verify.add_argument("--no-manifest", action="store_true", help="不更新 evidence manifest。")
+    cassettes_promote_verify.add_argument("--run-eval", action="store_true", help="提升后运行 Agent eval fixtures。")
+    cassettes_promote_verify.add_argument("--dry-run", action="store_true", help="只返回计划，不写文件或验证。")
 
     add_research_graph_parser(subparsers)
     add_raw_request_parser(subparsers)
@@ -464,6 +475,24 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "manifest": args.manifest,
                 "title": args.title,
                 "no_manifest": bool(args.no_manifest),
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "cassettes" and args.cassettes_command == "promote-and-verify":
+        payload = run_command(
+            "cassettes.promote_and_verify",
+            {
+                "input": args.input,
+                "name": args.name,
+                "tests_dir": args.tests_dir,
+                "package_dir": args.package_dir,
+                "eval_dir": args.eval_dir,
+                "manifest": args.manifest,
+                "title": args.title,
+                "no_manifest": bool(args.no_manifest),
+                "run_eval": bool(args.run_eval),
                 "dry_run": bool(args.dry_run),
             },
         )

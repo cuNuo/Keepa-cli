@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
-from scripts.check_agent_eval_fixtures import check_agent_eval_fixtures
+from keepa_cli.agent_eval import check_agent_eval_fixtures
 from keepa_cli.service import run_command
 
 

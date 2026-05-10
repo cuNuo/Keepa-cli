@@ -37,10 +37,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cuNuo/Keepa-cli"
+Homepage = "https://cunuo.github.io/Keepa-cli/"
 Repository = "https://github.com/cuNuo/Keepa-cli"
 Issues = "https://github.com/cuNuo/Keepa-cli/issues"
-Documentation = "https://zread.ai/cuNuo/Keepa-cli"
+Documentation = "https://cunuo.github.io/Keepa-cli/"
+Architecture = "https://zread.ai/cuNuo/Keepa-cli"
 Changelog = "https://github.com/cuNuo/Keepa-cli/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]

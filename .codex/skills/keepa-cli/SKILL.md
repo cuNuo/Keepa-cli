@@ -53,9 +53,11 @@ Use `keepa.products_get` for single-product research and `keepa.products_compare
 
 MCP `tools/list` defaults to `toolset=research`. Use `toolset=audit` for `keepa.audit_cost` and cassette tools, `toolset=reports` for local report/browse/brief export tools, `toolset=tracking-readonly` for read-only tracking, and `toolset=all` only when debugging schema discovery. Add `profile=offline_fixture_only`, `dry_run_default`, `live_read_allowed`, `tracking_readonly`, or `fixture_curation` when a client supports staged tool discovery. Inactive tools are marked with `x-keepa.active=false`, and `tools/call` with the same profile returns `inactive_tool` before service execution. Research tools include `keepa.categories_finder_selection`, `keepa.research_graph_merge`, and `keepa.research_brief_export`.
 
-MCP `resources/list` exposes `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` exposes `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. If a tool text fallback includes `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` with `resources/read` instead of asking for the whole raw body again.
+MCP `resources/list` exposes `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` exposes `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://workflow/{encoded_params}/policy`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://workflow/{encoded_params}/policy` to read a compact `workflow_policy` from base64url JSON workflow params, `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. If a tool text fallback includes `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` with `resources/read` instead of asking for the whole raw body again.
 
 For general research Agents, read `keepa://context/policy`, call `keepa.resolve_research_target`, then call `keepa.query_research_context` before running live-capable product/category tools. `tools/list` accepts `allow_tools`, `exclude_tools`, and `profile` filters for small per-workflow schemas; use `profile=offline_fixture_only` when the Agent must not execute live-capable tools.
+
+`workflow.plan` returns `workflow_policy` for MCP execution control. Read it before running steps: apply `tool_discovery.params` to `tools/list`, follow `profile_switch_points`, treat `inactive_tools` as deliberate stage gates, and only add `yes=true` after explicit confirmation for the listed `confirmation_policy.step_ids`.
 
 For local workflows:
 
@@ -111,7 +113,10 @@ Do not commit `evidence/runtime-logs/`. Sanitize and promote live responses to f
 
 ```powershell
 kc --json cassettes promote evidence/runtime-logs/live-response.json --name product_B0EXAMPLE_full
+kc --json cassettes promote-and-verify evidence/runtime-logs/live-response.json --name product_B0EXAMPLE_full --run-eval
 ```
+
+Prefer `promote-and-verify` / `keepa.cassettes_promote_and_verify` when turning a live sample into regression assets. It sanitizes, writes synchronized fixtures, checks fixture parity, and can run Agent eval fixtures in one local workflow.
 
 ## Raw Escape Hatch
 

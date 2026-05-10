@@ -1,0 +1,23 @@
+{
+  "id": "workflow_plan_profile_policy",
+  "description": "workflow plan 输出 MCP profile/toolset、确认策略和可执行起始动作，避免 Agent 猜测阶段切换。",
+  "kind": "service",
+  "command": "workflow.plan",
+  "params": {
+    "name": "category-research",
+    "term": "home kitchen",
+    "domain": "US",
+    "hydrate_top": 2
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.workflow_policy.recommended_toolset", "equals": "research"},
+    {"path": "data.workflow_policy.recommended_profile", "equals": "dry_run_default"},
+    {"path": "data.workflow_policy.confirmation_policy.step_ids", "contains": "fetch-category-products"},
+    {"path": "data.workflow_policy.inactive_tools.0.tool", "equals": "keepa.products_compare"},
+    {"path": "data.workflow_policy.budget_ledger_seed.planned_estimated", "equals": 55},
+    {"path": "data.steps.0.mcp.call.name", "equals": "keepa.categories_search"},
+    {"path": "data.steps.2.execution.confirmation_params.yes", "equals": true},
+    {"path": "data.next_actions", "next_actions_executable": true}
+  ]
+}

@@ -133,9 +133,20 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["view"], "workflow_plan")
         self.assertEqual(payload["data"]["steps"][0]["tool"], "categories.search")
+        self.assertEqual(payload["data"]["steps"][0]["mcp_tool"], "keepa.categories_search")
+        self.assertEqual(payload["data"]["steps"][0]["mcp"]["profile"], "dry_run_default")
         self.assertIn("search-categories", payload["data"]["steps"][1]["depends_on"])
         self.assertEqual(payload["data"]["totals"]["estimated_tokens"], 55)
         self.assertTrue(payload["data"]["totals"]["requires_confirmation"])
+        self.assertEqual(payload["data"]["workflow_policy"]["recommended_toolset"], "research")
+        self.assertEqual(payload["data"]["workflow_policy"]["recommended_profile"], "dry_run_default")
+        self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"][0]["tool"], "keepa.products_compare")
+        self.assertEqual(payload["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
+        self.assertEqual(payload["data"]["workflow_policy"]["budget_ledger_seed"]["planned_estimated"], 55)
+        self.assertEqual(
+            payload["data"]["workflow_policy"]["tool_discovery"]["params"]["allow_tools"],
+            [step["mcp"]["tool"] for step in payload["data"]["steps"]],
+        )
         self.assertEqual(payload["data"]["next_actions"][0]["tool"], "categories.search")
 
     def test_workflow_plan_product_research_cli(self):
@@ -162,6 +173,9 @@ class Phase10WorkflowTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["steps"][0]["params"]["view"], "deal")
+        self.assertEqual(payload["data"]["workflow_policy"]["recommended_profile"], "live_read_allowed")
+        self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"], [])
+        self.assertEqual(payload["data"]["steps"][1]["execution"]["confirmation_params"], {"yes": True})
 
     def test_cli_workflow_commands_return_json(self):
         with tempfile.TemporaryDirectory() as temp_dir:

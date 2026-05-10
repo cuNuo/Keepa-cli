@@ -76,6 +76,7 @@ PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
         "keepa.audit_cost",
         "keepa.cassettes_sanitize",
         "keepa.cassettes_promote",
+        "keepa.cassettes_promote_and_verify",
     },
 }
 
@@ -645,6 +646,26 @@ CASSETTES_PROMOTE_SCHEMA: JsonSchema = {
 }
 
 
+CASSETTES_PROMOTE_AND_VERIFY_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["input", "name"],
+    "properties": {
+        "input": _string_schema("Raw or redacted cassette JSON path."),
+        "name": _string_schema("Fixture filename, with or without .json."),
+        "tests_dir": _string_schema("tests fixture directory.", default="tests/fixtures"),
+        "package_dir": _string_schema("package fixture directory.", default="keepa_cli/fixtures"),
+        "eval_dir": _string_schema("Agent eval spec directory.", default="tests/agent_eval_fixtures"),
+        "manifest": _string_schema("Evidence manifest path.", default="evidence/manifest.csv"),
+        "title": _string_schema("Manifest title."),
+        "no_manifest": _boolean_schema("Skip evidence manifest update."),
+        "run_eval": _boolean_schema("Run Agent eval fixtures after fixture sync."),
+        "dry_run": _boolean_schema("Preview target files without writing or verification."),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
 MCP_ENVELOPE_OUTPUT_SCHEMA: JsonSchema = {
     "type": "object",
     "additionalProperties": True,
@@ -838,6 +859,14 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         command="cassettes.promote",
         description="Sanitize a cassette, write synchronized test/package fixtures, and update evidence manifest.",
         input_schema=CASSETTES_PROMOTE_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("audit", "cassette"),
+    ),
+    ToolDefinition(
+        name="keepa.cassettes_promote_and_verify",
+        command="cassettes.promote_and_verify",
+        description="Promote a cassette, verify fixture parity, and optionally run Agent eval fixtures.",
+        input_schema=CASSETTES_PROMOTE_AND_VERIFY_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         groups=("audit", "cassette"),
     ),

@@ -674,6 +674,15 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -778,6 +787,12 @@
           }
         ],
         "resource_templates": [
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
           {
             "description": "str",
             "mimeType": "str",
@@ -3846,6 +3861,160 @@
                     "str",
                     "str"
                   ],
+                  "type": "str"
+                },
+                "tests_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "title": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "active": "bool",
+              "groups": [
+                "str",
+                "str"
+              ],
+              "inactive_reason": "null",
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "eval_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "manifest": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "name": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "no_manifest": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "package_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "run_eval": {
+                  "default": "bool",
+                  "description": "str",
                   "type": "str"
                 },
                 "tests_dir": {
@@ -12727,12 +12896,14 @@
         "key_facts": {
           "estimated_tokens": "int",
           "name": "str",
+          "recommended_profile": "str",
           "requires_confirmation": "bool",
           "step_count": "int",
           "worst_case_tokens": "int"
         },
         "one_line": "str",
         "read_order": [
+          "str",
           "str",
           "str",
           "str",
@@ -12747,6 +12918,7 @@
           "str"
         ],
         "present": [
+          "str",
           "str",
           "str",
           "str"
@@ -12770,6 +12942,11 @@
           "why": "str"
         },
         "totals": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "workflow_policy": {
           "path": "str",
           "section": "str",
           "why": "str"
@@ -12801,6 +12978,8 @@
         "source": "str"
       },
       "selection_signals": {
+        "confirmation_step_count": "int",
+        "inactive_tool_count": "int",
         "parallel_group_count": "int",
         "step_count": "int"
       },
@@ -12810,8 +12989,31 @@
           "command": "str",
           "depends_on": [],
           "estimated_tokens": "int",
+          "execution": {
+            "cache_strategy": "str",
+            "fixture_replay": "str",
+            "mode": "str",
+            "safe_default": "bool"
+          },
           "fixture_replay": "str",
           "id": "str",
+          "mcp": {
+            "active_in_profile": "bool",
+            "active_in_recommended_profile": "bool",
+            "call": {
+              "arguments": {
+                "domain": "str",
+                "profile": "str",
+                "term": "str"
+              },
+              "name": "str"
+            },
+            "profile": "str",
+            "recommended_profile": "str",
+            "tool": "str",
+            "toolset": "str"
+          },
+          "mcp_tool": "str",
           "parallel_group": "null",
           "params": {
             "domain": "str",
@@ -12830,8 +13032,32 @@
             "str"
           ],
           "estimated_tokens": "int",
+          "execution": {
+            "cache_strategy": "str",
+            "fixture_replay": "null",
+            "mode": "str",
+            "safe_default": "bool"
+          },
           "fixture_replay": "null",
           "id": "str",
+          "mcp": {
+            "active_in_profile": "bool",
+            "active_in_recommended_profile": "bool",
+            "call": {
+              "arguments": {
+                "category": "str",
+                "domain": "str",
+                "out": "str",
+                "profile": "str"
+              },
+              "name": "str"
+            },
+            "profile": "str",
+            "recommended_profile": "str",
+            "tool": "str",
+            "toolset": "str"
+          },
+          "mcp_tool": "str",
           "parallel_group": "str",
           "params": {
             "category": "str",
@@ -12851,15 +13077,43 @@
             "str"
           ],
           "estimated_tokens": "int",
+          "execution": {
+            "cache_strategy": "str",
+            "confirmation_params": {
+              "yes": "bool"
+            },
+            "confirmation_reason": "str",
+            "fixture_replay": "str",
+            "mode": "str",
+            "safe_default": "bool"
+          },
           "fixture_replay": "str",
           "id": "str",
+          "mcp": {
+            "active_in_profile": "bool",
+            "active_in_recommended_profile": "bool",
+            "call": {
+              "arguments": {
+                "category": "str",
+                "domain": "str",
+                "hydrate_top": "int",
+                "limit": "int",
+                "profile": "str"
+              },
+              "name": "str"
+            },
+            "profile": "str",
+            "recommended_profile": "str",
+            "tool": "str",
+            "toolset": "str"
+          },
+          "mcp_tool": "str",
           "parallel_group": "str",
           "params": {
             "category": "str",
             "domain": "str",
             "hydrate_top": "int",
-            "limit": "int",
-            "yes": "bool"
+            "limit": "int"
           },
           "reason": "str",
           "requires_confirmation": "bool",
@@ -12874,8 +13128,36 @@
             "str"
           ],
           "estimated_tokens": "int",
+          "execution": {
+            "cache_strategy": "str",
+            "fixture_replay": "str",
+            "mode": "str",
+            "safe_default": "bool"
+          },
           "fixture_replay": "str",
           "id": "str",
+          "mcp": {
+            "active_in_profile": "bool",
+            "active_in_recommended_profile": "bool",
+            "call": {
+              "arguments": {
+                "asin": [
+                  "str",
+                  "str"
+                ],
+                "domain": "str",
+                "full": "bool",
+                "profile": "str",
+                "view": "str"
+              },
+              "name": "str"
+            },
+            "profile": "str",
+            "recommended_profile": "str",
+            "tool": "str",
+            "toolset": "str"
+          },
+          "mcp_tool": "str",
           "parallel_group": "null",
           "params": {
             "asin": [
@@ -12898,7 +13180,99 @@
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
-      "view": "str"
+      "view": "str",
+      "workflow_policy": {
+        "allowed_tools": [
+          "str",
+          "str",
+          "str"
+        ],
+        "available_profiles": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "budget_ledger_seed": {
+          "blocked_actions": [
+            {
+              "estimated_tokens": "int",
+              "reason": "str",
+              "step_id": "str",
+              "tool": "str",
+              "worst_case_tokens": "int"
+            }
+          ],
+          "planned_estimated": "int",
+          "planned_worst_case": "int",
+          "session_estimated": "int"
+        },
+        "cache_policy": {
+          "audit_resource": "str",
+          "reuse": "str"
+        },
+        "confirmation_policy": {
+          "default": "str",
+          "requires_confirmation": "bool",
+          "resume_param": "str",
+          "step_ids": [
+            "str"
+          ]
+        },
+        "inactive_tools": [
+          {
+            "profile": "str",
+            "reason": "str",
+            "recommended_profile": "str",
+            "step_id": "str",
+            "tool": "str"
+          }
+        ],
+        "planning_profile": "str",
+        "profile_switch_points": [
+          {
+            "before_step": "str",
+            "profile": "str",
+            "reason": "str"
+          },
+          {
+            "before_step": "str",
+            "confirmation_params": {
+              "yes": "bool"
+            },
+            "profile": "str",
+            "reason": "str",
+            "requires_confirmation": "bool"
+          },
+          {
+            "before_step": "str",
+            "profile": "str",
+            "reason": "str"
+          }
+        ],
+        "recommended_profile": "str",
+        "recommended_toolset": "str",
+        "tool_discovery": {
+          "method": "str",
+          "params": {
+            "allow_tools": [
+              "str",
+              "str",
+              "str",
+              "str"
+            ],
+            "profile": "str",
+            "toolset": "str"
+          }
+        },
+        "workflow_tools": [
+          "str",
+          "str",
+          "str",
+          "str"
+        ]
+      }
     },
     "ok": "bool",
     "request": {

@@ -55,7 +55,7 @@ With MCP, call structured tools instead of CLI strings:
 
 Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse builders, and `tracking-readonly` only for read-only tracking state. Add `profile=offline_fixture_only` or `profile=dry_run_default` during early research; inactive tools include `x-keepa.active=false`, and `tools/call` returns `inactive_tool` before service execution when a profile disallows a tool.
 
-Use `resources/list` before loading long docs. Stable resources are `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
+Use `resources/list` before loading long docs. Stable resources are `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://workflow/{encoded_params}/policy`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://workflow/{encoded_params}/policy` to read compact workflow execution policy from base64url JSON workflow params, `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
 
 ## Research Agent Start
 
@@ -68,6 +68,8 @@ For a general research Agent, start with policy and target resolution before any
 5. Merge graph-bearing outputs with `keepa.research_graph_merge`, then export the final Agent handoff with `keepa.research_brief_export`.
 
 `tools/list` supports `allow_tools`, `exclude_tools`, and `profile`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery. Prefer `profile=offline_fixture_only` before live research; inactive tools are marked in discovery and return `inactive_tool` before service execution if called.
+
+After `keepa.workflow_plan`, read `workflow_policy` before running steps. Use `workflow_policy.tool_discovery.params` for the next `tools/list`, start with the recommended profile, follow `profile_switch_points`, and only add `yes=true` for a confirmation step after the user approves that exact step. Reuse `cache_key` or `from_cache` according to `workflow_policy.cache_policy` before repeating a request.
 
 Use `keepa.research_agent_start` prompt when a client supports MCP prompts. It encodes the policy -> resolve -> context -> plan -> execute -> graph merge order.
 
@@ -103,9 +105,10 @@ After an approved live request, convert the response into regression assets befo
 
 ```powershell
 kc --json cassettes promote evidence/runtime-logs/live-response.json --name product_B0EXAMPLE_full
+kc --json cassettes promote-and-verify evidence/runtime-logs/live-response.json --name product_B0EXAMPLE_full --run-eval
 ```
 
-This sanitizes secrets, writes synchronized fixtures under `tests/fixtures` and `keepa_cli/fixtures`, and updates `evidence/manifest.csv`. Never commit raw runtime logs.
+Prefer `promote-and-verify` / `keepa.cassettes_promote_and_verify` for research Agent fixture curation. It sanitizes secrets, writes synchronized fixtures under `tests/fixtures` and `keepa_cli/fixtures`, updates `evidence/manifest.csv`, checks fixture parity, and can run Agent eval fixtures. Never commit raw runtime logs.
 
 ## Evaluation
 

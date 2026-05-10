@@ -212,6 +212,7 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 - `keepa://schema/{name}`：按 schema 稳定名读取，例如 `products-agent-view`。
 - `keepa://fixtures/{name}`：按 JSON fixture 文件名读取已脱敏 fixture。
 - `keepa://cache-key/{command}/{encoded_params}`：预览确定性的 AgentSession cache key。
+- `keepa://workflow/{encoded_params}/policy`：从 base64url JSON `workflow.plan` 参数读取紧凑 `workflow_policy`、`totals` 与步骤摘要，适合资源优先客户端在调用完整计划前先拿执行策略。
 - `keepa://research/{cache_key}`：读取同一 MCP session 内缓存结果的审计摘要，包含 `agent_brief`、`data_quality`、`evidence_index`、`provenance`、`budget_ledger` 与 research graph summary。
 - `keepa://research/{cache_key}/brief`：读取同一 MCP session 内 `research_brief.export` 的完整 brief。
 - `keepa://research/{cache_key}/graph`：读取同一 MCP session 内 `research_brief.export` 的图谱摘要与输入摘要。
@@ -366,7 +367,9 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan product-research --asin B0D8W1YVBX --domain US --goal deal
 ```
 
-`workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`steps`、`totals`、`parallel_groups`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation` 和 `fixture_replay`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
+`workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`steps`、`totals`、`parallel_groups`、`workflow_policy`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`mcp_tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation`、`fixture_replay`、`mcp` 与 `execution`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
+
+`workflow_policy` 是 Agent 执行阶段的第一读字段：`recommended_toolset` 与 `recommended_profile` 给出默认 `tools/list` 过滤；`allowed_tools` / `inactive_tools` 说明当前 profile 下哪些工具可调用、哪些步骤需要切换 profile；`profile_switch_points` 给出阶段切换点；`confirmation_policy` 列出必须暂停等待确认的 step；`budget_ledger_seed` 给出计划预算和初始 blocked actions；`tool_discovery.params.allow_tools` 可直接作为 MCP `tools/list` 参数复用。Agent 不应直接给高成本步骤补 `yes=true`，除非用户确认了对应 step。
 
 ### history export/trend
 
@@ -383,9 +386,10 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json schema generate --out docs/schema/products.agent-view.schema.json
 .\.venv\Scripts\python.exe -m keepa_cli --json cassettes sanitize .\live-cassette.json --out .\redacted-cassette.json
 .\.venv\Scripts\python.exe -m keepa_cli --json cassettes promote .\live-cassette.json --name product_B0EXAMPLE_full
+.\.venv\Scripts\python.exe -m keepa_cli --json cassettes promote-and-verify .\live-cassette.json --name product_B0EXAMPLE_full --run-eval
 ```
 
-`schema.generate` 从 `tests/snapshots/agent_schema_snapshot.json` 导出产品 Agent 视图 schema 文档。`cassettes.sanitize` 只做本地 JSON 脱敏，清理 URL query、header 与 body 中的 `key/api_key/apikey/token/authorization`。`cassettes.promote` 是完整 promotion workflow：读取真实或已脱敏响应 -> 再次脱敏 -> 同步写入 `tests/fixtures/<name>.json` 与 `keepa_cli/fixtures/<name>.json` -> 追加 `evidence/manifest.csv`。默认不访问网络，`--dry-run` 只返回目标路径和预计大小。
+`schema.generate` 从 `tests/snapshots/agent_schema_snapshot.json` 导出产品 Agent 视图 schema 文档。`cassettes.sanitize` 只做本地 JSON 脱敏，清理 URL query、header 与 body 中的 `key/api_key/apikey/token/authorization`。`cassettes.promote` 是完整 promotion workflow：读取真实或已脱敏响应 -> 再次脱敏 -> 同步写入 `tests/fixtures/<name>.json` 与 `keepa_cli/fixtures/<name>.json` -> 追加 `evidence/manifest.csv`。`cassettes.promote_and_verify` / `keepa.cassettes_promote_and_verify` 在 promote 后执行 fixture parity 检查，并可通过 `run_eval=true` / `--run-eval` 运行 Agent eval fixtures，适合把 live sample 固化为调研 Agent 回归资产。默认不访问网络，`--dry-run` 只返回目标路径和预计大小。
 
 ### finder/deals/sellers/bestsellers/topsellers
 

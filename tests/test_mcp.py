@@ -60,6 +60,7 @@ class McpProtocolTests(unittest.TestCase):
         audit_names = {item["name"] for item in audit["result"]["tools"]}
         self.assertIn("keepa.audit_cost", audit_names)
         self.assertIn("keepa.cassettes_promote", audit_names)
+        self.assertIn("keepa.cassettes_promote_and_verify", audit_names)
         self.assertNotIn("keepa.products_get", audit_names)
 
         reports = handle_mcp_message(
@@ -321,6 +322,37 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["data"]["selection"]["categories_include"], [1055398])
         self.assertEqual(structured["budget_ledger"]["session_consumed"], 0)
 
+    def test_tools_call_workflow_plan_returns_profile_policy(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "workflow-policy",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.workflow_plan",
+                        "arguments": {
+                            "name": "category-research",
+                            "term": "home kitchen",
+                            "domain": "US",
+                            "hydrate_top": 2,
+                            "profile": "offline_fixture_only",
+                        },
+                    },
+                }
+            ),
+            env={},
+        )
+
+        structured = response["result"]["structuredContent"]
+        self.assertTrue(structured["ok"])
+        self.assertEqual(structured["command"], "workflow.plan")
+        self.assertEqual(structured["data"]["workflow_policy"]["planning_profile"], "offline_fixture_only")
+        self.assertEqual(structured["data"]["workflow_policy"]["recommended_profile"], "dry_run_default")
+        self.assertEqual(structured["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
+        self.assertEqual(structured["data"]["steps"][2]["mcp"]["tool"], "keepa.categories_products")
+        self.assertFalse(structured["data"]["steps"][3]["mcp"]["active_in_recommended_profile"])
+
     def test_tools_call_deals_query_returns_deal_research_graph(self):
         response = handle_mcp_message(
             json.dumps(
@@ -562,6 +594,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa://schema/{name}", uri_templates)
         self.assertIn("keepa://fixtures/{name}", uri_templates)
         self.assertIn("keepa://cache-key/{command}/{encoded_params}", uri_templates)
+        self.assertIn("keepa://workflow/{encoded_params}/policy", uri_templates)
         self.assertIn("keepa://research/{cache_key}/brief", uri_templates)
         self.assertIn("keepa://research/{cache_key}/graph", uri_templates)
         self.assertIn("keepa://toolsets/{toolset}", uri_templates)
@@ -585,6 +618,34 @@ class McpProtocolTests(unittest.TestCase):
         content = fixture["result"]["contents"][0]
         self.assertEqual(content["mimeType"], "application/json")
         self.assertIn('"research_graph"', content["text"])
+
+    def test_workflow_policy_resource_reads_encoded_plan_params(self):
+        params_token = base64.urlsafe_b64encode(
+            json.dumps(
+                {"name": "category-research", "term": "home kitchen", "domain": "US", "hydrate_top": 1},
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).decode("ascii").rstrip("=")
+
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "workflow-policy-resource",
+                    "method": "resources/read",
+                    "params": {"uri": f"keepa://workflow/{params_token}/policy"},
+                }
+            ),
+            env={},
+        )
+
+        content = response["result"]["contents"][0]
+        payload = json.loads(content["text"])
+        self.assertEqual(content["mimeType"], "application/json")
+        self.assertEqual(payload["view"], "workflow_policy_resource")
+        self.assertEqual(payload["workflow_policy"]["recommended_profile"], "dry_run_default")
+        self.assertEqual(payload["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
+        self.assertEqual(payload["step_summary"][0]["mcp_tool"], "keepa.categories_search")
 
     def test_tool_and_prompt_resources_support_schema_first_agent_discovery(self):
         toolset = handle_mcp_message(

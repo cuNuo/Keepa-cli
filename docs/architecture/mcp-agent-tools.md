@@ -180,7 +180,7 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 | --- | --- | --- |
 | `keepa://schema/products-agent-view` | `docs/schema/products.agent-view.schema.json` | 外部 Agent 校验产品 Agent 视图形状 |
 | `keepa://fixtures/manifest` | `evidence/manifest.csv` | 查 fixture/evidence 是否已有离线样本 |
-| `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升流程 |
+| `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升与 parity 验证流程 |
 | `keepa://evidence/recent` | 最近 evidence 摘要 JSON | 快速了解近期验证与变更 |
 | `keepa://context/policy` | offline-first policy、roots、tool gating、live Keepa 状态 | 调研 Agent 的第一读取入口 |
 | `keepa://tools/index` | toolset 与 tool schema 索引 | 先发现工具，再按需读取单个 schema |
@@ -194,6 +194,7 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 - `keepa://schema/{name}`：按稳定名称读取 schema。
 - `keepa://fixtures/{name}`：按文件名读取双份 fixture 中的 JSON 样本。
 - `keepa://cache-key/{command}/{encoded_params}`：对 base64url JSON 参数预览 `AgentSession` cache key，不读取会话内存。
+- `keepa://workflow/{encoded_params}/policy`：对 base64url JSON `workflow.plan` 参数读取紧凑执行策略，返回 `workflow_policy`、`totals` 与 `step_summary`，避免资源优先客户端为了 profile 和确认策略加载完整 plan。
 - `keepa://research/{cache_key}`：读取同一 MCP session 内缓存响应的审计摘要，便于 Agent 回查 provenance、evidence、ledger 与 graph summary。
 - `keepa://research/{cache_key}/brief`：读取同一 MCP session 内 `research_brief.export` 的完整 brief。
 - `keepa://research/{cache_key}/graph`：读取同一 MCP session 内 `research_brief.export` 的图谱摘要与输入摘要。
@@ -409,7 +410,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
   - `tools/call keepa.research_graph_merge` 合并 inline graph/payload。
   - `tools/call keepa.research_brief_export` 导出 decision/risk/graph/follow-up/evidence brief。
   - `resources/list/read` 暴露 schema、manifest、cassette 指南和最近 evidence。
-  - `resources/templates/list` 暴露 schema、fixture、chunk 和 output resource URI 模板。
+  - `resources/templates/list` 暴露 schema、fixture、workflow policy、chunk 和 output resource URI 模板。
   - 大响应 chunk tool 调用在 text fallback 中返回 `mcp_resource_manifest`。
   - 未知 tool 返回 JSON-RPC error。
   - 高成本 tool 无 `yes` 且无 fixture 时返回 `confirmation_required`。
@@ -440,12 +441,15 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 7. 补测试、README、`docs/agent-contract.md`。（已完成）
 8. 落地 `research_graph`、统一 `risk_taxonomy`，并让 evaluation specs 断言 Agent 语义质量。（已完成）
 9. 落地 cassette promote workflow：真实响应 -> sanitize -> 双份 fixture -> manifest。（已完成）
-10. 落地 MCP toolset 动态过滤：`research/audit/reports/tracking-readonly/all`。（已完成）
-11. 把 `research_graph` 扩展到 category/finder/deals/seller/ranking 输出。（已完成）
-12. 落地 `research_graph.merge` 与 `keepa.research_graph_merge`，合并 category -> products -> compare -> seller 研究图。（已完成）
-13. 落地 `research_brief.export` 与 `keepa.research_brief_export`，把 merged graph 或多 payload 汇总为调研 Agent handoff。（已完成）
-14. 落地 MCP resources 与 chunk/output resource manifest，大响应 text fallback 只返回摘要和资源引用。（已完成）
-15. 扩展 Agent eval，断言 graph merge、risk taxonomy、next_actions 可执行性和长链路 budget ledger。（已完成）
+10. 落地 `cassettes.promote_and_verify` / `keepa.cassettes_promote_and_verify`：promote 后检查 fixture parity，并可选运行 Agent eval fixtures。（已完成）
+11. 落地 MCP toolset 动态过滤：`research/audit/reports/tracking-readonly/all`。（已完成）
+12. 把 `research_graph` 扩展到 category/finder/deals/seller/ranking 输出。（已完成）
+13. 落地 `research_graph.merge` 与 `keepa.research_graph_merge`，合并 category -> products -> compare -> seller 研究图。（已完成）
+14. 落地 `research_brief.export` 与 `keepa.research_brief_export`，把 merged graph 或多 payload 汇总为调研 Agent handoff。（已完成）
+15. 落地 MCP resources 与 chunk/output resource manifest，大响应 text fallback 只返回摘要和资源引用。（已完成）
+16. 扩展 Agent eval，断言 graph merge、risk taxonomy、next_actions 可执行性和长链路 budget ledger。（已完成）
+17. 将 session profile 与 `workflow.plan` 联动，输出 recommended profile、inactive tools、profile switch points、确认策略和 budget ledger seed。（已完成）
+18. 落地 `keepa://workflow/{encoded_params}/policy`，让资源优先客户端用 base64url JSON 计划参数读取紧凑 `workflow_policy` 与步骤摘要。（已完成）
 
 ## 迁移风险
 
@@ -460,9 +464,10 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 当前最适合继续完善的是：
 
 1. 为 `reports` 与 `tracking-readonly` 增加 Agent evaluation fixtures，断言本地文件输出、只读 tracking 参数和 ledger。（已完成）
-2. 继续扩展 MCP resource templates，例如按 `cache_key`、ASIN、graph root 查询缓存命中和图谱摘要。（cache-key/ASIN/evidence/graph root/session research 已完成）
+2. 继续扩展 MCP resource templates，例如按 `cache_key`、ASIN、graph root 与 workflow 参数查询缓存命中、图谱摘要和执行策略。（cache-key/ASIN/evidence/graph root/session research/workflow policy 已完成）
 3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。（已完成）
-4. 继续扩展 session profile：把 `inactive_tool` 与 workflow plan 的阶段、预算和用户确认策略联动。
-5. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
+4. session profile 已与 `workflow.plan` 联动：`workflow_policy` 输出 recommended profile、allowed/inactive tools、profile switch points、确认策略、cache policy 和 budget ledger seed。
+5. workflow policy resource template 已完成，资源优先客户端可不加载完整 plan 先读取执行策略。
+6. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。

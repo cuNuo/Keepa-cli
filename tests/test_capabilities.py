@@ -20,7 +20,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.4")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.5")
         self.assertIn("tui", payload["data"]["protocols"])
         self.assertIn("mcp", payload["data"]["protocols"])
         self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
@@ -55,6 +55,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("keepa.query_research_context", mcp_tool_names)
         self.assertIn("keepa.audit_cost", mcp_tool_names)
         self.assertIn("keepa.cassettes_promote", mcp_tool_names)
+        self.assertIn("keepa.cassettes_promote_and_verify", mcp_tool_names)
         self.assertIn("keepa.reports_build", mcp_tool_names)
         self.assertIn("keepa.tracking_list", mcp_tool_names)
         command_names = {item["name"] for item in payload["data"]["commands"]}
@@ -73,6 +74,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("schema.generate", command_names)
         self.assertIn("cassettes.sanitize", command_names)
         self.assertIn("cassettes.promote", command_names)
+        self.assertIn("cassettes.promote_and_verify", command_names)
         self.assertIn("browse.snapshot", command_names)
         self.assertIn("reports.build", command_names)
         self.assertIn("cache.explain", command_names)
@@ -97,7 +99,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.4")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.5")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -105,7 +107,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-11.4")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-11.5")
 
 
 if __name__ == "__main__":

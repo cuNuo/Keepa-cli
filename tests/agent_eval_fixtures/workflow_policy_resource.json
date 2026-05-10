@@ -1,0 +1,17 @@
+{
+  "id": "workflow_policy_resource",
+  "description": "MCP workflow policy resource 可按 base64url plan params 读取推荐 profile、确认策略和步骤摘要。",
+  "kind": "mcp",
+  "method": "resources/read",
+  "params": {
+    "uri": "keepa://workflow/eyJuYW1lIjoiY2F0ZWdvcnktcmVzZWFyY2giLCJ0ZXJtIjoiaG9tZSBraXRjaGVuIiwiZG9tYWluIjoiVVMiLCJoeWRyYXRlX3RvcCI6MX0/policy"
+  },
+  "assertions": [
+    {"path": "result.contents.0.mimeType", "equals": "application/json"},
+    {"path": "result.contents.0.text.$json.view", "equals": "workflow_policy_resource"},
+    {"path": "result.contents.0.text.$json.workflow_policy.recommended_toolset", "equals": "research"},
+    {"path": "result.contents.0.text.$json.workflow_policy.recommended_profile", "equals": "dry_run_default"},
+    {"path": "result.contents.0.text.$json.workflow_policy.confirmation_policy.step_ids", "contains": "fetch-category-products"},
+    {"path": "result.contents.0.text.$json.step_summary.0.mcp_tool", "equals": "keepa.categories_search"}
+  ]
+}
