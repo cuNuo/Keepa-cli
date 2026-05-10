@@ -143,7 +143,7 @@ kc --json products get B001GZ6QEC --domain US --full --agent-view --view deal --
 kc --json products compare B001GZ6QEC B08N5WRWNW --domain US --full --view deal
 ```
 
-Agent profiles are `summary`, `research`, `deal`, and `audit`. Start from `agent_brief` for a compact decision layer, then use `evidence_index` to jump to deeper JSON paths when the Agent needs proof. Product views also include `data_quality`, `next_actions`, `temporal_features`, and `selection_signals` so downstream Agents can inspect history-derived trend, configurable window changes, robust dispersion, outlier, momentum, drawdown, and stability features without parsing raw Keepa `csv`.
+Agent profiles are `summary`, `research`, `deal`, and `audit`. Start from `agent_brief` for a compact decision layer, then use `evidence_index` to jump to deeper JSON paths when the Agent needs proof. `agent_brief` includes both series-first `temporal_takeaways` and window-first `temporal_by_window`, so an Agent can compare 7/30/90/180/365 day changes across price, rank, reviews, rating, and offer count without parsing raw Keepa `csv`. Product views also include `data_quality`, `next_actions`, `temporal_features`, and `selection_signals` for deeper audit and research workflows.
 
 Token budgets include component-level hints. Product requests start at `1 token * product count`; explicit `--rating` and `--buybox` are budgeted as additional product-level costs, `--offers` is budgeted as Keepa offer pages (`6 tokens * ceil(offers / 10) * product count`), and `--update 0` is tracked as a worst-case live refresh.
 

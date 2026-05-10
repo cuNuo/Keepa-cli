@@ -971,6 +971,53 @@
         {
           "agent_brief": {
             "confidence": "str",
+            "decision_context": {
+              "competition": {
+                "offer_count_fba": "int",
+                "offer_count_fbm": "int",
+                "retrieved_offer_count": "int",
+                "total_offer_count": "int"
+              },
+              "content_quality": {
+                "aplus_available": "bool",
+                "aplus_module_count": "int",
+                "image_count": "int",
+                "video_count": "int"
+              },
+              "data_quality": {
+                "confidence": "str",
+                "missing_count": "int",
+                "notes": [
+                  "str",
+                  "str"
+                ],
+                "present_count": "int"
+              },
+              "demand": {
+                "monthly_sold": "int",
+                "sales_rank": "int",
+                "sales_rank_drops": {
+                  "180": "int",
+                  "30": "int",
+                  "365": "int",
+                  "90": "int"
+                }
+              },
+              "price_stability": {
+                "coupon": [
+                  "int",
+                  "int"
+                ],
+                "current_buy_box": "float",
+                "current_new": "float",
+                "history_series": "int",
+                "new_price_change_pct": "float",
+                "new_price_trend": "str",
+                "new_price_volatility_cv": "float",
+                "sales_rank_change_pct": "float",
+                "sales_rank_trend": "str"
+              }
+            },
             "key_facts": {
               "asin": "str",
               "brand": "str",
@@ -1003,66 +1050,941 @@
                 "reason": "str"
               }
             ],
+            "temporal_by_window": {
+              "recent_180d": {
+                "series": {
+                  "buy_box_shipping": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new_offer_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "rating": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "review_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "sales_rank": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                },
+                "series_count": "int",
+                "signal_summary": {
+                  "buy_box_change_pct": "float",
+                  "buy_box_direction": "str",
+                  "new_offer_count_change_pct": "float",
+                  "new_offer_count_direction": "str",
+                  "new_price_change_pct": "float",
+                  "new_price_direction": "str",
+                  "rank_improved": "bool",
+                  "rating_change_pct": "float",
+                  "rating_direction": "str",
+                  "review_count_change_pct": "float",
+                  "review_count_direction": "str",
+                  "sales_rank_change_pct": "float",
+                  "sales_rank_direction": "str"
+                }
+              },
+              "recent_30d": {
+                "series": {
+                  "buy_box_shipping": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new_offer_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "rating": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "review_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "sales_rank": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                },
+                "series_count": "int",
+                "signal_summary": {
+                  "buy_box_change_pct": "float",
+                  "buy_box_direction": "str",
+                  "new_offer_count_change_pct": "float",
+                  "new_offer_count_direction": "str",
+                  "new_price_change_pct": "float",
+                  "new_price_direction": "str",
+                  "rank_improved": "bool",
+                  "rating_change_pct": "float",
+                  "rating_direction": "str",
+                  "review_count_change_pct": "float",
+                  "review_count_direction": "str",
+                  "sales_rank_change_pct": "float",
+                  "sales_rank_direction": "str"
+                }
+              },
+              "recent_365d": {
+                "series": {
+                  "buy_box_shipping": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new_offer_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "rating": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "review_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "sales_rank": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                },
+                "series_count": "int",
+                "signal_summary": {
+                  "buy_box_change_pct": "float",
+                  "buy_box_direction": "str",
+                  "new_offer_count_change_pct": "float",
+                  "new_offer_count_direction": "str",
+                  "new_price_change_pct": "float",
+                  "new_price_direction": "str",
+                  "rank_improved": "bool",
+                  "rating_change_pct": "float",
+                  "rating_direction": "str",
+                  "review_count_change_pct": "float",
+                  "review_count_direction": "str",
+                  "sales_rank_change_pct": "float",
+                  "sales_rank_direction": "str"
+                }
+              },
+              "recent_7d": {
+                "series": {
+                  "buy_box_shipping": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new_offer_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "rating": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "review_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "sales_rank": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                },
+                "series_count": "int",
+                "signal_summary": {
+                  "buy_box_change_pct": "float",
+                  "buy_box_direction": "str",
+                  "new_offer_count_change_pct": "float",
+                  "new_offer_count_direction": "str",
+                  "new_price_change_pct": "float",
+                  "new_price_direction": "str",
+                  "rank_improved": "bool",
+                  "rating_change_pct": "float",
+                  "rating_direction": "str",
+                  "review_count_change_pct": "float",
+                  "review_count_direction": "str",
+                  "sales_rank_change_pct": "float",
+                  "sales_rank_direction": "str"
+                }
+              },
+              "recent_90d": {
+                "series": {
+                  "buy_box_shipping": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "new_offer_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "rating": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "review_count": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "sales_rank": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                },
+                "series_count": "int",
+                "signal_summary": {
+                  "buy_box_change_pct": "float",
+                  "buy_box_direction": "str",
+                  "new_offer_count_change_pct": "float",
+                  "new_offer_count_direction": "str",
+                  "new_price_change_pct": "float",
+                  "new_price_direction": "str",
+                  "rank_improved": "bool",
+                  "rating_change_pct": "float",
+                  "rating_direction": "str",
+                  "review_count_change_pct": "float",
+                  "review_count_direction": "str",
+                  "sales_rank_change_pct": "float",
+                  "sales_rank_direction": "str"
+                }
+              }
+            },
             "temporal_takeaways": [
               {
-                "change_pct": "float",
-                "direction": "str",
+                "all_time": {
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "direction": "str",
+                  "previous_change_abs": "float",
+                  "previous_change_pct": "float",
+                  "slope_per_day": "float"
+                },
+                "coverage": {
+                  "avg_interval_days": "float",
+                  "duration_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "point_count": "int",
+                  "points_per_30d": "float"
+                },
                 "label": "str",
-                "latest": "float",
-                "point_count": "int",
-                "recent_30d_change_pct": "float",
+                "level": {
+                  "first": "float",
+                  "latest": "float",
+                  "latest_percentile": "float",
+                  "latest_zscore": "float",
+                  "max": "float",
+                  "mean": "float",
+                  "median": "float",
+                  "min": "float",
+                  "previous": "float"
+                },
+                "momentum": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
                 "series": "str",
-                "volatility_cv": "float"
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
+                "volatility": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "q1": "float",
+                  "q3": "float",
+                  "range_abs": "float",
+                  "range_pct_of_mean": "float",
+                  "volatility_cv": "float"
+                },
+                "windows": {
+                  "recent_180d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_30d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_365d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_7d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_90d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                }
               },
               {
-                "change_pct": "float",
-                "direction": "str",
+                "all_time": {
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "direction": "str",
+                  "previous_change_abs": "float",
+                  "previous_change_pct": "float",
+                  "slope_per_day": "float"
+                },
+                "coverage": {
+                  "avg_interval_days": "float",
+                  "duration_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "point_count": "int",
+                  "points_per_30d": "float"
+                },
                 "label": "str",
-                "latest": "float",
-                "point_count": "int",
-                "recent_30d_change_pct": "float",
+                "level": {
+                  "first": "float",
+                  "latest": "float",
+                  "latest_percentile": "float",
+                  "max": "float",
+                  "mean": "float",
+                  "median": "float",
+                  "min": "float",
+                  "previous": "float"
+                },
+                "momentum": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
                 "series": "str",
-                "volatility_cv": "float"
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
+                "volatility": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "q1": "float",
+                  "q3": "float",
+                  "range_abs": "float",
+                  "range_pct_of_mean": "float",
+                  "volatility_cv": "float"
+                },
+                "windows": {
+                  "recent_180d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_30d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_365d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_7d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_90d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                }
               },
               {
-                "change_pct": "float",
-                "direction": "str",
+                "all_time": {
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "direction": "str",
+                  "previous_change_abs": "float",
+                  "previous_change_pct": "float",
+                  "slope_per_day": "float"
+                },
+                "coverage": {
+                  "avg_interval_days": "float",
+                  "duration_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "point_count": "int",
+                  "points_per_30d": "float"
+                },
                 "label": "str",
-                "latest": "float",
-                "point_count": "int",
-                "recent_30d_change_pct": "float",
+                "level": {
+                  "first": "float",
+                  "latest": "float",
+                  "latest_percentile": "float",
+                  "latest_zscore": "float",
+                  "max": "float",
+                  "mean": "float",
+                  "median": "float",
+                  "min": "float",
+                  "previous": "float"
+                },
+                "momentum": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
                 "series": "str",
-                "volatility_cv": "float"
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
+                "volatility": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "q1": "float",
+                  "q3": "float",
+                  "range_abs": "float",
+                  "range_pct_of_mean": "float",
+                  "volatility_cv": "float"
+                },
+                "windows": {
+                  "recent_180d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_30d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_365d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_7d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_90d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                }
               },
               {
-                "change_pct": "float",
-                "direction": "str",
+                "all_time": {
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "direction": "str",
+                  "previous_change_abs": "float",
+                  "previous_change_pct": "float",
+                  "slope_per_day": "float"
+                },
+                "coverage": {
+                  "avg_interval_days": "float",
+                  "duration_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "point_count": "int",
+                  "points_per_30d": "float"
+                },
                 "label": "str",
-                "latest": "float",
-                "point_count": "int",
-                "recent_30d_change_pct": "float",
+                "level": {
+                  "first": "float",
+                  "latest": "float",
+                  "latest_percentile": "float",
+                  "latest_zscore": "float",
+                  "max": "float",
+                  "mean": "float",
+                  "median": "float",
+                  "min": "float",
+                  "previous": "float"
+                },
+                "momentum": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
                 "series": "str",
-                "volatility_cv": "float"
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
+                "volatility": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "q1": "float",
+                  "q3": "float",
+                  "range_abs": "float",
+                  "range_pct_of_mean": "float",
+                  "volatility_cv": "float"
+                },
+                "windows": {
+                  "recent_180d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_30d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_365d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_7d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_90d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                }
               },
               {
-                "change_pct": "float",
-                "direction": "str",
+                "all_time": {
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "direction": "str",
+                  "previous_change_abs": "float",
+                  "previous_change_pct": "float",
+                  "slope_per_day": "float"
+                },
+                "coverage": {
+                  "avg_interval_days": "float",
+                  "duration_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "point_count": "int",
+                  "points_per_30d": "float"
+                },
                 "label": "str",
-                "latest": "float",
-                "point_count": "int",
-                "recent_30d_change_pct": "float",
+                "level": {
+                  "first": "float",
+                  "latest": "float",
+                  "latest_percentile": "float",
+                  "latest_zscore": "float",
+                  "max": "float",
+                  "mean": "float",
+                  "median": "float",
+                  "min": "float",
+                  "previous": "float"
+                },
+                "momentum": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
                 "series": "str",
-                "volatility_cv": "float"
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
+                "volatility": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "q1": "float",
+                  "q3": "float",
+                  "range_abs": "float",
+                  "range_pct_of_mean": "float",
+                  "volatility_cv": "float"
+                },
+                "windows": {
+                  "recent_180d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_30d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_365d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_7d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_90d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                }
               },
               {
-                "change_pct": "float",
-                "direction": "str",
+                "all_time": {
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "direction": "str",
+                  "previous_change_abs": "float",
+                  "previous_change_pct": "float",
+                  "slope_per_day": "float"
+                },
+                "coverage": {
+                  "avg_interval_days": "float",
+                  "duration_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "point_count": "int",
+                  "points_per_30d": "float"
+                },
                 "label": "str",
-                "latest": "float",
-                "point_count": "int",
-                "recent_30d_change_pct": "float",
+                "level": {
+                  "first": "float",
+                  "latest": "float",
+                  "latest_percentile": "float",
+                  "latest_zscore": "float",
+                  "max": "float",
+                  "mean": "float",
+                  "median": "float",
+                  "min": "float",
+                  "previous": "float"
+                },
+                "momentum": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
                 "series": "str",
-                "volatility_cv": "float"
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
+                "volatility": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "q1": "float",
+                  "q3": "float",
+                  "range_abs": "float",
+                  "range_pct_of_mean": "float",
+                  "volatility_cv": "float"
+                },
+                "windows": {
+                  "recent_180d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_30d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_365d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_7d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  },
+                  "recent_90d": {
+                    "baseline": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "direction": "str",
+                    "latest": "float",
+                    "observed_days": "float"
+                  }
+                }
               }
             ]
           },

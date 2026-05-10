@@ -170,7 +170,7 @@ Agent 视图 profile：
 - `deal`：选品/交易视图，聚焦价格、rank、coupon、monthlySold、offer、Buy Box、媒体与 A+。
 - `audit`：审计视图，聚焦 provenance、缺失字段、schema notes 与 raw field presence。
 
-每个 Agent 视图会先生成 `agent_brief`，用于下游 Agent 的第一屏消费：`read_order` 指示建议读取顺序，`one_line` 合并 ASIN、标题、价格、销量、评分和风险，`key_facts` 提供可直接入库的核心事实，`temporal_takeaways` 提供价格、Buy Box、rank、review、rating、offer 等时序摘要，`missing_data` 和 `recommended_next_actions` 让 Agent 明确是否需要补请求。`evidence_index` 是轻量证据目录，给出 `pricing.current`、`temporal_features`、`history_summary`、`data_quality` 等 JSON path、建议 section 与 `--view` 加载提示，避免 Agent 在完整 `research` 视图中盲扫字段。
+每个 Agent 视图会先生成 `agent_brief`，用于下游 Agent 的第一屏消费：`read_order` 指示建议读取顺序，`one_line` 合并 ASIN、标题、价格、销量、评分和风险，`key_facts` 提供可直接入库的核心事实，`decision_context` 聚合需求、竞争、价格稳定性、内容质量与数据质量，`temporal_takeaways` 以序列为中心提供 coverage、level、all_time、windows、volatility、momentum、shape 与 outliers，`temporal_by_window` 以 7/30/90/180/365 天窗口为中心横向汇总 price/rank/review/rating/offer 的变化和 `signal_summary`，`missing_data` 和 `recommended_next_actions` 让 Agent 明确是否需要补请求。`evidence_index` 是轻量证据目录，给出 `pricing.current`、`temporal_features`、`history_summary`、`data_quality` 等 JSON path、建议 section 与 `--view` 加载提示，避免 Agent 在完整 `research` 视图中盲扫字段。
 
 `temporal_features` 从原始 `csv` 全量序列直接计算 Agent 可消费的时序特征，覆盖 `new`、`sales_rank`、`buy_box_shipping`、`new_fba`、`new_offer_count`、`new_fba_offer_count`、`rating`、`review_count` 等常用序列。默认窗口为 7/30/90/180/365 天，也可用 `--temporal-window-days` 重复指定或传逗号列表。每个序列包含首末变化、上一点变化、多窗口变化、均值、极值、range、波动系数、斜率、采样密度、分位数、最新 z-score、IQR/MAD、方向变化、离群点、最大回撤/反弹、最长上升/下降段和趋势方向。
 

@@ -15,7 +15,7 @@ from typing import Any
 from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
-PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.6"
+PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.7"
 
 DEFAULT_TEMPORAL_WINDOWS = (7, 30, 90, 180, 365)
 
@@ -1321,7 +1321,9 @@ def _agent_brief(view: Mapping[str, Any]) -> dict[str, Any]:
             ],
             "one_line": _brief_line(key_facts, signals),
             "key_facts": key_facts,
+            "decision_context": _decision_context(view),
             "temporal_takeaways": temporal_takeaways,
+            "temporal_by_window": _temporal_by_window(view),
             "risk_flags": risk_flags,
             "missing_data": list(quality.get("missing") or [])[:8],
             "confidence": quality.get("confidence"),
@@ -1356,6 +1358,28 @@ def _brief_line(key_facts: Mapping[str, Any], signals: Mapping[str, Any]) -> str
     return " | ".join(parts + ([suffix] if suffix else []))
 
 
+def _decision_context(view: Mapping[str, Any]) -> dict[str, Any]:
+    signals = view.get("selection_signals") if isinstance(view.get("selection_signals"), Mapping) else {}
+    quality = view.get("data_quality") if isinstance(view.get("data_quality"), Mapping) else {}
+    return _compact(
+        {
+            "demand": signals.get("demand"),
+            "competition": signals.get("competition"),
+            "price_stability": signals.get("price_stability"),
+            "content_quality": signals.get("content_quality"),
+            "risk_flags": signals.get("risk_flags"),
+            "data_quality": _compact(
+                {
+                    "confidence": quality.get("confidence"),
+                    "missing_count": len(quality.get("missing") or []),
+                    "present_count": len(quality.get("present") or []),
+                    "notes": quality.get("notes"),
+                }
+            ),
+        }
+    )
+
+
 def _temporal_takeaways(view: Mapping[str, Any]) -> list[dict[str, Any]]:
     temporal = view.get("temporal_features") if isinstance(view.get("temporal_features"), Mapping) else {}
     series_map = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
@@ -1376,18 +1400,191 @@ def _temporal_takeaways(view: Mapping[str, Any]) -> list[dict[str, Any]]:
                 {
                     "series": name,
                     "label": label,
-                    "direction": series.get("trend_direction"),
-                    "latest": series.get("latest_value"),
-                    "change_pct": series.get("change_pct"),
-                    "recent_30d_change_pct": (series.get("recent_30d") or {}).get("change_pct")
-                    if isinstance(series.get("recent_30d"), Mapping)
-                    else None,
-                    "volatility_cv": series.get("volatility_cv"),
-                    "point_count": series.get("point_count"),
+                    "coverage": _temporal_coverage(series),
+                    "level": _temporal_level(series),
+                    "all_time": _temporal_all_time(series),
+                    "windows": _temporal_window_takeaways(series),
+                    "volatility": _temporal_volatility(series),
+                    "momentum": _temporal_momentum(series),
+                    "shape": _temporal_shape(series),
+                    "outliers": series.get("outliers"),
                 }
             )
         )
     return takeaways
+
+
+def _temporal_coverage(series: Mapping[str, Any]) -> dict[str, Any]:
+    sampling = series.get("sampling") if isinstance(series.get("sampling"), Mapping) else {}
+    return _compact(
+        {
+            "point_count": series.get("point_count"),
+            "duration_days": series.get("duration_days"),
+            "avg_interval_days": sampling.get("avg_interval_days"),
+            "median_interval_days": sampling.get("median_interval_days"),
+            "max_gap_days": sampling.get("max_gap_days"),
+            "points_per_30d": sampling.get("points_per_30d"),
+        }
+    )
+
+
+def _temporal_level(series: Mapping[str, Any]) -> dict[str, Any]:
+    return _compact(
+        {
+            "first": series.get("first_value"),
+            "previous": series.get("previous_value"),
+            "latest": series.get("latest_value"),
+            "min": series.get("min_value"),
+            "max": series.get("max_value"),
+            "mean": series.get("mean_value"),
+            "median": series.get("median_value"),
+            "latest_percentile": series.get("latest_percentile"),
+            "latest_zscore": series.get("latest_zscore"),
+        }
+    )
+
+
+def _temporal_all_time(series: Mapping[str, Any]) -> dict[str, Any]:
+    return _compact(
+        {
+            "direction": series.get("trend_direction"),
+            "change_abs": series.get("change_abs"),
+            "change_pct": series.get("change_pct"),
+            "previous_change_abs": series.get("previous_change_abs"),
+            "previous_change_pct": series.get("previous_change_pct"),
+            "slope_per_day": series.get("slope_per_day"),
+        }
+    )
+
+
+def _temporal_window_takeaways(series: Mapping[str, Any]) -> dict[str, Any]:
+    windows = series.get("windows") if isinstance(series.get("windows"), Mapping) else {}
+    result: dict[str, Any] = {}
+    for name in sorted(windows, key=_window_sort_key):
+        window = windows.get(name) if isinstance(windows.get(name), Mapping) else {}
+        result[name] = _compact(
+            {
+                "observed_days": window.get("observed_days"),
+                "baseline": window.get("baseline_value"),
+                "latest": window.get("latest_value"),
+                "change_abs": window.get("change_abs"),
+                "change_pct": window.get("change_pct"),
+                "direction": window.get("trend_direction"),
+            }
+        )
+    return result
+
+
+def _temporal_by_window(view: Mapping[str, Any]) -> dict[str, Any]:
+    temporal = view.get("temporal_features") if isinstance(view.get("temporal_features"), Mapping) else {}
+    series_map = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
+    windows: dict[str, dict[str, Any]] = {}
+    for series_name, series in series_map.items():
+        if not isinstance(series, Mapping):
+            continue
+        series_windows = series.get("windows") if isinstance(series.get("windows"), Mapping) else {}
+        for window_name, window in series_windows.items():
+            if not isinstance(window, Mapping):
+                continue
+            bucket = windows.setdefault(str(window_name), {"series": {}})
+            bucket["series"][str(series_name)] = _compact(
+                {
+                    "baseline": window.get("baseline_value"),
+                    "latest": window.get("latest_value"),
+                    "change_abs": window.get("change_abs"),
+                    "change_pct": window.get("change_pct"),
+                    "direction": window.get("trend_direction"),
+                    "observed_days": window.get("observed_days"),
+                }
+            )
+    return {
+        name: _compact(
+            {
+                "series_count": len((bucket.get("series") or {})),
+                "signal_summary": _window_signal_summary(bucket.get("series") or {}),
+                "series": bucket.get("series"),
+            }
+        )
+        for name, bucket in sorted(windows.items(), key=lambda item: _window_sort_key(item[0]))
+    }
+
+
+def _window_signal_summary(series: Mapping[str, Any]) -> dict[str, Any]:
+    new_price = series.get("new") if isinstance(series.get("new"), Mapping) else {}
+    buy_box = series.get("buy_box_shipping") if isinstance(series.get("buy_box_shipping"), Mapping) else {}
+    sales_rank = series.get("sales_rank") if isinstance(series.get("sales_rank"), Mapping) else {}
+    review_count = series.get("review_count") if isinstance(series.get("review_count"), Mapping) else {}
+    rating = series.get("rating") if isinstance(series.get("rating"), Mapping) else {}
+    offers = series.get("new_offer_count") if isinstance(series.get("new_offer_count"), Mapping) else {}
+    return _compact(
+        {
+            "new_price_direction": new_price.get("direction"),
+            "new_price_change_pct": new_price.get("change_pct"),
+            "buy_box_direction": buy_box.get("direction"),
+            "buy_box_change_pct": buy_box.get("change_pct"),
+            "sales_rank_direction": sales_rank.get("direction"),
+            "sales_rank_change_pct": sales_rank.get("change_pct"),
+            "rank_improved": sales_rank.get("change_pct") < 0 if isinstance(sales_rank.get("change_pct"), (int, float)) else None,
+            "review_count_direction": review_count.get("direction"),
+            "review_count_change_pct": review_count.get("change_pct"),
+            "rating_direction": rating.get("direction"),
+            "rating_change_pct": rating.get("change_pct"),
+            "new_offer_count_direction": offers.get("direction"),
+            "new_offer_count_change_pct": offers.get("change_pct"),
+        }
+    )
+
+
+def _window_sort_key(name: str) -> int:
+    if name.startswith("recent_") and name.endswith("d"):
+        number = name[len("recent_") : -1]
+        if number.isdigit():
+            return int(number)
+    return 10**9
+
+
+def _temporal_volatility(series: Mapping[str, Any]) -> dict[str, Any]:
+    dispersion = series.get("dispersion") if isinstance(series.get("dispersion"), Mapping) else {}
+    return _compact(
+        {
+            "volatility_cv": series.get("volatility_cv"),
+            "range_abs": series.get("range_abs"),
+            "range_pct_of_mean": series.get("range_pct_of_mean"),
+            "iqr": dispersion.get("iqr"),
+            "mad": dispersion.get("mad"),
+            "q1": dispersion.get("q1"),
+            "q3": dispersion.get("q3"),
+        }
+    )
+
+
+def _temporal_momentum(series: Mapping[str, Any]) -> dict[str, Any]:
+    change_profile = series.get("change_profile") if isinstance(series.get("change_profile"), Mapping) else {}
+    return _compact(
+        {
+            "up_steps": change_profile.get("up_steps"),
+            "down_steps": change_profile.get("down_steps"),
+            "flat_steps": change_profile.get("flat_steps"),
+            "direction_change_count": change_profile.get("direction_change_count"),
+            "avg_abs_step": change_profile.get("avg_abs_step"),
+            "max_abs_step": change_profile.get("max_abs_step"),
+            "last_step": change_profile.get("last_step"),
+        }
+    )
+
+
+def _temporal_shape(series: Mapping[str, Any]) -> dict[str, Any]:
+    shape = series.get("shape") if isinstance(series.get("shape"), Mapping) else {}
+    return _compact(
+        {
+            "latest_vs_min_pct": shape.get("latest_vs_min_pct"),
+            "latest_vs_max_pct": shape.get("latest_vs_max_pct"),
+            "max_drawdown_abs": shape.get("max_drawdown_abs"),
+            "max_runup_abs": shape.get("max_runup_abs"),
+            "longest_up_streak": shape.get("longest_up_streak"),
+            "longest_down_streak": shape.get("longest_down_streak"),
+        }
+    )
 
 
 def _evidence_index(view: Mapping[str, Any]) -> dict[str, Any]:
