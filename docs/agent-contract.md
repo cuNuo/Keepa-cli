@@ -154,8 +154,12 @@ kc = "keepa_cli.cli:main"
 - `keepa.topsellers_list` -> `topsellers.list`
 - `keepa.workflow_plan` -> `workflow.plan`
 - `keepa.research_graph_merge` -> `research_graph.merge`
+- `keepa.research_brief_export` -> `research_brief.export`
 - `keepa.docs_index` -> `docs.index`
 - `keepa.docs_read` -> `docs.read`
+- `keepa.context_policy` -> `context.policy`
+- `keepa.resolve_research_target` -> `research.target.resolve`
+- `keepa.query_research_context` -> `research.context.query`
 - `keepa.audit_cost` -> `audit.cost`
 
 MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时包含 `structuredContent` 和 `content[0].text` JSON fallback：
@@ -194,6 +198,7 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 - `keepa://fixtures/manifest`：fixture/evidence manifest。
 - `keepa://guides/cassette-promotion`：真实响应脱敏并提升为 fixture 的流程。
 - `keepa://evidence/recent`：最近 evidence 摘要。
+- `keepa://context/policy`：offline-first policy、roots、tool gating 与 live Keepa 安全状态。
 - `keepa://tools/index`：MCP toolset 与 tool schema 索引，适合先发现再按需读取。
 - `keepa://prompts/index`：MCP prompt 索引。
 - `keepa://zread/wiki/current`：当前 zread wiki 版本、公开文档链接和本地浏览命令。
@@ -205,6 +210,10 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 - `keepa://schema/{name}`：按 schema 稳定名读取，例如 `products-agent-view`。
 - `keepa://fixtures/{name}`：按 JSON fixture 文件名读取已脱敏 fixture。
 - `keepa://cache-key/{command}/{encoded_params}`：预览确定性的 AgentSession cache key。
+- `keepa://research/{cache_key}`：读取同一 MCP session 内缓存结果的审计摘要，包含 `agent_brief`、`data_quality`、`evidence_index`、`provenance`、`budget_ledger` 与 research graph summary。
+- `keepa://research/{cache_key}/brief`：读取同一 MCP session 内 `research_brief.export` 的完整 brief。
+- `keepa://research/{cache_key}/graph`：读取同一 MCP session 内 `research_brief.export` 的图谱摘要与输入摘要。
+- `keepa://graphs/{root}`：按 research graph root 查询同一 session cache 和本地 fixture 中的图谱来源与摘要。
 - `keepa://toolsets/{toolset}`：按 toolset 读取紧凑工具 manifest，避免 `tools/list all`。
 - `keepa://tools/{name}`：按 MCP tool 名读取单个完整 input/output schema。
 - `keepa://prompts/{name}`：按 MCP prompt 名读取定义；无必填参数的 prompt 会附带渲染结果。
@@ -235,8 +244,11 @@ MCP prompts 给 Agent 提供稳定起手式，不执行任何请求：
 - `keepa.category_research`：类目候选与 Finder scaffold，默认不隐式 hydrate。
 - `keepa.deal_compare`：多 ASIN deal 视图对比与 selection signals 审计。
 - `keepa.project_onboarding`：先读 zread/wiki 和 schema/evidence，再决定代码修改范围。
+- `keepa.research_agent_start`：调研 Agent 起手式，按 policy -> target resolution -> context query -> workflow plan -> execution -> graph merge 顺序推进。
 
-不支持 `resources/read` 的 MCP 客户端可改用 `keepa.docs_index` 与 `keepa.docs_read` 工具。`docs.index` 返回 GitHub Pages、zread public、zread resource、schema、fixture manifest 和 evidence 的推荐读取顺序；`docs.read` 接受 `uri` 或 `page`，默认读取 `keepa://zread/wiki/current`。
+不支持 `resources/read` 的 MCP 客户端可改用 `keepa.docs_index`、`keepa.docs_read`、`keepa.context_policy` 与 `keepa.query_research_context` 工具。`docs.index` 返回 GitHub Pages、zread public、zread resource、schema、fixture manifest 和 evidence 的推荐读取顺序；`docs.read` 接受 `uri` 或 `page`，默认读取 `keepa://zread/wiki/current`。
+
+调研 Agent 应先调用 `keepa.context_policy` 或读取 `keepa://context/policy`，再用 `keepa.resolve_research_target` 将用户输入解析为 ASIN、UPC/EAN、seller、category、fixture、evidence 或 keyword 候选，随后用 `keepa.query_research_context` 查找本地资源。只有当本地资源不足时，才进入 `workflow.plan` 与 live-capable tools；真实 Keepa 请求仍需显式 `yes=true` 或 fixture/dry-run 绕过。
 
 ## 5. 当前支持命令
 
@@ -321,6 +333,16 @@ Agent 语义层：
 ```
 
 `research_graph.merge` 是纯本地命令，不访问 Keepa，不消耗 token。它会递归读取输入 JSON 中的 `research_graph` 字段，去重合并节点和边，添加 root 类型 `research_graph` 与 `includes_graph` 边，并返回 `view=research_graph_merge`、`summary`、`sources`、`diagnostics`、`diff`、`data_quality`、`evidence_index` 与可选 `output.path`。`sources` 包含 `source_weight/confidence`，`diagnostics` 包含重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 包含冲突节点 variants 与 resolution；CLI 的 `--prefer-source` 和 MCP 的 `prefer_source` 可指定 source index 或 source root，让 Agent 在多来源 label/type 不一致时做确定性选择。MCP 对应工具为 `keepa.research_graph_merge`，适合把 category search -> category products -> products compare -> seller/deals 串成单个研究图。
+
+### research brief export
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json research brief .\research-graph.json --title "Agent selection brief" --out .\brief.json
+```
+
+`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 与 `recommended_read_order`。MCP 对应工具为 `keepa.research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
+
+`reports.build` 可直接消费 `research_graph.merge --out` 写出的 merged graph JSON。Markdown 输出会追加 `Research Graph`、`Entities` 和 `Relationships` 小节；JSON 输出会增加 `research_graph_report`，包含 summary、entity_counts、nodes、edges、sources、diagnostics 与 diff。这样 Agent 可以把图谱合并和报告生成分成两步，并用 `keepa://graphs/{root}` 或 `keepa://research/{cache_key}` 回查来源。
 
 ### categories get/search
 

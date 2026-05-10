@@ -277,6 +277,31 @@ RESEARCH_GRAPH_MERGE_SCHEMA: JsonSchema = {
 }
 
 
+RESEARCH_BRIEF_EXPORT_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "input": {
+            "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}],
+            "description": "One or more Keepa CLI JSON files, such as research_graph.merge, products.compare, seller, or category outputs.",
+        },
+        "payload": {
+            "oneOf": [{"type": "object"}, {"type": "array", "items": {"type": "object"}}],
+            "description": "Inline Keepa CLI payloads to summarize.",
+        },
+        "graph": {
+            "oneOf": [{"type": "object"}, {"type": "array", "items": {"type": "object"}}],
+            "description": "Inline research_graph object or graph list.",
+        },
+        "title": _string_schema("Human-readable brief title.", default="Keepa research brief"),
+        "id": _string_schema("Stable brief id. Defaults to graph root or title slug."),
+        "out": _string_schema("Optional output path for the research brief JSON."),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+    "anyOf": [{"required": ["input"]}, {"required": ["payload"]}, {"required": ["graph"]}],
+}
+
+
 CATEGORIES_FINDER_SELECTION_SCHEMA: JsonSchema = {
     "type": "object",
     "additionalProperties": False,
@@ -366,7 +391,7 @@ REPORTS_BUILD_SCHEMA: JsonSchema = {
     "additionalProperties": False,
     "required": ["input"],
     "properties": {
-        "input": _string_schema("Input JSON path from batch/product/category workflows."),
+        "input": _string_schema("Input JSON path from batch/product/category/research_graph.merge workflows."),
         "format": {
             "type": "string",
             "enum": ["markdown", "json", "csv"],
@@ -408,6 +433,50 @@ DOCS_READ_SCHEMA: JsonSchema = {
     "properties": {
         "uri": _string_schema("MCP resource URI to read, for example keepa://zread/wiki/current."),
         "page": _string_schema("zread page slug or markdown file name. Used when uri is omitted."),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
+CONTEXT_POLICY_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
+RESOLVE_RESEARCH_TARGET_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["query"],
+    "properties": {
+        "query": _string_schema("ASIN, UPC/EAN/ISBN, seller id, category id, fixture name, evidence keyword, or research phrase."),
+        "domain": _string_schema("Keepa domain code, id, or host suffix.", default="US"),
+        "hint_type": {
+            "type": "string",
+            "enum": ["asin", "code", "seller", "category", "keyword", "fixture", "evidence"],
+            "description": "Optional target type hint used only for ranking local candidates.",
+        },
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
+QUERY_RESEARCH_CONTEXT_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "query": _string_schema("Natural language question or unresolved research target."),
+        "question": _string_schema("Question to answer from local schema, fixture, evidence, zread, and cache context."),
+        "target_type": {
+            "type": "string",
+            "enum": ["asin", "code", "seller", "category", "keyword", "fixture", "evidence"],
+            "description": "Resolved target type.",
+        },
+        "target_id": _string_schema("Resolved target id, such as ASIN, category id, fixture path, or evidence logical path."),
+        "target": {"type": "object", "description": "Resolved target candidate returned by keepa.resolve_research_target."},
         "from_cache": _string_schema("Session cache key to reuse."),
     },
 }
@@ -611,6 +680,14 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "graph"),
     ),
     ToolDefinition(
+        name="keepa.research_brief_export",
+        command="research_brief.export",
+        description="Export a compact decision brief from merged graphs and Agent payloads without calling Keepa.",
+        input_schema=RESEARCH_BRIEF_EXPORT_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("research", "graph", "reports"),
+    ),
+    ToolDefinition(
         name="keepa.docs_index",
         command="docs.index",
         description="List stable Keepa CLI documentation resources, including zread wiki, schema, evidence, and templates.",
@@ -625,6 +702,30 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=DOCS_READ_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         groups=("docs", "research"),
+    ),
+    ToolDefinition(
+        name="keepa.context_policy",
+        command="context.policy",
+        description="Read offline-first Agent policy, allowed roots, tool gating hints, and live Keepa safety status.",
+        input_schema=CONTEXT_POLICY_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("docs", "research"),
+    ),
+    ToolDefinition(
+        name="keepa.resolve_research_target",
+        command="research.target.resolve",
+        description="Resolve a fuzzy research query into local ASIN, code, seller, category, fixture, evidence, or keyword candidates without calling Keepa.",
+        input_schema=RESOLVE_RESEARCH_TARGET_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("research",),
+    ),
+    ToolDefinition(
+        name="keepa.query_research_context",
+        command="research.context.query",
+        description="Return local resources relevant to a resolved research target or question before any live Keepa request.",
+        input_schema=QUERY_RESEARCH_CONTEXT_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("research", "docs"),
     ),
     ToolDefinition(
         name="keepa.audit_cost",
@@ -725,12 +826,24 @@ def resolve_toolset_groups(toolsets: str | list[str] | tuple[str, ...] | set[str
     return resolved or TOOLSET_GROUPS[DEFAULT_TOOLSET]
 
 
-def list_mcp_tools(*, groups: set[str] | None = None, toolsets: str | list[str] | tuple[str, ...] | set[str] | None = None) -> list[dict[str, Any]]:
+def list_mcp_tools(
+    *,
+    groups: set[str] | None = None,
+    toolsets: str | list[str] | tuple[str, ...] | set[str] | None = None,
+    allow_tools: list[str] | tuple[str, ...] | set[str] | None = None,
+    exclude_tools: list[str] | tuple[str, ...] | set[str] | None = None,
+) -> list[dict[str, Any]]:
     tools = TOOL_DEFINITIONS
     if groups is None:
         groups = resolve_toolset_groups(toolsets)
     if groups:
         tools = tuple(tool for tool in tools if groups.intersection(tool.groups))
+    if allow_tools:
+        allowed = {str(name) for name in allow_tools}
+        tools = tuple(tool for tool in tools if tool.name in allowed)
+    if exclude_tools:
+        excluded = {str(name) for name in exclude_tools}
+        tools = tuple(tool for tool in tools if tool.name not in excluded)
     return [tool.to_mcp_tool() for tool in tools]
 
 
@@ -801,6 +914,8 @@ def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] |
             errors.append("asin is required for product-research")
     if tool.name == "keepa.research_graph_merge" and not arguments.get("input") and not arguments.get("graph"):
         errors.append("one of input or graph is required")
+    if tool.name == "keepa.research_brief_export" and not arguments.get("input") and not arguments.get("payload") and not arguments.get("graph"):
+        errors.append("one of input, payload, or graph is required")
     return errors
 
 

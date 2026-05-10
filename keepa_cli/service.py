@@ -56,6 +56,7 @@ from keepa_cli.research_graph import (
     graph_summary,
     merge_research_graphs,
 )
+from keepa_cli.research_brief import build_research_brief
 from keepa_cli.schema_docs import generate_product_agent_schema
 from keepa_cli.token_budget import estimate_request_budget
 
@@ -482,6 +483,45 @@ def _research_graph_merge(params: Mapping[str, Any]) -> dict[str, Any]:
     )
 
 
+def _research_brief_export(params: Mapping[str, Any]) -> dict[str, Any]:
+    brief = build_research_brief(params)
+    data: dict[str, Any] = {
+        "view": "research_brief_export",
+        "brief": brief,
+        "agent_brief": {
+            "one_line": brief["decision_summary"]["one_line"],
+            "key_facts": {
+                "brief_id": brief["id"],
+                "title": brief["title"],
+                "risk_count": brief["risk_summary"]["risk_count"],
+                "entity_graph_summary": brief.get("entity_graph_summary"),
+            },
+            "read_order": brief["recommended_read_order"],
+        },
+        "data_quality": brief["data_quality"],
+        "evidence_index": {
+            "brief": {"path": "brief", "section": "summary", "note": "Exported research brief for downstream Agent synthesis."},
+            "decision_summary": {"path": "brief.decision_summary", "section": "summary", "note": "Compact decision facts."},
+            "risk_summary": {"path": "brief.risk_summary", "section": "summary", "note": "Deduplicated risk codes and severities."},
+            "follow_up_plan": {"path": "brief.follow_up_plan", "section": "summary", "note": "Executable follow-up actions when present."},
+        },
+        "provenance": brief["provenance"],
+    }
+    out = _param(params, "out", "output")
+    if out:
+        output_path = Path(str(out))
+        if output_path.parent:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        data["output"] = {"path": str(output_path), "format": "json", "size_bytes": output_path.stat().st_size}
+    return success_envelope(
+        command="research_brief.export",
+        data=data,
+        request={"transport": "service"},
+        token_bucket={},
+    )
+
+
 def run_command(
     command: str,
     params: Mapping[str, Any] | None = None,
@@ -604,6 +644,8 @@ def run_command(
             return _cassettes_promote(params)
         if command in {"research_graph.merge", "research-graph.merge", "graph.merge"}:
             return _research_graph_merge(params)
+        if command in {"research_brief.export", "research-brief.export", "brief.export"}:
+            return _research_brief_export(params)
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         return error_envelope(command=command, kind="invalid_argument", message=str(exc))
 

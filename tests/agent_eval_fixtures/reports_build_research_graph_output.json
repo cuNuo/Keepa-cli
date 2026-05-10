@@ -1,0 +1,17 @@
+{
+  "id": "reports_build_research_graph_output",
+  "description": "reports.build 可直接消费 research_graph.merge 输出并生成实体关系报告。",
+  "command": "reports.build",
+  "params": {
+    "input": "tests/fixtures/agent_eval_products_compare_output.json",
+    "format": "json",
+    "title": "Research Graph Report",
+    "out": "{tmp}/research-graph-report.json"
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.format", "equals": "json"},
+    {"path": "data.research_graph.entity_counts.product", "min": 3},
+    {"path": "data.output.path", "contains": "research-graph-report.json"}
+  ]
+}

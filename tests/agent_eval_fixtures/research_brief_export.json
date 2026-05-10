@@ -1,0 +1,25 @@
+{
+  "id": "research_brief_export",
+  "description": "调研 Agent 可从本地 payload 导出 decision/risk/graph/follow-up/evidence brief。",
+  "kind": "mcp",
+  "method": "tools/call",
+  "params": {
+    "name": "keepa.research_brief_export",
+    "arguments": {
+      "input": [
+        "tests/fixtures/agent_eval_category_search_output.json",
+        "tests/fixtures/agent_eval_seller_output.json"
+      ],
+      "title": "fixture research brief"
+    }
+  },
+  "assertions": [
+    {"path": "result.structuredContent.ok", "equals": true},
+    {"path": "result.structuredContent.command", "equals": "research_brief.export"},
+    {"path": "result.structuredContent.data.view", "equals": "research_brief_export"},
+    {"path": "result.structuredContent.data.brief.view", "equals": "research_brief_export"},
+    {"path": "result.structuredContent.data.brief.recommended_read_order", "contains": "decision_summary"},
+    {"path": "result.structuredContent.data.brief.input_summary.research_graph_count", "min": 2},
+    {"path": "result.structuredContent.data.brief.data_quality.present", "contains": "entity_graph_summary"}
+  ]
+}

@@ -85,6 +85,31 @@ def _build_parser() -> argparse.ArgumentParser:
     domains_subparsers = domains.add_subparsers(dest="domains_command")
     domains_subparsers.add_parser("list", help="列出 Keepa 支持的 Amazon domain。")
 
+    docs = subparsers.add_parser("docs", help="读取本地 Agent 文档和 MCP resource。")
+    docs_subparsers = docs.add_subparsers(dest="docs_command")
+    docs_subparsers.add_parser("index", help="列出 zread、schema、evidence 与 MCP resources。")
+    docs_read = docs_subparsers.add_parser("read", help="读取本地 MCP resource 或 zread 页面。")
+    docs_read.add_argument("--uri", help="MCP resource URI，例如 keepa://context/policy。")
+    docs_read.add_argument("--page", help="zread 页面 slug 或 markdown 文件名。")
+
+    research = subparsers.add_parser("research", help="调研 Agent 本地上下文命令。")
+    research_subparsers = research.add_subparsers(dest="research_command")
+    research_subparsers.add_parser("policy", help="输出 offline-first Agent policy 与 roots。")
+    target = research_subparsers.add_parser("resolve-target", help="本地解析 ASIN、类目、seller、fixture、evidence 或关键词目标。")
+    target.add_argument("query", help="调研输入，例如 ASIN、类目词、seller id、fixture 名或 evidence 关键词。")
+    target.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    target.add_argument("--hint-type", choices=("asin", "code", "seller", "category", "keyword", "fixture", "evidence"), help="可选目标类型提示。")
+    context = research_subparsers.add_parser("context", help="按目标或问题列出本地上下文资源。")
+    context.add_argument("--query", help="未解析的调研输入或问题。")
+    context.add_argument("--question", help="需要从本地资源回答的问题。")
+    context.add_argument("--target-type", choices=("asin", "code", "seller", "category", "keyword", "fixture", "evidence"), help="已解析目标类型。")
+    context.add_argument("--target-id", help="已解析目标 id。")
+    brief = research_subparsers.add_parser("brief", help="从本地 JSON payload 或 research_graph 导出调研 brief。")
+    brief.add_argument("input", nargs="+", help="一个或多个 Keepa CLI JSON 输出文件。")
+    brief.add_argument("--title", default="Keepa research brief", help="brief 标题。")
+    brief.add_argument("--id", help="稳定 brief id；默认使用 graph root 或标题 slug。")
+    brief.add_argument("--out", help="把 brief 写入 JSON 文件。")
+
     add_cache_parser(subparsers)
     add_workflow_parsers(subparsers)
     add_products_parser(subparsers)
@@ -220,6 +245,44 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
 
     if args.command == "domains" and args.domains_command == "list":
         payload = run_command("domains.list")
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "docs" and args.docs_command == "index":
+        payload = run_command("docs.index")
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "docs" and args.docs_command == "read":
+        payload = run_command("docs.read", {"uri": args.uri, "page": args.page})
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "research" and args.research_command == "policy":
+        payload = run_command("context.policy")
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "research" and args.research_command == "resolve-target":
+        payload = run_command(
+            "research.target.resolve",
+            {"query": args.query, "domain": args.domain, "hint_type": args.hint_type},
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "research" and args.research_command == "context":
+        payload = run_command(
+            "research.context.query",
+            {
+                "query": args.query,
+                "question": args.question,
+                "target_type": args.target_type,
+                "target_id": args.target_id,
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "research" and args.research_command == "brief":
+        payload = run_command(
+            "research_brief.export",
+            {"input": list(args.input), "title": args.title, "id": args.id, "out": args.out},
+        )
         return 0 if payload["ok"] else 1, payload
 
     cache_result = maybe_run_cache_command(args)

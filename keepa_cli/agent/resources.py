@@ -20,10 +20,12 @@ from keepa_cli import __version__
 from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
 from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names
-from keepa_cli.research_graph import graph_summary
+from keepa_cli.research_brief import brief_graph_resource_payload, brief_resource_payload
+from keepa_cli.research_context import build_context_policy
+from keepa_cli.research_graph import extract_research_graphs, graph_summary
 
 
-RESOURCE_SCHEMA_VERSION = "2026-05-10.5"
+RESOURCE_SCHEMA_VERSION = "2026-05-10.6"
 MAX_RESOURCE_TEXT_BYTES = 1_000_000
 
 
@@ -50,6 +52,12 @@ STATIC_RESOURCES: tuple[dict[str, str], ...] = (
         "uri": "keepa://evidence/recent",
         "name": "recent-evidence",
         "description": "Recent task evidence entries summarized from evidence/manifest.csv.",
+        "mimeType": "application/json",
+    },
+    {
+        "uri": "keepa://context/policy",
+        "name": "context-policy",
+        "description": "Offline-first Agent policy, allowed roots, tool gating hints, and live Keepa safety status.",
         "mimeType": "application/json",
     },
     {
@@ -102,6 +110,30 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "uriTemplate": "keepa://cache-key/{command}/{encoded_params}",
         "name": "session-cache-key-preview",
         "description": "Preview the deterministic AgentSession cache key for a service command and base64url JSON params.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://research/{cache_key}",
+        "name": "session-research-by-cache-key",
+        "description": "Audit a cached AgentSession result by cache key, including graph summary, evidence index, provenance, and ledger.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://research/{cache_key}/brief",
+        "name": "session-research-brief-by-cache-key",
+        "description": "Read a cached research_brief.export result by cache key.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://research/{cache_key}/graph",
+        "name": "session-research-brief-graph-by-cache-key",
+        "description": "Read graph summary from a cached research_brief.export result by cache key.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://graphs/{root}",
+        "name": "research-graph-by-root",
+        "description": "Find research_graph payloads by root id in the live AgentSession cache and local fixtures.",
         "mimeType": "application/json",
     },
     {
@@ -163,7 +195,12 @@ def list_mcp_resource_templates() -> list[dict[str, str]]:
     return [dict(template) for template in RESOURCE_TEMPLATES]
 
 
-def read_mcp_resource(uri: str, *, root: Path | str | None = None) -> dict[str, str]:
+def read_mcp_resource(
+    uri: str,
+    *,
+    root: Path | str | None = None,
+    session_cache: Mapping[str, Mapping[str, Any]] | None = None,
+) -> dict[str, str]:
     repo_root = Path(root).resolve() if root is not None else _default_repo_root()
     if uri == "keepa://schema/products-agent-view":
         return _read_text_resource(uri, repo_root / "docs/schema/products.agent-view.schema.json", "application/json")
@@ -173,6 +210,8 @@ def read_mcp_resource(uri: str, *, root: Path | str | None = None) -> dict[str, 
         return {"uri": uri, "mimeType": "text/markdown", "text": _cassette_promotion_guide()}
     if uri == "keepa://evidence/recent":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_recent_evidence(repo_root), ensure_ascii=False, indent=2)}
+    if uri == "keepa://context/policy":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(build_context_policy(repo_root=repo_root), ensure_ascii=False, indent=2)}
     if uri == "keepa://tools/index":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_tools_index(), ensure_ascii=False, indent=2)}
     if uri == "keepa://prompts/index":
@@ -187,6 +226,10 @@ def read_mcp_resource(uri: str, *, root: Path | str | None = None) -> dict[str, 
         return _read_zread_page_resource(uri, repo_root=repo_root)
     if uri.startswith("keepa://cache-key/"):
         return _read_cache_key_resource(uri)
+    if uri.startswith("keepa://research/"):
+        return _read_research_cache_resource(uri, session_cache=session_cache)
+    if uri.startswith("keepa://graphs/"):
+        return _read_graph_root_resource(uri, repo_root=repo_root, session_cache=session_cache)
     if uri.startswith("keepa://toolsets/"):
         return _read_toolset_resource(uri)
     if uri.startswith("keepa://tools/"):
@@ -299,6 +342,171 @@ def _read_cache_key_resource(uri: str) -> dict[str, str]:
         "note": "Preview only; resources/read does not inspect live AgentSession memory.",
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _read_research_cache_resource(
+    uri: str,
+    *,
+    session_cache: Mapping[str, Mapping[str, Any]] | None,
+) -> dict[str, str]:
+    token = uri.removeprefix("keepa://research/").strip()
+    if token.endswith("/brief"):
+        cache_key = _decode_resource_identifier(token.removesuffix("/brief"))
+        cached = session_cache.get(cache_key) if session_cache is not None else None
+        payload = brief_resource_payload(cache_key, cached)
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+    if token.endswith("/graph"):
+        cache_key = _decode_resource_identifier(token.removesuffix("/graph"))
+        cached = session_cache.get(cache_key) if session_cache is not None else None
+        payload = brief_graph_resource_payload(cache_key, cached)
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+    cache_key = _decode_resource_identifier(token)
+    payload = _research_cache_payload(cache_key, session_cache=session_cache)
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _research_cache_payload(
+    cache_key: str,
+    *,
+    session_cache: Mapping[str, Mapping[str, Any]] | None,
+) -> dict[str, Any]:
+    cached = session_cache.get(cache_key) if session_cache is not None else None
+    payload: dict[str, Any] = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "cache_key": cache_key,
+        "found": isinstance(cached, Mapping),
+        "source": "agent_session",
+        "note": "Session resources are process-local; repeat resources/read in the same MCP session that produced the cache_key.",
+    }
+    if not isinstance(cached, Mapping):
+        payload["available_cache_keys"] = sorted(session_cache.keys()) if session_cache is not None else []
+        return payload
+
+    data = cached.get("data") if isinstance(cached.get("data"), Mapping) else {}
+    graphs = extract_research_graphs(cached)
+    payload.update(
+        {
+            "ok": bool(cached.get("ok")),
+            "command": cached.get("command"),
+            "cache_hit": cached.get("cache_hit", False),
+            "budget_ledger": copy.deepcopy(cached.get("budget_ledger", {})),
+            "agent_brief": copy.deepcopy(data.get("agent_brief")) if isinstance(data, Mapping) else None,
+            "data_quality": copy.deepcopy(data.get("data_quality")) if isinstance(data, Mapping) else None,
+            "evidence_index": copy.deepcopy(data.get("evidence_index")) if isinstance(data, Mapping) else None,
+            "provenance": copy.deepcopy(data.get("provenance")) if isinstance(data, Mapping) else None,
+            "research_graph_count": len(graphs),
+            "research_graphs": [_graph_audit_item(graph, source="session_cache", source_ref=cache_key) for graph in graphs],
+        }
+    )
+    return payload
+
+
+def _read_graph_root_resource(
+    uri: str,
+    *,
+    repo_root: Path,
+    session_cache: Mapping[str, Mapping[str, Any]] | None,
+) -> dict[str, str]:
+    token = uri.removeprefix("keepa://graphs/").strip()
+    root_id = _decode_resource_identifier(token)
+    matches: list[dict[str, Any]] = []
+    if session_cache is not None:
+        for cache_key, cached in sorted(session_cache.items()):
+            if isinstance(cached, Mapping):
+                matches.extend(
+                    _matching_graph_items(
+                        cached,
+                        root_id=root_id,
+                        source="session_cache",
+                        source_ref=cache_key,
+                        resource_uri=f"keepa://research/{_base64url_encode(cache_key)}",
+                    )
+                )
+    for path in _graph_fixture_paths(repo_root):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        matches.extend(
+            _matching_graph_items(
+                payload,
+                root_id=root_id,
+                source="fixture",
+                source_ref=str(path),
+                resource_uri=f"keepa://fixtures/{path.name}",
+            )
+        )
+
+    payload = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "root": root_id,
+        "match_count": len(matches),
+        "matches": matches,
+        "sources_scanned": {
+            "session_cache_keys": len(session_cache or {}),
+            "fixture_files": len(_graph_fixture_paths(repo_root)),
+        },
+    }
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _matching_graph_items(
+    value: Any,
+    *,
+    root_id: str,
+    source: str,
+    source_ref: str,
+    resource_uri: str,
+) -> list[dict[str, Any]]:
+    matches: list[dict[str, Any]] = []
+    for graph in extract_research_graphs(value):
+        if str(graph.get("root") or "") != root_id:
+            continue
+        matches.append(_graph_audit_item(graph, source=source, source_ref=source_ref, resource_uri=resource_uri))
+    return matches
+
+
+def _graph_audit_item(
+    graph: Mapping[str, Any],
+    *,
+    source: str,
+    source_ref: str,
+    resource_uri: str | None = None,
+) -> dict[str, Any]:
+    item: dict[str, Any] = {
+        "root": graph.get("root"),
+        "source": source,
+        "source_ref": source_ref,
+        "summary": graph_summary(graph),
+        "entity_counts": copy.deepcopy(graph.get("entity_counts", {})),
+        "node_count": graph.get("node_count", 0),
+        "edge_count": graph.get("edge_count", 0),
+    }
+    if resource_uri:
+        item["resource_uri"] = resource_uri
+    diagnostics = graph.get("diagnostics")
+    if isinstance(diagnostics, Mapping):
+        item["diagnostics"] = {
+            "duplicate_node_count": diagnostics.get("duplicate_node_count", 0),
+            "orphan_node_count": diagnostics.get("orphan_node_count", 0),
+            "conflict_count": diagnostics.get("conflict_count", 0),
+            "highest_source_weight": diagnostics.get("highest_source_weight", 0),
+        }
+    sources = graph.get("sources")
+    if isinstance(sources, list):
+        item["graph_sources"] = copy.deepcopy(sources[:10])
+    return item
+
+
+def _graph_fixture_paths(repo_root: Path) -> list[Path]:
+    paths: dict[str, Path] = {}
+    for base in (repo_root / "keepa_cli/fixtures", repo_root / "tests/fixtures"):
+        if not base.exists():
+            continue
+        for path in base.glob("*.json"):
+            if "agent_eval" in path.name or "graph" in path.name or "seller" in path.name or "category" in path.name:
+                paths[str(path.resolve())] = path
+    return sorted(paths.values(), key=lambda item: str(item))
 
 
 def _tools_index() -> dict[str, Any]:
@@ -449,6 +657,16 @@ def _base64url_encode(value: str) -> str:
 def _base64url_decode(token: str) -> str:
     padding = "=" * (-len(token) % 4)
     return base64.urlsafe_b64decode((token + padding).encode("ascii")).decode("utf-8")
+
+
+def _decode_resource_identifier(token: str) -> str:
+    if not token:
+        raise ValueError("resource identifier is required")
+    if token.startswith("b64:"):
+        decoded = _base64url_decode(token.removeprefix("b64:"))
+    else:
+        decoded = token
+    return decoded.strip()
 
 
 def _collect_file_resources(value: Any, resources: list[dict[str, Any]], *, path_stack: list[str]) -> None:

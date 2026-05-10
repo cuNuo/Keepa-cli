@@ -20,7 +20,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.18")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.3")
         self.assertIn("tui", payload["data"]["protocols"])
         self.assertIn("mcp", payload["data"]["protocols"])
         self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
@@ -32,7 +32,12 @@ class CapabilitiesTests(unittest.TestCase):
         resource_uris = {item["uri"] for item in payload["data"]["mcp"]["resources"]}
         self.assertIn("keepa://tools/index", resource_uris)
         self.assertIn("keepa://prompts/index", resource_uris)
+        self.assertIn("keepa://context/policy", resource_uris)
         resource_templates = {item["uriTemplate"] for item in payload["data"]["mcp"]["resource_templates"]}
+        self.assertIn("keepa://research/{cache_key}", resource_templates)
+        self.assertIn("keepa://research/{cache_key}/brief", resource_templates)
+        self.assertIn("keepa://research/{cache_key}/graph", resource_templates)
+        self.assertIn("keepa://graphs/{root}", resource_templates)
         self.assertIn("keepa://toolsets/{toolset}", resource_templates)
         self.assertIn("keepa://tools/{name}", resource_templates)
         self.assertIn("keepa://prompts/{name}", resource_templates)
@@ -41,8 +46,12 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("keepa.products_compare", mcp_tool_names)
         self.assertIn("keepa.categories_finder_selection", mcp_tool_names)
         self.assertIn("keepa.research_graph_merge", mcp_tool_names)
+        self.assertIn("keepa.research_brief_export", mcp_tool_names)
         self.assertIn("keepa.docs_index", mcp_tool_names)
         self.assertIn("keepa.docs_read", mcp_tool_names)
+        self.assertIn("keepa.context_policy", mcp_tool_names)
+        self.assertIn("keepa.resolve_research_target", mcp_tool_names)
+        self.assertIn("keepa.query_research_context", mcp_tool_names)
         self.assertIn("keepa.audit_cost", mcp_tool_names)
         self.assertIn("keepa.cassettes_promote", mcp_tool_names)
         self.assertIn("keepa.reports_build", mcp_tool_names)
@@ -51,10 +60,14 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("products.compare", command_names)
         self.assertIn("docs.index", command_names)
         self.assertIn("docs.read", command_names)
+        self.assertIn("context.policy", command_names)
+        self.assertIn("research.target.resolve", command_names)
+        self.assertIn("research.context.query", command_names)
         self.assertIn("categories.products", command_names)
         self.assertIn("categories.finder-selection", command_names)
         self.assertIn("workflow.plan", command_names)
         self.assertIn("research_graph.merge", command_names)
+        self.assertIn("research_brief.export", command_names)
         self.assertIn("graphs.image", command_names)
         self.assertIn("schema.generate", command_names)
         self.assertIn("cassettes.sanitize", command_names)
@@ -83,7 +96,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.18")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.3")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -91,7 +104,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.18")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-11.3")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,22 @@
+{
+  "id": "research_context_resolution",
+  "description": "调研 Agent 先解析目标，再读取本地上下文资源，避免直接进入 live Keepa。",
+  "kind": "mcp",
+  "method": "tools/call",
+  "params": {
+    "name": "keepa.resolve_research_target",
+    "arguments": {
+      "query": "B001GZ6QEC",
+      "domain": "US"
+    }
+  },
+  "assertions": [
+    {"path": "result.structuredContent.ok", "equals": true},
+    {"path": "result.structuredContent.command", "equals": "research.target.resolve"},
+    {"path": "result.structuredContent.data.view", "equals": "research_target_resolution"},
+    {"path": "result.structuredContent.data.primary.type", "equals": "asin"},
+    {"path": "result.structuredContent.data.primary.id", "equals": "B001GZ6QEC"},
+    {"path": "result.structuredContent.data.candidates", "length_min": 2},
+    {"path": "result.structuredContent.data.next_actions", "next_actions_executable": true}
+  ]
+}

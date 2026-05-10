@@ -51,10 +51,25 @@ With MCP, call structured tools instead of CLI strings:
 - `keepa.topsellers_list`
 - `keepa.workflow_plan`
 - `keepa.research_graph_merge`
+- `keepa.research_brief_export`
 
 Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse builders, and `tracking-readonly` only for read-only tracking state.
 
-Use `resources/list` before loading long docs. Stable resources are `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
+Use `resources/list` before loading long docs. Stable resources are `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
+
+## Research Agent Start
+
+For a general research Agent, start with policy and target resolution before any product/category/deals call:
+
+1. Read `keepa://context/policy` or call `keepa.context_policy`.
+2. Call `keepa.resolve_research_target` with the user's raw query and domain.
+3. Call `keepa.query_research_context` with the primary resolved target.
+4. Only then call `keepa.workflow_plan` and execute the minimum required research tools.
+5. Merge graph-bearing outputs with `keepa.research_graph_merge`, then export the final Agent handoff with `keepa.research_brief_export`.
+
+`tools/list` supports `allow_tools` and `exclude_tools`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery.
+
+Use `keepa.research_agent_start` prompt when a client supports MCP prompts. It encodes the policy -> resolve -> context -> plan -> execute -> graph merge order.
 
 ## Read Order
 
@@ -77,6 +92,10 @@ Only request `offers`, `rating`, or `buybox` when `data_quality`, `risk_taxonomy
 For large outputs, prefer `--view summary`, `--fields`, or `--chunks-dir` instead of loading raw Keepa bodies.
 
 After category discovery, compare, and seller/deals steps, merge graphs with `research_graph.merge` / `keepa.research_graph_merge` so downstream reports and memory read one deduplicated `category -> product -> seller/deal` graph. Read `summary.diagnostics` first; duplicate/orphan/conflict counts indicate whether the Agent should inspect full graph sources before writing conclusions.
+
+Use `research_brief.export` / `keepa.research_brief_export` after graph merge or multi-payload research. The brief gives downstream research Agents a stable `decision_summary`, `risk_summary`, `entity_graph_summary`, `follow_up_plan`, `evidence_links`, and `recommended_read_order` without rereading every raw payload.
+
+Use `reports.build` on the merged graph JSON when a human-readable or downstream relationship report is needed. Markdown includes entity and relationship tables; JSON includes `research_graph_report`.
 
 ## Cassette Promotion
 

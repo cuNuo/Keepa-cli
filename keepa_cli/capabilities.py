@@ -15,7 +15,7 @@ from keepa_cli.agent.tools import list_mcp_tools, toolset_names
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.18"
+SCHEMA_VERSION = "2026-05-11.3"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -27,6 +27,9 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "domains.list", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "docs.index", "supports_fixture": False, "supports_live": False, "output": "json-agent-docs"},
     {"name": "docs.read", "supports_fixture": False, "supports_live": False, "output": "text-or-json-agent-docs"},
+    {"name": "context.policy", "supports_fixture": False, "supports_live": False, "output": "json-agent-policy"},
+    {"name": "research.target.resolve", "supports_fixture": False, "supports_live": False, "output": "json-agent-targets"},
+    {"name": "research.context.query", "supports_fixture": False, "supports_live": False, "output": "json-agent-context-resources"},
     {"name": "browse.snapshot", "supports_fixture": True, "supports_live": False, "output": "html-directory"},
     {"name": "batch.asins", "supports_fixture": True, "supports_live": False, "output": "json-file-optional"},
     {"name": "templates.list", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -41,6 +44,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "audit.cost", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "workflow.plan", "supports_fixture": False, "supports_live": False, "output": "json-agent-plan"},
     {"name": "research_graph.merge", "supports_fixture": True, "supports_live": False, "output": "json-agent-graph"},
+    {"name": "research_brief.export", "supports_fixture": True, "supports_live": False, "output": "json-agent-brief"},
     {"name": "products.get", "supports_fixture": True, "supports_live": True, "output": "json-or-agent-view"},
     {"name": "products.compare", "supports_fixture": True, "supports_live": True, "output": "json-agent-view"},
     {"name": "products.search", "supports_fixture": True, "supports_live": True, "output": "json"},

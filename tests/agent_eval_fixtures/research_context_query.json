@@ -1,0 +1,21 @@
+{
+  "id": "research_context_query",
+  "description": "调研 Agent 可按 ASIN 目标发现本地 fixture、policy、tools 与 evidence 资源。",
+  "kind": "mcp",
+  "method": "tools/call",
+  "params": {
+    "name": "keepa.query_research_context",
+    "arguments": {
+      "target_type": "asin",
+      "target_id": "B001GZ6QEC"
+    }
+  },
+  "assertions": [
+    {"path": "result.structuredContent.ok", "equals": true},
+    {"path": "result.structuredContent.command", "equals": "research.context.query"},
+    {"path": "result.structuredContent.data.view", "equals": "research_context_query"},
+    {"path": "result.structuredContent.data.recommended_read_order", "contains": "keepa://asin/B001GZ6QEC/fixture"},
+    {"path": "result.structuredContent.data.resources", "contains_item": {"uri": "keepa://context/policy"}},
+    {"path": "result.structuredContent.data.resources", "contains_item": {"uri": "keepa://tools/index"}}
+  ]
+}

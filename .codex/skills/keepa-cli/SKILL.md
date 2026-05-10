@@ -51,9 +51,11 @@ kc --mcp
 
 Use `keepa.products_get` for single-product research and `keepa.products_compare` for multi-ASIN deal comparison. Product Agent views include `agent_brief`, `risk_taxonomy`, `research_graph`, `data_quality`, `selection_signals`, `next_actions`, and `evidence_index`; read those before loading raw output or chunks.
 
-MCP `tools/list` defaults to `toolset=research`. Use `toolset=audit` for `keepa.audit_cost` and cassette tools, `toolset=reports` for local report/browse tools, `toolset=tracking-readonly` for read-only tracking, and `toolset=all` only when debugging schema discovery. Research tools include `keepa.categories_finder_selection` and `keepa.research_graph_merge`.
+MCP `tools/list` defaults to `toolset=research`. Use `toolset=audit` for `keepa.audit_cost` and cassette tools, `toolset=reports` for local report/browse/brief export tools, `toolset=tracking-readonly` for read-only tracking, and `toolset=all` only when debugging schema discovery. Research tools include `keepa.categories_finder_selection`, `keepa.research_graph_merge`, and `keepa.research_brief_export`.
 
-MCP `resources/list` exposes `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` exposes `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. If a tool text fallback includes `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` with `resources/read` instead of asking for the whole raw body again.
+MCP `resources/list` exposes `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` exposes `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. If a tool text fallback includes `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` with `resources/read` instead of asking for the whole raw body again.
+
+For general research Agents, read `keepa://context/policy`, call `keepa.resolve_research_target`, then call `keepa.query_research_context` before running live-capable product/category tools. `tools/list` accepts `allow_tools` and `exclude_tools` filters for small per-workflow schemas.
 
 For local workflows:
 
@@ -61,6 +63,14 @@ For local workflows:
 kc --json batch asins asins.txt --domain US --dry-run --out batch.json
 kc --json reports build --input batch.json --format markdown --out report.md
 kc --json browse snapshot --input batch.json --out-dir keepa-browse
+```
+
+`reports build` can also consume a merged research graph JSON and emit entity/relationship report sections:
+
+```powershell
+kc --json research-graph merge category.json compare.json seller.json --root agent_selection_research --out graph.json
+kc --json research brief graph.json --title "Agent selection brief" --out brief.json
+kc --json reports build --input graph.json --format markdown --out graph-report.md
 ```
 
 ## Tracking And Writes
@@ -94,6 +104,8 @@ kc --json research-graph merge category.json compare.json seller.json --root age
 ```
 
 This command does not call Keepa. It recursively extracts `research_graph` objects, dedupes nodes/edges, and returns a merged graph plus sources, source weights, duplicate/orphan/conflict diagnostics, and data quality.
+
+Export the final Agent handoff with `research brief` / `keepa.research_brief_export` after graph merge or multi-payload research. It returns `decision_summary`, `risk_summary`, `entity_graph_summary`, `follow_up_plan`, `evidence_links`, and `recommended_read_order` without rereading raw payloads.
 
 Do not commit `evidence/runtime-logs/`. Sanitize and promote live responses to fixtures before using them in tests:
 

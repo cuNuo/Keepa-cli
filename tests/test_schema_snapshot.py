@@ -195,6 +195,17 @@ class SchemaSnapshotTests(unittest.TestCase):
                 },
                 env={},
             ),
+            "research_brief_export": run_command(
+                "research_brief.export",
+                {
+                    "input": [
+                        "tests/fixtures/agent_eval_category_search_output.json",
+                        "tests/fixtures/agent_eval_seller_output.json",
+                    ],
+                    "title": "fixture research brief",
+                },
+                env={},
+            ),
             "mcp_resources_list": handle_mcp_message(
                 json.dumps({"jsonrpc": "2.0", "id": "resources", "method": "resources/list", "params": {}}),
                 env={},

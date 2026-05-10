@@ -197,9 +197,9 @@ kc --json domains list
 '{"jsonrpc":"2.0","id":4,"method":"prompts/list","params":{}}' | kc --mcp
 ```
 
-MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/docs/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read 与 `keepa.research_graph_merge`；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告和浏览快照；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
+MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/docs/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、`keepa.research_graph_merge` 与 `keepa.research_brief_export`；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告、浏览快照与 brief export；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
 
-MCP resources 用于减少 `tools/list` 上下文：`keepa://schema/products-agent-view`、`keepa://fixtures/manifest`、`keepa://guides/cassette-promotion`、`keepa://evidence/recent`、`keepa://tools/index`、`keepa://prompts/index`、`keepa://zread/wiki/current`、`keepa://zread/wiki/toc`、`keepa://zread/wiki/pages`。`resources/templates/list` 会暴露 `keepa://schema/{name}`、`keepa://fixtures/{name}`、`keepa://cache-key/{command}/{encoded_params}`、`keepa://toolsets/{toolset}`、`keepa://tools/{name}`、`keepa://prompts/{name}`、`keepa://asin/{asin}/fixture`、`keepa://evidence/{encoded_logical_path}`、`keepa://zread/wiki/page/{slug_or_file}`、`keepa://chunk/{encoded_path}`、`keepa://output/{encoded_path}`，让 Agent 能发现 URI 形状而不是硬编码。大响应仍完整保留在 `structuredContent`，text fallback 只返回摘要和 `mcp_resource_manifest`，其中 `keepa://chunk/...` / `keepa://output/...` 可按需读取具体分块。MCP prompts 提供 product research、category research、deal compare 与 project onboarding 起手式。
+MCP resources 用于减少 `tools/list` 上下文：`keepa://context/policy`、`keepa://schema/products-agent-view`、`keepa://fixtures/manifest`、`keepa://guides/cassette-promotion`、`keepa://evidence/recent`、`keepa://tools/index`、`keepa://prompts/index`、`keepa://zread/wiki/current`、`keepa://zread/wiki/toc`、`keepa://zread/wiki/pages`。`resources/templates/list` 会暴露 `keepa://schema/{name}`、`keepa://fixtures/{name}`、`keepa://cache-key/{command}/{encoded_params}`、`keepa://research/{cache_key}`、`keepa://research/{cache_key}/brief`、`keepa://research/{cache_key}/graph`、`keepa://graphs/{root}`、`keepa://toolsets/{toolset}`、`keepa://tools/{name}`、`keepa://prompts/{name}`、`keepa://asin/{asin}/fixture`、`keepa://evidence/{encoded_logical_path}`、`keepa://zread/wiki/page/{slug_or_file}`、`keepa://chunk/{encoded_path}`、`keepa://output/{encoded_path}`，让 Agent 能发现 URI 形状而不是硬编码。`keepa://research/{cache_key}` 审计同一 MCP session 内缓存结果；`keepa://research/{cache_key}/brief` 回读已导出的 brief；`keepa://graphs/{root}` 从 session cache 和本地 fixture 查研究图来源。大响应仍完整保留在 `structuredContent`，text fallback 只返回摘要和 `mcp_resource_manifest`，其中 `keepa://chunk/...` / `keepa://output/...` 可按需读取具体分块。MCP prompts 提供 product research、category research、deal compare 与 project onboarding 起手式。
 
 跨命令研究图可本地合并，不访问 Keepa：
 
@@ -207,7 +207,7 @@ MCP resources 用于减少 `tools/list` 上下文：`keepa://schema/products-age
 kc --json research-graph merge .\category.json .\compare.json .\seller.json --root agent_selection_research --out .\research-graph.json
 ```
 
-合并结果会给出 `source_weight`、重复节点、孤立节点、label/type 冲突诊断、`diff` 摘要和可选 `--prefer-source` 冲突解析，便于 Agent 在多来源结果不一致时先审计再写报告。
+合并结果会给出 `source_weight`、重复节点、孤立节点、label/type 冲突诊断、`diff` 摘要和可选 `--prefer-source` 冲突解析，便于 Agent 在多来源结果不一致时先审计再写报告。`reports build` 可以直接读取 merged graph JSON，并在 Markdown 中生成实体关系报告，或在 JSON 输出中写入 `research_graph_report`。
 
 ## zread 文档
 

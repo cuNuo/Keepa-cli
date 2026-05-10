@@ -1,0 +1,19 @@
+{
+  "id": "research_context_policy_and_target",
+  "description": "Agent 可先读取本地上下文策略并解析模糊研究目标，不触发 Keepa 请求。",
+  "kind": "session",
+  "steps": [
+    {"command": "context.policy", "params": {}, "tool": "keepa.context_policy"},
+    {"command": "research.target.resolve", "params": {"query": "B0D8W1YVBX", "domain": "US"}, "tool": "keepa.resolve_research_target"},
+    {"command": "research.context.query", "params": {"query": "B0D8W1YVBX", "question": "agent schema evidence"}, "tool": "keepa.query_research_context"}
+  ],
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "payloads.0.data.view", "equals": "context_policy"},
+    {"path": "payloads.0.data.live_keepa.allowed_by_default", "equals": false},
+    {"path": "payloads.1.data.primary.type", "equals": "asin"},
+    {"path": "payloads.1.data.next_actions", "next_actions_executable": true},
+    {"path": "payloads.2.data.recommended_read_order", "length_min": 1},
+    {"path": "budget_ledger.session_estimated", "equals": 0}
+  ]
+}

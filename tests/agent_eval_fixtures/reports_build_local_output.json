@@ -13,6 +13,7 @@
     {"path": "data.format", "equals": "markdown"},
     {"path": "data.row_count", "equals": 2},
     {"path": "data.output.path", "contains": "agent-report.md"},
+    {"path": "data.research_graph", "equals": null},
     {"path": "data.provenance.source", "equals": "local"},
     {"path": "data.provenance.endpoint", "equals": "local://reports.build"}
   ]

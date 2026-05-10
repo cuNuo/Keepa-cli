@@ -118,6 +118,27 @@ Use this order:
 5. Summarize the relevant architecture, exact files to edit, required tests, and risks before implementing.
 """,
     ),
+    PromptDefinition(
+        name="keepa.research_agent_start",
+        description="Start an offline-first Keepa research Agent workflow with policy, target resolution, context query, planning, and graph merge.",
+        arguments=(
+            {"name": "query", "description": "User research query, ASIN, category term, seller id, fixture name, or evidence keyword.", "required": True},
+            {"name": "domain", "description": "Keepa domain code, usually US.", "required": False},
+            {"name": "goal", "description": "Research goal such as product, category, deal, seller, audit, or report.", "required": False},
+        ),
+        template="""
+Start a Keepa research Agent workflow for `{query}` on domain {domain}. Goal: {goal}.
+
+Use this order:
+1. Read `keepa://context/policy` or call `keepa.context_policy`.
+2. Call `keepa.resolve_research_target` with query `{query}` and domain `{domain}`.
+3. Call `keepa.query_research_context` with the primary resolved target before live Keepa calls.
+4. If execution is needed, call `keepa.workflow_plan` and inspect token estimates and confirmation flags.
+5. Prefer fixture, dry_run, from_cache, and local resources before any live call.
+6. Execute only the minimum required tools, then merge outputs with `keepa.research_graph_merge`.
+7. Summarize risk taxonomy, research graph entities, evidence links, missing data, and low-token follow-up actions.
+""",
+    ),
 )
 
 

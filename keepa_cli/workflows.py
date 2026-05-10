@@ -16,6 +16,7 @@ from typing import Any, Mapping
 
 from keepa_cli.agent_contract import build_action, build_evidence_index
 from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path, explain_response_cache_key
+from keepa_cli.research_graph import extract_research_graphs, graph_summary
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -458,22 +459,112 @@ def _report_csv(rows: list[dict[str, Any]]) -> str:
     return buffer.getvalue()
 
 
+def _research_graph_report_from_payload(payload: Any) -> dict[str, Any] | None:
+    graphs = extract_research_graphs(payload)
+    if not graphs:
+        return None
+    graph = max(
+        graphs,
+        key=lambda item: int(item.get("node_count") or len(item.get("nodes") if isinstance(item.get("nodes"), list) else [])),
+    )
+    nodes = graph.get("nodes") if isinstance(graph.get("nodes"), list) else []
+    edges = graph.get("edges") if isinstance(graph.get("edges"), list) else []
+    node_rows = [
+        {
+            "id": node.get("id"),
+            "type": node.get("type"),
+            "label": node.get("label"),
+        }
+        for node in nodes
+        if isinstance(node, Mapping)
+    ]
+    edge_rows = [
+        {
+            "source": edge.get("source"),
+            "type": edge.get("type"),
+            "target": edge.get("target"),
+            "evidence_path": edge.get("evidence_path"),
+        }
+        for edge in edges
+        if isinstance(edge, Mapping)
+    ]
+    return {
+        "summary": graph_summary(graph),
+        "node_count": len(node_rows),
+        "edge_count": len(edge_rows),
+        "entity_counts": dict(graph.get("entity_counts") or {}),
+        "nodes": node_rows,
+        "edges": edge_rows,
+        "sources": list(graph.get("sources") or []) if isinstance(graph.get("sources"), list) else [],
+        "diagnostics": dict(graph.get("diagnostics") or {}) if isinstance(graph.get("diagnostics"), Mapping) else {},
+        "diff": dict(graph.get("diff") or {}) if isinstance(graph.get("diff"), Mapping) else {},
+    }
+
+
+def _research_graph_markdown(report: Mapping[str, Any]) -> str:
+    summary = report.get("summary") if isinstance(report.get("summary"), Mapping) else {}
+    entity_counts = report.get("entity_counts") if isinstance(report.get("entity_counts"), Mapping) else {}
+    diagnostics = report.get("diagnostics") if isinstance(report.get("diagnostics"), Mapping) else {}
+    lines = [
+        "",
+        "## Research Graph",
+        "",
+        f"- Root: `{summary.get('root', '')}`",
+        f"- Nodes: {report.get('node_count', 0)}",
+        f"- Edges: {report.get('edge_count', 0)}",
+        f"- Entity counts: `{json.dumps(entity_counts, ensure_ascii=False, sort_keys=True)}`",
+    ]
+    if diagnostics:
+        lines.extend(
+            [
+                f"- Duplicate nodes: {diagnostics.get('duplicate_node_count', 0)}",
+                f"- Orphan nodes: {diagnostics.get('orphan_node_count', 0)}",
+                f"- Conflicts: {diagnostics.get('conflict_count', 0)}",
+            ]
+        )
+
+    nodes = [node for node in report.get("nodes", []) if isinstance(node, Mapping)]
+    if nodes:
+        lines.extend(["", "### Entities", "", "| Type | ID | Label |", "|---|---|---|"])
+        for node in nodes[:40]:
+            lines.append(f"| {node.get('type', '')} | `{node.get('id', '')}` | {node.get('label', '')} |")
+        if len(nodes) > 40:
+            lines.append(f"| ... | ... | {len(nodes) - 40} more entities |")
+
+    edges = [edge for edge in report.get("edges", []) if isinstance(edge, Mapping)]
+    if edges:
+        lines.extend(["", "### Relationships", "", "| Source | Type | Target | Evidence |", "|---|---|---|---|"])
+        for edge in edges[:60]:
+            lines.append(
+                f"| `{edge.get('source', '')}` | {edge.get('type', '')} | `{edge.get('target', '')}` | `{edge.get('evidence_path', '')}` |"
+            )
+        if len(edges) > 60:
+            lines.append(f"| ... | ... | ... | {len(edges) - 60} more relationships |")
+    return "\n".join(lines)
+
+
 def build_report(*, input_path: str, output_format: str, out: str | None, title: str) -> dict[str, Any]:
     payload = load_json_file(input_path)
     rows = _report_rows_from_input(payload)
+    graph_report = _research_graph_report_from_payload(payload)
     fmt = output_format.lower()
     if fmt == "markdown":
         content: Any = _report_markdown(title, rows, input_path)
+        if graph_report is not None:
+            content = str(content).rstrip() + "\n" + _research_graph_markdown(graph_report) + "\n"
     elif fmt == "csv":
         content = _report_csv(rows)
     elif fmt == "json":
         content = {"title": title, "source": input_path, "generated_at": utc_now_iso(), "rows": rows}
+        if graph_report is not None:
+            content["research_graph_report"] = graph_report
     else:
         raise ValueError("reports.build format must be markdown, json, or csv")
 
     data: dict[str, Any] = {
         "format": fmt,
         "row_count": len(rows),
+        "research_graph": graph_report["summary"] if graph_report is not None else None,
         "source": input_path,
         "title": title,
         "provenance": build_cache_provenance(

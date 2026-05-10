@@ -13,9 +13,10 @@ from typing import Any
 
 from keepa_cli.agent.resources import list_mcp_resources, list_mcp_resource_templates, read_mcp_resource
 from keepa_cli.envelope import success_envelope
+from keepa_cli.research_context import build_context_policy, query_research_context, resolve_research_target
 
 
-DOCS_COMMANDS = {"docs.index", "docs.read"}
+DOCS_COMMANDS = {"docs.index", "docs.read", "context.policy", "research.target.resolve", "research.context.query"}
 
 
 def _param(params: Mapping[str, Any], *names: str, default: Any = None) -> Any:
@@ -74,6 +75,12 @@ def handle_docs_command(command: str, params: Mapping[str, Any]) -> dict[str, An
             "json": parsed,
             "size_bytes": len(text.encode("utf-8")),
         }
+    elif command == "context.policy":
+        data = build_context_policy()
+    elif command == "research.target.resolve":
+        data = resolve_research_target(params)
+    elif command == "research.context.query":
+        data = query_research_context(params)
     else:
         raise ValueError(f"unsupported docs command: {command}")
 

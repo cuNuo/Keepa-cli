@@ -79,6 +79,50 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertTrue(shown["ok"])
         self.assertEqual(shown["data"]["kind"], "tracking.batch")
 
+    def test_reports_build_consumes_merged_research_graph(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            merged_path = root / "merged-graph.json"
+            report_path = root / "graph-report.md"
+            json_report_path = root / "graph-report.json"
+
+            merged = run_command(
+                "research_graph.merge",
+                {
+                    "input": [
+                        "tests/fixtures/agent_eval_category_search_output.json",
+                        "tests/fixtures/agent_eval_products_compare_output.json",
+                        "tests/fixtures/agent_eval_seller_output.json",
+                    ],
+                    "root": "agent_selection_research",
+                    "out": str(merged_path),
+                },
+                env={},
+            )
+            self.assertTrue(merged["ok"])
+            self.assertTrue(merged_path.is_file())
+
+            markdown = run_command(
+                "reports.build",
+                {"input": str(merged_path), "format": "markdown", "out": str(report_path), "title": "Graph Audit"},
+                env={},
+            )
+            self.assertTrue(markdown["ok"])
+            self.assertEqual(markdown["data"]["research_graph"]["root"], "agent_selection_research")
+            report_text = report_path.read_text(encoding="utf-8")
+            self.assertIn("## Research Graph", report_text)
+            self.assertIn("### Relationships", report_text)
+
+            json_payload = run_command(
+                "reports.build",
+                {"input": str(merged_path), "format": "json", "out": str(json_report_path), "title": "Graph Audit"},
+                env={},
+            )
+            self.assertTrue(json_payload["ok"])
+            report_json = json.loads(json_report_path.read_text(encoding="utf-8"))
+            self.assertIn("research_graph_report", report_json)
+            self.assertGreaterEqual(report_json["research_graph_report"]["node_count"], 1)
+
     def test_workflow_plan_category_research_is_local_agent_graph(self):
         payload = run_command(
             "workflow.plan",

@@ -20,6 +20,8 @@ class ServiceCommandTests(unittest.TestCase):
         index = run_command("docs.index", env={})
         self.assertTrue(index["ok"])
         self.assertEqual(index["data"]["stable_entrypoints"]["zread_current"], "keepa://zread/wiki/current")
+        resource_uris = {item["uri"] for item in index["data"]["resources"]}
+        self.assertIn("keepa://context/policy", resource_uris)
 
         current = run_command("docs.read", {"uri": "keepa://zread/wiki/current"}, env={})
         self.assertTrue(current["ok"])
@@ -29,6 +31,41 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertTrue(page["ok"])
         self.assertEqual(page["data"]["mime_type"], "text/markdown")
         self.assertIn("Keepa CLI", page["data"]["text"])
+
+    def test_research_context_policy_and_resolution_are_local(self):
+        policy = run_command("context.policy", env={})
+        self.assertTrue(policy["ok"])
+        self.assertEqual(policy["data"]["mode"], "offline_first")
+        self.assertFalse(policy["data"]["live_keepa"]["allowed_by_default"])
+        self.assertIn("evidence/runtime-logs/", policy["data"]["roots"]["never_commit"])
+
+        resolved = run_command("research.target.resolve", {"query": "B001GZ6QEC", "domain": "US"}, env={})
+        self.assertTrue(resolved["ok"])
+        self.assertEqual(resolved["data"]["primary"]["type"], "asin")
+        self.assertEqual(resolved["data"]["primary"]["id"], "B001GZ6QEC")
+        self.assertEqual(resolved["data"]["next_actions"][0]["tool"], "keepa.products_get")
+
+        context = run_command("research.context.query", {"target_type": "asin", "target_id": "B001GZ6QEC"}, env={})
+        self.assertTrue(context["ok"])
+        self.assertIn("keepa://asin/B001GZ6QEC/fixture", context["data"]["recommended_read_order"])
+
+    def test_research_brief_export_summarizes_local_payloads(self):
+        payload = run_command(
+            "research_brief.export",
+            {
+                "input": ["tests/fixtures/agent_eval_category_search_output.json", "tests/fixtures/agent_eval_seller_output.json"],
+                "title": "fixture research brief",
+            },
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "research_brief.export")
+        brief = payload["data"]["brief"]
+        self.assertEqual(brief["view"], "research_brief_export")
+        self.assertGreaterEqual(brief["input_summary"]["research_graph_count"], 2)
+        self.assertIn("decision_summary", brief["recommended_read_order"])
+        self.assertIn("entity_graph_summary", brief["data_quality"]["present"])
 
     def test_products_get_builds_official_product_request_with_fixture(self):
         payload = run_command(

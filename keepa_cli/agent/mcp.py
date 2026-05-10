@@ -45,6 +45,18 @@ def _json_text(payload: Mapping[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
+def _tool_name_filter(value: Any) -> list[str] | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        names = [item.strip() for item in value.split(",")]
+    elif isinstance(value, list):
+        names = [str(item).strip() for item in value]
+    else:
+        names = []
+    return [name for name in names if name]
+
+
 def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
     content_payload = compact_payload_for_mcp(payload)
     return {
@@ -98,6 +110,8 @@ def handle_mcp_message(
         groups = params.get("groups") if isinstance(params, dict) else None
         toolset = params.get("toolset") if isinstance(params, dict) else None
         toolsets = params.get("toolsets") if isinstance(params, dict) else None
+        allow_tools = _tool_name_filter(params.get("allow_tools") if isinstance(params, dict) else None)
+        exclude_tools = _tool_name_filter(params.get("exclude_tools") if isinstance(params, dict) else None)
         group_filter = set(groups) if isinstance(groups, list) else None
         use_all_toolsets = toolset == "all" or (isinstance(toolsets, list) and "all" in toolsets)
         if group_filter is None:
@@ -114,9 +128,18 @@ def handle_mcp_message(
         return _jsonrpc_result(
             message_id,
             {
-                "tools": list_mcp_tools(groups=group_filter, toolsets="all" if use_all_toolsets else None),
+                "tools": list_mcp_tools(
+                    groups=group_filter,
+                    toolsets="all" if use_all_toolsets else None,
+                    allow_tools=allow_tools,
+                    exclude_tools=exclude_tools,
+                ),
                 "toolset": toolset or (toolsets if toolsets is not None else DEFAULT_TOOLSET),
                 "available_toolsets": toolset_names(),
+                "filters": {
+                    "allow_tools": allow_tools,
+                    "exclude_tools": exclude_tools,
+                },
             },
         )
     if method == "tools/call":
@@ -128,7 +151,8 @@ def handle_mcp_message(
     if method == "resources/read":
         uri = str(params.get("uri", ""))
         try:
-            content = read_mcp_resource(uri)
+            active_session = session or AgentSession(env=env)
+            content = read_mcp_resource(uri, session_cache=active_session.cache)
         except (OSError, ValueError) as exc:
             return _jsonrpc_error(message_id, -32602, "Unknown resource", {"uri": uri, "message": str(exc)})
         return _jsonrpc_result(message_id, {"contents": [content]})
