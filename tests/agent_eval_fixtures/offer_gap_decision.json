@@ -1,0 +1,25 @@
+{
+  "id": "offer_gap_decision",
+  "description": "判断产品研究是否需要补 offers 请求。",
+  "command": "products.get",
+  "params": {
+    "asin": ["B0D8W1YVBX"],
+    "domain": "US",
+    "fixture": "product_B0D8W1YVBX_agent_eval.json",
+    "agent_view": true,
+    "view": "summary",
+    "history_limit": 5
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.profile", "equals": "summary"},
+    {"path": "data.products.0.identity.asin", "equals": "B0D8W1YVBX"},
+    {"path": "data.products.0.identity.brand", "equals": "EQQUALBERRY"},
+    {"path": "data.products.0.data_quality.missing", "contains": "offers.offers"},
+    {"path": "data.products.0.next_actions.0.tool", "equals": "products.get"},
+    {"path": "data.products.0.next_actions.0.params.offers", "equals": "20"},
+    {"path": "data.products.0.next_actions.0.requires_confirmation", "equals": true},
+    {"path": "data.products.0.agent_brief.key_facts.monthly_sold", "min": 100000},
+    {"path": "data.products.0.evidence_index.data_quality.path", "equals": "data_quality"}
+  ]
+}

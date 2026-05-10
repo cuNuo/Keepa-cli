@@ -1,0 +1,24 @@
+{
+  "id": "deal_compare_three_asins",
+  "description": "比较 3 个 ASIN 的 deal 视图，验证价格、需求、内容和质量字段。",
+  "command": "products.compare",
+  "params": {
+    "asin": ["B0D8W1YVBX", "B0EVALCMP1", "B0EVALCMP2"],
+    "domain": "US",
+    "fixture": "products_compare_agent_eval.json",
+    "full": true,
+    "view": "deal"
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.view", "equals": "products_compare"},
+    {"path": "data.rows", "length": 3},
+    {"path": "data.rows.0.asin", "equals": "B0D8W1YVBX"},
+    {"path": "data.rows.0.monthly_sold", "min": 100000},
+    {"path": "data.rows.0.selection_signals.price_stability.new_price_trend", "equals": "down"},
+    {"path": "data.rows.0.selection_signals.content_quality.video_count", "min": 1},
+    {"path": "data.rows.1.brand", "equals": "EvalBrand A"},
+    {"path": "data.rows.2.sales_rank", "equals": 2400},
+    {"path": "data.rows.0.data_quality.missing", "contains": "offers.offers"}
+  ]
+}
