@@ -591,8 +591,18 @@ def _print_block(lines: list[str]) -> None:
 
 
 def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = None) -> int:
-    from prompt_toolkit.formatted_text import HTML
-    from prompt_toolkit.shortcuts import clear
+    try:
+        from prompt_toolkit.formatted_text import HTML
+        from prompt_toolkit.shortcuts import clear
+    except ImportError:
+        if session is None:
+            return run_interactive_tui(env=env)
+
+        def HTML(value: str) -> str:  # noqa: N802 - match prompt_toolkit helper name.
+            return value
+
+        def clear() -> None:
+            return None
 
     language = _active_language(env)
     text = TEXT[language]

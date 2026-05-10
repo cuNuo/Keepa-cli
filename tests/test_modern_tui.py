@@ -7,6 +7,7 @@ tests/test_modern_tui.py
 
 import unittest
 import re
+import builtins
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -206,6 +207,22 @@ class ModernTuiTests(unittest.TestCase):
         rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
         self.assertEqual(exit_code, 0)
         self.assertIn("No command response yet.", rendered)
+
+    def test_prompt_loop_with_injected_session_does_not_require_prompt_toolkit(self):
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name.startswith("prompt_toolkit"):
+                raise ImportError(name)
+            return real_import(name, *args, **kwargs)
+
+        session = FakePromptSession(["/doctor", "/quit"])
+        with patch("builtins.__import__", side_effect=fake_import), patch("builtins.print") as fake_print:
+            exit_code = modern_tui._run_prompt_loop(env={}, session=session)
+
+        rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
+        self.assertEqual(exit_code, 0)
+        self.assertIn("[doctor] OK", rendered)
 
     def test_prompt_loop_prints_help_without_running_service(self):
         session = FakePromptSession(["/help", "/quit"])
