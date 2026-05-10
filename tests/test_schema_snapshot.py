@@ -39,7 +39,7 @@ class SchemaSnapshotTests(unittest.TestCase):
                     "domain": "US",
                     "fixture": "product_agent_view_B0TEST.json",
                     "agent_view": True,
-                    "view": "summary",
+                    "view": "research",
                     "history_limit": 2,
                 },
                 env={},

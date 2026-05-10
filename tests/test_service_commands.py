@@ -158,6 +158,11 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertEqual(new_features["trend_direction"], "down")
             self.assertEqual(new_features["recent_30d"]["change_pct"], -12.5078)
             self.assertEqual(product["selection_signals"]["price_stability"]["new_price_trend"], "down")
+            self.assertEqual(product["agent_brief"]["key_facts"]["asin"], "B0TESTAGENT")
+            self.assertIn("evidence_index", product["agent_brief"]["read_order"])
+            self.assertEqual(product["agent_brief"]["temporal_takeaways"][0]["series"], "new")
+            self.assertIn("offers.offers", product["agent_brief"]["missing_data"])
+            self.assertEqual(product["evidence_index"]["temporal_features"]["path"], "temporal_features")
             self.assertTrue(product["raw_field_presence"]["csv"])
 
     def test_products_get_agent_view_supports_profiles_fields_and_chunks(self):
@@ -171,7 +176,7 @@ class ServiceCommandTests(unittest.TestCase):
                     "fixture": "product_agent_view_B0TEST.json",
                     "agent_view": True,
                     "view": "summary",
-                    "fields": "identity,pricing,data_quality,next_actions,selection_signals,temporal_features",
+                    "fields": "agent_brief,identity,pricing,data_quality,next_actions,selection_signals,temporal_features,evidence_index",
                     "chunks_dir": str(chunks_dir),
                 },
                 fixture_dir=FIXTURES,
@@ -187,11 +192,17 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertIn("data_quality", product)
             self.assertIn("selection_signals", product)
             self.assertIn("temporal_features", product)
+            self.assertIn("agent_brief", product)
+            self.assertIn("evidence_index", product)
             self.assertNotIn("history_summary", product)
             self.assertIn("offers.offers", product["data_quality"]["missing"])
             self.assertTrue(product["next_actions"])
+            self.assertEqual(product["next_actions"][0]["estimated_tokens"], 13)
             self.assertTrue(any(item["name"] == "identity" for item in data["chunks"]))
+            self.assertTrue(any(item["name"] == "agent_brief" for item in data["chunks"]))
+            self.assertTrue(any(item["name"] == "evidence_index" for item in data["chunks"]))
             self.assertTrue((chunks_dir / "B0TESTAGENT-identity.json").is_file())
+            self.assertTrue((chunks_dir / "B0TESTAGENT-agent_brief.json").is_file())
 
     def test_products_compare_returns_agent_safe_rows(self):
         payload = run_command(

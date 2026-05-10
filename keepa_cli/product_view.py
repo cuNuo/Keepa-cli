@@ -15,7 +15,7 @@ from typing import Any
 from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
-PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.5"
+PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.6"
 
 DEFAULT_TEMPORAL_WINDOWS = (7, 30, 90, 180, 365)
 
@@ -33,18 +33,19 @@ TEMPORAL_FEATURE_SERIES = (
 
 PROFILE_FIELDS = {
     "summary": [
+        "agent_brief",
         "identity",
-        "category",
         "pricing",
         "demand",
         "rating",
-        "temporal_features",
         "selection_signals",
+        "evidence_index",
         "data_quality",
         "next_actions",
     ],
     "research": [],
     "deal": [
+        "agent_brief",
         "identity",
         "category",
         "pricing",
@@ -55,16 +56,19 @@ PROFILE_FIELDS = {
         "aplus",
         "temporal_features",
         "selection_signals",
+        "evidence_index",
         "data_quality",
         "next_actions",
         "raw_field_presence",
     ],
     "audit": [
+        "agent_brief",
         "identity",
         "data_quality",
         "next_actions",
         "temporal_features",
         "selection_signals",
+        "evidence_index",
         "raw_field_presence",
     ],
 }
@@ -240,6 +244,7 @@ def write_agent_view_chunks(agent_view: Mapping[str, Any], chunks_dir: Path | st
             continue
         asin = str((product.get("identity") or {}).get("asin") or f"product-{index}")
         for section in (
+            "agent_brief",
             "identity",
             "pricing",
             "demand",
@@ -248,6 +253,7 @@ def write_agent_view_chunks(agent_view: Mapping[str, Any], chunks_dir: Path | st
             "media",
             "aplus",
             "selection_signals",
+            "evidence_index",
             "history_summary",
             "temporal_features",
         ):
@@ -296,6 +302,8 @@ def _product_to_agent_view(
     result["data_quality"] = _data_quality(product, result)
     result["next_actions"] = _next_actions(result)
     result["selection_signals"] = _selection_signals(result)
+    result["agent_brief"] = _agent_brief(result)
+    result["evidence_index"] = _evidence_index(result)
     return _filter_product_view(result, view_profile=view_profile, fields=fields)
 
 
@@ -1249,7 +1257,7 @@ def _next_actions(view: Mapping[str, Any]) -> list[dict[str, Any]]:
             {
                 "command": f"products get {asin} --domain {domain} --full --offers 20 --agent-view --view deal",
                 "reason": "offer detail is missing; request one offer page only if seller-level competition matters",
-                "estimated_tokens": 6,
+                "estimated_tokens": 13,
             }
         )
     if "rating.rating" in missing:
@@ -1277,6 +1285,142 @@ def _next_actions(view: Mapping[str, Any]) -> list[dict[str, Any]]:
             }
         )
     return actions
+
+
+def _agent_brief(view: Mapping[str, Any]) -> dict[str, Any]:
+    identity = view.get("identity") if isinstance(view.get("identity"), Mapping) else {}
+    pricing = view.get("pricing") if isinstance(view.get("pricing"), Mapping) else {}
+    demand = view.get("demand") if isinstance(view.get("demand"), Mapping) else {}
+    rating = view.get("rating") if isinstance(view.get("rating"), Mapping) else {}
+    quality = view.get("data_quality") if isinstance(view.get("data_quality"), Mapping) else {}
+    signals = view.get("selection_signals") if isinstance(view.get("selection_signals"), Mapping) else {}
+    current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
+    buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
+    risk_flags = list(signals.get("risk_flags") or [])
+    temporal_takeaways = _temporal_takeaways(view)
+    key_facts = _compact(
+        {
+            "asin": identity.get("asin"),
+            "title": _truncate_text(identity.get("title"), 120),
+            "brand": identity.get("brand"),
+            "current_new_price": _amount_from_value(current.get("new")),
+            "current_buy_box_price": _amount_from_value(buy_box.get("price") or current.get("buy_box_shipping")),
+            "monthly_sold": demand.get("monthly_sold"),
+            "rating": _plain_value(rating.get("rating")),
+            "review_count": _plain_value(rating.get("review_count")),
+        }
+    )
+    return _compact(
+        {
+            "read_order": [
+                "agent_brief",
+                "selection_signals",
+                "data_quality",
+                "next_actions",
+                "evidence_index",
+            ],
+            "one_line": _brief_line(key_facts, signals),
+            "key_facts": key_facts,
+            "temporal_takeaways": temporal_takeaways,
+            "risk_flags": risk_flags,
+            "missing_data": list(quality.get("missing") or [])[:8],
+            "confidence": quality.get("confidence"),
+            "recommended_next_actions": list(view.get("next_actions") or [])[:3],
+        }
+    )
+
+
+def _brief_line(key_facts: Mapping[str, Any], signals: Mapping[str, Any]) -> str:
+    parts = []
+    asin = key_facts.get("asin")
+    title = key_facts.get("title")
+    if asin:
+        parts.append(str(asin))
+    if title:
+        parts.append(str(title))
+    facts = []
+    for label, key in (
+        ("new", "current_new_price"),
+        ("buybox", "current_buy_box_price"),
+        ("sold/mo", "monthly_sold"),
+        ("rating", "rating"),
+        ("reviews", "review_count"),
+    ):
+        value = key_facts.get(key)
+        if value is not None:
+            facts.append(f"{label}={value}")
+    risk_flags = signals.get("risk_flags") if isinstance(signals.get("risk_flags"), list) else []
+    if risk_flags:
+        facts.append(f"risks={','.join(str(flag) for flag in risk_flags[:4])}")
+    suffix = "; ".join(facts)
+    return " | ".join(parts + ([suffix] if suffix else []))
+
+
+def _temporal_takeaways(view: Mapping[str, Any]) -> list[dict[str, Any]]:
+    temporal = view.get("temporal_features") if isinstance(view.get("temporal_features"), Mapping) else {}
+    series_map = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
+    takeaways: list[dict[str, Any]] = []
+    for name, label in (
+        ("new", "New price"),
+        ("buy_box_shipping", "Buy box"),
+        ("sales_rank", "Sales rank"),
+        ("review_count", "Reviews"),
+        ("rating", "Rating"),
+        ("new_offer_count", "New offers"),
+    ):
+        series = series_map.get(name) if isinstance(series_map.get(name), Mapping) else {}
+        if not series:
+            continue
+        takeaways.append(
+            _compact(
+                {
+                    "series": name,
+                    "label": label,
+                    "direction": series.get("trend_direction"),
+                    "latest": series.get("latest_value"),
+                    "change_pct": series.get("change_pct"),
+                    "recent_30d_change_pct": (series.get("recent_30d") or {}).get("change_pct")
+                    if isinstance(series.get("recent_30d"), Mapping)
+                    else None,
+                    "volatility_cv": series.get("volatility_cv"),
+                    "point_count": series.get("point_count"),
+                }
+            )
+        )
+    return takeaways
+
+
+def _evidence_index(view: Mapping[str, Any]) -> dict[str, Any]:
+    entries = {
+        "decision_brief": ("agent_brief", "summary", "Start here for compact facts, risks, gaps, and next actions."),
+        "identity": ("identity", "summary", "Stable product identifiers and catalog metadata."),
+        "current_pricing": ("pricing.current", "summary", "Current price points by Keepa CsvType name."),
+        "buy_box": ("pricing.buy_box", "summary", "Buy box price and seller metadata when returned by stats."),
+        "demand": ("demand", "summary", "Monthly sold, rank drops, and demand recency signals."),
+        "rating": ("rating", "summary", "Rating, review count, and last rating update."),
+        "offer_summary": ("offers", "deal", "Offer counts and retrieved seller offer details if requested."),
+        "content_assets": ("media", "deal", "Images and videos used for content-quality checks."),
+        "aplus": ("aplus", "deal", "A+ availability, module counts, and samples."),
+        "selection_signals": ("selection_signals", "summary", "Agent-safe derived signals for demand, competition, stability, and risk."),
+        "temporal_features": ("temporal_features", "audit", "Computed time-series features from full Keepa csv history."),
+        "history_samples": ("history_summary", "research", "Bounded recent history samples for inspection or display."),
+        "data_quality": ("data_quality", "summary", "Present/missing fields, confidence, and notes."),
+        "raw_presence": ("raw_field_presence", "audit", "Boolean presence map for large raw Keepa fields."),
+    }
+    return {
+        name: {"path": path, "section": section, "load_hint": f"--view {section}", "why": why}
+        for name, (path, section, why) in entries.items()
+        if _path_exists(view, path)
+    }
+
+
+def _path_exists(value: Mapping[str, Any], path: str) -> bool:
+    current: Any = value
+    for part in path.split("."):
+        if not isinstance(current, Mapping) or part not in current:
+            return False
+        current = current[part]
+    return current not in (None, {}, [])
 
 
 def _selection_signals(view: Mapping[str, Any]) -> dict[str, Any]:
