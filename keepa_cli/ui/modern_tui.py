@@ -10,6 +10,7 @@ from __future__ import annotations
 import html
 import importlib.util
 import json
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -18,6 +19,14 @@ from keepa_cli.capabilities import SCHEMA_VERSION
 from keepa_cli.config import build_config_report
 from keepa_cli.service import run_command
 from keepa_cli.ui.tui import _doctor_context, _slash_to_command, _summarize_success, run_interactive_tui
+
+
+ANSI_RESET = "\033[0m"
+ANSI_DIM = "\033[2m"
+ANSI_RED = "\033[31m"
+ANSI_GREEN = "\033[32m"
+ANSI_YELLOW = "\033[33m"
+ANSI_CYAN = "\033[36m"
 
 
 TEXT: dict[str, dict[str, str]] = {
@@ -268,6 +277,40 @@ def _is_subsequence(needle: str, haystack: str) -> bool:
     return all(char in iterator for char in needle)
 
 
+def _ansi(style: str, value: str) -> str:
+    return f"{style}{value}{ANSI_RESET}"
+
+
+def _colorize_summary(summary: str) -> str:
+    lines: list[str] = []
+    for line in summary.splitlines():
+        if "ERROR" in line:
+            lines.append(_ansi(ANSI_RED, line))
+        elif re.match(r"^\[[^\]]+\] OK$", line):
+            lines.append(_ansi(ANSI_GREEN, line))
+        elif line.startswith(("Budget", "预算", "Token", "Tokens", "Confirm", "确认", "No token", "未配置")):
+            lines.append(_ansi(ANSI_YELLOW, line))
+        else:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _colorize_startup(lines: list[str]) -> list[str]:
+    colored: list[str] = []
+    for index, line in enumerate(lines):
+        if index == 0:
+            colored.append(_ansi(ANSI_CYAN, line))
+        elif "No token" in line or "未配置 token" in line or "Default request cap" in line or "默认单次请求上限" in line:
+            colored.append(_ansi(ANSI_YELLOW, line))
+        else:
+            colored.append(_ansi(ANSI_DIM, line))
+    return colored
+
+
+def _colorize_transcript(line: str) -> str:
+    return f"{ANSI_DIM}$ {ANSI_RESET}{ANSI_CYAN}kc{ANSI_RESET} {line}"
+
+
 def _format_result(payload: dict[str, Any], *, language: str = "en") -> str:
     command = str(payload.get("command", "unknown"))
     if payload.get("ok"):
@@ -446,8 +489,19 @@ def _status_bar(env: Mapping[str, str] | None) -> str:
     default_domain = config.get("default_domain", "US")
     max_tokens = config.get("max_tokens_per_request", 20)
     language = _language(str(config.get("language", "en")))
-    status = f" auth:{context['auth']}  {default_domain}  max:{max_tokens}  {language}  /help /json /quit "
-    return html.escape(status)
+    auth = html.escape(str(context["auth"]))
+    if context["auth"] == "missing":
+        auth_fragment = f"<style fg='ansiyellow'>auth:{auth}</style>"
+    else:
+        auth_fragment = f"<style fg='ansigreen'>auth:{auth}</style>"
+    status = (
+        f" {auth_fragment}"
+        f"  <style fg='ansibrightblack'>{html.escape(str(default_domain))}</style>"
+        f"  <style fg='ansibrightblack'>max:{html.escape(str(max_tokens))}</style>"
+        f"  <style fg='ansibrightblack'>{html.escape(language)}</style>"
+        "  <style fg='ansibrightblack'>/help /json /quit</style> "
+    )
+    return status
 
 
 def _startup_lines(env: Mapping[str, str] | None) -> list[str]:
@@ -489,8 +543,11 @@ def _create_completer(*, language: str = "en"):
                 yield Completion(
                     item.completion_text,
                     start_position=-len(before_cursor),
-                    display=f"{item.command_name:<18} {item.label}",
-                    display_meta=f"{item.group} · {item.description}",
+                    display=[
+                        ("class:completion.command", f"{item.command_name:<18}"),
+                        ("class:completion.label", item.label),
+                    ],
+                    display_meta=[("class:completion.meta", f"{item.group} · {item.description}")],
                 )
 
     return KeepaCompleter()
@@ -504,8 +561,15 @@ def _create_session(*, language: str = "en"):
 
     style = Style.from_dict(
         {
-            "prompt": "ansigreen bold",
-            "toolbar": "reverse",
+            "prompt": "ansicyan bold",
+            "bottom-toolbar": "bg:#202124 #c7c7c7",
+            "completion-menu.completion": "bg:#202124 #d0d0d0",
+            "completion-menu.completion.current": "bg:#2d333b #ffffff",
+            "completion-menu.meta.completion": "bg:#202124 #8a8f98",
+            "completion-menu.meta.completion.current": "bg:#2d333b #c0c6d0",
+            "completion.command": "ansicyan",
+            "completion.label": "#d0d0d0",
+            "completion.meta": "#8a8f98",
         }
     )
     return PromptSession(
@@ -530,13 +594,13 @@ def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = Non
     text = TEXT[language]
     prompt_session = session or _create_session(language=language)
     last_payload: dict[str, Any] | None = None
-    _print_block(_startup_lines(env))
+    _print_block(_colorize_startup(_startup_lines(env)))
 
     while True:
         try:
             line = prompt_session.prompt(
                 [("class:prompt", "kc › ")],
-                bottom_toolbar=lambda: HTML(f"<style bg='ansiblack' fg='ansiwhite'>{_status_bar(env)}</style>"),
+                bottom_toolbar=lambda: HTML(_status_bar(env)),
             )
         except (EOFError, KeyboardInterrupt):
             print(text["bye"])
@@ -550,7 +614,7 @@ def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = Non
             return 0
         if value == "/clear":
             clear()
-            _print_block(_startup_lines(env))
+            _print_block(_colorize_startup(_startup_lines(env)))
             continue
         if value == "/help":
             _print_block(_help_lines(language=language))
@@ -569,9 +633,10 @@ def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = Non
         except ValueError as exc:
             payload = {"ok": False, "command": value.lstrip("/").split()[0] or "input", "error": {"kind": "input", "message": str(exc)}}
         last_payload = payload
-        print(f"\n$ kc {_redact_transcript_command(value)}")
-        print(_format_result(payload, language=language))
-        print(f"({text['json']}: /json)")
+        print()
+        print(_colorize_transcript(_redact_transcript_command(value)))
+        print(_colorize_summary(_format_result(payload, language=language)))
+        print(_ansi(ANSI_DIM, f"({text['json']}: /json)"))
         language = _active_language(env)
         text = TEXT[language]
 

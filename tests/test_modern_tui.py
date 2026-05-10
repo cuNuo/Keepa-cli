@@ -6,12 +6,20 @@ tests/test_modern_tui.py
 """
 
 import unittest
+import re
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from keepa_cli.ui import modern_tui
 from keepa_cli.ui.tui import _slash_to_command
+
+
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def strip_ansi(value: str) -> str:
+    return ANSI_RE.sub("", value)
 
 
 class FakePromptSession:
@@ -131,6 +139,26 @@ class ModernTuiTests(unittest.TestCase):
         self.assertIn("Batch   tasks=2 tokens=2", modern_tui._format_result(workflow_payload))
         self.assertIn("token must be 64", modern_tui._format_result(error_payload))
 
+    def test_semantic_color_helpers_keep_json_clean(self):
+        ok = modern_tui._colorize_summary("[doctor] OK\nAuth    missing")
+        error = modern_tui._colorize_summary("[doctor] ERROR\nMessage failed")
+        startup = modern_tui._colorize_startup(["Keepa CLI", "Type /", "No token. Run /login"])
+
+        self.assertIn("\033[32m[doctor] OK", ok)
+        self.assertIn("\033[31m[doctor] ERROR", error)
+        self.assertIn("\033[36mKeepa CLI", startup[0])
+        self.assertIn("\033[33mNo token", startup[2])
+
+        payload = {"ok": True, "command": "doctor"}
+        rendered_json = modern_tui.json.dumps(payload, ensure_ascii=False, indent=2)
+        self.assertNotIn("\033[", rendered_json)
+
+    def test_status_bar_marks_missing_auth_without_escaping_markup(self):
+        rendered = modern_tui._status_bar({})
+
+        self.assertIn("fg='ansiyellow'", rendered)
+        self.assertIn("auth:missing", rendered)
+
     def test_run_modern_tui_falls_back_when_prompt_toolkit_is_missing(self):
         with (
             patch("keepa_cli.ui.modern_tui.is_prompt_tui_available", return_value=False),
@@ -148,12 +176,14 @@ class ModernTuiTests(unittest.TestCase):
             exit_code = modern_tui._run_prompt_loop(env={}, session=session)
 
         rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
+        plain = strip_ansi(rendered)
         self.assertEqual(exit_code, 0)
         self.assertIn("kc › ", session.prompts[0][0][0][1])
-        self.assertIn("$ kc /doctor", rendered)
-        self.assertIn("[doctor] OK", rendered)
-        self.assertIn("(Full JSON: /json)", rendered)
-        self.assertNotIn('"command": "doctor"', rendered)
+        self.assertIn("$ kc /doctor", plain)
+        self.assertIn("[doctor] OK", plain)
+        self.assertIn("\033[32m[doctor] OK", rendered)
+        self.assertIn("(Full JSON: /json)", plain)
+        self.assertNotIn('"command": "doctor"', plain)
 
     def test_prompt_loop_prints_last_json_on_demand(self):
         session = FakePromptSession(["/doctor", "/json", "/quit"])
