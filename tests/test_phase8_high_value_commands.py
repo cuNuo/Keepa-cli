@@ -115,6 +115,60 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(payload["data"]["candidates"][0]["rank"], 1)
         self.assertIn("products compare", payload["data"]["next_actions"][0]["command"])
 
+    def test_categories_search_fixture_adds_candidate_next_actions(self):
+        payload = run_command(
+            "categories.search",
+            {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["view"], "category_search")
+        self.assertEqual(payload["data"]["category_candidates"][0]["category_id"], "1055398")
+        commands = [item["command"] for item in payload["data"]["next_actions"]]
+        self.assertTrue(any(command.startswith("categories products 1055398") for command in commands))
+        self.assertTrue(any(command.startswith("categories finder-selection 1055398") for command in commands))
+
+    def test_categories_finder_selection_writes_local_scaffold(self):
+        with TemporaryDirectory() as temp_dir:
+            out_path = Path(temp_dir) / "finder-category.json"
+            payload = run_command(
+                "categories.finder-selection",
+                {"category": "1055398", "domain": "US", "out": str(out_path)},
+                fixture_dir=FIXTURES,
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["data"]["view"], "finder_selection_scaffold")
+            self.assertTrue(out_path.is_file())
+            saved = json.loads(out_path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["categories_include"], [1055398])
+            self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 0)
+
+    def test_categories_products_hydrate_top_is_explicit(self):
+        payload = run_command(
+            "categories.products",
+            {
+                "category": "172282",
+                "domain": "US",
+                "fixture": "bestsellers_home.json",
+                "limit": 1,
+                "hydrate_top": 1,
+                "product_fixture": "product_agent_view_B0TEST.json",
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertTrue(payload["data"]["hydration"]["enabled"])
+        self.assertEqual(payload["data"]["hydration"]["requested"], 1)
+        self.assertEqual(payload["data"]["hydration"]["hydrated_count"], 1)
+        self.assertEqual(payload["data"]["hydration"]["products"][0]["identity"]["asin"], "B0TESTAGENT")
+        self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 51)
+
     def test_topsellers_live_requires_explicit_confirmation_before_auth(self):
         payload = run_command("topsellers.list", {"domain": "US"}, fixture_dir=FIXTURES, env={})
 

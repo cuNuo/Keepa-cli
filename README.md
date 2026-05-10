@@ -157,10 +157,15 @@ kc --json products get B001GZ6QEC --domain US --full --stats-window 365 --tempor
 Use dry-run for high-cost requests:
 
 ```powershell
+kc --json categories search "home kitchen" --domain US --fixture category_search_home.json
+kc --json categories finder-selection 1055398 --domain US --out .\finder-category-1055398.json
 kc --json categories products 172282 --domain US --dry-run --limit 25
+kc --json categories products 172282 --domain US --limit 25 --hydrate-top 3 --yes
 kc --json bestsellers get 172282 --domain US --dry-run
 kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
 ```
+
+`categories search` enriches category results with `category_candidates` and `next_actions`. `categories finder-selection` is local-only and writes a Product Finder selection scaffold from a category id. `categories products` uses Keepa Best Sellers and costs 50 tokens for live requests; `--hydrate-top N` is never enabled by default and adds one product-summary token per hydrated ASIN.
 
 Graph Image live downloads must write to a file:
 

@@ -456,6 +456,15 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -475,6 +484,60 @@
       "transport": "str"
     },
     "token_bucket": {}
+  },
+  "categories_finder_selection": {
+    "command": "str",
+    "data": {
+      "category_id": "str",
+      "domain": "str",
+      "field_notes": [
+        "str",
+        "str"
+      ],
+      "next_actions": [
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "reason": "str"
+        },
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "reason": "str"
+        }
+      ],
+      "selection": {
+        "categories_include": [
+          "int"
+        ],
+        "current_COUNT_REVIEWS_gte": "int",
+        "current_SALES_gte": "int",
+        "current_SALES_lte": "int",
+        "page": "int",
+        "perPage": "int",
+        "sort": [
+          [
+            "str",
+            "str"
+          ]
+        ]
+      },
+      "view": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "transport": "str"
+    },
+    "token_bucket": {
+      "estimated": {
+        "components": [],
+        "estimated_tokens": "int",
+        "notes": [],
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      }
+    }
   },
   "categories_products": {
     "command": "str",
@@ -520,6 +583,11 @@
       ],
       "category_id": "str",
       "fixture": "str",
+      "hydration": {
+        "enabled": "bool",
+        "reason": "str",
+        "requested": "int"
+      },
       "last_update": "int",
       "next_actions": [
         {
@@ -549,9 +617,18 @@
     },
     "token_bucket": {
       "estimated": {
-        "components": [],
+        "components": [
+          {
+            "estimated_tokens": "int",
+            "name": "str",
+            "reason": "str",
+            "worst_case_tokens": "int"
+          }
+        ],
         "estimated_tokens": "int",
-        "notes": [],
+        "notes": [
+          "str"
+        ],
         "requires_confirmation": "bool",
         "worst_case_tokens": "int"
       },
@@ -588,8 +665,44 @@
         "params_hash": "str",
         "source": "str"
       },
+      "category_candidate_count": "int",
+      "category_candidates": [
+        {
+          "category_id": "str",
+          "children_count": "int",
+          "matched": "bool",
+          "name": "str",
+          "next_actions": [
+            {
+              "command": "str",
+              "estimated_tokens": "int",
+              "reason": "str"
+            },
+            {
+              "command": "str",
+              "estimated_tokens": "int",
+              "reason": "str"
+            }
+          ],
+          "parent": "int"
+        }
+      ],
       "fixture": "str",
-      "offline": "bool"
+      "next_actions": [
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "reason": "str"
+        },
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "reason": "str"
+        }
+      ],
+      "offline": "bool",
+      "term": "str",
+      "view": "str"
     },
     "ok": "bool",
     "request": {

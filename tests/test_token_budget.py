@@ -55,6 +55,14 @@ class TokenBudgetTests(unittest.TestCase):
         self.assertEqual(estimate.estimated_tokens, 50)
         self.assertTrue(estimate.requires_confirmation)
 
+    def test_category_products_hydrate_top_adds_explicit_product_cost(self):
+        estimate = estimate_request_budget("categories.products", {"category": "123", "hydrate_top": 3})
+
+        self.assertEqual(estimate.estimated_tokens, 53)
+        self.assertEqual(estimate.worst_case_tokens, 53)
+        self.assertEqual([component.name for component in estimate.components], ["bestsellers", "hydrate_top"])
+        self.assertTrue(estimate.requires_confirmation)
+
     def test_history_budget_counts_asins_without_confirmation(self):
         estimate = estimate_request_budget("history.trend", {"asin": "B001GZ6QEC"})
 

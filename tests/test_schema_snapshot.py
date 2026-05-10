@@ -64,6 +64,11 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"category": "172282", "domain": "US", "fixture": "bestsellers_home.json", "limit": 2},
                 env={},
             ),
+            "categories_finder_selection": run_command(
+                "categories.finder-selection",
+                {"category": "1055398", "domain": "US"},
+                env={},
+            ),
             "history_trend": run_command(
                 "history.trend",
                 {

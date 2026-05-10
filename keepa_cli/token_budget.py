@@ -143,6 +143,36 @@ def _product_budget(params: dict[str, Any]) -> BudgetEstimate:
     )
 
 
+def _category_products_budget(params: dict[str, Any]) -> BudgetEstimate:
+    hydrate_top = max(_to_int(params.get("hydrate_top") or params.get("hydrate-top"), 0), 0)
+    components = [
+        BudgetComponent(
+            "bestsellers",
+            50,
+            50,
+            "categories.products uses Keepa Best Sellers and is budgeted like /bestsellers.",
+        )
+    ]
+    if hydrate_top:
+        components.append(
+            BudgetComponent(
+                "hydrate_top",
+                hydrate_top,
+                hydrate_top,
+                "Explicit --hydrate-top fetches one Agent product summary per hydrated ASIN.",
+            )
+        )
+    estimated = sum(component.estimated_tokens for component in components)
+    worst = sum(component.worst_case_tokens for component in components)
+    return BudgetEstimate(
+        estimated,
+        worst,
+        True,
+        tuple(components),
+        ("--hydrate-top defaults to 0 and is never added implicitly.",),
+    )
+
+
 def estimate_request_budget(command: str, params: dict[str, Any] | None = None) -> BudgetEstimate:
     params = params or {}
     normalized = command.lower()
@@ -179,7 +209,13 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
         seller_count = max(_count_items(params.get("seller") or params.get("sellers")), 1)
         return BudgetEstimate(seller_count, seller_count, False)
 
-    if normalized in {"bestsellers.get", "categories.products", "category.products", "topsellers.list", "topseller.list"}:
+    if normalized in {"categories.finder-selection", "categories.finder_selection"}:
+        return BudgetEstimate(0, 0, False)
+
+    if normalized in {"categories.products", "category.products"}:
+        return _category_products_budget(params)
+
+    if normalized in {"bestsellers.get", "topsellers.list", "topseller.list"}:
         return BudgetEstimate(50, 50, True)
 
     if normalized in {"tracking.list", "tracking.list-names", "tracking.get", "tracking.notifications"}:

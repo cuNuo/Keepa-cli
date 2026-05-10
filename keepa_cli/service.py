@@ -258,7 +258,7 @@ def _categories_search(params: Mapping[str, Any], fixture_dir: Path | str | None
         "type": "category",
         "term": term,
     }
-    return _client(fixture_dir).request(
+    payload = _client(fixture_dir).request(
         command="categories.search",
         method="GET",
         path="/search",
@@ -266,6 +266,57 @@ def _categories_search(params: Mapping[str, Any], fixture_dir: Path | str | None
         dry_run=bool(params.get("dry_run")),
         fixture=params.get("fixture"),
     )
+    if not payload.get("ok"):
+        return payload
+    data = payload.get("data")
+    if not isinstance(data, dict) or data.get("dry_run"):
+        return payload
+    body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
+    data.update(_category_search_view(body, term=term, domain=str(params.get("domain", "US"))))
+    return payload
+
+
+def _category_search_view(body: Mapping[str, Any], *, term: str, domain: str) -> dict[str, Any]:
+    categories = body.get("categories") if isinstance(body.get("categories"), Mapping) else {}
+    candidates: list[dict[str, Any]] = []
+    for raw_id, raw_category in categories.items():
+        if not isinstance(raw_category, Mapping):
+            continue
+        category_id = str(raw_category.get("catId") or raw_id)
+        children = raw_category.get("children") if isinstance(raw_category.get("children"), list) else []
+        candidates.append(
+            {
+                "category_id": category_id,
+                "name": raw_category.get("name"),
+                "parent": raw_category.get("parent"),
+                "children_count": len(children),
+                "matched": bool(raw_category.get("matched")),
+                "next_actions": [
+                    {
+                        "command": f"categories products {category_id} --domain {domain} --limit 25 --dry-run",
+                        "reason": "preview the 50-token Best Sellers request before fetching ASIN candidates",
+                        "estimated_tokens": 0,
+                    },
+                    {
+                        "command": f"categories finder-selection {category_id} --domain {domain} --out finder-category-{category_id}.json",
+                        "reason": "create a local Product Finder selection scaffold for this category",
+                        "estimated_tokens": 0,
+                    },
+                ],
+            }
+        )
+    candidates.sort(key=lambda item: (not item["matched"], str(item.get("name") or ""), item["category_id"]))
+    return {
+        "view": "category_search",
+        "term": term,
+        "category_candidate_count": len(candidates),
+        "category_candidates": candidates,
+        "next_actions": [
+            item
+            for candidate in candidates[:3]
+            for item in candidate["next_actions"]
+        ],
+    }
 
 
 def _keepa_body_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -539,6 +590,71 @@ def _selection_query(
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
+def _categories_finder_selection(params: Mapping[str, Any]) -> dict[str, Any]:
+    category = str(_param(params, "category", "category_id", "category-id", default="")).strip()
+    if not category:
+        return error_envelope(
+            command="categories.finder-selection",
+            kind="invalid_argument",
+            message="categories.finder-selection requires a category id",
+        )
+
+    domain = str(params.get("domain", "US"))
+    per_page = int(_param(params, "per_page", "per-page", default=50) or 50)
+    sales_rank_max = int(_param(params, "sales_rank_max", "sales-rank-max", default=20000) or 20000)
+    min_reviews = int(_param(params, "min_reviews", "min-reviews", default=50) or 50)
+    selection = {
+        "categories_include": [int(category) if category.isdigit() else category],
+        "current_SALES_gte": 1,
+        "current_SALES_lte": sales_rank_max,
+        "current_COUNT_REVIEWS_gte": min_reviews,
+        "sort": [["current_SALES", "asc"]],
+        "perPage": per_page,
+        "page": 0,
+    }
+    data: dict[str, Any] = {
+        "view": "finder_selection_scaffold",
+        "category_id": category,
+        "domain": domain,
+        "selection": selection,
+        "field_notes": [
+            "categories_include is an Agent-level scaffold field; verify against Keepa Finder field support before live query if your account expects a different category selector.",
+            "The scaffold is local-only and does not consume Keepa tokens.",
+        ],
+        "next_actions": [
+            {
+                "command": f"finder query --selection-file <PATH> --domain {domain} --dry-run --max-tokens 25",
+                "reason": "validate the generated selection request shape without consuming tokens",
+                "estimated_tokens": 0,
+            },
+            {
+                "command": f"categories products {category} --domain {domain} --limit 25 --dry-run",
+                "reason": "preview Best Sellers category candidate retrieval",
+                "estimated_tokens": 0,
+            },
+        ],
+    }
+    output_path = _param(params, "out", "output")
+    if output_path:
+        path = Path(str(output_path))
+        if path.parent:
+            path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(selection, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        data["output"] = {
+            "path": str(path),
+            "format": "json",
+            "size_bytes": path.stat().st_size,
+            "result_count": 1,
+        }
+        data["next_actions"][0]["command"] = f"finder query --selection-file {path} --domain {domain} --dry-run --max-tokens 25"
+    return success_envelope(
+        command="categories.finder-selection",
+        data=data,
+        request={"transport": "service", "dry_run": True},
+        token_bucket={"estimated": estimate_request_budget("categories.finder-selection", dict(params)).to_dict()},
+    )
+
+
 def _seller_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
     sellers = _as_list(params.get("seller") or params.get("sellers"))
     if not sellers:
@@ -612,6 +728,13 @@ def _categories_products(params: Mapping[str, Any], fixture_dir: Path | str | No
             kind="invalid_argument",
             message="categories.products limit must be positive",
         )
+    hydrate_top = int(_param(params, "hydrate_top", "hydrate-top", default=0) or 0)
+    if hydrate_top < 0:
+        return error_envelope(
+            command="categories.products",
+            kind="invalid_argument",
+            message="categories.products hydrate_top must be zero or positive",
+        )
 
     request_params: dict[str, Any] = {
         "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
@@ -639,6 +762,11 @@ def _categories_products(params: Mapping[str, Any], fixture_dir: Path | str | No
         data["category_id"] = category
         data["source"] = "bestsellers"
         data["limit"] = limit
+        data["hydration"] = {
+            "enabled": False,
+            "requested": hydrate_top,
+            "reason": "dry-run never hydrates products",
+        }
         data["next_actions"] = [
             {
                 "command": f"categories products {category} --domain <DOMAIN> --limit {limit} --yes",
@@ -646,11 +774,23 @@ def _categories_products(params: Mapping[str, Any], fixture_dir: Path | str | No
                 "estimated_tokens": 50,
             }
         ]
+        if hydrate_top:
+            data["next_actions"].append(
+                {
+                    "command": f"categories products {category} --domain <DOMAIN> --limit {limit} --hydrate-top {hydrate_top} --yes",
+                    "reason": "fetch category ASIN candidates and explicitly hydrate top product summaries",
+                    "estimated_tokens": 50 + hydrate_top,
+                }
+            )
         return payload
 
     body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
     normalized = _category_products_view(body, category=category, limit=limit, domain=str(params.get("domain", "US")))
     data.update(normalized)
+    data["hydration"] = _hydrate_category_products(data["asins"], hydrate_top=hydrate_top, params=params, fixture_dir=fixture_dir)
+    token_bucket = payload.get("token_bucket")
+    if isinstance(token_bucket, dict):
+        token_bucket["estimated"] = estimate_request_budget("categories.products", {**dict(params), **request_params}).to_dict()
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
@@ -697,6 +837,51 @@ def _category_products_view(body: Mapping[str, Any], *, category: str, limit: in
             )
             if item is not None
         ],
+    }
+
+
+def _hydrate_category_products(
+    asins: Sequence[str],
+    *,
+    hydrate_top: int,
+    params: Mapping[str, Any],
+    fixture_dir: Path | str | None,
+) -> dict[str, Any]:
+    if hydrate_top <= 0:
+        return {
+            "enabled": False,
+            "requested": 0,
+            "reason": "pass --hydrate-top N to explicitly fetch top product summaries",
+        }
+    selected = [asin for asin in asins[:hydrate_top] if asin]
+    if not selected:
+        return {"enabled": True, "requested": hydrate_top, "asins": [], "products": [], "errors": []}
+
+    product_params: dict[str, Any] = {
+        "asin": selected,
+        "domain": params.get("domain", "US"),
+        "full": True,
+        "agent_view": True,
+        "view": "summary",
+        "history_limit": int(_param(params, "history_limit", "history-limit", default=3) or 3),
+        "temporal_windows": _param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
+    }
+    product_fixture = _param(params, "product_fixture", "product-fixture")
+    if product_fixture:
+        product_params["fixture"] = product_fixture
+    product_payload = _product_get(product_params, fixture_dir)
+    data = product_payload.get("data") if isinstance(product_payload.get("data"), Mapping) else {}
+    products = data.get("products") if isinstance(data.get("products"), list) else []
+    return {
+        "enabled": True,
+        "requested": hydrate_top,
+        "hydrated_count": len(products),
+        "asins": selected,
+        "view": data.get("view"),
+        "profile": data.get("profile"),
+        "products": products,
+        "errors": [] if product_payload.get("ok") else [product_payload.get("error")],
+        "token_bucket": product_payload.get("token_bucket", {}),
     }
 
 
@@ -1020,6 +1205,8 @@ def run_command(
             return _categories_get(params, fixture_dir)
         if command == "categories.search":
             return _categories_search(params, fixture_dir)
+        if command in {"categories.finder-selection", "categories.finder_selection"}:
+            return _categories_finder_selection(params)
         if command == "categories.products":
             return _categories_products(params, fixture_dir)
         if command == "finder.query":

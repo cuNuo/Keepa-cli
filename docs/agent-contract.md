@@ -183,10 +183,12 @@ Agent 视图 profile：
 ```powershell
 .\.venv\Scripts\python.exe -m keepa_cli --json categories get 0 --domain US --parents --fixture category_roots_US.json
 .\.venv\Scripts\python.exe -m keepa_cli --json categories search "home kitchen" --domain US --fixture category_search_home.json
+.\.venv\Scripts\python.exe -m keepa_cli --json categories finder-selection 1055398 --domain US --out finder-category-1055398.json
 .\.venv\Scripts\python.exe -m keepa_cli --json categories products 172282 --domain US --fixture bestsellers_home.json --limit 25
+.\.venv\Scripts\python.exe -m keepa_cli --json categories products 172282 --domain US --limit 25 --hydrate-top 3 --yes
 ```
 
-`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。
+`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`，并在成功响应中派生 `view=category_search`、`category_candidates` 与 `next_actions`，引导 Agent 先 dry-run `categories products` 或生成 Finder selection 草稿。`categories.finder-selection` 是纯本地 scaffold 命令，不访问 Keepa，不消耗 token，会输出 `view=finder_selection_scaffold`、`selection`、`field_notes` 与可选 `output.path`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。`--hydrate-top N` 默认关闭，显式开启后只拉取前 N 个候选的 `products.get --full --agent-view --view summary` 摘要，并在预算中追加 `hydrate_top=N` token 组件。
 
 ### history export/trend
 

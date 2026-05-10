@@ -20,11 +20,12 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.6")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.7")
         self.assertIn("tui", payload["data"]["protocols"])
         command_names = {item["name"] for item in payload["data"]["commands"]}
         self.assertIn("products.compare", command_names)
         self.assertIn("categories.products", command_names)
+        self.assertIn("categories.finder-selection", command_names)
         self.assertIn("graphs.image", command_names)
         self.assertIn("schema.generate", command_names)
         self.assertIn("cassettes.sanitize", command_names)
@@ -48,7 +49,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.6")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-10.7")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -56,7 +57,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.6")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-10.7")
 
 
 if __name__ == "__main__":
