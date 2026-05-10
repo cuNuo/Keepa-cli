@@ -50,6 +50,17 @@ class DoctorTests(unittest.TestCase):
         self.assertEqual(report["auth"]["source"], "config")
         self.assertNotIn("SECRET123", str(report))
 
+    def test_doctor_reports_invalid_config_without_crashing(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text('api_key = ".\\.venv\\Scripts\\python.exe -m keepa_cli"\n', encoding="utf-8")
+
+            report = build_doctor_report(env={"KEEPA_CLI_CONFIG": str(config_path)}, fixture_available=True)
+
+        self.assertFalse(report["auth"]["available"])
+        self.assertEqual(report["auth"]["source"], "config_error")
+        self.assertEqual(report["auth"]["error"]["kind"], "toml_decode_error")
+
     def test_env_auth_takes_precedence_over_config_auth(self):
         with TemporaryDirectory() as temp_dir:
             config_path = Path(temp_dir) / "config.toml"

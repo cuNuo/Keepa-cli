@@ -26,9 +26,25 @@ class ConfigTests(unittest.TestCase):
         report = build_config_report(env={})
 
         self.assertFalse(report["exists"])
+        self.assertTrue(report["valid"])
+        self.assertIsNone(report["error"])
         self.assertEqual(report["config"]["default_domain"], "US")
         self.assertEqual(report["config"]["language"], "en")
         self.assertIn("config.toml", report["path"])
+
+    def test_invalid_toml_falls_back_to_defaults_with_error_report(self):
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text('api_key = ".\\.venv\\Scripts\\python.exe -m keepa_cli"\n', encoding="utf-8")
+
+            loaded = load_config(config_path)
+            report = build_config_report(config_path)
+
+        self.assertEqual(loaded["default_domain"], "US")
+        self.assertIn("_config_error", loaded)
+        self.assertFalse(report["valid"])
+        self.assertEqual(report["error"]["kind"], "toml_decode_error")
+        self.assertNotIn("api_key", report["config"])
 
     def test_explicit_empty_env_ignores_real_appdata(self):
         with patch.dict("os.environ", {"APPDATA": "C:\\RealUser\\AppData\\Roaming"}, clear=False):

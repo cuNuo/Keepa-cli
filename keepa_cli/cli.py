@@ -16,6 +16,7 @@ from typing import Any
 
 from keepa_cli import __version__
 from keepa_cli.agent.stdio import iter_stdio_output
+from keepa_cli.cli_builders.workflows import add_workflow_parsers, maybe_run_workflow_command
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.service import run_command
 from keepa_cli.ui.modern_tui import build_tui_metadata, run_modern_tui
@@ -72,50 +73,7 @@ def _build_parser() -> argparse.ArgumentParser:
     domains_subparsers = domains.add_subparsers(dest="domains_command")
     domains_subparsers.add_parser("list", help="列出 Keepa 支持的 Amazon domain。")
 
-    browse = subparsers.add_parser("browse", help="生成本地 Web 浏览快照。")
-    browse_subparsers = browse.add_subparsers(dest="browse_command")
-    browse_snapshot = browse_subparsers.add_parser("snapshot", help="从离线 JSON 生成静态 HTML 快照。")
-    browse_snapshot.add_argument("--input", help="Keepa JSON envelope、fixture 或报告输入。")
-    browse_snapshot.add_argument("--out-dir", default="keepa-browse", help="输出目录。")
-    browse_snapshot.add_argument("--title", default="Keepa Local Browse", help="页面标题。")
-
-    batch = subparsers.add_parser("batch", help="批处理计划命令。")
-    batch_subparsers = batch.add_subparsers(dest="batch_command")
-    batch_asins = batch_subparsers.add_parser("asins", help="从 ASIN 文件生成产品查询批处理计划。")
-    batch_asins.add_argument("asin_file", help="ASIN 列表文件；支持空行和 # 注释。")
-    batch_asins.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    batch_asins.add_argument("--fixture", help="为每个任务指定离线 fixture。")
-    batch_asins.add_argument("--out", help="写入批处理计划 JSON。")
-    batch_asins.add_argument("--dry-run", action="store_true", help="生成 dry-run 计划，不访问 API。")
-
-    templates = subparsers.add_parser("templates", help="内置工作流模板。")
-    templates_subparsers = templates.add_subparsers(dest="templates_command")
-    templates_subparsers.add_parser("list", help="列出内置模板。")
-    templates_show = templates_subparsers.add_parser("show", help="显示一个模板。")
-    templates_show.add_argument("name", help="模板名。")
-    templates_show.add_argument("--out", help="把模板写入 JSON 文件。")
-
-    reports = subparsers.add_parser("reports", help="本地报告生成命令。")
-    reports_subparsers = reports.add_subparsers(dest="reports_command")
-    reports_build = reports_subparsers.add_parser("build", help="从批处理或 fixture JSON 生成报告。")
-    reports_build.add_argument("--input", required=True, help="输入 JSON 文件。")
-    reports_build.add_argument("--format", choices=("markdown", "json", "csv"), default="markdown", help="报告格式。")
-    reports_build.add_argument("--out", help="写入报告文件。")
-    reports_build.add_argument("--title", default="Keepa Report", help="报告标题。")
-
-    cache = subparsers.add_parser("cache", help="缓存与 provenance 审计命令。")
-    cache_subparsers = cache.add_subparsers(dest="cache_command")
-    cache_explain = cache_subparsers.add_parser("explain", help="解释 JSON envelope 中的缓存来源和节省估算。")
-    cache_explain.add_argument("--input", help="包含 cache_provenance 的 JSON 文件。")
-    cache_explain.add_argument("--command", dest="target_command", help="用于估算 token 成本的命令名。")
-    cache_explain.add_argument("--endpoint", help="覆盖 endpoint 显示。")
-
-    audit = subparsers.add_parser("audit", help="本地成本审计命令。")
-    audit_subparsers = audit.add_subparsers(dest="audit_command")
-    audit_cost = audit_subparsers.add_parser("cost", help="估算一个命令或命令清单的 Keepa token 成本。")
-    audit_cost.add_argument("target_command", nargs="?", help="命令名，例如 products.get。")
-    audit_cost.add_argument("--spec-file", help="JSON 文件，形如 [{\"command\":\"products.get\",\"params\":{...}}]。")
-    audit_cost.add_argument("--param", action="append", default=[], metavar="KEY=VALUE", help="命令参数，可重复。")
+    add_workflow_parsers(subparsers)
 
     products = subparsers.add_parser("products", help="产品查询命令。")
     products_subparsers = products.add_subparsers(dest="products_command")
@@ -338,60 +296,9 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
         payload = run_command("domains.list")
         return 0 if payload["ok"] else 1, payload
 
-    if args.command == "browse" and args.browse_command == "snapshot":
-        payload = run_command(
-            "browse.snapshot",
-            {"input": args.input, "out_dir": args.out_dir, "title": args.title},
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "batch" and args.batch_command == "asins":
-        payload = run_command(
-            "batch.asins",
-            {
-                "asin_file": args.asin_file,
-                "domain": args.domain,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "templates" and args.templates_command == "list":
-        payload = run_command("templates.list")
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "templates" and args.templates_command == "show":
-        payload = run_command("templates.show", {"name": args.name, "out": args.out})
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "reports" and args.reports_command == "build":
-        payload = run_command(
-            "reports.build",
-            {"input": args.input, "format": args.format, "out": args.out, "title": args.title},
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "cache" and args.cache_command == "explain":
-        payload = run_command(
-            "cache.explain",
-            {"input": args.input, "target_command": args.target_command, "endpoint": args.endpoint},
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "audit" and args.audit_command == "cost":
-        try:
-            parsed_params = _parse_params(args.param)
-            if args.spec_file:
-                with open(args.spec_file, "r", encoding="utf-8") as handle:
-                    specs = json.load(handle)
-                payload = run_command("audit.cost", {"commands": specs})
-            else:
-                payload = run_command("audit.cost", {"target_command": args.target_command or "", "params": parsed_params})
-        except (OSError, json.JSONDecodeError, ValueError) as exc:
-            return 2, error_envelope(command="audit.cost", kind="invalid_argument", message=str(exc))
-        return 0 if payload["ok"] else 1, payload
+    workflow_result = maybe_run_workflow_command(args, parse_params=_parse_params)
+    if workflow_result is not None:
+        return workflow_result
 
     if args.command == "config" and args.config_command == "show":
         payload = run_command("config.show", {"path": args.path})

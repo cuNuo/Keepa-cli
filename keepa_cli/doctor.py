@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Mapping
 
 from keepa_cli import __version__
-from keepa_cli.config import load_config
+from keepa_cli.config import CONFIG_ERROR_KEY, load_config
 
 
 PACKAGE_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -23,6 +23,8 @@ def find_auth_source(env: Mapping[str, str] | None = None) -> dict[str, object]:
     if env.get("KEEPA_API_KEY"):
         return {"available": True, "source": "env"}
     config = load_config(env=env)
+    if config.get(CONFIG_ERROR_KEY):
+        return {"available": False, "source": "config_error", "error": config[CONFIG_ERROR_KEY]}
     if str(config.get("api_key", "")).strip():
         return {"available": True, "source": "config"}
     return {"available": False, "source": "missing"}

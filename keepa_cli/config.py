@@ -23,6 +23,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
 }
 
 KEEPA_API_TOKEN_LENGTH = 64
+CONFIG_ERROR_KEY = "_config_error"
 
 
 def default_config_path(env: Mapping[str, str] | None = None) -> Path:
@@ -61,8 +62,23 @@ def load_config(path: Path | str | None = None, *, env: Mapping[str, str] | None
     if not config_path.is_file():
         return dict(DEFAULT_CONFIG)
 
-    loaded = tomllib.loads(config_path.read_text(encoding="utf-8"))
     merged = dict(DEFAULT_CONFIG)
+    try:
+        loaded = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        merged[CONFIG_ERROR_KEY] = {
+            "kind": "toml_decode_error",
+            "message": str(exc),
+            "path": str(config_path),
+        }
+        return merged
+    except OSError as exc:
+        merged[CONFIG_ERROR_KEY] = {
+            "kind": "config_read_error",
+            "message": str(exc),
+            "path": str(config_path),
+        }
+        return merged
     merged.update(loaded)
     return merged
 
@@ -74,9 +90,12 @@ def build_config_report(
 ) -> dict[str, Any]:
     config_path = Path(path) if path is not None else default_config_path(env)
     config = load_config(config_path, env=env)
+    error = config.pop(CONFIG_ERROR_KEY, None)
     return {
         "path": str(config_path),
         "exists": config_path.is_file(),
+        "valid": error is None,
+        "error": error,
         "config": redact_value(config),
     }
 
@@ -111,6 +130,7 @@ def set_api_token(
 
     config_path = Path(path) if path is not None else default_config_path(env)
     config = load_config(config_path, env=env)
+    config.pop(CONFIG_ERROR_KEY, None)
     config["api_key"] = token
     content = render_config_toml(config)
     if not dry_run:
@@ -148,6 +168,7 @@ def set_language(
 
     config_path = Path(path) if path is not None else default_config_path(env)
     config = load_config(config_path, env=env)
+    config.pop(CONFIG_ERROR_KEY, None)
     config["language"] = language
     content = render_config_toml(config)
     if not dry_run:
@@ -179,6 +200,7 @@ def set_max_tokens_per_request(
 
     config_path = Path(path) if path is not None else default_config_path(env)
     config = load_config(config_path, env=env)
+    config.pop(CONFIG_ERROR_KEY, None)
     config["max_tokens_per_request"] = max_tokens
     content = render_config_toml(config)
     if not dry_run:

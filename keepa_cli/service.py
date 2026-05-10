@@ -17,6 +17,8 @@ from typing import Any
 from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.capabilities import build_capabilities
 from keepa_cli.client import KeepaClient
+from keepa_cli.commands.workflows import can_handle as can_handle_workflow_command
+from keepa_cli.commands.workflows import handle_workflow_command
 from keepa_cli.config import build_config_report, init_config, set_api_token, set_language, set_max_tokens_per_request
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
@@ -24,15 +26,6 @@ from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.high_value import attach_output_if_requested, load_selection, selection_to_query_value
 from keepa_cli.history_export import build_history_export_data, extract_history_rows, normalize_series_names
 from keepa_cli.token_budget import estimate_request_budget
-from keepa_cli.workflows import (
-    audit_cost,
-    build_batch_asins,
-    build_browse_snapshot,
-    build_report,
-    explain_cache,
-    list_templates,
-    show_template,
-)
 
 
 DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -729,77 +722,8 @@ def run_command(
                 request={"transport": "service"},
                 token_bucket={},
             )
-        if command == "browse.snapshot":
-            return success_envelope(
-                command="browse.snapshot",
-                data=build_browse_snapshot(
-                    input_path=_param(params, "input", "input_path"),
-                    out_dir=str(_param(params, "out_dir", "out-dir", default="keepa-browse")),
-                    title=str(_param(params, "title", default="Keepa Local Browse")),
-                ),
-                request={"transport": "service"},
-                token_bucket={},
-            )
-        if command == "batch.asins":
-            return success_envelope(
-                command="batch.asins",
-                data=build_batch_asins(
-                    asin_file=str(_param(params, "asin_file", "asin-file", default="")),
-                    domain=str(_param(params, "domain", default="US")),
-                    dry_run=_bool_option(params, "dry_run", "dry-run"),
-                    fixture=_param(params, "fixture"),
-                    out=_param(params, "out", "output"),
-                ),
-                request={"transport": "service"},
-                token_bucket={},
-            )
-        if command == "templates.list":
-            return success_envelope(
-                command="templates.list",
-                data=list_templates(),
-                request={"transport": "service"},
-                token_bucket={},
-            )
-        if command == "templates.show":
-            return success_envelope(
-                command="templates.show",
-                data=show_template(str(_param(params, "name", default="")), _param(params, "out", "output")),
-                request={"transport": "service"},
-                token_bucket={},
-            )
-        if command == "reports.build":
-            return success_envelope(
-                command="reports.build",
-                data=build_report(
-                    input_path=str(_param(params, "input", "input_path", default="")),
-                    output_format=str(_param(params, "format", default="markdown")),
-                    out=_param(params, "out", "output"),
-                    title=str(_param(params, "title", default="Keepa Report")),
-                ),
-                request={"transport": "service"},
-                token_bucket={},
-            )
-        if command == "cache.explain":
-            return success_envelope(
-                command="cache.explain",
-                data=explain_cache(
-                    input_path=_param(params, "input", "input_path"),
-                    command=_param(params, "target_command", "command"),
-                    endpoint=_param(params, "endpoint"),
-                ),
-                request={"transport": "service"},
-                token_bucket={},
-            )
-        if command == "audit.cost":
-            specs = params.get("commands")
-            if not isinstance(specs, Sequence) or isinstance(specs, (str, bytes, bytearray)):
-                specs = [{"command": str(_param(params, "target_command", "command", default="")), "params": dict(params.get("params") or {})}]
-            return success_envelope(
-                command="audit.cost",
-                data=audit_cost([dict(item) for item in specs if isinstance(item, Mapping)]),
-                request={"transport": "service"},
-                token_bucket={},
-            )
+        if can_handle_workflow_command(command):
+            return handle_workflow_command(command, params)
         if command == "config.show":
             return success_envelope(
                 command="config.show",
