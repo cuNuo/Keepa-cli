@@ -58,3 +58,10 @@
 - `workflow_policy` 当前覆盖 `category-research` 与 `product-research` 两类计划；后续可把 reports/tracking-readonly 长链路也纳入同一计划器。
 - `cassettes.promote_and_verify --run-eval` 依赖本地 eval specs；发布包环境若没有 `tests/agent_eval_fixtures`，会以结构化 `agent_eval.ok=false` 报告缺失，而不是访问网络。
 - 下一步最适合继续完善：新增 `workflow.plan` for `report-research` / `tracking-audit`，让 Agent 在非产品研究链路里同样少猜。
+
+## CI 反馈修复
+
+- 首次推送提交 `e1f31fb` 后，GitHub Actions CI 在 `Check fixture sync` 失败。
+- 根因：CI 直接运行 `python scripts/check_fixture_sync.py`，干净环境未执行 editable install，脚本目录被放入 `sys.path` 后无法导入仓库根包 `keepa_cli`。
+- 修复：`scripts/check_fixture_sync.py` 与 `scripts/check_agent_eval_fixtures.py` 在导入包内模块前显式把仓库根目录加入 `sys.path`，保持直接脚本执行与包内复用两种路径一致。
+- 修复后复验：`python scripts/check_fixture_sync.py`、`python scripts/check_agent_eval_fixtures.py`、`python -m unittest discover -s tests -q`、`git diff --check` 与 `D:\.codex\hooks\run_relevant_hooks.py --changed-only` 均通过。
