@@ -143,6 +143,13 @@ def _build_parser() -> argparse.ArgumentParser:
     categories_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
     categories_search.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     categories_search.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    categories_products = categories_subparsers.add_parser("products", help="按 category id 取相关商品候选。")
+    categories_products.add_argument("category", help="Keepa category id。")
+    categories_products.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    categories_products.add_argument("--limit", type=int, default=25, help="返回候选 ASIN 上限。")
+    categories_products.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    categories_products.add_argument("--out", help="把原始 body 写入 JSON 文件。")
+    categories_products.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
 
     history = subparsers.add_parser("history", help="历史导出与趋势分析命令。")
     history_subparsers = history.add_subparsers(dest="history_command")
@@ -467,6 +474,21 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "domain": args.domain,
                 "fixture": args.fixture,
                 "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "categories" and args.categories_command == "products":
+        payload = run_command(
+            "categories.products",
+            {
+                "category": args.category,
+                "domain": args.domain,
+                "limit": args.limit,
+                "fixture": args.fixture,
+                "out": args.out,
+                "dry_run": bool(args.dry_run),
+                "yes": bool(args.yes),
             },
         )
         return 0 if payload["ok"] else 1, payload

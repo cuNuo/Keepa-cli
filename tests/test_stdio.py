@@ -94,6 +94,25 @@ class StdioProtocolTests(unittest.TestCase):
         self.assertEqual(response["payload"]["request"]["endpoint"], "/bestsellers")
         self.assertEqual(response["payload"]["token_bucket"]["estimated"]["estimated_tokens"], 50)
 
+    def test_categories_products_message_returns_candidates(self):
+        raw = json.dumps(
+            {
+                "id": "6",
+                "method": "categories.products",
+                "params": {
+                    "category": "172282",
+                    "domain": "US",
+                    "fixture": "bestsellers_home.json",
+                    "limit": 1,
+                },
+            }
+        )
+        events = handle_stdio_message(raw, env={})
+        response = next(event for event in events if event["event"] == "response")
+
+        self.assertTrue(response["payload"]["ok"])
+        self.assertEqual(response["payload"]["data"]["asins"], ["B001GZ6QEC"])
+
 
 if __name__ == "__main__":
     unittest.main()

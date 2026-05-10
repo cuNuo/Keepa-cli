@@ -157,6 +157,7 @@ kc --json products get B001GZ6QEC --domain US --full --stats-window 365 --tempor
 Use dry-run for high-cost requests:
 
 ```powershell
+kc --json categories products 172282 --domain US --dry-run --limit 25
 kc --json bestsellers get 172282 --domain US --dry-run
 kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
 ```

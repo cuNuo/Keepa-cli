@@ -183,9 +183,10 @@ Agent 视图 profile：
 ```powershell
 .\.venv\Scripts\python.exe -m keepa_cli --json categories get 0 --domain US --parents --fixture category_roots_US.json
 .\.venv\Scripts\python.exe -m keepa_cli --json categories search "home kitchen" --domain US --fixture category_search_home.json
+.\.venv\Scripts\python.exe -m keepa_cli --json categories products 172282 --domain US --fixture bestsellers_home.json --limit 25
 ```
 
-`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`。
+`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。
 
 ### history export/trend
 

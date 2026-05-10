@@ -98,6 +98,23 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(estimate["worst_case_tokens"], 50)
         self.assertTrue(estimate["requires_confirmation"])
 
+    def test_categories_products_fixture_returns_agent_candidates(self):
+        payload = run_command(
+            "categories.products",
+            {"category": "172282", "domain": "US", "fixture": "bestsellers_home.json", "limit": 1},
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "categories.products")
+        self.assertEqual(payload["request"]["endpoint"], "/bestsellers")
+        self.assertEqual(payload["data"]["view"], "category_products")
+        self.assertEqual(payload["data"]["category_id"], "172282")
+        self.assertEqual(payload["data"]["asins"], ["B001GZ6QEC"])
+        self.assertEqual(payload["data"]["candidates"][0]["rank"], 1)
+        self.assertIn("products compare", payload["data"]["next_actions"][0]["command"])
+
     def test_topsellers_live_requires_explicit_confirmation_before_auth(self):
         payload = run_command("topsellers.list", {"domain": "US"}, fixture_dir=FIXTURES, env={})
 

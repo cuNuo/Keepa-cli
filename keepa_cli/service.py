@@ -596,6 +596,110 @@ def _bestsellers_get(params: Mapping[str, Any], fixture_dir: Path | str | None) 
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
+def _categories_products(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    category = str(_param(params, "category", "category_id", "category-id", default="")).strip()
+    if not category:
+        return error_envelope(
+            command="categories.products",
+            kind="invalid_argument",
+            message="categories.products requires a category id",
+        )
+
+    limit = int(_param(params, "limit", "max_asins", "max-asins", default=25) or 25)
+    if limit <= 0:
+        return error_envelope(
+            command="categories.products",
+            kind="invalid_argument",
+            message="categories.products limit must be positive",
+        )
+
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "category": category,
+    }
+    confirmation = _confirmation_required("categories.products", {**dict(params), **request_params})
+    if confirmation is not None:
+        return confirmation
+
+    payload = _client(fixture_dir).request(
+        command="categories.products",
+        method="GET",
+        path="/bestsellers",
+        params=request_params,
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+        fixture=params.get("fixture"),
+    )
+    if not payload.get("ok"):
+        return payload
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        return payload
+    if data.get("dry_run"):
+        data["view"] = "category_products"
+        data["category_id"] = category
+        data["source"] = "bestsellers"
+        data["limit"] = limit
+        data["next_actions"] = [
+            {
+                "command": f"categories products {category} --domain <DOMAIN> --limit {limit} --yes",
+                "reason": "fetch category ASIN candidates from Keepa Best Sellers",
+                "estimated_tokens": 50,
+            }
+        ]
+        return payload
+
+    body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
+    normalized = _category_products_view(body, category=category, limit=limit, domain=str(params.get("domain", "US")))
+    data.update(normalized)
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
+
+
+def _category_products_view(body: Mapping[str, Any], *, category: str, limit: int, domain: str) -> dict[str, Any]:
+    bestsellers = body.get("bestSellersList") if isinstance(body.get("bestSellersList"), Mapping) else {}
+    asin_list = bestsellers.get("asinList") if isinstance(bestsellers.get("asinList"), list) else []
+    asins = [str(asin) for asin in asin_list[:limit] if str(asin).strip()]
+    candidates = [
+        {
+            "rank": index + 1,
+            "asin": asin,
+            "source": "bestsellers",
+            "category_id": str(bestsellers.get("categoryId") or category),
+        }
+        for index, asin in enumerate(asins)
+    ]
+    compare_command = f"products compare {' '.join(asins[:10])} --domain {domain} --full --view deal" if asins else None
+    get_command = f"products get {asins[0]} --domain {domain} --full --agent-view --view summary" if asins else None
+    return {
+        "view": "category_products",
+        "source": "bestsellers",
+        "category_id": str(bestsellers.get("categoryId") or category),
+        "last_update": bestsellers.get("lastUpdate"),
+        "candidate_count": len(candidates),
+        "asins": asins,
+        "candidates": candidates,
+        "next_actions": [
+            item
+            for item in (
+                {
+                    "command": compare_command,
+                    "reason": "compare top category candidates with deal profile",
+                    "estimated_tokens": max(1, len(asins[:10])),
+                }
+                if compare_command
+                else None,
+                {
+                    "command": get_command,
+                    "reason": "inspect the top category candidate with Agent summary",
+                    "estimated_tokens": 1,
+                }
+                if get_command
+                else None,
+            )
+            if item is not None
+        ],
+    }
+
+
 def _topsellers_list(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
     request_params: dict[str, Any] = {
         "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
@@ -916,6 +1020,8 @@ def run_command(
             return _categories_get(params, fixture_dir)
         if command == "categories.search":
             return _categories_search(params, fixture_dir)
+        if command == "categories.products":
+            return _categories_products(params, fixture_dir)
         if command == "finder.query":
             return _selection_query("finder.query", "/query", params, fixture_dir)
         if command == "deals.query":

@@ -49,6 +49,12 @@ class TokenBudgetTests(unittest.TestCase):
         self.assertEqual(estimate.estimated_tokens, 50)
         self.assertTrue(estimate.requires_confirmation)
 
+    def test_category_products_budget_requires_confirmation(self):
+        estimate = estimate_request_budget("categories.products", {"category": "123"})
+
+        self.assertEqual(estimate.estimated_tokens, 50)
+        self.assertTrue(estimate.requires_confirmation)
+
     def test_history_budget_counts_asins_without_confirmation(self):
         estimate = estimate_request_budget("history.trend", {"asin": "B001GZ6QEC"})
 

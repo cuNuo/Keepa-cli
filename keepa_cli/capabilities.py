@@ -12,7 +12,7 @@ from typing import Any
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.5"
+SCHEMA_VERSION = "2026-05-10.6"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -34,6 +34,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "products.search", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "categories.get", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "categories.search", "supports_fixture": True, "supports_live": True, "output": "json"},
+    {"name": "categories.products", "supports_fixture": True, "supports_live": True, "output": "json-agent-candidates"},
     {"name": "history.export", "supports_fixture": True, "supports_live": True, "output": "json-file-optional"},
     {"name": "history.trend", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "finder.query", "supports_fixture": True, "supports_live": True, "output": "json-file-optional"},

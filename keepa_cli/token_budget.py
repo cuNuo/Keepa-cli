@@ -179,7 +179,7 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
         seller_count = max(_count_items(params.get("seller") or params.get("sellers")), 1)
         return BudgetEstimate(seller_count, seller_count, False)
 
-    if normalized in {"bestsellers.get", "topsellers.list", "topseller.list"}:
+    if normalized in {"bestsellers.get", "categories.products", "category.products", "topsellers.list", "topseller.list"}:
         return BudgetEstimate(50, 50, True)
 
     if normalized in {"tracking.list", "tracking.list-names", "tracking.get", "tracking.notifications"}:

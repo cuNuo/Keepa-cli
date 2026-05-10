@@ -59,6 +59,11 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},
                 env={},
             ),
+            "categories_products": run_command(
+                "categories.products",
+                {"category": "172282", "domain": "US", "fixture": "bestsellers_home.json", "limit": 2},
+                env={},
+            ),
             "history_trend": run_command(
                 "history.trend",
                 {

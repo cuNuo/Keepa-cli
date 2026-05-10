@@ -349,6 +349,26 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["request"]["endpoint"], "/bestsellers")
         self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 50)
 
+    def test_categories_products_fixture_returns_candidates(self):
+        result = self.run_module(
+            "--json",
+            "categories",
+            "products",
+            "172282",
+            "--domain",
+            "US",
+            "--fixture",
+            "bestsellers_home.json",
+            "--limit",
+            "1",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "categories.products")
+        self.assertEqual(payload["data"]["asins"], ["B001GZ6QEC"])
+
     def test_stdio_reads_json_lines(self):
         result = self.run_module("--stdio", input_text='{"id":"1","method":"doctor","params":{}}\n')
 

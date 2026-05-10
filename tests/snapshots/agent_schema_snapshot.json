@@ -447,6 +447,15 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -466,6 +475,90 @@
       "transport": "str"
     },
     "token_bucket": {}
+  },
+  "categories_products": {
+    "command": "str",
+    "data": {
+      "asins": [
+        "str",
+        "str"
+      ],
+      "body": {
+        "bestSellersList": {
+          "asinList": [
+            "str",
+            "str"
+          ],
+          "categoryId": "int",
+          "lastUpdate": "int"
+        },
+        "refillRate": "int",
+        "tokensConsumed": "int",
+        "tokensLeft": "int"
+      },
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "candidate_count": "int",
+      "candidates": [
+        {
+          "asin": "str",
+          "category_id": "str",
+          "rank": "int",
+          "source": "str"
+        },
+        {
+          "asin": "str",
+          "category_id": "str",
+          "rank": "int",
+          "source": "str"
+        }
+      ],
+      "category_id": "str",
+      "fixture": "str",
+      "last_update": "int",
+      "next_actions": [
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "reason": "str"
+        },
+        {
+          "command": "str",
+          "estimated_tokens": "int",
+          "reason": "str"
+        }
+      ],
+      "offline": "bool",
+      "source": "str",
+      "view": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "category": "str",
+        "domain": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "components": [],
+        "estimated_tokens": "int",
+        "notes": [],
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
   },
   "categories_search": {
     "command": "str",
