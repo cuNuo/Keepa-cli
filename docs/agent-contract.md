@@ -365,11 +365,20 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan category-research --term "home kitchen" --domain US
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan category-research --term "home kitchen" --domain US --hydrate-top 3
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan product-research --asin B0D8W1YVBX --domain US --goal deal
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan report-research --domain US --goal deal
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan tracking-audit --asin B0D8W1YVBX --domain US
 ```
 
 `workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`steps`、`totals`、`parallel_groups`、`workflow_policy`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`mcp_tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation`、`fixture_replay`、`mcp` 与 `execution`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
 
 `workflow_policy` 是 Agent 执行阶段的第一读字段：`recommended_toolset` 与 `recommended_profile` 给出默认 `tools/list` 过滤；`allowed_tools` / `inactive_tools` 说明当前 profile 下哪些工具可调用、哪些步骤需要切换 profile；`profile_switch_points` 给出阶段切换点；`confirmation_policy` 列出必须暂停等待确认的 step；`budget_ledger_seed` 给出计划预算和初始 blocked actions；`tool_discovery.params.allow_tools` 可直接作为 MCP `tools/list` 参数复用。Agent 不应直接给高成本步骤补 `yes=true`，除非用户确认了对应 step。
+
+当前内置计划：
+
+- `category-research`：关键词 -> category candidates -> Finder scaffold -> category products -> compare candidates；推荐 `research` toolset 与 `dry_run_default` profile，高成本 category products 需要确认。
+- `product-research`：单品 Agent view -> 可选 offers detail；推荐 `research` toolset 与 `live_read_allowed` profile，可选 offers step 需要确认。
+- `report-research`：merged research graph -> markdown report / Agent brief / local browse snapshot；推荐 `reports` toolset 与 `offline_fixture_only` profile，纯本地 0 token。
+- `tracking-audit`：tracking list -> notifications / tracking detail / cost audit；推荐 `tracking-readonly` toolset 与 `tracking_readonly` profile，不暴露 tracking 写操作。
 
 ### history export/trend
 

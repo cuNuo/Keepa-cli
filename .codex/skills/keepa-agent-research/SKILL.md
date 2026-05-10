@@ -69,7 +69,7 @@ For a general research Agent, start with policy and target resolution before any
 
 `tools/list` supports `allow_tools`, `exclude_tools`, and `profile`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery. Prefer `profile=offline_fixture_only` before live research; inactive tools are marked in discovery and return `inactive_tool` before service execution if called.
 
-After `keepa.workflow_plan`, read `workflow_policy` before running steps. Use `workflow_policy.tool_discovery.params` for the next `tools/list`, start with the recommended profile, follow `profile_switch_points`, and only add `yes=true` for a confirmation step after the user approves that exact step. Reuse `cache_key` or `from_cache` according to `workflow_policy.cache_policy` before repeating a request.
+After `keepa.workflow_plan`, read `workflow_policy` before running steps. Supported plans are `category-research`, `product-research`, `report-research`, and `tracking-audit`. Use `workflow_policy.tool_discovery.params` for the next `tools/list`, start with the recommended profile, follow `profile_switch_points`, and only add `yes=true` for a confirmation step after the user approves that exact step. Reuse `cache_key` or `from_cache` according to `workflow_policy.cache_policy` before repeating a request. Use `report-research` for local graph/report/brief/browse handoff, and `tracking-audit` only for read-only tracking inspection.
 
 Use `keepa.research_agent_start` prompt when a client supports MCP prompts. It encodes the policy -> resolve -> context -> plan -> execute -> graph merge order.
 

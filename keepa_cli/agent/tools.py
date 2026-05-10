@@ -333,7 +333,7 @@ WORKFLOW_PLAN_SCHEMA: JsonSchema = {
     "properties": {
         "name": {
             "type": "string",
-            "enum": ["category-research", "product-research"],
+            "enum": ["category-research", "product-research", "report-research", "tracking-audit"],
             "description": "Agent workflow plan name.",
         },
         "term": _string_schema("Keyword for category-research plans."),
@@ -578,6 +578,7 @@ TRACKING_LIST_SCHEMA: JsonSchema = {
     "additionalProperties": False,
     "properties": {
         "asins_only": _boolean_schema("Return only tracking ASIN names where supported."),
+        "domain": _string_schema("Keepa domain code, id, or host suffix.", default="US"),
         "fixture": _string_schema("Fixture filename under tests/fixtures."),
         "dry_run": _boolean_schema("Build request spec without calling Keepa."),
         "out": _string_schema("Optional path to write the response body."),
@@ -592,6 +593,7 @@ TRACKING_GET_SCHEMA: JsonSchema = {
     "required": ["asin"],
     "properties": {
         "asin": _string_schema("Tracked ASIN to inspect."),
+        "domain": _string_schema("Keepa domain code, id, or host suffix.", default="US"),
         "fixture": _string_schema("Fixture filename under tests/fixtures."),
         "dry_run": _boolean_schema("Build request spec without calling Keepa."),
         "from_cache": _string_schema("Session cache key to reuse."),
@@ -609,6 +611,7 @@ TRACKING_NOTIFICATIONS_SCHEMA: JsonSchema = {
             "default": 0,
         },
         "revise": _boolean_schema("Ask Keepa to revise notification state."),
+        "domain": _string_schema("Keepa domain code, id, or host suffix.", default="US"),
         "fixture": _string_schema("Fixture filename under tests/fixtures."),
         "dry_run": _boolean_schema("Build request spec without calling Keepa."),
         "from_cache": _string_schema("Session cache key to reuse."),
@@ -788,7 +791,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Merge research_graph objects from category, product, compare, deal, and seller outputs without calling Keepa.",
         input_schema=RESEARCH_GRAPH_MERGE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
-        groups=("research", "graph"),
+        groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
         name="keepa.research_brief_export",
@@ -844,7 +847,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Estimate token cost and confirmation requirements for Keepa CLI commands.",
         input_schema=AUDIT_COST_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
-        groups=("audit",),
+        groups=("audit", "tracking-readonly"),
     ),
     ToolDefinition(
         name="keepa.cassettes_sanitize",

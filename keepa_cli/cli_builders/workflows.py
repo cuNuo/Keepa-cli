@@ -58,7 +58,11 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     workflow = subparsers.add_parser("workflow", help="Agent 工作流规划命令。")
     workflow_subparsers = workflow.add_subparsers(dest="workflow_command")
     workflow_plan = workflow_subparsers.add_parser("plan", help="生成不耗 token 的 Agent 执行图。")
-    workflow_plan.add_argument("name", choices=("category-research", "product-research"), help="工作流名称。")
+    workflow_plan.add_argument(
+        "name",
+        choices=("category-research", "product-research", "report-research", "tracking-audit"),
+        help="工作流名称。",
+    )
     workflow_plan.add_argument("--term", help="category-research 使用的关键词。")
     workflow_plan.add_argument("--asin", help="product-research 使用的 ASIN。")
     workflow_plan.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")

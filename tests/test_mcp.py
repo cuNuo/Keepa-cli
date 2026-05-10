@@ -68,7 +68,7 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         report_names = {item["name"] for item in reports["result"]["tools"]}
-        self.assertEqual({"keepa.reports_build", "keepa.browse_snapshot", "keepa.research_brief_export"}, report_names)
+        self.assertEqual({"keepa.research_graph_merge", "keepa.reports_build", "keepa.browse_snapshot", "keepa.research_brief_export"}, report_names)
 
         docs = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "docs", "method": "tools/list", "params": {"toolset": "docs"}}),
@@ -84,6 +84,7 @@ class McpProtocolTests(unittest.TestCase):
         tracking_names = {item["name"] for item in tracking["result"]["tools"]}
         self.assertIn("keepa.tracking_list", tracking_names)
         self.assertIn("keepa.tracking_get", tracking_names)
+        self.assertIn("keepa.audit_cost", tracking_names)
         self.assertNotIn("tracking.add", tracking_names)
 
         all_tools = handle_mcp_message(
@@ -352,6 +353,44 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
         self.assertEqual(structured["data"]["steps"][2]["mcp"]["tool"], "keepa.categories_products")
         self.assertFalse(structured["data"]["steps"][3]["mcp"]["active_in_recommended_profile"])
+
+    def test_tools_call_report_and_tracking_workflow_profiles(self):
+        report = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "report-workflow",
+                    "method": "tools/call",
+                    "params": {"name": "keepa.workflow_plan", "arguments": {"name": "report-research", "domain": "US", "goal": "deal"}},
+                }
+            ),
+            env={},
+        )
+        report_data = report["result"]["structuredContent"]["data"]
+        self.assertEqual(report_data["workflow_policy"]["recommended_toolset"], "reports")
+        self.assertEqual(report_data["workflow_policy"]["recommended_profile"], "offline_fixture_only")
+        self.assertEqual(report_data["steps"][0]["mcp"]["toolset"], "reports")
+        self.assertEqual(report_data["totals"]["estimated_tokens"], 0)
+
+        tracking = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "tracking-workflow",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.workflow_plan",
+                        "arguments": {"name": "tracking-audit", "domain": "US", "asin": "B0D8W1YVBX"},
+                    },
+                }
+            ),
+            env={},
+        )
+        tracking_data = tracking["result"]["structuredContent"]["data"]
+        self.assertEqual(tracking_data["workflow_policy"]["recommended_toolset"], "tracking-readonly")
+        self.assertEqual(tracking_data["workflow_policy"]["recommended_profile"], "tracking_readonly")
+        self.assertEqual(tracking_data["steps"][0]["mcp"]["toolset"], "tracking-readonly")
+        self.assertNotIn("tracking.add", {step["tool"] for step in tracking_data["steps"]})
 
     def test_tools_call_deals_query_returns_deal_research_graph(self):
         response = handle_mcp_message(
@@ -646,6 +685,27 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(payload["workflow_policy"]["recommended_profile"], "dry_run_default")
         self.assertEqual(payload["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
         self.assertEqual(payload["step_summary"][0]["mcp_tool"], "keepa.categories_search")
+
+        tracking_token = base64.urlsafe_b64encode(
+            json.dumps(
+                {"name": "tracking-audit", "domain": "US", "asin": "B0D8W1YVBX"},
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).decode("ascii").rstrip("=")
+        tracking = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "workflow-policy-resource-tracking",
+                    "method": "resources/read",
+                    "params": {"uri": f"keepa://workflow/{tracking_token}/policy"},
+                }
+            ),
+            env={},
+        )
+        tracking_payload = json.loads(tracking["result"]["contents"][0]["text"])
+        self.assertEqual(tracking_payload["workflow_policy"]["recommended_toolset"], "tracking-readonly")
+        self.assertEqual(tracking_payload["step_summary"][0]["mcp_tool"], "keepa.tracking_list")
 
     def test_tool_and_prompt_resources_support_schema_first_agent_discovery(self):
         toolset = handle_mcp_message(

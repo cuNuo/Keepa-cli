@@ -177,6 +177,45 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"], [])
         self.assertEqual(payload["data"]["steps"][1]["execution"]["confirmation_params"], {"yes": True})
 
+    def test_workflow_plan_report_research_is_local_reports_profile(self):
+        payload = run_command(
+            "workflow.plan",
+            {"name": "report-research", "domain": "US", "goal": "deal"},
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        data = payload["data"]
+        self.assertEqual(data["totals"]["estimated_tokens"], 0)
+        self.assertFalse(data["totals"]["requires_confirmation"])
+        self.assertEqual(data["workflow_policy"]["recommended_toolset"], "reports")
+        self.assertEqual(data["workflow_policy"]["recommended_profile"], "offline_fixture_only")
+        self.assertEqual(data["workflow_policy"]["inactive_tools"], [])
+        self.assertIn("keepa.research_graph_merge", data["workflow_policy"]["workflow_tools"])
+        self.assertEqual(data["steps"][0]["mcp"]["toolset"], "reports")
+        self.assertEqual(data["steps"][1]["tool"], "reports.build")
+        self.assertEqual(data["steps"][2]["parallel_group"], "report-outputs")
+        self.assertEqual(data["next_actions"][0]["tool"], "research_graph.merge")
+
+    def test_workflow_plan_tracking_audit_is_readonly_profile(self):
+        payload = run_command(
+            "workflow.plan",
+            {"name": "tracking-audit", "asin": "B0D8W1YVBX", "domain": "US"},
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        data = payload["data"]
+        self.assertEqual(data["workflow_policy"]["recommended_toolset"], "tracking-readonly")
+        self.assertEqual(data["workflow_policy"]["recommended_profile"], "tracking_readonly")
+        self.assertEqual(data["workflow_policy"]["inactive_tools"], [])
+        self.assertEqual(data["workflow_policy"]["confirmation_policy"]["step_ids"], [])
+        self.assertEqual(data["steps"][0]["tool"], "tracking.list")
+        self.assertEqual(data["steps"][0]["mcp"]["toolset"], "tracking-readonly")
+        self.assertEqual(data["steps"][2]["params"]["asin"], "B0D8W1YVBX")
+        self.assertEqual(data["next_actions"][0]["tool"], "tracking.list")
+        self.assertNotIn("tracking.add", {step["tool"] for step in data["steps"]})
+
     def test_cli_workflow_commands_return_json(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             asin_file = Path(temp_dir) / "asins.txt"

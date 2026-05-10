@@ -82,8 +82,8 @@ keepa_cli/
 - `research`：context policy、target resolution、context query、产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、research graph merge、research brief export。
 - `docs`：暴露 `keepa.docs_index`、`keepa.docs_read`、`keepa.context_policy`、`keepa.query_research_context`，用于不支持 `resources/read` 的客户端。
 - `audit`：`keepa.audit_cost`、`keepa.cassettes_sanitize`、`keepa.cassettes_promote`。
-- `reports`：`keepa.reports_build`、`keepa.browse_snapshot`、`keepa.research_brief_export`，只处理本地文件。
-- `tracking-readonly`：`keepa.tracking_list`、`keepa.tracking_list_names`、`keepa.tracking_get`、`keepa.tracking_notifications`。
+- `reports`：`keepa.research_graph_merge`、`keepa.reports_build`、`keepa.browse_snapshot`、`keepa.research_brief_export`，只处理本地文件。
+- `tracking-readonly`：`keepa.tracking_list`、`keepa.tracking_list_names`、`keepa.tracking_get`、`keepa.tracking_notifications`、`keepa.audit_cost`，不暴露 add/remove/webhook。
 - `all`：显式全量发现，用于调试和 schema 生成。
 
 未知 toolset 会返回 JSON-RPC `Invalid toolset`，不静默回退。tracking 写操作仍不暴露给 MCP。
@@ -450,6 +450,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 16. 扩展 Agent eval，断言 graph merge、risk taxonomy、next_actions 可执行性和长链路 budget ledger。（已完成）
 17. 将 session profile 与 `workflow.plan` 联动，输出 recommended profile、inactive tools、profile switch points、确认策略和 budget ledger seed。（已完成）
 18. 落地 `keepa://workflow/{encoded_params}/policy`，让资源优先客户端用 base64url JSON 计划参数读取紧凑 `workflow_policy` 与步骤摘要。（已完成）
+19. 扩展 `workflow.plan` 到 `report-research` 与 `tracking-audit`，让本地报告链路和 tracking-readonly 审计链路也输出 profile/toolset/ledger 策略。（已完成）
 
 ## 迁移风险
 
@@ -468,6 +469,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。（已完成）
 4. session profile 已与 `workflow.plan` 联动：`workflow_policy` 输出 recommended profile、allowed/inactive tools、profile switch points、确认策略、cache policy 和 budget ledger seed。
 5. workflow policy resource template 已完成，资源优先客户端可不加载完整 plan 先读取执行策略。
-6. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
+6. `workflow.plan` 覆盖四类内置计划：`category-research`、`product-research`、`report-research`、`tracking-audit`；其中 report 计划固定走 `reports` + `offline_fixture_only`，tracking 计划固定走 `tracking-readonly` + `tracking_readonly`。
+7. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。

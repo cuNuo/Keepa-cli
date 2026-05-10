@@ -1,0 +1,22 @@
+{
+  "id": "workflow_plan_report_research",
+  "description": "report-research 输出本地 reports toolset/profile 和图谱报告链路，不消耗 Keepa token。",
+  "kind": "service",
+  "command": "workflow.plan",
+  "params": {
+    "name": "report-research",
+    "domain": "US",
+    "goal": "deal"
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.workflow_policy.recommended_toolset", "equals": "reports"},
+    {"path": "data.workflow_policy.recommended_profile", "equals": "offline_fixture_only"},
+    {"path": "data.workflow_policy.inactive_tools", "length": 0},
+    {"path": "data.totals.estimated_tokens", "equals": 0},
+    {"path": "data.steps.0.mcp.toolset", "equals": "reports"},
+    {"path": "data.steps.0.mcp.call.name", "equals": "keepa.research_graph_merge"},
+    {"path": "data.steps.1.tool", "equals": "reports.build"},
+    {"path": "data.next_actions", "next_actions_executable": true}
+  ]
+}

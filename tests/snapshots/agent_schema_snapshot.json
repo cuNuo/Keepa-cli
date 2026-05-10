@@ -2553,6 +2553,8 @@
                   "description": "str",
                   "enum": [
                     "str",
+                    "str",
+                    "str",
                     "str"
                   ],
                   "type": "str"
@@ -2806,6 +2808,7 @@
             "x-keepa": {
               "active": "bool",
               "groups": [
+                "str",
                 "str",
                 "str"
               ],
@@ -3688,6 +3691,7 @@
             "x-keepa": {
               "active": "bool",
               "groups": [
+                "str",
                 "str"
               ],
               "inactive_reason": "null",
@@ -4370,6 +4374,11 @@
                   "description": "str",
                   "type": "str"
                 },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
                 "dry_run": {
                   "default": "bool",
                   "description": "str",
@@ -4487,6 +4496,11 @@
               "properties": {
                 "asins_only": {
                   "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
                   "description": "str",
                   "type": "str"
                 },
@@ -4609,6 +4623,11 @@
                   "description": "str",
                   "type": "str"
                 },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
                 "dry_run": {
                   "default": "bool",
                   "description": "str",
@@ -4723,6 +4742,11 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
                 "dry_run": {
                   "default": "bool",
                   "description": "str",

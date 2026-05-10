@@ -253,6 +253,10 @@ def _step_profile(tool: str, *, requires_confirmation: bool) -> str:
         return "dry_run_default"
     if tool in {"products.get", "products.compare", "sellers.get"}:
         return "live_read_allowed"
+    if tool in {"reports.build", "browse.snapshot", "research_graph.merge", "research_brief.export"}:
+        return "offline_fixture_only"
+    if tool in {"tracking.list", "tracking.list-names", "tracking.get", "tracking.notifications"}:
+        return "tracking_readonly"
     if requires_confirmation:
         return "live_read_allowed"
     return "offline_fixture_only"
@@ -402,8 +406,130 @@ def _product_research_plan(*, asin: str, domain: str, goal: str) -> list[dict[st
     ]
 
 
+def _report_research_plan(*, domain: str, goal: str) -> list[dict[str, Any]]:
+    graph_path = "<MERGED_GRAPH_JSON>"
+    report_path = "<REPORT_MARKDOWN>"
+    browse_dir = "<BROWSE_DIR>"
+    return [
+        _plan_step(
+            step_id="merge-research-graph",
+            title="Merge research graph inputs",
+            action=build_action(
+                tool="research_graph.merge",
+                params={"input": ["<CATEGORY_JSON>", "<COMPARE_JSON>", "<SELLER_JSON>"], "root": f"{goal}-research", "out": graph_path},
+                cli=f"research-graph merge <CATEGORY_JSON> <COMPARE_JSON> <SELLER_JSON> --root {goal}-research --out {graph_path}",
+                reason="combine category, product, deal, and seller evidence into one auditable entity graph",
+                estimated_tokens=0,
+            ),
+        ),
+        _plan_step(
+            step_id="build-graph-report",
+            title="Build graph-backed report",
+            action=build_action(
+                tool="reports.build",
+                params={"input": graph_path, "format": "markdown", "out": report_path, "title": f"Keepa {goal.title()} Research"},
+                cli=f"reports build --input {graph_path} --format markdown --out {report_path} --title \"Keepa {goal.title()} Research\"",
+                reason="turn the merged graph into a human-readable report with entity and relationship sections",
+                estimated_tokens=0,
+            ),
+            depends_on=["merge-research-graph"],
+        ),
+        _plan_step(
+            step_id="export-agent-brief",
+            title="Export Agent research brief",
+            action=build_action(
+                tool="research_brief.export",
+                params={"input": [graph_path], "title": f"Keepa {goal.title()} Research Brief"},
+                cli=f"research-brief export --input {graph_path} --title \"Keepa {goal.title()} Research Brief\"",
+                reason="produce a compact machine-readable handoff from the same evidence graph",
+                estimated_tokens=0,
+            ),
+            depends_on=["merge-research-graph"],
+            parallel_group="report-outputs",
+        ),
+        _plan_step(
+            step_id="build-browse-snapshot",
+            title="Build local browse snapshot",
+            action=build_action(
+                tool="browse.snapshot",
+                params={"input": graph_path, "out_dir": browse_dir, "title": f"Keepa {goal.title()} Browse"},
+                cli=f"browse snapshot --input {graph_path} --out-dir {browse_dir} --title \"Keepa {goal.title()} Browse\"",
+                reason="create a local static HTML view for manual inspection of the research evidence",
+                estimated_tokens=0,
+            ),
+            depends_on=["merge-research-graph"],
+            parallel_group="report-outputs",
+        ),
+    ]
+
+
+def _tracking_audit_plan(*, asin: str | None, domain: str) -> list[dict[str, Any]]:
+    target_asin = asin or "<ASIN>"
+    return [
+        _plan_step(
+            step_id="list-tracking",
+            title="List tracked ASINs",
+            action=build_action(
+                tool="tracking.list",
+                params={"domain": domain, "asins_only": True, "dry_run": True},
+                cli=f"tracking list --domain {domain} --asins-only --dry-run",
+                reason="read the current tracking list shape without exposing tracking write tools",
+            ),
+            fixture_replay="tracking_list.json",
+        ),
+        _plan_step(
+            step_id="read-notifications",
+            title="Read tracking notifications",
+            action=build_action(
+                tool="tracking.notifications",
+                params={"domain": domain, "dry_run": True},
+                cli=f"tracking notifications --domain {domain} --dry-run",
+                reason="inspect notification payload shape before deciding whether alert data is useful",
+            ),
+            depends_on=["list-tracking"],
+            parallel_group="tracking-readonly",
+        ),
+        _plan_step(
+            step_id="get-tracking-detail",
+            title="Read one tracking detail",
+            action=build_action(
+                tool="tracking.get",
+                params={"asin": target_asin, "domain": domain, "dry_run": True},
+                cli=f"tracking get {target_asin} --domain {domain} --dry-run",
+                reason="inspect read-only tracking detail for a selected ASIN from the tracking list",
+            ),
+            depends_on=["list-tracking"],
+            parallel_group="tracking-readonly",
+        ),
+        _plan_step(
+            step_id="audit-tracking-cost",
+            title="Estimate tracking read cost",
+            action=build_action(
+                tool="audit.cost",
+                params={"target_command": "tracking.get", "params": {"asin": target_asin, "domain": domain}},
+                cli=f"audit cost tracking.get --param asin={target_asin} --param domain={domain}",
+                reason="record expected token budget for the read-only tracking detail step",
+                estimated_tokens=0,
+            ),
+            depends_on=["list-tracking"],
+            parallel_group="tracking-readonly",
+        ),
+    ]
+
+
 def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str, Any]) -> dict[str, Any]:
-    recommended_profile = "dry_run_default" if name == "category-research" else "live_read_allowed"
+    if name == "category-research":
+        recommended_toolset = "research"
+        recommended_profile = "dry_run_default"
+    elif name == "report-research":
+        recommended_toolset = "reports"
+        recommended_profile = "offline_fixture_only"
+    elif name == "tracking-audit":
+        recommended_toolset = "tracking-readonly"
+        recommended_profile = "tracking_readonly"
+    else:
+        recommended_toolset = "research"
+        recommended_profile = "live_read_allowed"
     allowed = profile_allowed_tools(recommended_profile)
     workflow_tools = [str(step["mcp"]["tool"]) for step in steps]
     active_tools = [tool for tool in workflow_tools if allowed is None or tool in allowed]
@@ -418,6 +544,7 @@ def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str
     for step in steps:
         mcp_tool = str(step["mcp"]["tool"])
         active_in_recommended = allowed is None or mcp_tool in allowed
+        step["mcp"]["toolset"] = recommended_toolset
         step["mcp"]["recommended_profile"] = recommended_profile
         step["mcp"]["active_in_recommended_profile"] = active_in_recommended
         if not active_in_recommended:
@@ -449,7 +576,7 @@ def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str
             )
 
     return {
-        "recommended_toolset": "research",
+        "recommended_toolset": recommended_toolset,
         "planning_profile": "offline_fixture_only",
         "recommended_profile": recommended_profile,
         "available_profiles": profile_names(),
@@ -482,7 +609,7 @@ def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str
         "tool_discovery": {
             "method": "tools/list",
             "params": {
-                "toolset": "research",
+                "toolset": recommended_toolset,
                 "profile": recommended_profile,
                 "allow_tools": workflow_tools,
             },
@@ -503,8 +630,12 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
         if not asin:
             raise ValueError("workflow plan product-research requires --asin")
         steps = _product_research_plan(asin=asin, domain=domain, goal=goal)
+    elif name == "report-research":
+        steps = _report_research_plan(domain=domain, goal=goal)
+    elif name == "tracking-audit":
+        steps = _tracking_audit_plan(asin=asin, domain=domain)
     else:
-        raise ValueError("workflow plan supports category-research and product-research")
+        raise ValueError("workflow plan supports category-research, product-research, report-research, and tracking-audit")
 
     totals = {
         "estimated_tokens": sum(int(step["estimated_tokens"]) for step in steps),

@@ -1,0 +1,23 @@
+{
+  "id": "workflow_plan_tracking_audit",
+  "description": "tracking-audit 只规划 tracking-readonly 工具，避免 Agent 暴露 tracking 写操作。",
+  "kind": "service",
+  "command": "workflow.plan",
+  "params": {
+    "name": "tracking-audit",
+    "domain": "US",
+    "asin": "B0D8W1YVBX"
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.workflow_policy.recommended_toolset", "equals": "tracking-readonly"},
+    {"path": "data.workflow_policy.recommended_profile", "equals": "tracking_readonly"},
+    {"path": "data.workflow_policy.inactive_tools", "length": 0},
+    {"path": "data.workflow_policy.confirmation_policy.step_ids", "length": 0},
+    {"path": "data.steps.0.mcp.toolset", "equals": "tracking-readonly"},
+    {"path": "data.steps.0.mcp.call.name", "equals": "keepa.tracking_list"},
+    {"path": "data.steps.2.params.asin", "equals": "B0D8W1YVBX"},
+    {"path": "data.steps.0.tool", "not_contains": "tracking.add"},
+    {"path": "data.next_actions", "next_actions_executable": true}
+  ]
+}
