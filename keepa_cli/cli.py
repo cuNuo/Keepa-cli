@@ -81,7 +81,8 @@ def _build_parser() -> argparse.ArgumentParser:
     products_get.add_argument("asin", nargs="*", help="一个或多个 ASIN。")
     products_get.add_argument("--code", action="append", default=[], help="UPC、EAN 或 ISBN-13，可重复。")
     products_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_get.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=180、videos=1、aplus=1。")
+    products_get.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=0、videos=1、aplus=1。")
+    products_get.add_argument("--stats-window", default="0", help="--full 使用的 stats 天数窗口；0 表示全历史/最大窗口。")
     products_get.add_argument("--history", help="0 表示排除历史字段，1 表示包含。")
     products_get.add_argument("--stats", help="统计窗口，例如 90 或日期区间。")
     products_get.add_argument("--days", help="限制历史数据天数，降低响应体大小。")
@@ -104,6 +105,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     products_get.add_argument("--fields", help="逗号分隔 Agent 视图字段，例如 identity,pricing,demand,rating。")
     products_get.add_argument("--history-limit", type=int, default=10, help="Agent 视图中每个历史序列保留的最近点数。")
+    products_get.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
     products_get.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
     products_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     products_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
@@ -111,10 +113,12 @@ def _build_parser() -> argparse.ArgumentParser:
     products_compare = products_subparsers.add_parser("compare", help="横向对比一个或多个 ASIN 的 Agent-safe 选品字段。")
     products_compare.add_argument("asin", nargs="+", help="一个或多个 ASIN。")
     products_compare.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_compare.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=180、videos=1、aplus=1。")
+    products_compare.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=0、videos=1、aplus=1。")
+    products_compare.add_argument("--stats-window", default="0", help="--full 使用的 stats 天数窗口；0 表示全历史/最大窗口。")
     products_compare.add_argument("--view", choices=("summary", "research", "deal", "audit"), default="deal", help="对比前使用的 Agent profile。")
     products_compare.add_argument("--fields", help="逗号分隔 Agent 视图字段。")
     products_compare.add_argument("--history-limit", type=int, default=5, help="每个历史序列保留的最近点数。")
+    products_compare.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
     products_compare.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
     products_compare.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     products_compare.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
@@ -382,6 +386,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "code": args.code,
                 "domain": args.domain,
                 "full": bool(args.full),
+                "stats_window": args.stats_window,
                 "history": args.history,
                 "stats": args.stats,
                 "days": args.days,
@@ -399,6 +404,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "view": args.view,
                 "fields": args.fields,
                 "history_limit": args.history_limit,
+                "temporal_windows": args.temporal_window_days,
                 "chunks_dir": args.chunks_dir,
                 "fixture": args.fixture,
                 "out": args.out,
@@ -414,9 +420,11 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "asin": args.asin,
                 "domain": args.domain,
                 "full": bool(args.full),
+                "stats_window": args.stats_window,
                 "view": args.view,
                 "fields": args.fields,
                 "history_limit": args.history_limit,
+                "temporal_windows": args.temporal_window_days,
                 "offers": args.offers,
                 "fixture": args.fixture,
                 "out": args.out,

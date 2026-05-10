@@ -154,7 +154,7 @@ class CliTests(unittest.TestCase):
         params = payload["request"]["params_redacted"]
         self.assertTrue(payload["ok"])
         self.assertEqual(params["history"], "1")
-        self.assertEqual(params["stats"], "180")
+        self.assertEqual(params["stats"], "0")
         self.assertEqual(params["videos"], "1")
         self.assertEqual(params["aplus"], "1")
         self.assertEqual(params["days"], "365")

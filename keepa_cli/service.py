@@ -71,7 +71,8 @@ def _bool_option(params: Mapping[str, Any], *names: str) -> bool:
 def _product_query_options(params: Mapping[str, Any]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     if _bool_option(params, "full", "full_detail", "full-detail"):
-        result.update({"history": "1", "stats": "180", "videos": "1", "aplus": "1"})
+        stats_window = _param(params, "stats_window", "stats-window", default="0")
+        result.update({"history": "1", "stats": str(stats_window), "videos": "1", "aplus": "1"})
 
     for canonical in (
         "stats",
@@ -136,6 +137,7 @@ def _product_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
             data = build_agent_product_view(
                 data,
                 history_limit=history_limit,
+                temporal_windows=_param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
                 view_profile=view,
                 fields=_param(params, "fields"),
                 chunks_dir=_param(params, "chunks_dir", "chunks-dir"),
@@ -179,6 +181,7 @@ def _products_compare(params: Mapping[str, Any], fixture_dir: Path | str | None)
         agent_view = build_agent_product_view(
             data,
             history_limit=history_limit,
+            temporal_windows=_param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
             view_profile=str(_param(params, "view") or "deal"),
             fields=_param(params, "fields"),
             chunks_dir=_param(params, "chunks_dir", "chunks-dir"),

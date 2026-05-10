@@ -116,7 +116,7 @@ kc --json history trend B001GZ6QEC --series amazon --fixture product_history_B00
 kc --json tokens status --fixture token_status.json
 ```
 
-For a single-ASIN live product detail request, prefer the low-cost full preset. It asks Keepa for history, 180-day stats, videos, and A+ metadata without enabling offer-page collection or the extra `rating=1` refresh:
+For a single-ASIN live product detail request, prefer the low-cost full preset. It asks Keepa for history, max-window stats (`stats=0`), videos, and A+ metadata without enabling offer-page collection or the extra `rating=1` refresh:
 
 ```powershell
 kc --json products get B001GZ6QEC --domain US --full
@@ -143,7 +143,7 @@ kc --json products get B001GZ6QEC --domain US --full --agent-view --view deal --
 kc --json products compare B001GZ6QEC B08N5WRWNW --domain US --full --view deal
 ```
 
-Agent profiles are `summary`, `research`, `deal`, and `audit`. Product views include `data_quality`, `next_actions`, `temporal_features`, and `selection_signals` so downstream Agents can inspect history-derived trend, window change, volatility, and stability features without parsing raw Keepa `csv`.
+Agent profiles are `summary`, `research`, `deal`, and `audit`. Product views include `data_quality`, `next_actions`, `temporal_features`, and `selection_signals` so downstream Agents can inspect history-derived trend, configurable window changes, robust dispersion, outlier, momentum, drawdown, and stability features without parsing raw Keepa `csv`.
 
 Token budgets include component-level hints. Product requests start at `1 token * product count`; explicit `--rating` and `--buybox` are budgeted as additional product-level costs, `--offers` is budgeted as Keepa offer pages (`6 tokens * ceil(offers / 10) * product count`), and `--update 0` is tracked as a worst-case live refresh.
 
@@ -151,6 +151,7 @@ Use explicit flags when you need tighter history windows or specialized fields:
 
 ```powershell
 kc --json products get B001GZ6QEC --domain US --history 1 --stats 180 --videos 1 --aplus 1 --days 365 --dry-run
+kc --json products get B001GZ6QEC --domain US --full --stats-window 365 --temporal-window-days 30 --temporal-window-days 180,365 --agent-view
 ```
 
 Use dry-run for high-cost requests:

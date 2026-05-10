@@ -15,7 +15,9 @@ from typing import Any
 from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
-PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.3"
+PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.5"
+
+DEFAULT_TEMPORAL_WINDOWS = (7, 30, 90, 180, 365)
 
 TEMPORAL_FEATURE_SERIES = (
     "amazon",
@@ -122,6 +124,7 @@ def build_agent_product_view(
     data: Mapping[str, Any],
     *,
     history_limit: int = 10,
+    temporal_windows: Any = None,
     media_limit: int = 5,
     view_profile: str = "research",
     fields: Any = None,
@@ -133,6 +136,7 @@ def build_agent_product_view(
     product_items = products if isinstance(products, list) else []
     normalized_profile = _normalize_profile(view_profile)
     normalized_fields = _normalize_fields(fields)
+    normalized_windows = _normalize_temporal_windows(temporal_windows)
     raw: dict[str, Any] = {
         "body_omitted": True,
         "offline": bool(data.get("offline")),
@@ -151,6 +155,7 @@ def build_agent_product_view(
             _product_to_agent_view(
                 product,
                 history_limit=max(0, history_limit),
+                temporal_windows=normalized_windows,
                 media_limit=max(1, media_limit),
                 view_profile=normalized_profile,
                 fields=normalized_fields,
@@ -264,6 +269,7 @@ def _product_to_agent_view(
     product: Mapping[str, Any],
     *,
     history_limit: int,
+    temporal_windows: tuple[int, ...],
     media_limit: int,
     view_profile: str,
     fields: list[str],
@@ -286,7 +292,7 @@ def _product_to_agent_view(
         "history_summary": _history_summary(product, history_limit),
         "raw_field_presence": _raw_field_presence(product),
     }
-    result["temporal_features"] = _temporal_features(product)
+    result["temporal_features"] = _temporal_features(product, windows=temporal_windows)
     result["data_quality"] = _data_quality(product, result)
     result["next_actions"] = _next_actions(result)
     result["selection_signals"] = _selection_signals(result)
@@ -614,7 +620,7 @@ def _history_summary(product: Mapping[str, Any], history_limit: int) -> dict[str
     )
 
 
-def _temporal_features(product: Mapping[str, Any]) -> dict[str, Any]:
+def _temporal_features(product: Mapping[str, Any], *, windows: tuple[int, ...]) -> dict[str, Any]:
     csv_history = product.get("csv")
     if not isinstance(csv_history, list):
         return {"available": False}
@@ -632,7 +638,7 @@ def _temporal_features(product: Mapping[str, Any]) -> dict[str, Any]:
         points, warning = _parse_csv_points(raw_values, meta)
         if warning:
             warnings.append(warning)
-        features = _series_temporal_features(name=name, unit=str(meta["unit"]), points=points)
+        features = _series_temporal_features(name=name, unit=str(meta["unit"]), points=points, windows=windows)
         if features:
             series[name] = features
     if not series:
@@ -641,13 +647,20 @@ def _temporal_features(product: Mapping[str, Any]) -> dict[str, Any]:
         {
             "available": bool(series),
             "series_count": len(series),
+            "windows_days": list(windows),
             "series": series,
             "warnings": warnings,
         }
     )
 
 
-def _series_temporal_features(*, name: str, unit: str, points: list[dict[str, Any]]) -> dict[str, Any]:
+def _series_temporal_features(
+    *,
+    name: str,
+    unit: str,
+    points: list[dict[str, Any]],
+    windows: tuple[int, ...],
+) -> dict[str, Any]:
     points = _numeric_points(points)
     if len(points) < 2:
         return {}
@@ -662,14 +675,19 @@ def _series_temporal_features(*, name: str, unit: str, points: list[dict[str, An
     min_value = min(values)
     max_value = max(values)
     volatility = _coefficient_of_variation(values)
-    recent_30d = _window_change(points, days=30)
-    recent_90d = _window_change(points, days=90)
+    deltas = [values[index] - values[index - 1] for index in range(1, len(values))]
+    window_features = {
+        f"recent_{days}d": window
+        for days in windows
+        if (window := _window_change(points, days=days)) is not None
+    }
     return _compact(
         {
             "unit": unit,
             "name": name,
             "point_count": len(points),
             "duration_days": round(duration_days, 3),
+            "sampling": _sampling_features(keepa_minutes),
             "first_value": _round_metric(float(first["value"])),
             "latest_value": _round_metric(float(latest["value"])),
             "previous_value": _round_metric(float(points[-2]["value"])),
@@ -682,11 +700,18 @@ def _series_temporal_features(*, name: str, unit: str, points: list[dict[str, An
             "range_abs": _round_metric(max_value - min_value),
             "range_pct_of_mean": _ratio_pct(max_value - min_value, mean_value),
             "mean_value": _round_metric(mean_value),
+            "median_value": _round_metric(_percentile(values, 0.5)),
+            "latest_percentile": _latest_percentile(values),
+            "latest_zscore": _zscore(values, float(latest["value"])),
             "volatility_cv": volatility,
+            "dispersion": _dispersion_features(values),
+            "change_profile": _change_profile(deltas),
+            "outliers": _outlier_features(values),
+            "shape": _shape_features(values),
             "trend_direction": _trend_direction(change),
             "slope_per_day": _slope_per_day(change, duration_days),
-            "recent_30d": recent_30d,
-            "recent_90d": recent_90d,
+            "windows": window_features,
+            **window_features,
         }
     )
 
@@ -746,6 +771,164 @@ def _coefficient_of_variation(values: list[float]) -> float | None:
         return None
     variance = sum((value - mean_value) ** 2 for value in values) / len(values)
     return round((variance**0.5) / abs(mean_value), 4)
+
+
+def _sampling_features(keepa_minutes: list[int]) -> dict[str, Any]:
+    if len(keepa_minutes) < 2:
+        return {}
+    intervals = [(keepa_minutes[index] - keepa_minutes[index - 1]) / 1440 for index in range(1, len(keepa_minutes))]
+    duration_days = max(0.0, (keepa_minutes[-1] - keepa_minutes[0]) / 1440)
+    return _compact(
+        {
+            "avg_interval_days": _round_metric(sum(intervals) / len(intervals)),
+            "median_interval_days": _round_metric(_percentile(intervals, 0.5)),
+            "max_gap_days": _round_metric(max(intervals)),
+            "points_per_30d": _round_metric((len(keepa_minutes) / duration_days) * 30) if duration_days > 0 else None,
+        }
+    )
+
+
+def _dispersion_features(values: list[float]) -> dict[str, Any]:
+    if not values:
+        return {}
+    q1 = _percentile(values, 0.25)
+    median = _percentile(values, 0.5)
+    q3 = _percentile(values, 0.75)
+    absolute_deviations = [abs(value - median) for value in values]
+    mad = _percentile(absolute_deviations, 0.5)
+    return _compact(
+        {
+            "q1": _round_metric(q1),
+            "median": _round_metric(median),
+            "q3": _round_metric(q3),
+            "iqr": _round_metric(q3 - q1),
+            "mad": _round_metric(mad),
+        }
+    )
+
+
+def _change_profile(deltas: list[float]) -> dict[str, Any]:
+    if not deltas:
+        return {}
+    up = len([delta for delta in deltas if delta > 0])
+    down = len([delta for delta in deltas if delta < 0])
+    flat = len(deltas) - up - down
+    abs_deltas = [abs(delta) for delta in deltas]
+    return _compact(
+        {
+            "up_steps": up,
+            "down_steps": down,
+            "flat_steps": flat,
+            "direction_change_count": _direction_change_count(deltas),
+            "avg_abs_step": _round_metric(sum(abs_deltas) / len(abs_deltas)),
+            "max_abs_step": _round_metric(max(abs_deltas)),
+            "last_step": _round_metric(deltas[-1]),
+        }
+    )
+
+
+def _outlier_features(values: list[float]) -> dict[str, Any]:
+    if len(values) < 4:
+        return {}
+    median = _percentile(values, 0.5)
+    deviations = [abs(value - median) for value in values]
+    mad = _percentile(deviations, 0.5)
+    if mad == 0:
+        return {"method": "mad", "count": 0}
+    threshold = 3 * 1.4826 * mad
+    indexes = [index for index, value in enumerate(values) if abs(value - median) > threshold]
+    return _compact(
+        {
+            "method": "mad",
+            "threshold": _round_metric(threshold),
+            "count": len(indexes),
+            "ratio": _round_metric(len(indexes) / len(values)),
+        }
+    )
+
+
+def _shape_features(values: list[float]) -> dict[str, Any]:
+    if len(values) < 2:
+        return {}
+    latest = values[-1]
+    max_drawdown = 0.0
+    peak = values[0]
+    for value in values:
+        peak = max(peak, value)
+        max_drawdown = min(max_drawdown, value - peak)
+    max_runup = 0.0
+    trough = values[0]
+    for value in values:
+        trough = min(trough, value)
+        max_runup = max(max_runup, value - trough)
+    return _compact(
+        {
+            "latest_vs_min_pct": _pct_change(min(values), latest),
+            "latest_vs_max_pct": _pct_change(max(values), latest),
+            "max_drawdown_abs": _round_metric(max_drawdown),
+            "max_runup_abs": _round_metric(max_runup),
+            "longest_up_streak": _longest_streak(values, direction="up"),
+            "longest_down_streak": _longest_streak(values, direction="down"),
+        }
+    )
+
+
+def _direction_change_count(deltas: list[float]) -> int:
+    previous = 0
+    count = 0
+    for delta in deltas:
+        current = 1 if delta > 0 else -1 if delta < 0 else 0
+        if current == 0:
+            continue
+        if previous and current != previous:
+            count += 1
+        previous = current
+    return count
+
+
+def _longest_streak(values: list[float], *, direction: str) -> int:
+    longest = 0
+    current = 0
+    for index in range(1, len(values)):
+        delta = values[index] - values[index - 1]
+        matches = delta > 0 if direction == "up" else delta < 0
+        if matches:
+            current += 1
+            longest = max(longest, current)
+        else:
+            current = 0
+    return longest
+
+
+def _percentile(values: list[float], ratio: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return ordered[0]
+    position = (len(ordered) - 1) * ratio
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    fraction = position - lower
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * fraction
+
+
+def _latest_percentile(values: list[float]) -> float | None:
+    if not values:
+        return None
+    latest = values[-1]
+    below_or_equal = len([value for value in values if value <= latest])
+    return _round_metric(below_or_equal / len(values))
+
+
+def _zscore(values: list[float], value: float) -> float | None:
+    if len(values) < 2:
+        return None
+    mean_value = sum(values) / len(values)
+    variance = sum((item - mean_value) ** 2 for item in values) / len(values)
+    if variance == 0:
+        return None
+    return _round_metric((value - mean_value) / (variance**0.5))
 
 
 def _pct_change(first: float, latest: float) -> float | None:
@@ -1206,6 +1389,28 @@ def _normalize_fields(value: Any) -> list[str]:
     else:
         raw_items = [str(value)]
     return [item.strip() for item in raw_items if item.strip()]
+
+
+def _normalize_temporal_windows(value: Any) -> tuple[int, ...]:
+    if value in (None, ""):
+        return DEFAULT_TEMPORAL_WINDOWS
+    if isinstance(value, str):
+        raw_items = value.split(",")
+    elif isinstance(value, (list, tuple, set)):
+        raw_items = []
+        for item in value:
+            raw_items.extend(str(item).split(","))
+    else:
+        raw_items = [str(value)]
+    windows: list[int] = []
+    for item in raw_items:
+        try:
+            days = int(str(item).strip())
+        except ValueError:
+            continue
+        if days > 0:
+            windows.append(days)
+    return tuple(sorted(set(windows))) or DEFAULT_TEMPORAL_WINDOWS
 
 
 def _plain_value(value: Any) -> Any:

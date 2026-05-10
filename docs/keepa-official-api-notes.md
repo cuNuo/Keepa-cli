@@ -48,7 +48,7 @@
 - ASIN 批量为逗号分隔，最多 100。
 - `code` 支持 UPC、EAN 和 ISBN-13，批量最多 100；多个 ASIN 可能匹配同一个 code。
 - `history=0` 可排除历史字段，降低响应体大小。
-- `stats` 无额外 token 成本。
+- `stats` 无额外 token 成本；`--full` 默认使用 `stats=0` 作为全历史/最大 stats 窗口，调用方可用 `--stats-window <days>` 收窄。
 - `videos=1`、`aplus=1` 可在单次产品请求中补媒体与 A+ 信息；本项目的 `--full` 预设默认开启。
 - `rating=1` 不属于本项目 `--full` 默认项；若 Agent 可从网页获取评分，优先不消耗 Keepa 额外刷新成本。
 - `days` 可限制返回历史窗口，适合在保留 `history=1` 时控制响应体大小。

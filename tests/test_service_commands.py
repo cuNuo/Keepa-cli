@@ -49,12 +49,38 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         params = payload["request"]["params_redacted"]
         self.assertEqual(params["history"], "1")
-        self.assertEqual(params["stats"], "180")
+        self.assertEqual(params["stats"], "0")
         self.assertEqual(params["videos"], "1")
         self.assertEqual(params["aplus"], "1")
         self.assertNotIn("rating", params)
         self.assertNotIn("offers", params)
         self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 1)
+
+    def test_products_get_full_preset_allows_custom_stats_and_temporal_windows(self):
+        payload = run_command(
+            "products.get",
+            {
+                "asin": ["B0TESTAGENT"],
+                "domain": "US",
+                "full": True,
+                "stats_window": "365",
+                "fixture": "product_agent_view_B0TEST.json",
+                "agent_view": True,
+                "temporal_windows": ["30,180", "365"],
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["request"]["params_redacted"]["stats"], "365")
+        temporal = payload["data"]["products"][0]["temporal_features"]
+        self.assertEqual(temporal["windows_days"], [30, 180, 365])
+        new_features = temporal["series"]["new"]
+        self.assertIn("recent_180d", new_features["windows"])
+        self.assertIn("dispersion", new_features)
+        self.assertIn("change_profile", new_features)
+        self.assertIn("shape", new_features)
 
     def test_products_get_rejects_asin_and_code_together(self):
         payload = run_command(

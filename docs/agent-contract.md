@@ -157,7 +157,7 @@ kc = "keepa_cli.cli:main"
 .\.venv\Scripts\python.exe -m keepa_cli --json products search "coffee grinder" --domain US --fixture product_search_coffee.json
 ```
 
-`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`--full` 是低成本完整详情预设，会请求 `history=1`、`stats=180`、`videos=1`、`aplus=1`，不自动开启 `offers` 或额外 `rating=1`；Agent 可优先从网页侧补 rating，只有确实需要 Keepa 刷新评分时再显式传 `--rating 1`。CLI 也显式支持 `--days`、`--rating`、`--buybox`、`--stock`、`--historical-variations`、`--code-limit`、`--only-live-offers` 等官方 Product Request 参数。完整响应可能很大，`products.get` 支持 `--out` 把 body 写入 JSON 文件。`--agent-view` 或非 raw `--view` 会把 Product Object 转成稳定 Agent 视图：保留 identity、category、pricing、demand、rating、offers、media、aplus、content、logistics、stats_summary、history_summary 与 raw/output provenance，省略原始 `body.products[].csv` 大数组；`--history-limit` 控制每个历史序列的最近点数量。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
+`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`--full` 是低成本完整详情预设，会请求 `history=1`、`stats=0`、`videos=1`、`aplus=1`，其中 `stats=0` 用作全历史/最大 stats 窗口；可用 `--stats-window <days>` 覆盖。`--full` 不自动开启 `offers` 或额外 `rating=1`；Agent 可优先从网页侧补 rating，只有确实需要 Keepa 刷新评分时再显式传 `--rating 1`。CLI 也显式支持 `--days`、`--rating`、`--buybox`、`--stock`、`--historical-variations`、`--code-limit`、`--only-live-offers` 等官方 Product Request 参数。完整响应可能很大，`products.get` 支持 `--out` 把 body 写入 JSON 文件。`--agent-view` 或非 raw `--view` 会把 Product Object 转成稳定 Agent 视图：保留 identity、category、pricing、demand、rating、offers、media、aplus、content、logistics、stats_summary、history_summary 与 raw/output provenance，省略原始 `body.products[].csv` 大数组；`--history-limit` 控制每个历史序列的最近点数量，`--temporal-window-days` 控制 Agent 时序特征窗口。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
 
 产品预算会在 `token_bucket.estimated.components` 中拆分来源：`base_product=1 token * product count`；显式 `--rating`、`--buybox` 各按产品级附加成本估算；`--offers` 按官方 offer page 计费估算，即 `6 tokens * ceil(offers / 10) * product count`，并会触发显式确认；`--update 0` 记录为 worst-case live refresh，每个产品最多额外 1 token。`stats/history/days/videos/aplus` 只改变返回体形状，不作为额外 token 成本计入。
 
@@ -170,7 +170,7 @@ Agent 视图 profile：
 - `deal`：选品/交易视图，聚焦价格、rank、coupon、monthlySold、offer、Buy Box、媒体与 A+。
 - `audit`：审计视图，聚焦 provenance、缺失字段、schema notes 与 raw field presence。
 
-`temporal_features` 从 `history_summary.series` 直接计算 Agent 可消费的时序特征，覆盖 `new`、`sales_rank`、`buy_box_shipping`、`new_fba`、`new_offer_count`、`new_fba_offer_count`、`rating`、`review_count` 等常用序列。每个序列包含首末变化、上一点变化、30/90 天窗口变化、均值、极值、range、波动系数、斜率和趋势方向。
+`temporal_features` 从原始 `csv` 全量序列直接计算 Agent 可消费的时序特征，覆盖 `new`、`sales_rank`、`buy_box_shipping`、`new_fba`、`new_offer_count`、`new_fba_offer_count`、`rating`、`review_count` 等常用序列。默认窗口为 7/30/90/180/365 天，也可用 `--temporal-window-days` 重复指定或传逗号列表。每个序列包含首末变化、上一点变化、多窗口变化、均值、极值、range、波动系数、斜率、采样密度、分位数、最新 z-score、IQR/MAD、方向变化、离群点、最大回撤/反弹、最长上升/下降段和趋势方向。
 
 `--fields` 会覆盖 profile，只返回指定 product section；`--chunks-dir` 会把 identity、pricing、demand、rating、offers、media、aplus、selection_signals、history_summary、temporal_features 等 section 写成独立 JSON chunk，并在 `data.chunks` 返回路径。每个 product 都会包含 `data_quality`、`next_actions`、`temporal_features` 和 `selection_signals`，用于 Agent 判断是否需要补 `--offers 20`、`--rating 1`、`--aplus 1` 或 `--history 1`。
 

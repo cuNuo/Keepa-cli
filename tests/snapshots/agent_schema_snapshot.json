@@ -1256,11 +1256,29 @@
               "buy_box_shipping": {
                 "change_abs": "float",
                 "change_pct": "float",
+                "change_profile": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
+                "dispersion": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "median": "float",
+                  "q1": "float",
+                  "q3": "float"
+                },
                 "duration_days": "float",
                 "first_value": "float",
+                "latest_percentile": "float",
                 "latest_value": "float",
                 "max_value": "float",
                 "mean_value": "float",
+                "median_value": "float",
                 "min_value": "float",
                 "name": "str",
                 "point_count": "int",
@@ -1269,7 +1287,37 @@
                 "previous_value": "float",
                 "range_abs": "float",
                 "range_pct_of_mean": "float",
+                "recent_180d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
                 "recent_30d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_365d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_7d": {
                   "baseline_timestamp": "str",
                   "baseline_value": "float",
                   "change_abs": "float",
@@ -1289,19 +1337,104 @@
                   "observed_days": "float",
                   "trend_direction": "str"
                 },
+                "sampling": {
+                  "avg_interval_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "points_per_30d": "float"
+                },
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
                 "slope_per_day": "float",
                 "trend_direction": "str",
                 "unit": "str",
-                "volatility_cv": "float"
+                "volatility_cv": "float",
+                "windows": {
+                  "recent_180d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_30d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_365d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_7d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_90d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  }
+                }
               },
               "new": {
                 "change_abs": "float",
                 "change_pct": "float",
+                "change_profile": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
+                "dispersion": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "median": "float",
+                  "q1": "float",
+                  "q3": "float"
+                },
                 "duration_days": "float",
                 "first_value": "float",
+                "latest_percentile": "float",
                 "latest_value": "float",
+                "latest_zscore": "float",
                 "max_value": "float",
                 "mean_value": "float",
+                "median_value": "float",
                 "min_value": "float",
                 "name": "str",
                 "point_count": "int",
@@ -1310,7 +1443,37 @@
                 "previous_value": "float",
                 "range_abs": "float",
                 "range_pct_of_mean": "float",
+                "recent_180d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
                 "recent_30d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_365d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_7d": {
                   "baseline_timestamp": "str",
                   "baseline_value": "float",
                   "change_abs": "float",
@@ -1330,19 +1493,104 @@
                   "observed_days": "float",
                   "trend_direction": "str"
                 },
+                "sampling": {
+                  "avg_interval_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "points_per_30d": "float"
+                },
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
                 "slope_per_day": "float",
                 "trend_direction": "str",
                 "unit": "str",
-                "volatility_cv": "float"
+                "volatility_cv": "float",
+                "windows": {
+                  "recent_180d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_30d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_365d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_7d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_90d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  }
+                }
               },
               "new_offer_count": {
                 "change_abs": "float",
                 "change_pct": "float",
+                "change_profile": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
+                "dispersion": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "median": "float",
+                  "q1": "float",
+                  "q3": "float"
+                },
                 "duration_days": "float",
                 "first_value": "float",
+                "latest_percentile": "float",
                 "latest_value": "float",
+                "latest_zscore": "float",
                 "max_value": "float",
                 "mean_value": "float",
+                "median_value": "float",
                 "min_value": "float",
                 "name": "str",
                 "point_count": "int",
@@ -1351,7 +1599,37 @@
                 "previous_value": "float",
                 "range_abs": "float",
                 "range_pct_of_mean": "float",
+                "recent_180d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
                 "recent_30d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_365d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_7d": {
                   "baseline_timestamp": "str",
                   "baseline_value": "float",
                   "change_abs": "float",
@@ -1371,19 +1649,104 @@
                   "observed_days": "float",
                   "trend_direction": "str"
                 },
+                "sampling": {
+                  "avg_interval_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "points_per_30d": "float"
+                },
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
                 "slope_per_day": "float",
                 "trend_direction": "str",
                 "unit": "str",
-                "volatility_cv": "float"
+                "volatility_cv": "float",
+                "windows": {
+                  "recent_180d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_30d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_365d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_7d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_90d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  }
+                }
               },
               "rating": {
                 "change_abs": "float",
                 "change_pct": "float",
+                "change_profile": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
+                "dispersion": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "median": "float",
+                  "q1": "float",
+                  "q3": "float"
+                },
                 "duration_days": "float",
                 "first_value": "float",
+                "latest_percentile": "float",
                 "latest_value": "float",
+                "latest_zscore": "float",
                 "max_value": "float",
                 "mean_value": "float",
+                "median_value": "float",
                 "min_value": "float",
                 "name": "str",
                 "point_count": "int",
@@ -1392,7 +1755,37 @@
                 "previous_value": "float",
                 "range_abs": "float",
                 "range_pct_of_mean": "float",
+                "recent_180d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
                 "recent_30d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_365d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_7d": {
                   "baseline_timestamp": "str",
                   "baseline_value": "float",
                   "change_abs": "float",
@@ -1412,19 +1805,104 @@
                   "observed_days": "float",
                   "trend_direction": "str"
                 },
+                "sampling": {
+                  "avg_interval_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "points_per_30d": "float"
+                },
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
                 "slope_per_day": "float",
                 "trend_direction": "str",
                 "unit": "str",
-                "volatility_cv": "float"
+                "volatility_cv": "float",
+                "windows": {
+                  "recent_180d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_30d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_365d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_7d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_90d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  }
+                }
               },
               "review_count": {
                 "change_abs": "float",
                 "change_pct": "float",
+                "change_profile": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
+                "dispersion": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "median": "float",
+                  "q1": "float",
+                  "q3": "float"
+                },
                 "duration_days": "float",
                 "first_value": "float",
+                "latest_percentile": "float",
                 "latest_value": "float",
+                "latest_zscore": "float",
                 "max_value": "float",
                 "mean_value": "float",
+                "median_value": "float",
                 "min_value": "float",
                 "name": "str",
                 "point_count": "int",
@@ -1433,7 +1911,37 @@
                 "previous_value": "float",
                 "range_abs": "float",
                 "range_pct_of_mean": "float",
+                "recent_180d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
                 "recent_30d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_365d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_7d": {
                   "baseline_timestamp": "str",
                   "baseline_value": "float",
                   "change_abs": "float",
@@ -1453,19 +1961,104 @@
                   "observed_days": "float",
                   "trend_direction": "str"
                 },
+                "sampling": {
+                  "avg_interval_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "points_per_30d": "float"
+                },
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
                 "slope_per_day": "float",
                 "trend_direction": "str",
                 "unit": "str",
-                "volatility_cv": "float"
+                "volatility_cv": "float",
+                "windows": {
+                  "recent_180d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_30d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_365d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_7d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_90d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  }
+                }
               },
               "sales_rank": {
                 "change_abs": "float",
                 "change_pct": "float",
+                "change_profile": {
+                  "avg_abs_step": "float",
+                  "direction_change_count": "int",
+                  "down_steps": "int",
+                  "flat_steps": "int",
+                  "last_step": "float",
+                  "max_abs_step": "float",
+                  "up_steps": "int"
+                },
+                "dispersion": {
+                  "iqr": "float",
+                  "mad": "float",
+                  "median": "float",
+                  "q1": "float",
+                  "q3": "float"
+                },
                 "duration_days": "float",
                 "first_value": "float",
+                "latest_percentile": "float",
                 "latest_value": "float",
+                "latest_zscore": "float",
                 "max_value": "float",
                 "mean_value": "float",
+                "median_value": "float",
                 "min_value": "float",
                 "name": "str",
                 "point_count": "int",
@@ -1474,7 +2067,37 @@
                 "previous_value": "float",
                 "range_abs": "float",
                 "range_pct_of_mean": "float",
+                "recent_180d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
                 "recent_30d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_365d": {
+                  "baseline_timestamp": "str",
+                  "baseline_value": "float",
+                  "change_abs": "float",
+                  "change_pct": "float",
+                  "latest_timestamp": "str",
+                  "latest_value": "float",
+                  "observed_days": "float",
+                  "trend_direction": "str"
+                },
+                "recent_7d": {
                   "baseline_timestamp": "str",
                   "baseline_value": "float",
                   "change_abs": "float",
@@ -1494,13 +2117,86 @@
                   "observed_days": "float",
                   "trend_direction": "str"
                 },
+                "sampling": {
+                  "avg_interval_days": "float",
+                  "max_gap_days": "float",
+                  "median_interval_days": "float",
+                  "points_per_30d": "float"
+                },
+                "shape": {
+                  "latest_vs_max_pct": "float",
+                  "latest_vs_min_pct": "float",
+                  "longest_down_streak": "int",
+                  "longest_up_streak": "int",
+                  "max_drawdown_abs": "float",
+                  "max_runup_abs": "float"
+                },
                 "slope_per_day": "float",
                 "trend_direction": "str",
                 "unit": "str",
-                "volatility_cv": "float"
+                "volatility_cv": "float",
+                "windows": {
+                  "recent_180d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_30d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_365d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_7d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  },
+                  "recent_90d": {
+                    "baseline_timestamp": "str",
+                    "baseline_value": "float",
+                    "change_abs": "float",
+                    "change_pct": "float",
+                    "latest_timestamp": "str",
+                    "latest_value": "float",
+                    "observed_days": "float",
+                    "trend_direction": "str"
+                  }
+                }
               }
             },
-            "series_count": "int"
+            "series_count": "int",
+            "windows_days": [
+              "int",
+              "int",
+              "int",
+              "int",
+              "int"
+            ]
           }
         }
       ],
