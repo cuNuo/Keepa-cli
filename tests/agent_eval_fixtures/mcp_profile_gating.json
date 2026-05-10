@@ -1,0 +1,16 @@
+{
+  "id": "mcp_profile_gating",
+  "description": "MCP tools/list 可按 profile 标记 inactive tool，避免调研 Agent 在离线阶段误调用 live-capable 工具。",
+  "kind": "mcp",
+  "method": "tools/list",
+  "params": {
+    "toolset": "all",
+    "profile": "offline_fixture_only"
+  },
+  "assertions": [
+    {"path": "result.profile", "equals": "offline_fixture_only"},
+    {"path": "result.available_profiles", "contains": "offline_fixture_only"},
+    {"path": "result.tools", "contains_item": {"name": "keepa.products_get"}},
+    {"path": "result.tools", "contains_item": {"name": "keepa.context_policy"}}
+  ]
+}

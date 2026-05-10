@@ -88,7 +88,9 @@ keepa_cli/
 
 未知 toolset 会返回 JSON-RPC `Invalid toolset`，不静默回退。tracking 写操作仍不暴露给 MCP。
 
-`tools/list.params.allow_tools` 与 `tools/list.params.exclude_tools` 可进一步收窄单次发现面。调研 Agent 建议先只暴露 `keepa.context_policy`、`keepa.resolve_research_target`、`keepa.query_research_context`、`keepa.workflow_plan`，确认目标和预算后再放开具体产品、类目、deals 或 seller 工具。
+`tools/list.params.allow_tools` 与 `tools/list.params.exclude_tools` 可进一步收窄单次发现面。`tools/list.params.profile` 支持 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`；被 profile 禁用的工具会在 `x-keepa.active=false` 标注，若仍被调用则在 service 执行前返回结构化 `inactive_tool`。调研 Agent 建议先只暴露 `keepa.context_policy`、`keepa.resolve_research_target`、`keepa.query_research_context`、`keepa.workflow_plan`，确认目标和预算后再放开具体产品、类目、deals 或 seller 工具。
+
+`tools/list.params.profile` 可把调研阶段显式传给 MCP server。当前 profile 包括 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。返回的每个 tool 都带 `x-keepa.active` 与 `x-keepa.inactive_reason`；客户端若继续用同一 `profile` 调用 inactive tool，`tools/call` 会返回结构化 `inactive_tool`，不会进入 service 执行层。这样 Agent 可以在离线发现、dry-run 规划、live read、tracking 只读和 fixture 整理阶段共享同一套工具目录，但把当前阶段不该用的能力显式标成不可用。
 
 ## Tool 命名与参数策略
 
@@ -460,7 +462,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 1. 为 `reports` 与 `tracking-readonly` 增加 Agent evaluation fixtures，断言本地文件输出、只读 tracking 参数和 ledger。（已完成）
 2. 继续扩展 MCP resource templates，例如按 `cache_key`、ASIN、graph root 查询缓存命中和图谱摘要。（cache-key/ASIN/evidence/graph root/session research 已完成）
 3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。（已完成）
-4. 继续评估 session policy active gating：按 profile 对不符合当前调研阶段的工具返回结构化 `inactive_tool`。
+4. 继续扩展 session profile：把 `inactive_tool` 与 workflow plan 的阶段、预算和用户确认策略联动。
 5. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。

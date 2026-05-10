@@ -53,7 +53,7 @@ With MCP, call structured tools instead of CLI strings:
 - `keepa.research_graph_merge`
 - `keepa.research_brief_export`
 
-Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse builders, and `tracking-readonly` only for read-only tracking state.
+Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse builders, and `tracking-readonly` only for read-only tracking state. Add `profile=offline_fixture_only` or `profile=dry_run_default` during early research; inactive tools include `x-keepa.active=false`, and `tools/call` returns `inactive_tool` before service execution when a profile disallows a tool.
 
 Use `resources/list` before loading long docs. Stable resources are `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
 
@@ -67,7 +67,7 @@ For a general research Agent, start with policy and target resolution before any
 4. Only then call `keepa.workflow_plan` and execute the minimum required research tools.
 5. Merge graph-bearing outputs with `keepa.research_graph_merge`, then export the final Agent handoff with `keepa.research_brief_export`.
 
-`tools/list` supports `allow_tools` and `exclude_tools`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery.
+`tools/list` supports `allow_tools`, `exclude_tools`, and `profile`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery. Prefer `profile=offline_fixture_only` before live research; inactive tools are marked in discovery and return `inactive_tool` before service execution if called.
 
 Use `keepa.research_agent_start` prompt when a client supports MCP prompts. It encodes the policy -> resolve -> context -> plan -> execute -> graph merge order.
 

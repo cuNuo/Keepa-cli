@@ -18,12 +18,15 @@ from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.tools import (
     DEFAULT_TOOLSET,
     get_tool_definition,
+    is_tool_active_for_profile,
     list_mcp_tools,
+    profile_names,
     resolve_toolset_groups,
     tool_params_to_command_params,
     toolset_names,
     validate_tool_arguments,
 )
+from keepa_cli.envelope import error_envelope
 
 
 JSONRPC_VERSION = "2.0"
@@ -112,6 +115,7 @@ def handle_mcp_message(
         toolsets = params.get("toolsets") if isinstance(params, dict) else None
         allow_tools = _tool_name_filter(params.get("allow_tools") if isinstance(params, dict) else None)
         exclude_tools = _tool_name_filter(params.get("exclude_tools") if isinstance(params, dict) else None)
+        profile = str(params.get("profile") or "").strip() if isinstance(params, dict) else ""
         group_filter = set(groups) if isinstance(groups, list) else None
         use_all_toolsets = toolset == "all" or (isinstance(toolsets, list) and "all" in toolsets)
         if group_filter is None:
@@ -125,17 +129,24 @@ def handle_mcp_message(
                     "Invalid toolset",
                     {"message": str(exc), "available_toolsets": toolset_names()},
                 )
+        try:
+            tools = list_mcp_tools(
+                groups=group_filter,
+                toolsets="all" if use_all_toolsets else None,
+                allow_tools=allow_tools,
+                exclude_tools=exclude_tools,
+                profile=profile or None,
+            )
+        except ValueError as exc:
+            return _jsonrpc_error(message_id, -32602, "Invalid profile", {"message": str(exc), "available_profiles": profile_names()})
         return _jsonrpc_result(
             message_id,
             {
-                "tools": list_mcp_tools(
-                    groups=group_filter,
-                    toolsets="all" if use_all_toolsets else None,
-                    allow_tools=allow_tools,
-                    exclude_tools=exclude_tools,
-                ),
+                "tools": tools,
                 "toolset": toolset or (toolsets if toolsets is not None else DEFAULT_TOOLSET),
                 "available_toolsets": toolset_names(),
+                "available_profiles": profile_names(),
+                "profile": profile or None,
                 "filters": {
                     "allow_tools": allow_tools,
                     "exclude_tools": exclude_tools,
@@ -190,6 +201,20 @@ def _handle_tools_call(
     validation_errors = validate_tool_arguments(tool, arguments)
     if validation_errors:
         return _jsonrpc_error(message_id, -32602, "Invalid tool arguments", {"tool": name, "errors": validation_errors})
+
+    profile = str(arguments.get("profile") or "").strip()
+    if profile and not is_tool_active_for_profile(tool.name, profile):
+        payload = error_envelope(
+            command=tool.command,
+            kind="inactive_tool",
+            message=f"tool {tool.name} is inactive for profile {profile}",
+            details={"tool": tool.name, "profile": profile, "available_profiles": profile_names()},
+        )
+        payload["cache_key"] = ""
+        payload["cache_hit"] = False
+        active_session = session or AgentSession(env=env)
+        payload["budget_ledger"] = active_session.ledger.to_dict()
+        return _jsonrpc_result(message_id, _tool_result(payload))
 
     command_params = tool_params_to_command_params(tool, arguments)
     active_session = session or AgentSession(env=env)

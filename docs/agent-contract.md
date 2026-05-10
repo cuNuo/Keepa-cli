@@ -188,6 +188,8 @@ MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时
 
 同一 MCP/stdin 会话内会自动缓存成功响应。重复的 command+params 会返回 `cache_hit=true`，也可以用 `from_cache` 显式复用 `cache_key`。该层是进程内 Agent session cache，用于一次长会话内去重。
 
+`tools/list` 支持 `profile` 参数：`offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。返回的 tool schema 会在 `x-keepa.active` 标明当前 profile 是否允许该工具；`tools/call` 参数也可带同一 `profile`，若工具不允许，会返回 `error.kind=inactive_tool`，并在执行 service 前停止。
+
 live GET JSON 响应另有 SQLite 持久缓存，默认路径来自平台缓存目录，可用 `KEEPA_CLI_CACHE_PATH` 或 `cache stats --cache-path <path>` 覆盖审计路径。TTL 默认读取配置里的 `cache_ttl_seconds`，也可用可缓存 live 命令的 `--cache-ttl <seconds>` 或 service 参数 `cache_ttl/cache_ttl_seconds` 显式覆盖；`--no-cache`、service 参数 `no_cache=true` 或 `KEEPA_CLI_NO_CACHE=1` 会禁用 live response cache。dry-run、fixture、binary、POST 与禁用缓存的请求不写入持久缓存。`cache explain-key --endpoint /product --param domain=1 --param asin=B001GZ6QEC` 可让 Agent 从 method、endpoint 与脱敏请求参数反查确定性的 SQLite cache key；`cache inspect <cache_key>` 只返回单条 key 元数据，不输出 cached body；`cache prune-expired --dry-run` / `cache prune-expired` 只统计或清理已过期条目。`cache stats` / `cache clear --dry-run` 只作用于 SQLite response cache，不删除 `tests/fixtures` 或进程内 session cache。release gate 会运行 `scripts/check_live_cache_options.py`，防止新增可缓存 live CLI 命令漏掉 `--cache-ttl` / `--no-cache`。
 
 高成本请求不会交互等待确认；无 `yes=true`、`dry_run=true` 或 `fixture` 时返回 `confirmation_required`，并把阻断记录写入 `budget_ledger.blocked_actions`。

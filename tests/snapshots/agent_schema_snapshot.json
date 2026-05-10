@@ -684,6 +684,13 @@
       "mcp": {
         "default_toolset": "str",
         "entrypoint": "str",
+        "profiles": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
         "prompts": [
           {
             "arguments": [
@@ -1027,6 +1034,17 @@
                   "description": "str",
                   "type": "str"
                 },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "rating": {
                   "description": "str",
                   "type": "str"
@@ -1147,10 +1165,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -1211,6 +1231,17 @@
                 },
                 "offers": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "stats_window": {
@@ -1322,11 +1353,13 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -1357,6 +1390,17 @@
                 },
                 "from_cache": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "term": {
@@ -1434,10 +1478,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -1494,6 +1540,17 @@
                 },
                 "product_fixture": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "temporal_window_days": {
@@ -1589,10 +1646,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -1634,6 +1693,17 @@
                   "default": "int",
                   "description": "str",
                   "minimum": "int",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "sales_rank_max": {
@@ -1713,11 +1783,13 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -1768,6 +1840,17 @@
                   "minimum": "int",
                   "type": "str"
                 },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "selection": {
                   "description": "str",
                   "type": "str"
@@ -1849,10 +1932,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -1901,6 +1986,17 @@
                   "description": "str",
                   "type": "str"
                 },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "selection": {
                   "description": "str",
                   "type": "str"
@@ -1982,10 +2078,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2020,6 +2118,17 @@
                 },
                 "out": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "seller": {
@@ -2116,10 +2225,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2158,6 +2269,17 @@
                 },
                 "out": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "yes": {
@@ -2236,11 +2358,13 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2279,6 +2403,17 @@
                 },
                 "out": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "yes": {
@@ -2354,11 +2489,13 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2400,6 +2537,17 @@
                 "name": {
                   "description": "str",
                   "enum": [
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
                     "str",
                     "str"
                   ],
@@ -2480,10 +2628,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2553,6 +2703,17 @@
                 },
                 "prefer_source": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "root": {
@@ -2628,10 +2789,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2717,6 +2880,17 @@
                     }
                   ]
                 },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "title": {
                   "default": "str",
                   "description": "str",
@@ -2790,11 +2964,13 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2811,6 +2987,17 @@
               "properties": {
                 "from_cache": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 }
               },
@@ -2881,10 +3068,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2905,6 +3094,17 @@
                 },
                 "page": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "uri": {
@@ -2979,10 +3179,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -2999,6 +3201,17 @@
               "properties": {
                 "from_cache": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 }
               },
@@ -3069,10 +3282,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3101,6 +3316,17 @@
                   "enum": [
                     "str",
                     "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
                     "str",
                     "str",
                     "str",
@@ -3184,9 +3410,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3203,6 +3431,17 @@
               "properties": {
                 "from_cache": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "query": {
@@ -3302,10 +3541,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3345,6 +3586,17 @@
                 },
                 "params": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "target_command": {
@@ -3419,9 +3671,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3446,6 +3700,17 @@
                 },
                 "out": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 }
               },
@@ -3520,10 +3785,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3568,6 +3835,17 @@
                 "package_dir": {
                   "default": "str",
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "tests_dir": {
@@ -3651,10 +3929,12 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str",
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3691,6 +3971,17 @@
                   "description": "str",
                   "type": "str"
                 },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "title": {
                   "default": "str",
                   "description": "str",
@@ -3767,9 +4058,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3797,6 +4090,17 @@
                   "description": "str",
                   "type": "str"
                 },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "title": {
                   "default": "str",
                   "description": "str",
@@ -3873,9 +4177,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -3910,6 +4216,17 @@
                 },
                 "out": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 }
               },
@@ -3980,9 +4297,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -4017,6 +4336,17 @@
                 },
                 "out": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 }
               },
@@ -4087,9 +4417,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -4120,6 +4452,17 @@
                 "from_cache": {
                   "description": "str",
                   "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
                 }
               },
               "required": [
@@ -4192,9 +4535,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           },
@@ -4220,6 +4565,17 @@
                 },
                 "from_cache": {
                   "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "revise": {
@@ -4307,9 +4663,11 @@
               "type": "str"
             },
             "x-keepa": {
+              "active": "bool",
               "groups": [
                 "str"
               ],
+              "inactive_reason": "null",
               "service_command": "str"
             }
           }

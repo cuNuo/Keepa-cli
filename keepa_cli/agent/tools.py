@@ -23,9 +23,84 @@ TOOLSET_GROUPS: dict[str, set[str] | None] = {
     "all": None,
 }
 
+PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
+    "offline_fixture_only": {
+        "keepa.docs_index",
+        "keepa.docs_read",
+        "keepa.context_policy",
+        "keepa.resolve_research_target",
+        "keepa.query_research_context",
+        "keepa.workflow_plan",
+        "keepa.research_graph_merge",
+        "keepa.research_brief_export",
+        "keepa.audit_cost",
+        "keepa.reports_build",
+        "keepa.browse_snapshot",
+        "keepa.cassettes_sanitize",
+    },
+    "dry_run_default": {
+        "keepa.docs_index",
+        "keepa.docs_read",
+        "keepa.context_policy",
+        "keepa.resolve_research_target",
+        "keepa.query_research_context",
+        "keepa.workflow_plan",
+        "keepa.categories_search",
+        "keepa.categories_products",
+        "keepa.categories_finder_selection",
+        "keepa.finder_query",
+        "keepa.deals_query",
+        "keepa.bestsellers_get",
+        "keepa.topsellers_list",
+        "keepa.research_graph_merge",
+        "keepa.research_brief_export",
+        "keepa.audit_cost",
+        "keepa.reports_build",
+        "keepa.browse_snapshot",
+    },
+    "live_read_allowed": None,
+    "tracking_readonly": {
+        "keepa.docs_index",
+        "keepa.docs_read",
+        "keepa.context_policy",
+        "keepa.audit_cost",
+        "keepa.tracking_list",
+        "keepa.tracking_list_names",
+        "keepa.tracking_get",
+        "keepa.tracking_notifications",
+    },
+    "fixture_curation": {
+        "keepa.docs_index",
+        "keepa.docs_read",
+        "keepa.context_policy",
+        "keepa.audit_cost",
+        "keepa.cassettes_sanitize",
+        "keepa.cassettes_promote",
+    },
+}
+
 
 def toolset_names() -> list[str]:
     return list(TOOLSET_GROUPS)
+
+
+def profile_names() -> list[str]:
+    return list(PROFILE_ALLOWED_TOOLS)
+
+
+def profile_allowed_tools(profile: str | None) -> set[str] | None:
+    if not profile:
+        return None
+    normalized = str(profile).strip()
+    if normalized not in PROFILE_ALLOWED_TOOLS:
+        raise ValueError(f"unknown profile: {normalized}")
+    allowed = PROFILE_ALLOWED_TOOLS[normalized]
+    return None if allowed is None else set(allowed)
+
+
+def is_tool_active_for_profile(tool_name: str, profile: str | None) -> bool:
+    allowed = profile_allowed_tools(profile)
+    return allowed is None or tool_name in allowed
 
 
 @dataclass(frozen=True)
@@ -43,7 +118,7 @@ class ToolDefinition:
         return {
             "name": self.name,
             "description": self.description,
-            "inputSchema": self.input_schema,
+            "inputSchema": _schema_with_common_properties(self.input_schema),
             "outputSchema": self.output_schema,
             "annotations": {
                 "readOnlyHint": self.read_only,
@@ -80,6 +155,21 @@ def _integer_schema(description: str, *, minimum: int | None = None, default: in
 
 def _string_array_schema(description: str) -> JsonSchema:
     return {"type": "array", "items": {"type": "string"}, "description": description}
+
+
+PROFILE_SCHEMA: JsonSchema = {
+    "type": "string",
+    "enum": profile_names(),
+    "description": "Optional MCP session profile. Inactive tools return inactive_tool before service execution.",
+}
+
+
+def _schema_with_common_properties(schema: JsonSchema) -> JsonSchema:
+    patched = dict(schema)
+    properties = dict(patched.get("properties") or {})
+    properties.setdefault("profile", PROFILE_SCHEMA)
+    patched["properties"] = properties
+    return patched
 
 
 PRODUCTS_GET_SCHEMA: JsonSchema = {
@@ -832,8 +922,10 @@ def list_mcp_tools(
     toolsets: str | list[str] | tuple[str, ...] | set[str] | None = None,
     allow_tools: list[str] | tuple[str, ...] | set[str] | None = None,
     exclude_tools: list[str] | tuple[str, ...] | set[str] | None = None,
+    profile: str | None = None,
 ) -> list[dict[str, Any]]:
     tools = TOOL_DEFINITIONS
+    allowed_by_profile = profile_allowed_tools(profile)
     if groups is None:
         groups = resolve_toolset_groups(toolsets)
     if groups:
@@ -844,7 +936,14 @@ def list_mcp_tools(
     if exclude_tools:
         excluded = {str(name) for name in exclude_tools}
         tools = tuple(tool for tool in tools if tool.name not in excluded)
-    return [tool.to_mcp_tool() for tool in tools]
+    result: list[dict[str, Any]] = []
+    for tool in tools:
+        item = tool.to_mcp_tool()
+        active = allowed_by_profile is None or tool.name in allowed_by_profile
+        item["x-keepa"]["active"] = active
+        item["x-keepa"]["inactive_reason"] = None if active else f"inactive_tool: profile {profile} does not allow this tool"
+        result.append(item)
+    return result
 
 
 def get_tool_definition(name: str) -> ToolDefinition | None:
@@ -853,6 +952,7 @@ def get_tool_definition(name: str) -> ToolDefinition | None:
 
 def tool_params_to_command_params(tool: ToolDefinition, arguments: Mapping[str, Any] | None) -> dict[str, Any]:
     params = dict(arguments or {})
+    params.pop("profile", None)
     rename_pairs = (
         ("per_page", "per-page"),
         ("sales_rank_max", "sales-rank-max"),
@@ -892,6 +992,7 @@ def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] |
     if arguments is None:
         arguments = {}
     allowed = set(tool.input_schema.get("properties") or {})
+    allowed.add("profile")
     required = set(tool.input_schema.get("required") or [])
     errors: list[str] = []
     for key in arguments:

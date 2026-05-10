@@ -111,6 +111,52 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(response["result"]["filters"]["allow_tools"], ["keepa.context_policy", "keepa.resolve_research_target"])
         self.assertEqual(response["result"]["filters"]["exclude_tools"], ["keepa.context_policy"])
 
+    def test_tools_list_marks_inactive_tools_for_profile(self):
+        response = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "profile", "method": "tools/list", "params": {"toolset": "all", "profile": "offline_fixture_only"}}),
+            env={},
+        )
+        tools = {item["name"]: item for item in response["result"]["tools"]}
+
+        self.assertEqual(response["result"]["profile"], "offline_fixture_only")
+        self.assertIn("offline_fixture_only", response["result"]["available_profiles"])
+        self.assertTrue(tools["keepa.context_policy"]["x-keepa"]["active"])
+        self.assertFalse(tools["keepa.products_get"]["x-keepa"]["active"])
+        self.assertIn("inactive_tool", tools["keepa.products_get"]["x-keepa"]["inactive_reason"])
+
+    def test_tools_list_rejects_unknown_profile(self):
+        response = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "bad-profile", "method": "tools/list", "params": {"profile": "unknown"}}),
+            env={},
+        )
+
+        self.assertEqual(response["error"]["code"], -32602)
+        self.assertEqual(response["error"]["message"], "Invalid profile")
+        self.assertIn("offline_fixture_only", response["error"]["data"]["available_profiles"])
+
+    def test_tools_call_inactive_profile_returns_structured_error(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "inactive",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_get",
+                        "arguments": {"asin": "B0D8W1YVBX", "domain": "US", "fixture": "product_B0D8W1YVBX_agent_eval.json", "profile": "offline_fixture_only"},
+                    },
+                }
+            ),
+            env={},
+        )
+
+        result = response["result"]
+        structured = result["structuredContent"]
+        self.assertTrue(result["isError"])
+        self.assertFalse(structured["ok"])
+        self.assertEqual(structured["error"]["kind"], "inactive_tool")
+        self.assertEqual(structured["error"]["details"]["profile"], "offline_fixture_only")
+
     def test_prompts_list_and_get_return_agent_playbooks(self):
         listed = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompts", "method": "prompts/list", "params": {}}), env={})
         names = {item["name"] for item in listed["result"]["prompts"]}

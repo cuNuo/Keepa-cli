@@ -57,6 +57,8 @@ def build_context_policy(env: Mapping[str, str] | None = None, *, repo_root: Pat
             "write_tools_exposed_by_default": False,
             "supports_allow_tools_filter": True,
             "supports_exclude_tools_filter": True,
+            "supports_profile_gating": True,
+            "profile_behavior": "tools/list marks inactive tools; tools/call returns inactive_tool before service execution when profile disallows a tool",
         },
         "provenance": {
             "source": "local://keepa_cli.research_context.build_context_policy",
