@@ -37,6 +37,13 @@ class ReleaseEcosystemTests(unittest.TestCase):
         self.assertIn("tracking", content.lower())
         self.assertIn("Do not run raw non-GET live requests", content)
 
+    def test_npm_scripts_route_release_gate_through_node_wrapper(self):
+        package = json.loads(Path("package.json").read_text(encoding="utf-8"))
+        scripts = package["scripts"]
+        self.assertIn("node scripts/release_gate.js", scripts["test"])
+        self.assertIn("node scripts/release_gate.js", scripts["release:check"])
+        self.assertIn("node scripts/release_gate.js", scripts["prepack"])
+
 
 if __name__ == "__main__":
     unittest.main()

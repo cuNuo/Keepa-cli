@@ -125,6 +125,44 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["request"]["endpoint"], "/product")
         self.assertEqual(payload["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
 
+    def test_products_get_cli_exposes_complete_product_flags(self):
+        result = self.run_module(
+            "--json",
+            "products",
+            "get",
+            "B001GZ6QEC",
+            "--domain",
+            "US",
+            "--full",
+            "--days",
+            "365",
+            "--rating",
+            "1",
+            "--buybox",
+            "1",
+            "--historical-variations",
+            "1",
+            "--only-live-offers",
+            "1",
+            "--out",
+            "product-full.json",
+            "--dry-run",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        params = payload["request"]["params_redacted"]
+        self.assertTrue(payload["ok"])
+        self.assertEqual(params["history"], "1")
+        self.assertEqual(params["stats"], "180")
+        self.assertEqual(params["videos"], "1")
+        self.assertEqual(params["aplus"], "1")
+        self.assertEqual(params["days"], "365")
+        self.assertEqual(params["rating"], "1")
+        self.assertEqual(params["buybox"], "1")
+        self.assertEqual(params["historical-variations"], "1")
+        self.assertEqual(params["only-live-offers"], "1")
+
     def test_categories_search_fixture_returns_category_data(self):
         result = self.run_module(
             "--json",

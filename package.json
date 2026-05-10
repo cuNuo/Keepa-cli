@@ -20,10 +20,10 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "python -m unittest discover -s tests -v",
+    "test": "node scripts/release_gate.js --skip-npm-install --skip-npm-pack",
     "smoke": "node bin/keepa-cli.js --json doctor",
-    "release:check": "python scripts/release_gate.py --skip-npm-install",
-    "prepack": "python scripts/release_gate.py --skip-npm-install --skip-npm-pack"
+    "release:check": "node scripts/release_gate.js --skip-npm-install",
+    "prepack": "node scripts/release_gate.js --skip-npm-install --skip-npm-pack"
   },
   "keywords": [
     "keepa",

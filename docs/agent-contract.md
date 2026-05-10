@@ -147,10 +147,12 @@ kc = "keepa_cli.cli:main"
 
 ```powershell
 .\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
+.\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --full --dry-run
+.\.venv\Scripts\python.exe -m keepa_cli --json products get B001GZ6QEC --domain US --full --out .\product-full.json
 .\.venv\Scripts\python.exe -m keepa_cli --json products search "coffee grinder" --domain US --fixture product_search_coffee.json
 ```
 
-`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
+`products.get` 按官方 Product Request 映射到 `/product`，支持 `asin` 或 `--code`，但二者不能同时使用。`--full` 是低成本完整详情预设，会请求 `history=1`、`stats=180`、`videos=1`、`aplus=1`，不自动开启 `offers`。CLI 也显式支持 `--days`、`--rating`、`--buybox`、`--stock`、`--historical-variations`、`--code-limit`、`--only-live-offers` 等官方 Product Request 参数。完整响应可能很大，`products.get` 支持 `--out` 把 body 写入 JSON 文件。`products.search` 映射到 `/search` 并设置 `type=product`。当前测试默认使用 fixture/offline，不接真实 API。
 
 ### categories get/search
 

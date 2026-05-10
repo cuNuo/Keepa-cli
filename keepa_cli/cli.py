@@ -81,11 +81,22 @@ def _build_parser() -> argparse.ArgumentParser:
     products_get.add_argument("asin", nargs="*", help="一个或多个 ASIN。")
     products_get.add_argument("--code", action="append", default=[], help="UPC、EAN 或 ISBN-13，可重复。")
     products_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    products_get.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=180、videos=1、aplus=1。")
     products_get.add_argument("--history", help="0 表示排除历史字段，1 表示包含。")
     products_get.add_argument("--stats", help="统计窗口，例如 90 或日期区间。")
+    products_get.add_argument("--days", help="限制历史数据天数，降低响应体大小。")
     products_get.add_argument("--update", help="刷新阈值小时；0 可能额外消耗 token。")
     products_get.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
+    products_get.add_argument("--code-limit", help="按 code 查询时限制返回商品数量。")
+    products_get.add_argument("--only-live-offers", help="配合 --offers 使用，仅返回 live offers。")
+    products_get.add_argument("--videos", help="1 表示包含视频信息。")
+    products_get.add_argument("--aplus", help="1 表示包含 A+ 内容信息。")
+    products_get.add_argument("--rating", help="1 表示包含 rating 与 review count 历史。")
+    products_get.add_argument("--buybox", help="1 表示包含 Buy Box 历史。")
+    products_get.add_argument("--stock", help="1 表示包含 stock 信息，通常需配合 offers。")
+    products_get.add_argument("--historical-variations", help="1 表示包含历史 variation 数据。")
     products_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    products_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     products_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
     products_search = products_subparsers.add_parser("search", help="产品关键词搜索。")
     products_search.add_argument("term", help="搜索词。")
@@ -336,11 +347,22 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "asin": args.asin,
                 "code": args.code,
                 "domain": args.domain,
+                "full": bool(args.full),
                 "history": args.history,
                 "stats": args.stats,
+                "days": args.days,
                 "update": args.update,
                 "offers": args.offers,
+                "code_limit": args.code_limit,
+                "only_live_offers": args.only_live_offers,
+                "videos": args.videos,
+                "aplus": args.aplus,
+                "rating": args.rating,
+                "buybox": args.buybox,
+                "stock": args.stock,
+                "historical_variations": args.historical_variations,
                 "fixture": args.fixture,
+                "out": args.out,
                 "dry_run": bool(args.dry_run),
             },
         )

@@ -116,6 +116,24 @@ kc --json history trend B001GZ6QEC --series amazon --fixture product_history_B00
 kc --json tokens status --fixture token_status.json
 ```
 
+For a single-ASIN live product detail request, prefer the low-cost full preset. It asks Keepa for history, 180-day stats, videos, and A+ metadata without enabling offer-page collection:
+
+```powershell
+kc --json products get B001GZ6QEC --domain US --full
+```
+
+For large live responses, write the full body to a file and keep the terminal envelope small:
+
+```powershell
+kc --json products get B001GZ6QEC --domain US --full --out .\product-full.json
+```
+
+Use explicit flags when you need tighter history windows or specialized fields:
+
+```powershell
+kc --json products get B001GZ6QEC --domain US --history 1 --stats 180 --videos 1 --aplus 1 --days 365 --dry-run
+```
+
 Use dry-run for high-cost requests:
 
 ```powershell

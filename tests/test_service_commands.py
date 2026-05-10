@@ -38,6 +38,23 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 1)
         self.assertEqual(payload["data"]["body"]["products"][0]["asin"], "B001GZ6QEC")
 
+    def test_products_get_full_preset_requests_low_cost_complete_fields(self):
+        payload = run_command(
+            "products.get",
+            {"asin": ["B001GZ6QEC"], "domain": "US", "full": True, "dry_run": True},
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        params = payload["request"]["params_redacted"]
+        self.assertEqual(params["history"], "1")
+        self.assertEqual(params["stats"], "180")
+        self.assertEqual(params["videos"], "1")
+        self.assertEqual(params["aplus"], "1")
+        self.assertNotIn("offers", params)
+        self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 1)
+
     def test_products_get_rejects_asin_and_code_together(self):
         payload = run_command(
             "products.get",
@@ -48,6 +65,26 @@ class ServiceCommandTests(unittest.TestCase):
 
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["error"]["kind"], "invalid_argument")
+
+    def test_products_get_can_write_large_body_output(self):
+        with TemporaryDirectory() as temp_dir:
+            out_path = Path(temp_dir) / "product.json"
+            payload = run_command(
+                "products.get",
+                {
+                    "asin": ["B001GZ6QEC"],
+                    "domain": "US",
+                    "fixture": "product_B001GZ6QEC.json",
+                    "out": str(out_path),
+                },
+                fixture_dir=FIXTURES,
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            self.assertTrue(out_path.is_file())
+            self.assertEqual(payload["data"]["output"]["path"], str(out_path))
+            self.assertEqual(payload["data"]["output"]["result_count"], 1)
 
     def test_categories_get_uses_category_endpoint_and_parents_flag(self):
         payload = run_command(

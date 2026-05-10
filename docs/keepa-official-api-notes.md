@@ -49,6 +49,8 @@
 - `code` 支持 UPC、EAN 和 ISBN-13，批量最多 100；多个 ASIN 可能匹配同一个 code。
 - `history=0` 可排除历史字段，降低响应体大小。
 - `stats` 无额外 token 成本。
+- `videos=1`、`aplus=1` 可在单次产品请求中补媒体与 A+ 信息；本项目的 `--full` 预设默认开启。
+- `days` 可限制返回历史窗口，适合在保留 `history=1` 时控制响应体大小。
 - `update=0` 可能额外消耗 1 token。
 - `offers` 官方范围 20 到 100，按找到的 offer page 计费，每页最多 10 offers，每页 6 tokens。
 - Product Object 的 `csv` 字段包含价格、销量排名等历史数组；当前实现只展开常用序列：`amazon`、`new`、`used`、`sales_rank`。
@@ -58,6 +60,7 @@
 
 ```powershell
 .\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --history 0 --fixture product_B001GZ6QEC.json
+.\.venv\Scripts\kc.exe --json products get B001GZ6QEC --domain US --full --dry-run
 ```
 
 ## History Export / Trend

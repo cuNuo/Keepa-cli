@@ -65,6 +65,32 @@ def _bool_option(params: Mapping[str, Any], *names: str) -> bool:
     return value is True or str(value).lower() in {"1", "true", "yes", "on"}
 
 
+def _product_query_options(params: Mapping[str, Any]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    if _bool_option(params, "full", "full_detail", "full-detail"):
+        result.update({"history": "1", "stats": "180", "videos": "1", "aplus": "1"})
+
+    for canonical in (
+        "stats",
+        "update",
+        "history",
+        "days",
+        "offers",
+        "code-limit",
+        "only-live-offers",
+        "videos",
+        "aplus",
+        "rating",
+        "buybox",
+        "stock",
+        "historical-variations",
+    ):
+        value = _param(params, canonical, canonical.replace("-", "_"))
+        if value is not None:
+            result[canonical] = value
+    return result
+
+
 def _client(fixture_dir: Path | str | None = None) -> KeepaClient:
     selected_fixture_dir = Path(fixture_dir) if fixture_dir is not None else DEFAULT_FIXTURE_DIR
     return KeepaClient(fixture_dir=selected_fixture_dir)
@@ -86,27 +112,8 @@ def _product_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
     else:
         request_params["code"] = ",".join(codes)
 
-    request_params.update(
-        _optional_params(
-            params,
-            (
-                "stats",
-                "update",
-                "history",
-                "days",
-                "offers",
-                "code-limit",
-                "only-live-offers",
-                "videos",
-                "aplus",
-                "rating",
-                "buybox",
-                "stock",
-                "historical-variations",
-            ),
-        )
-    )
-    return _client(fixture_dir).request(
+    request_params.update(_product_query_options(params))
+    payload = _client(fixture_dir).request(
         command="products.get",
         method="GET",
         path="/product",
@@ -114,6 +121,7 @@ def _product_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
         dry_run=bool(params.get("dry_run")),
         fixture=params.get("fixture"),
     )
+    return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
 def _product_search(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
