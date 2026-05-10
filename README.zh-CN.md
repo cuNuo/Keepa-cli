@@ -134,12 +134,15 @@ kc --json templates show finder-basic --out .\finder-basic.json
 
 ```powershell
 kc --json cache explain --input .\batch.json --command products.get
+kc --json cache explain-key --endpoint /product --param domain=1 --param asin=B001GZ6QEC
 kc --json cache stats
+kc --json cache inspect sqlite:<cache-key>
+kc --json cache prune-expired --dry-run
 kc --json cache clear --dry-run
 kc --json audit cost products.get --param asin=B001GZ6QEC
 ```
 
-live GET JSON 响应默认按配置里的 `cache_ttl_seconds` 写入 SQLite。dry-run、fixture、binary、POST 与禁用缓存的请求不会持久化。审计时可用 `--cache-path` 或 `KEEPA_CLI_CACHE_PATH` 覆盖缓存文件，用 `KEEPA_CLI_NO_CACHE=1` 禁用 live response cache。
+live GET JSON 响应默认按配置里的 `cache_ttl_seconds` 写入 SQLite。dry-run、fixture、binary、POST 与禁用缓存的请求不会持久化。审计时可用 `--cache-path` 或 `KEEPA_CLI_CACHE_PATH` 覆盖缓存文件；可缓存 live 命令也支持 `--cache-ttl <秒>` 与 `--no-cache`，环境变量回退仍是 `KEEPA_CLI_CACHE_TTL_SECONDS` 与 `KEEPA_CLI_NO_CACHE=1`。`cache explain-key` 可按 method、endpoint 与脱敏后的请求参数反查确定性的 SQLite cache key；release gate 会运行 `scripts/check_live_cache_options.py`，防止新增可缓存 live CLI 命令漏掉显式缓存控制。
 
 Tracking 与 webhook 示例默认 dry-run：
 
@@ -179,7 +182,7 @@ kc --json domains list
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
 ```
 
-MCP tools 为 `keepa.products_get`、`keepa.products_compare`、`keepa.categories_search`、`keepa.categories_products`、`keepa.finder_query` 和 `keepa.audit_cost`。MCP 使用结构化 JSON 参数，不解析 CLI 字符串；产品结果包含 `risk_taxonomy` 与 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`，便于 Agent 在长流程中去重和审计 token 暴露。
+MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/audit/reports/tracking-readonly/all` 控制上下文大小：research 覆盖产品、类目、Finder、Deals、Seller、榜单与 workflow plan；audit 覆盖 cost 与 cassette sanitize/promote；reports 覆盖本地报告和浏览快照；tracking 只暴露只读操作。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
 
 ## 开发
 
@@ -194,4 +197,5 @@ git diff --check
 
 - 不提交 Keepa API key、`.env`、本地缓存或未脱敏 cassette。
 - 输出会打码 `key`、`api_key`、`apikey`、`token`、`authorization`。
+- 真实响应先用 `kc --json cassettes promote live.json --name fixture_name` 脱敏并同步写入双份 fixture，同时更新 `evidence/manifest.csv`。
 - 真实 Keepa smoke 使用 GitHub Secrets 中的 `KEEPA_API_KEY` 手动触发。

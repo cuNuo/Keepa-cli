@@ -163,6 +163,25 @@ class CliTests(unittest.TestCase):
         self.assertEqual(params["historical-variations"], "1")
         self.assertEqual(params["only-live-offers"], "1")
 
+    def test_products_get_cli_accepts_explicit_cache_controls(self):
+        result = self.run_module(
+            "--json",
+            "products",
+            "get",
+            "B001GZ6QEC",
+            "--domain",
+            "US",
+            "--cache-ttl",
+            "5",
+            "--no-cache",
+            "--dry-run",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "products.get")
+
     def test_products_get_cli_returns_agent_view(self):
         result = self.run_module(
             "--json",
@@ -353,6 +372,51 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["command"], "finder.query")
         self.assertEqual(payload["request"]["endpoint"], "/query")
         self.assertEqual(payload["token_bucket"]["estimated"]["worst_case_tokens"], 25)
+
+    def test_deals_query_fixture_uses_split_command_family(self):
+        result = self.run_module(
+            "--json",
+            "deals",
+            "query",
+            "--selection-file",
+            "tests/fixtures/deals_selection.json",
+            "--domain",
+            "US",
+            "--fixture",
+            "deals_home.json",
+            "--cache-ttl",
+            "120",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "deals.query")
+        self.assertEqual(payload["request"]["endpoint"], "/deal")
+        self.assertIn("research_graph", payload["data"])
+
+    def test_cache_explain_key_cli_redacts_secret_and_matches_endpoint(self):
+        result = self.run_module(
+            "--json",
+            "cache",
+            "explain-key",
+            "--endpoint",
+            "/product",
+            "--param",
+            "domain=1",
+            "--param",
+            "asin=B001GZ6QEC",
+            "--param",
+            "key=SECRET123",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "cache.explain-key")
+        self.assertEqual(payload["data"]["endpoint"], "/product")
+        self.assertEqual(payload["data"]["params"]["key"], "[REDACTED]")
+        self.assertNotIn("SECRET123", result.stdout)
 
     def test_sellers_get_fixture_returns_seller_data(self):
         result = self.run_module(

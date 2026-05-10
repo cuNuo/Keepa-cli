@@ -50,6 +50,9 @@
       "agent_brief": {
         "key_facts": {
           "category_id": "str",
+          "research_graph_entities": {
+            "category": "int"
+          },
           "source": "str"
         },
         "one_line": "str",
@@ -97,6 +100,11 @@
           "path": "str",
           "section": "str",
           "why": "str"
+        },
+        "research_graph": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
         }
       },
       "provenance": {
@@ -105,7 +113,27 @@
         "params_hash": "str",
         "source": "str"
       },
+      "research_graph": {
+        "edge_count": "int",
+        "entity_counts": {
+          "category": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "category_id": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str"
+      },
       "selection_signals": {
+        "candidate_count": "int",
         "category_id": "str",
         "source": "str"
       }
@@ -547,6 +575,51 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -555,7 +628,34 @@
         "str"
       ],
       "mcp": {
+        "default_toolset": "str",
         "entrypoint": "str",
+        "resources": [
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
+          }
+        ],
         "server_name": "str",
         "tools": [
           {
@@ -593,6 +693,10 @@
                   ]
                 },
                 "buybox": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "chunks_dir": {
                   "description": "str",
                   "type": "str"
                 },
@@ -798,6 +902,10 @@
                   "items": {
                     "type": "str"
                   },
+                  "type": "str"
+                },
+                "chunks_dir": {
+                  "description": "str",
                   "type": "str"
                 },
                 "domain": {
@@ -1365,6 +1473,781 @@
             "description": "str",
             "inputSchema": {
               "additionalProperties": "bool",
+              "anyOf": [
+                {
+                  "required": [
+                    "str"
+                  ]
+                },
+                {
+                  "required": [
+                    "str"
+                  ]
+                }
+              ],
+              "properties": {
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "selection": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "selection_file": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "seller": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
+                "storefront": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "update": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "category": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "category": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "yes": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "asin": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "domain": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "goal": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "hydrate_top": {
+                  "default": "int",
+                  "description": "str",
+                  "minimum": "int",
+                  "type": "str"
+                },
+                "name": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "term": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "anyOf": [
+                {
+                  "required": [
+                    "str"
+                  ]
+                },
+                {
+                  "required": [
+                    "str"
+                  ]
+                }
+              ],
+              "properties": {
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "graph": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
+                "input": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
+                "label": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "root": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
               "properties": {
                 "commands": {
                   "description": "str",
@@ -1470,7 +2353,902 @@
               ],
               "service_command": "str"
             }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "manifest": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "name": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "no_manifest": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "package_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "tests_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "title": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "format": {
+                  "default": "str",
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "title": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "title": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "asins_only": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "asins_only": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "asin": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "dry_run": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "fixture": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "revise": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
+                "since": {
+                  "default": "int",
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "type": "str"
+                    }
+                  ]
+                }
+              },
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "groups": [
+                "str"
+              ],
+              "service_command": "str"
+            }
           }
+        ],
+        "toolsets": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
         ],
         "transport": "str"
       },
@@ -1495,7 +3273,10 @@
         "key_facts": {
           "category_id": "str",
           "domain": "str",
-          "per_page": "int"
+          "per_page": "int",
+          "research_graph_entities": {
+            "category": "int"
+          }
         },
         "one_line": "str",
         "read_order": [
@@ -1532,6 +3313,11 @@
           "why": "str"
         },
         "output": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "research_graph": {
           "path": "str",
           "section": "str",
           "why": "str"
@@ -1576,6 +3362,25 @@
           "tool": "str"
         }
       ],
+      "research_graph": {
+        "edge_count": "int",
+        "entity_counts": {
+          "category": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "category_id": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str"
+      },
       "selection": {
         "categories_include": [
           "int"
@@ -1621,6 +3426,10 @@
         "key_facts": {
           "candidate_count": "int",
           "category_id": "str",
+          "research_graph_entities": {
+            "category": "int",
+            "product": "int"
+          },
           "source": "str"
         },
         "one_line": "str",
@@ -1708,6 +3517,11 @@
           "path": "str",
           "section": "str",
           "why": "str"
+        },
+        "research_graph": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
         }
       },
       "fixture": "str",
@@ -1759,6 +3573,58 @@
         "params_hash": "str",
         "source": "str"
       },
+      "research_graph": {
+        "edge_count": "int",
+        "edges": [
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          }
+        ],
+        "entity_counts": {
+          "category": "int",
+          "product": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "category_id": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "rank": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "asin": "str",
+              "rank": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str"
+      },
       "selection_signals": {
         "candidate_count": "int",
         "hydrated": "bool",
@@ -1805,6 +3671,10 @@
       "agent_brief": {
         "key_facts": {
           "candidate_count": "int",
+          "research_graph_entities": {
+            "category": "int",
+            "search_term": "int"
+          },
           "term": "str",
           "top_category_id": "str"
         },
@@ -1911,6 +3781,11 @@
           "path": "str",
           "section": "str",
           "why": "str"
+        },
+        "research_graph": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
         }
       },
       "fixture": "str",
@@ -1944,6 +3819,43 @@
         }
       ],
       "offline": "bool",
+      "research_graph": {
+        "edge_count": "int",
+        "edges": [
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          }
+        ],
+        "entity_counts": {
+          "category": "int",
+          "search_term": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "category_id": "str",
+              "matched": "bool"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "term": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str"
+      },
       "selection_signals": {
         "candidate_count": "int",
         "matched_count": "int"
@@ -2006,6 +3918,9 @@
       "agent_brief": {
         "key_facts": {
           "dry_run": "bool",
+          "research_graph_entities": {
+            "selection": "int"
+          },
           "selection_keys": [
             "str",
             "str",
@@ -2057,6 +3972,11 @@
           "section": "str",
           "why": "str"
         },
+        "research_graph": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
         "selection": {
           "path": "str",
           "section": "str",
@@ -2068,6 +3988,33 @@
         "endpoint": "str",
         "params_hash": "str",
         "source": "str"
+      },
+      "research_graph": {
+        "edge_count": "int",
+        "entity_counts": {
+          "selection": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "command": "str",
+              "selection_keys": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str"
       },
       "selection_signals": {
         "selection_keys": [
@@ -6150,6 +8097,11 @@
     "data": {
       "agent_brief": {
         "key_facts": {
+          "research_graph_entities": {
+            "product": "int",
+            "seller": "int",
+            "seller_request": "int"
+          },
           "seller_count": "int",
           "storefront": "bool"
         },
@@ -6212,6 +8164,11 @@
           "section": "str",
           "why": "str"
         },
+        "research_graph": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
         "seller_ids": {
           "path": "str",
           "section": "str",
@@ -6226,6 +8183,60 @@
         "fixture": "str",
         "params_hash": "str",
         "source": "str"
+      },
+      "research_graph": {
+        "edge_count": "int",
+        "edges": [
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          },
+          {
+            "evidence_path": "str",
+            "source": "str",
+            "target": "str",
+            "type": "str"
+          }
+        ],
+        "entity_counts": {
+          "product": "int",
+          "seller": "int",
+          "seller_request": "int"
+        },
+        "node_count": "int",
+        "nodes": [
+          {
+            "attributes": {
+              "asin": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "has_storefront": "bool",
+              "rating": "int",
+              "rating_count": "int",
+              "seller_id": "str"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          },
+          {
+            "attributes": {
+              "seller_count": "int"
+            },
+            "id": "str",
+            "label": "str",
+            "type": "str"
+          }
+        ],
+        "root": "str",
+        "schema_version": "str"
       },
       "selection_signals": {
         "seller_count": "int",

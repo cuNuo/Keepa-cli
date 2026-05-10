@@ -111,6 +111,37 @@ def build_response_cache_key(
     return "sqlite:" + _stable_json_hash(payload)
 
 
+def explain_response_cache_key(
+    *,
+    method: str,
+    endpoint: str,
+    params: Mapping[str, Any],
+    json_body: Any = None,
+) -> dict[str, Any]:
+    safe_params = _cache_safe_value(dict(params))
+    safe_body = _cache_safe_value(json_body)
+    payload = {
+        "method": method.upper(),
+        "endpoint": endpoint,
+        "params": safe_params,
+        "json_body": safe_body,
+    }
+    return {
+        "backend": "sqlite",
+        "cache_key": "sqlite:" + _stable_json_hash(payload),
+        "method": method.upper(),
+        "endpoint": endpoint,
+        "params": safe_params,
+        "params_hash": _stable_params_hash(params),
+        "json_body": safe_body,
+        "request_hash": _stable_json_hash(payload),
+        "notes": [
+            "cache_key is deterministic for method, endpoint, sanitized params, and sanitized json_body.",
+            "secret-like parameter names are redacted before hashing and output.",
+        ],
+    }
+
+
 def build_cache_provenance(
     *,
     endpoint: str,
@@ -279,6 +310,79 @@ class SQLiteResponseCache:
             "oldest_created_at": bounds[0],
             "newest_created_at": bounds[1],
             "next_expires_at": bounds[2],
+        }
+
+    def inspect(self, cache_key: str, *, now: int | None = None) -> dict[str, Any]:
+        now = int(time.time()) if now is None else now
+        if not self.path.is_file():
+            return {
+                "backend": "sqlite",
+                "persistent_cache_enabled": True,
+                "path": str(self.path),
+                "found": False,
+                "cache_key": cache_key,
+            }
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                """
+                SELECT method, endpoint, params_hash, created_at, expires_at, size_bytes
+                FROM responses
+                WHERE cache_key = ?
+                """,
+                (cache_key,),
+            ).fetchone()
+        if row is None:
+            return {
+                "backend": "sqlite",
+                "persistent_cache_enabled": True,
+                "path": str(self.path),
+                "found": False,
+                "cache_key": cache_key,
+            }
+        method, endpoint, params_hash, created_at, expires_at, size_bytes = row
+        return {
+            "backend": "sqlite",
+            "persistent_cache_enabled": True,
+            "path": str(self.path),
+            "found": True,
+            "cache_key": cache_key,
+            "method": method,
+            "endpoint": endpoint,
+            "params_hash": params_hash,
+            "created_at": int(created_at),
+            "expires_at": int(expires_at),
+            "expired": int(expires_at) <= now,
+            "size_bytes": int(size_bytes),
+        }
+
+    def prune_expired(self, *, dry_run: bool, now: int | None = None) -> dict[str, Any]:
+        now = int(time.time()) if now is None else now
+        if not self.path.is_file():
+            return {
+                "backend": "sqlite",
+                "persistent_cache_enabled": True,
+                "path": str(self.path),
+                "dry_run": dry_run,
+                "pruned": False,
+                "expired_entries_removed": 0,
+                "bytes_removed": 0,
+            }
+        with closing(self._connect()) as connection:
+            expired = connection.execute(
+                "SELECT COUNT(*), COALESCE(SUM(size_bytes), 0) FROM responses WHERE expires_at <= ?",
+                (now,),
+            ).fetchone()
+            if not dry_run:
+                connection.execute("DELETE FROM responses WHERE expires_at <= ?", (now,))
+                connection.commit()
+        return {
+            "backend": "sqlite",
+            "persistent_cache_enabled": True,
+            "path": str(self.path),
+            "dry_run": dry_run,
+            "pruned": not dry_run,
+            "expired_entries_removed": int(expired[0]),
+            "bytes_removed": int(expired[1]),
         }
 
     def clear(self, *, dry_run: bool, now: int | None = None) -> dict[str, Any]:

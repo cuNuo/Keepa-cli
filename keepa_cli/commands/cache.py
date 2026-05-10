@@ -12,12 +12,17 @@ from typing import Any
 
 from keepa_cli.envelope import success_envelope
 from keepa_cli.cache import default_cache_path
-from keepa_cli.workflows import cache_stats, clear_cache, explain_cache
+from keepa_cli.workflows import cache_stats, clear_cache, explain_cache, explain_cache_key, inspect_cache, prune_expired_cache
 
 
 CACHE_COMMANDS = {
     "cache.explain",
+    "cache.explain-key",
+    "cache.explain_key",
     "cache.stats",
+    "cache.inspect",
+    "cache.prune-expired",
+    "cache.prune_expired",
     "cache.clear",
 }
 
@@ -54,8 +59,25 @@ def handle_cache_command(command: str, params: Mapping[str, Any], *, env: Mappin
             command=_param(params, "target_command", "command"),
             endpoint=_param(params, "endpoint"),
         )
+    elif command in {"cache.explain-key", "cache.explain_key"}:
+        data = explain_cache_key(
+            method=str(_param(params, "method", default="GET")),
+            endpoint=str(_param(params, "endpoint", "path", default="")),
+            params=dict(_param(params, "params", default={}) or {}),
+            json_body=_param(params, "json_body", "json-body"),
+        )
     elif command == "cache.stats":
         data = cache_stats(cache_path=_cache_path(params, env))
+    elif command == "cache.inspect":
+        data = inspect_cache(
+            cache_key=str(_param(params, "cache_key", "cache-key", default="")),
+            cache_path=_cache_path(params, env),
+        )
+    elif command in {"cache.prune-expired", "cache.prune_expired"}:
+        data = prune_expired_cache(
+            dry_run=_bool_option(params, "dry_run", "dry-run"),
+            cache_path=_cache_path(params, env),
+        )
     elif command == "cache.clear":
         data = clear_cache(
             dry_run=_bool_option(params, "dry_run", "dry-run"),

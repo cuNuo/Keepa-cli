@@ -175,7 +175,7 @@ MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。返回同时
 
 同一 MCP/stdin 会话内会自动缓存成功响应。重复的 command+params 会返回 `cache_hit=true`，也可以用 `from_cache` 显式复用 `cache_key`。该层是进程内 Agent session cache，用于一次长会话内去重。
 
-live GET JSON 响应另有 SQLite 持久缓存，默认路径来自平台缓存目录，可用 `KEEPA_CLI_CACHE_PATH` 或 `cache stats --cache-path <path>` 覆盖审计路径。TTL 默认读取配置里的 `cache_ttl_seconds`，也可用 `KEEPA_CLI_CACHE_TTL_SECONDS` 覆盖；`KEEPA_CLI_NO_CACHE=1` 会禁用 live response cache。dry-run、fixture、binary、POST 与禁用缓存的请求不写入持久缓存。`cache stats` / `cache clear --dry-run` 只作用于 SQLite response cache，不删除 `tests/fixtures` 或进程内 session cache。
+live GET JSON 响应另有 SQLite 持久缓存，默认路径来自平台缓存目录，可用 `KEEPA_CLI_CACHE_PATH` 或 `cache stats --cache-path <path>` 覆盖审计路径。TTL 默认读取配置里的 `cache_ttl_seconds`，也可用可缓存 live 命令的 `--cache-ttl <seconds>` 或 service 参数 `cache_ttl/cache_ttl_seconds` 显式覆盖；`--no-cache`、service 参数 `no_cache=true` 或 `KEEPA_CLI_NO_CACHE=1` 会禁用 live response cache。dry-run、fixture、binary、POST 与禁用缓存的请求不写入持久缓存。`cache explain-key --endpoint /product --param domain=1 --param asin=B001GZ6QEC` 可让 Agent 从 method、endpoint 与脱敏请求参数反查确定性的 SQLite cache key；`cache inspect <cache_key>` 只返回单条 key 元数据，不输出 cached body；`cache prune-expired --dry-run` / `cache prune-expired` 只统计或清理已过期条目。`cache stats` / `cache clear --dry-run` 只作用于 SQLite response cache，不删除 `tests/fixtures` 或进程内 session cache。release gate 会运行 `scripts/check_live_cache_options.py`，防止新增可缓存 live CLI 命令漏掉 `--cache-ttl` / `--no-cache`。
 
 高成本请求不会交互等待确认；无 `yes=true`、`dry_run=true` 或 `fixture` 时返回 `confirmation_required`，并把阻断记录写入 `budget_ledger.blocked_actions`。
 
@@ -250,7 +250,7 @@ Agent 视图 profile：
 Agent 语义层：
 
 - `risk_taxonomy`：稳定风险枚举，当前 `known_codes` 包含 `data_missing`、`price_unstable`、`rank_declining`、`low_review_count`、`offer_competition_high`、`buybox_missing`、`category_mismatch`。每个风险 item 给出 `severity`、`reason`、`evidence_path`，并尽量补充 `metric` 与 `follow_up`。
-- `research_graph`：轻量实体关系图，节点类型包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation`，边类型包含 `made_by`、`manufactured_by`、`in_category`、`parent_of`、`buybox_sold_by`、`variation_of`、`has_variation`。
+- `research_graph`：轻量实体关系图。产品视图节点类型包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation`；非产品命令还会输出 `search_term`、`selection`、`deal_set`、`deal`、`seller_request`、`seller_ranking` 等节点。常见边类型包含 `made_by`、`manufactured_by`、`in_category`、`parent_of`、`buybox_sold_by`、`variation_of`、`has_variation`、`matched_category`、`has_candidate`、`filters_category`、`returns_product`、`contains_deal`、`for_product`、`sells_product`。
 - `selection_signals.risk_codes` 与 `agent_brief.risk_codes` 会复用 `risk_taxonomy.codes`，便于批量筛选；深度审计时读取完整 `risk_taxonomy.items`。
 
 `products.compare` 复用 `/product`，返回 `view=products_compare`，用统一 rows 暴露 `asin/title/brand/new_price/buy_box_price/sales_rank/monthly_sold/rating/review_count/coupon/offer/media/aplus/selection_signals/risk_flags/risk_taxonomy/research_graph/data_quality`，适合 Agent 做多 ASIN横向比较。顶层同时返回 `risk_summary` 与合并后的 `research_graph`，用于评测和报告阶段直接断言语义质量。
@@ -291,9 +291,10 @@ Agent 语义层：
 ```powershell
 .\.venv\Scripts\python.exe -m keepa_cli --json schema generate --out docs/schema/products.agent-view.schema.json
 .\.venv\Scripts\python.exe -m keepa_cli --json cassettes sanitize .\live-cassette.json --out .\redacted-cassette.json
+.\.venv\Scripts\python.exe -m keepa_cli --json cassettes promote .\live-cassette.json --name product_B0EXAMPLE_full
 ```
 
-`schema.generate` 从 `tests/snapshots/agent_schema_snapshot.json` 导出产品 Agent 视图 schema 文档。`cassettes.sanitize` 只做本地 JSON 脱敏，清理 URL query、header 与 body 中的 `key/api_key/apikey/token/authorization`，用于把真实响应录制后安全转成 fixture。
+`schema.generate` 从 `tests/snapshots/agent_schema_snapshot.json` 导出产品 Agent 视图 schema 文档。`cassettes.sanitize` 只做本地 JSON 脱敏，清理 URL query、header 与 body 中的 `key/api_key/apikey/token/authorization`。`cassettes.promote` 是完整 promotion workflow：读取真实或已脱敏响应 -> 再次脱敏 -> 同步写入 `tests/fixtures/<name>.json` 与 `keepa_cli/fixtures/<name>.json` -> 追加 `evidence/manifest.csv`。默认不访问网络，`--dry-run` 只返回目标路径和预计大小。
 
 ### finder/deals/sellers/bestsellers/topsellers
 
@@ -305,7 +306,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json topsellers list --domain US --fixture topsellers_US.json --out topsellers.json
 ```
 
-`finder.query` 映射到 `/query`，`deals.query` 映射到 `/deal`，二者读取 selection JSON 并作为 `selection` 参数发送。`sellers.get` 映射到 `/seller`。`bestsellers.get` 映射到 `/bestsellers`，`topsellers.list` 映射到 `/topseller`。`finder.query`、`bestsellers.get`、`topsellers.list` 会在预算里标记 `requires_confirmation=true`；真实请求必须显式 `--yes`，dry-run 与 fixture 不消耗 token。大结果命令支持 `--out` 把响应 body 写入 JSON 文件。
+`finder.query` 映射到 `/query`，`deals.query` 映射到 `/deal`，二者读取 selection JSON 并作为 `selection` 参数发送。`sellers.get` 映射到 `/seller`。`bestsellers.get` 映射到 `/bestsellers`，`topsellers.list` 映射到 `/topseller`。`finder.query`、`bestsellers.get`、`topsellers.list` 会在预算里标记 `requires_confirmation=true`；真实请求必须显式 `--yes`，dry-run 与 fixture 不消耗 token。大结果命令支持 `--out` 把响应 body 写入 JSON 文件。这些命令的 Agent profile 会输出统一 `agent_brief/data_quality/selection_signals/evidence_index/provenance/research_graph`，便于 Agent 把类目、selection、deal、seller、商品候选串成同一实体图谱。
 
 ### tokens/graphs/lightningdeals/tracking
 

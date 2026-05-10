@@ -45,6 +45,7 @@ def main() -> int:
         node_env = {**smoke_env, "KEEPA_CLI_PYTHON": python}
         _run([python, "-m", "compileall", "-q", "keepa_cli", "scripts"], root)
         _run([python, "-m", "unittest", "discover", "-s", "tests", "-v"], root)
+        _run([python, "scripts/check_live_cache_options.py"], root)
         _run([python, "scripts/check_fixture_sync.py"], root)
         _run([python, "scripts/check_agent_eval_fixtures.py"], root)
         install_verify = [python, "scripts/install_verify.py"]

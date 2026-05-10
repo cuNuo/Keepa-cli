@@ -40,6 +40,7 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertTrue(payload["token_bucket"]["estimated"]["requires_confirmation"])
         self.assertEqual(payload["data"]["agent_brief"]["view"], "finder_query")
         self.assertIn("evidence_index", payload["data"])
+        self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["selection"], 1)
 
     def test_deals_query_fixture_can_write_large_result_to_out_file(self):
         with TemporaryDirectory() as temp_dir:
@@ -64,6 +65,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
             self.assertIn("deals", saved)
             self.assertEqual(payload["data"]["output"]["path"], str(out_path))
             self.assertEqual(payload["data"]["output"]["format"], "json")
+            self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["deal"], 1)
+            self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["product"], 1)
 
     def test_sellers_get_fixture_uses_seller_endpoint(self):
         payload = run_command(
@@ -83,6 +86,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(payload["request"]["params_redacted"]["seller"], "A2L77EE7U53NWQ")
         self.assertEqual(payload["request"]["params_redacted"]["storefront"], "1")
         self.assertIn("A2L77EE7U53NWQ", payload["data"]["body"]["sellers"])
+        self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["seller"], 1)
+        self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["product"], 1)
 
     def test_bestsellers_dry_run_shows_50_token_prompt(self):
         payload = run_command(
@@ -99,6 +104,7 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(estimate["estimated_tokens"], 50)
         self.assertEqual(estimate["worst_case_tokens"], 50)
         self.assertTrue(estimate["requires_confirmation"])
+        self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["category"], 1)
 
     def test_categories_products_fixture_returns_agent_candidates(self):
         payload = run_command(
@@ -119,6 +125,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(payload["data"]["next_actions"][0]["tool"], "products.compare")
         self.assertEqual(payload["data"]["agent_brief"]["view"], "category_products")
         self.assertIn("evidence_index", payload["data"])
+        self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["category"], 1)
+        self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["product"], 1)
 
     def test_categories_search_fixture_adds_candidate_next_actions(self):
         payload = run_command(
@@ -136,6 +144,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertTrue(any(command.startswith("categories finder-selection 1055398") for command in commands))
         self.assertEqual(payload["data"]["next_actions"][0]["tool"], "categories.products")
         self.assertEqual(payload["data"]["agent_brief"]["view"], "category_search")
+        self.assertGreaterEqual(payload["data"]["research_graph"]["entity_counts"]["category"], 1)
+        self.assertEqual(payload["data"]["evidence_index"]["research_graph"]["path"], "research_graph")
 
     def test_categories_finder_selection_writes_local_scaffold(self):
         with TemporaryDirectory() as temp_dir:
@@ -155,6 +165,7 @@ class Phase8HighValueCommandTests(unittest.TestCase):
             self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 0)
             self.assertEqual(payload["data"]["next_actions"][0]["tool"], "finder.query")
             self.assertEqual(payload["data"]["data_quality"]["confidence"], "high")
+            self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["category"], 1)
 
     def test_categories_products_hydrate_top_is_explicit(self):
         payload = run_command(
@@ -199,6 +210,7 @@ class Phase8HighValueCommandTests(unittest.TestCase):
             self.assertEqual(payload["request"]["endpoint"], "/topseller")
             self.assertTrue(out_path.is_file())
             self.assertEqual(payload["data"]["output"]["path"], str(out_path))
+            self.assertEqual(payload["data"]["research_graph"]["entity_counts"]["seller"], 1)
 
 
 if __name__ == "__main__":

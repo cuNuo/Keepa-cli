@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from keepa_cli.agent_contract import build_action, build_evidence_index
-from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path
+from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path, explain_response_cache_key
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -522,6 +522,10 @@ def explain_cache(*, input_path: str | None, command: str | None, endpoint: str 
     }
 
 
+def explain_cache_key(*, method: str, endpoint: str, params: Mapping[str, Any], json_body: Any = None) -> dict[str, Any]:
+    return explain_response_cache_key(method=method, endpoint=endpoint, params=params, json_body=json_body)
+
+
 def cache_stats(*, cache_path: str | None = None) -> dict[str, Any]:
     cache = SQLiteResponseCache(cache_path or default_cache_path())
     stats = cache.stats()
@@ -530,6 +534,26 @@ def cache_stats(*, cache_path: str | None = None) -> dict[str, Any]:
         "dry-run, fixture, binary, POST, and disabled-cache requests are not persisted.",
     ]
     return stats
+
+
+def inspect_cache(*, cache_key: str, cache_path: str | None = None) -> dict[str, Any]:
+    cache = SQLiteResponseCache(cache_path or default_cache_path())
+    result = cache.inspect(cache_key)
+    result["notes"] = [
+        "cache inspect returns metadata only and never includes cached response body.",
+        "Use the cache_key from data.cache_provenance.cache_key for single-entry audits.",
+    ]
+    return result
+
+
+def prune_expired_cache(*, dry_run: bool, cache_path: str | None = None) -> dict[str, Any]:
+    cache = SQLiteResponseCache(cache_path or default_cache_path())
+    result = cache.prune_expired(dry_run=dry_run)
+    result["notes"] = [
+        "Only expired SQLite response cache entries are removed.",
+        "Use --dry-run to count expired entries before cleanup.",
+    ]
+    return result
 
 
 def clear_cache(*, dry_run: bool, cache_path: str | None = None) -> dict[str, Any]:

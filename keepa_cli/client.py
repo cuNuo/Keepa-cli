@@ -72,6 +72,8 @@ class KeepaClient:
         out: str | None = None,
         binary: bool = False,
         env: Mapping[str, str] | None = None,
+        cache_ttl_seconds: int | None = None,
+        no_cache: bool = False,
     ) -> dict[str, Any]:
         params = dict(params or {})
         method = method.upper()
@@ -116,8 +118,8 @@ class KeepaClient:
             )
 
         params["key"] = str(api_key)
-        cache_ttl_seconds = resolve_cache_ttl_seconds(config, env=env)
-        cache_disabled = parse_bool(env.get(CACHE_DISABLE_ENV)) or cache_ttl_seconds <= 0
+        effective_cache_ttl_seconds = resolve_cache_ttl_seconds(config, env=env, explicit_ttl=cache_ttl_seconds)
+        cache_disabled = no_cache or parse_bool(env.get(CACHE_DISABLE_ENV)) or effective_cache_ttl_seconds <= 0
         response_cache = None
         if not cache_disabled and method == "GET" and json_body is None:
             response_cache = self.response_cache or SQLiteResponseCache(default_cache_path(env))
@@ -140,7 +142,7 @@ class KeepaClient:
             request_payload,
             budget,
             response_cache=response_cache,
-            cache_ttl_seconds=cache_ttl_seconds,
+            cache_ttl_seconds=effective_cache_ttl_seconds,
         )
 
     def _fixture_response(

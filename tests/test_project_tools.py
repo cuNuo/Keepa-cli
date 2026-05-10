@@ -11,11 +11,15 @@ import unittest
 from pathlib import Path
 
 from keepa_cli.service import run_command
+from scripts.check_live_cache_options import missing_live_cache_options
 from scripts.check_fixture_sync import compare_fixture_dirs
 from scripts.redact_cassette import redact_cassette_payload
 
 
 class ProjectToolTests(unittest.TestCase):
+    def test_live_cache_option_lint_has_no_missing_commands(self):
+        self.assertEqual(missing_live_cache_options(), [])
+
     def test_fixture_sync_detects_missing_and_mismatched_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -74,6 +78,41 @@ class ProjectToolTests(unittest.TestCase):
             content = output_path.read_text(encoding="utf-8")
             self.assertNotIn("SECRET", content)
             self.assertIn("[REDACTED]", content)
+
+    def test_cassette_promote_writes_synced_fixtures_and_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "live.json"
+            tests_dir = root / "tests" / "fixtures"
+            package_dir = root / "keepa_cli" / "fixtures"
+            manifest = root / "evidence" / "manifest.csv"
+            input_path.write_text(
+                json.dumps({"url": "https://api.keepa.com/product?key=SECRET", "body": {"token": "SECRET", "ok": True}}),
+                encoding="utf-8",
+            )
+
+            payload = run_command(
+                "cassettes.promote",
+                {
+                    "input": str(input_path),
+                    "name": "promoted_product",
+                    "tests_dir": str(tests_dir),
+                    "package_dir": str(package_dir),
+                    "manifest": str(manifest),
+                    "title": "Promoted Product Fixture",
+                },
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            test_fixture = tests_dir / "promoted_product.json"
+            package_fixture = package_dir / "promoted_product.json"
+            self.assertTrue(test_fixture.is_file())
+            self.assertEqual(test_fixture.read_text(encoding="utf-8"), package_fixture.read_text(encoding="utf-8"))
+            self.assertNotIn("SECRET", test_fixture.read_text(encoding="utf-8"))
+            manifest_content = manifest.read_text(encoding="utf-8")
+            self.assertIn("logical_path,title,status,updated_at,summary", manifest_content)
+            self.assertIn("promoted_product.json", manifest_content)
 
 
 if __name__ == "__main__":

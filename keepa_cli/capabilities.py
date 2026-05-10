@@ -9,11 +9,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from keepa_cli.agent.tools import list_mcp_tools
+from keepa_cli.agent.resources import list_mcp_resources
+from keepa_cli.agent.tools import list_mcp_tools, toolset_names
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.11"
+SCHEMA_VERSION = "2026-05-10.13"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -29,10 +30,14 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "templates.show", "supports_fixture": False, "supports_live": False, "output": "json-file-optional"},
     {"name": "reports.build", "supports_fixture": True, "supports_live": False, "output": "text-json-csv-file-optional"},
     {"name": "cache.explain", "supports_fixture": True, "supports_live": False, "output": "json"},
+    {"name": "cache.explain-key", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "cache.stats", "supports_fixture": False, "supports_live": False, "output": "json"},
+    {"name": "cache.inspect", "supports_fixture": False, "supports_live": False, "output": "json"},
+    {"name": "cache.prune-expired", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "cache.clear", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "audit.cost", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "workflow.plan", "supports_fixture": False, "supports_live": False, "output": "json-agent-plan"},
+    {"name": "research_graph.merge", "supports_fixture": True, "supports_live": False, "output": "json-agent-graph"},
     {"name": "products.get", "supports_fixture": True, "supports_live": True, "output": "json-or-agent-view"},
     {"name": "products.compare", "supports_fixture": True, "supports_live": True, "output": "json-agent-view"},
     {"name": "products.search", "supports_fixture": True, "supports_live": True, "output": "json"},
@@ -60,6 +65,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "tracking.webhook", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "schema.generate", "supports_fixture": False, "supports_live": False, "output": "json-file"},
     {"name": "cassettes.sanitize", "supports_fixture": False, "supports_live": False, "output": "json-file"},
+    {"name": "cassettes.promote", "supports_fixture": False, "supports_live": False, "output": "json-file"},
     {"name": "request.get", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "request.post", "supports_fixture": True, "supports_live": True, "output": "json"},
 )
@@ -85,7 +91,10 @@ def build_capabilities() -> dict[str, Any]:
             "server_name": "keepa",
             "transport": "stdio",
             "entrypoint": "keepa-cli --mcp",
-            "tools": list_mcp_tools(),
+            "default_toolset": "research",
+            "toolsets": toolset_names(),
+            "tools": list_mcp_tools(toolsets="all"),
+            "resources": list_mcp_resources(),
         },
         "commands": commands,
     }

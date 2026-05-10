@@ -160,6 +160,54 @@ class KeepaClientTests(unittest.TestCase):
 
         self.assertEqual(opener.calls, 2)
 
+    def test_live_cache_can_be_disabled_by_explicit_request_option(self):
+        body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
+        opener = SequenceOpener([FakeResponse(body), FakeResponse(body)])
+        with TemporaryDirectory() as temp_dir:
+            cache = SQLiteResponseCache(Path(temp_dir) / "keepa-cache.sqlite")
+            client = KeepaClient(opener=opener, response_cache=cache)
+            env = {"KEEPA_CLI_CACHE_PATH": str(cache.path)}
+
+            client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+                no_cache=True,
+            )
+            client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+                no_cache=True,
+            )
+
+        self.assertEqual(opener.calls, 2)
+        self.assertFalse(cache.path.exists())
+
+    def test_live_cache_ttl_can_be_set_per_request(self):
+        body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
+        opener = SequenceOpener([FakeResponse(body)])
+        with TemporaryDirectory() as temp_dir:
+            cache = SQLiteResponseCache(Path(temp_dir) / "keepa-cache.sqlite")
+            client = KeepaClient(opener=opener, response_cache=cache)
+            env = {"KEEPA_CLI_CACHE_PATH": str(cache.path), "KEEPA_CLI_CACHE_TTL_SECONDS": "3600"}
+
+            payload = client.request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                env=env,
+                cache_ttl_seconds=5,
+            )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["cache_provenance"]["expires_at"] - payload["data"]["cache_provenance"]["created_at"], 5)
+
     def test_live_response_can_read_api_key_from_config_without_leaking_it(self):
         body = json.dumps({"tokensLeft": 9, "tokensConsumed": 1, "products": []}).encode("utf-8")
         opener = SequenceOpener([FakeResponse(body)])

@@ -196,12 +196,15 @@ Explain provenance and estimate token cost before live work:
 
 ```powershell
 kc --json cache explain --input .\batch.json --command products.get
+kc --json cache explain-key --endpoint /product --param domain=1 --param asin=B001GZ6QEC
 kc --json cache stats
+kc --json cache inspect sqlite:<cache-key>
+kc --json cache prune-expired --dry-run
 kc --json cache clear --dry-run
 kc --json audit cost products.get --param asin=B001GZ6QEC
 ```
 
-Live GET JSON responses are cached in SQLite by default using `cache_ttl_seconds` from config. Dry-run, fixture, binary, POST, and disabled-cache requests are not persisted. Override the cache file for audits with `--cache-path` or `KEEPA_CLI_CACHE_PATH`, and disable live response caching with `KEEPA_CLI_NO_CACHE=1`.
+Live GET JSON responses are cached in SQLite by default using `cache_ttl_seconds` from config. Dry-run, fixture, binary, POST, and disabled-cache requests are not persisted. Override the cache file for audits with `--cache-path` or `KEEPA_CLI_CACHE_PATH`. Common cacheable live commands also accept `--cache-ttl <seconds>` and `--no-cache`; environment fallbacks remain `KEEPA_CLI_CACHE_TTL_SECONDS` and `KEEPA_CLI_NO_CACHE=1`. `cache explain-key` lets Agents derive the deterministic SQLite cache key from method, endpoint, and sanitized request params; the release gate runs `scripts/check_live_cache_options.py` so new cacheable live CLI commands cannot omit explicit cache controls.
 
 Tracking and webhook write paths stay dry-run by default in examples:
 
@@ -271,7 +274,7 @@ MCP JSON-RPC over stdio:
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
 ```
 
-The MCP tools are `keepa.products_get`, `keepa.products_compare`, `keepa.categories_search`, `keepa.categories_products`, `keepa.finder_query`, and `keepa.audit_cost`. They accept structured JSON arguments and call the same command service as the CLI. Product results include `risk_taxonomy` and `research_graph`; tool envelopes include `structuredContent`, a compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger` so Agent sessions can dedupe repeated ASIN/category work and track cumulative token exposure.
+MCP defaults to the compact `research` toolset and accepts structured JSON arguments, not CLI strings. Use `tools/list` with `toolset` set to `research`, `audit`, `reports`, `tracking-readonly`, or `all` to control context size. Research tools include product, category, Finder, Deals, seller, ranking, and workflow planning entrypoints; audit tools include cost estimation plus cassette sanitize/promote; reports tools expose local report and browse snapshot builders; tracking only exposes read-only operations. Agent results include `risk_taxonomy` where applicable and a cross-command `research_graph`; tool envelopes include `structuredContent`, compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger`.
 
 Contracts:
 
@@ -304,6 +307,7 @@ npm pack --dry-run --json
 
 - Do not commit Keepa API keys, `.env` files, local caches, or unredacted cassettes.
 - Output redacts `key`, `api_key`, `apikey`, `token`, and `authorization`.
+- Promote live responses with `kc --json cassettes promote live.json --name fixture_name` so sanitized fixtures are written to both fixture directories and `evidence/manifest.csv`.
 - Live Keepa smoke tests should use `KEEPA_API_KEY` from GitHub Secrets and manual workflow dispatch.
 
 ## Documentation

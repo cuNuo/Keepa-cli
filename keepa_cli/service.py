@@ -7,367 +7,58 @@ keepa_cli/service.py
 
 from __future__ import annotations
 
-import os
 import json
-import urllib.parse
-from collections.abc import Mapping, Sequence
+import os
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from keepa_cli.agent_contract import attach_agent_profile, build_action
-from keepa_cli.analysis import analyze_history_rows
+from keepa_cli.agent_contract import attach_agent_profile
 from keepa_cli.capabilities import build_capabilities
-from keepa_cli.cassettes import sanitize_cassette_file
-from keepa_cli.client import KeepaClient
+from keepa_cli.cassettes import promote_cassette_fixture, sanitize_cassette_file
 from keepa_cli.commands.cache import can_handle as can_handle_cache_command
 from keepa_cli.commands.cache import handle_cache_command
+from keepa_cli.commands.categories import can_handle as can_handle_category_command
+from keepa_cli.commands.categories import handle_category_command
+from keepa_cli.commands.common import as_list as _as_list
+from keepa_cli.commands.common import bool_option as _bool_option
+from keepa_cli.commands.common import bool_param as _bool_param
+from keepa_cli.commands.common import client as _client
+from keepa_cli.commands.common import confirmation_required as _confirmation_required
+from keepa_cli.commands.common import live_cache_options as _live_cache_options
+from keepa_cli.commands.common import param as _param
+from keepa_cli.commands.deals import can_handle as can_handle_deals_command
+from keepa_cli.commands.deals import handle_deals_command
+from keepa_cli.commands.finder import can_handle as can_handle_finder_command
+from keepa_cli.commands.finder import handle_finder_command
+from keepa_cli.commands.history import can_handle as can_handle_history_command
+from keepa_cli.commands.history import handle_history_command
+from keepa_cli.commands.products import can_handle as can_handle_product_command
+from keepa_cli.commands.products import handle_product_command
+from keepa_cli.commands.raw import can_handle as can_handle_raw_command
+from keepa_cli.commands.raw import handle_raw_command
+from keepa_cli.commands.tracking import can_handle as can_handle_tracking_command
+from keepa_cli.commands.tracking import handle_tracking_command
 from keepa_cli.commands.workflows import can_handle as can_handle_workflow_command
 from keepa_cli.commands.workflows import handle_workflow_command
 from keepa_cli.config import build_config_report, init_config, set_api_token, set_language, set_max_tokens_per_request
 from keepa_cli.doctor import build_doctor_report
 from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
-from keepa_cli.high_value import attach_output_if_requested, load_selection, selection_to_query_value, write_body_output
-from keepa_cli.history_export import build_history_export_data, extract_history_rows, normalize_series_names
-from keepa_cli.product_view import build_agent_product_view, build_product_compare_view
+from keepa_cli.high_value import attach_output_if_requested
+from keepa_cli.research_graph import (
+    build_category_products_graph,
+    build_seller_graph,
+    build_topsellers_graph,
+    extract_research_graphs,
+    graph_summary,
+    merge_research_graphs,
+)
 from keepa_cli.schema_docs import generate_product_agent_schema
 from keepa_cli.token_budget import estimate_request_budget
 
 
 DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
-
-
-def _as_list(value: Any) -> list[str]:
-    if value is None:
-        return []
-    if isinstance(value, str):
-        return [item.strip() for item in value.split(",") if item.strip()]
-    if isinstance(value, Sequence) and not isinstance(value, (bytes, bytearray)):
-        return [str(item).strip() for item in value if str(item).strip()]
-    return [str(value).strip()]
-
-
-def _bool_param(value: Any) -> str:
-    return "1" if value is True or str(value).lower() in {"1", "true", "yes", "on"} else "0"
-
-
-def _optional_params(params: Mapping[str, Any], names: Sequence[str]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    for name in names:
-        if name in params and params[name] is not None:
-            result[name] = params[name]
-    return result
-
-
-def _param(params: Mapping[str, Any], *names: str, default: Any = None) -> Any:
-    for name in names:
-        if name in params and params[name] is not None:
-            return params[name]
-    return default
-
-
-def _bool_option(params: Mapping[str, Any], *names: str) -> bool:
-    value = _param(params, *names)
-    return value is True or str(value).lower() in {"1", "true", "yes", "on"}
-
-
-def _product_query_options(params: Mapping[str, Any]) -> dict[str, Any]:
-    result: dict[str, Any] = {}
-    if _bool_option(params, "full", "full_detail", "full-detail"):
-        stats_window = _param(params, "stats_window", "stats-window", default="0")
-        result.update({"history": "1", "stats": str(stats_window), "videos": "1", "aplus": "1"})
-
-    for canonical in (
-        "stats",
-        "update",
-        "history",
-        "days",
-        "offers",
-        "code-limit",
-        "only-live-offers",
-        "videos",
-        "aplus",
-        "rating",
-        "buybox",
-        "stock",
-        "historical-variations",
-    ):
-        value = _param(params, canonical, canonical.replace("-", "_"))
-        if value is not None:
-            result[canonical] = value
-    return result
-
-
-def _client(fixture_dir: Path | str | None = None) -> KeepaClient:
-    selected_fixture_dir = Path(fixture_dir) if fixture_dir is not None else DEFAULT_FIXTURE_DIR
-    return KeepaClient(fixture_dir=selected_fixture_dir)
-
-
-def _product_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    asins = _as_list(params.get("asin") or params.get("asins"))
-    codes = _as_list(params.get("code") or params.get("codes"))
-    if bool(asins) == bool(codes):
-        return error_envelope(
-            command="products.get",
-            kind="invalid_argument",
-            message="products.get requires exactly one of asin/asins or code/codes",
-        )
-
-    request_params: dict[str, Any] = {"domain": str(resolve_domain(params.get("domain", "US")).domain_id)}
-    if asins:
-        request_params["asin"] = ",".join(asins)
-    else:
-        request_params["code"] = ",".join(codes)
-
-    request_params.update(_product_query_options(params))
-    payload = _client(fixture_dir).request(
-        command="products.get",
-        method="GET",
-        path="/product",
-        params=request_params,
-        dry_run=bool(params.get("dry_run")),
-        fixture=params.get("fixture"),
-    )
-    view = str(_param(params, "view", "output_view") or "").strip().lower()
-    if _bool_option(params, "agent_view", "agent-view") or view == "agent":
-        data = payload.get("data")
-        if payload.get("ok") and isinstance(data, dict) and not data.get("dry_run"):
-            output_path = _param(params, "out", "output")
-            raw_output = None
-            if output_path:
-                raw_output = write_body_output(data, output_path)
-            history_limit = int(_param(params, "history_limit", "history-limit") or 10)
-            data = build_agent_product_view(
-                data,
-                history_limit=history_limit,
-                temporal_windows=_param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
-                view_profile=view,
-                fields=_param(params, "fields"),
-                chunks_dir=_param(params, "chunks_dir", "chunks-dir"),
-            )
-            if raw_output:
-                raw = data.get("raw")
-                if isinstance(raw, dict):
-                    raw["output"] = raw_output
-            payload["data"] = data
-    else:
-        payload = attach_output_if_requested(payload, _param(params, "out", "output"))
-    return payload
-
-
-def _products_compare(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    asins = _as_list(params.get("asin") or params.get("asins"))
-    if not asins:
-        return error_envelope(
-            command="products.compare",
-            kind="invalid_argument",
-            message="products.compare requires at least one ASIN",
-        )
-
-    request_params: dict[str, Any] = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "asin": ",".join(asins),
-    }
-    request_params.update(_product_query_options(params))
-    payload = _client(fixture_dir).request(
-        command="products.compare",
-        method="GET",
-        path="/product",
-        params=request_params,
-        dry_run=bool(params.get("dry_run")),
-        fixture=params.get("fixture"),
-    )
-    payload = attach_output_if_requested(payload, _param(params, "out", "output"))
-    data = payload.get("data")
-    if payload.get("ok") and isinstance(data, dict) and not data.get("dry_run"):
-        history_limit = int(_param(params, "history_limit", "history-limit") or 5)
-        agent_view = build_agent_product_view(
-            data,
-            history_limit=history_limit,
-            temporal_windows=_param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
-            view_profile=str(_param(params, "view") or "deal"),
-            fields=_param(params, "fields"),
-            chunks_dir=_param(params, "chunks_dir", "chunks-dir"),
-        )
-        payload["data"] = build_product_compare_view(agent_view)
-    return payload
-
-
-def _product_search(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    term = str(params.get("term", "")).strip()
-    if not term:
-        return error_envelope(
-            command="products.search",
-            kind="invalid_argument",
-            message="products.search requires a non-empty search term",
-        )
-
-    request_params = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "type": "product",
-        "term": term,
-    }
-    return _client(fixture_dir).request(
-        command="products.search",
-        method="GET",
-        path="/search",
-        params=request_params,
-        dry_run=bool(params.get("dry_run")),
-        fixture=params.get("fixture"),
-    )
-
-
-def _categories_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    categories = _as_list(params.get("category") or params.get("categories"))
-    if not categories:
-        return error_envelope(
-            command="categories.get",
-            kind="invalid_argument",
-            message="categories.get requires at least one category id",
-        )
-    if len(categories) > 10:
-        return error_envelope(
-            command="categories.get",
-            kind="invalid_argument",
-            message="Keepa category lookup supports at most 10 category ids per request",
-        )
-
-    request_params = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "category": ",".join(categories),
-        "parents": _bool_param(params.get("parents", False)),
-    }
-    return _client(fixture_dir).request(
-        command="categories.get",
-        method="GET",
-        path="/category",
-        params=request_params,
-        dry_run=bool(params.get("dry_run")),
-        fixture=params.get("fixture"),
-    )
-
-
-def _categories_search(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    term = str(params.get("term", "")).strip()
-    if not term:
-        return error_envelope(
-            command="categories.search",
-            kind="invalid_argument",
-            message="categories.search requires a non-empty search term",
-        )
-
-    request_params = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "type": "category",
-        "term": term,
-    }
-    payload = _client(fixture_dir).request(
-        command="categories.search",
-        method="GET",
-        path="/search",
-        params=request_params,
-        dry_run=bool(params.get("dry_run")),
-        fixture=params.get("fixture"),
-    )
-    if not payload.get("ok"):
-        return payload
-    data = payload.get("data")
-    if not isinstance(data, dict) or data.get("dry_run"):
-        return payload
-    body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
-    data.update(_category_search_view(body, term=term, domain=str(params.get("domain", "US"))))
-    return payload
-
-
-def _category_search_view(body: Mapping[str, Any], *, term: str, domain: str) -> dict[str, Any]:
-    categories = body.get("categories") if isinstance(body.get("categories"), Mapping) else {}
-    candidates: list[dict[str, Any]] = []
-    for raw_id, raw_category in categories.items():
-        if not isinstance(raw_category, Mapping):
-            continue
-        category_id = str(raw_category.get("catId") or raw_id)
-        children = raw_category.get("children") if isinstance(raw_category.get("children"), list) else []
-        candidates.append(
-            {
-                "category_id": category_id,
-                "name": raw_category.get("name"),
-                "parent": raw_category.get("parent"),
-                "children_count": len(children),
-                "matched": bool(raw_category.get("matched")),
-                "next_actions": [
-                    build_action(
-                        tool="categories.products",
-                        params={"category": category_id, "domain": domain, "limit": 25, "dry_run": True},
-                        cli=f"categories products {category_id} --domain {domain} --limit 25 --dry-run",
-                        reason="preview the 50-token Best Sellers request before fetching ASIN candidates",
-                        estimated_tokens=0,
-                        requires_confirmation=False,
-                    ),
-                    build_action(
-                        tool="categories.finder-selection",
-                        params={"category": category_id, "domain": domain, "out": f"finder-category-{category_id}.json"},
-                        cli=f"categories finder-selection {category_id} --domain {domain} --out finder-category-{category_id}.json",
-                        reason="create a local Product Finder selection scaffold for this category",
-                    ),
-                ],
-            }
-        )
-    candidates.sort(key=lambda item: (not item["matched"], str(item.get("name") or ""), item["category_id"]))
-    result = {
-        "view": "category_search",
-        "term": term,
-        "category_candidate_count": len(candidates),
-        "category_candidates": candidates,
-        "next_actions": [
-            item
-            for candidate in candidates[:3]
-            for item in candidate["next_actions"]
-        ],
-    }
-    return attach_agent_profile(
-        result,
-        view="category_search",
-        summary=f"{len(candidates)} category candidates for {term}",
-        key_facts={"term": term, "candidate_count": len(candidates), "top_category_id": candidates[0]["category_id"] if candidates else None},
-        present=["categories", "category_candidates"] if candidates else ["categories"],
-        missing=[] if candidates else ["category_candidates"],
-        selection_signals={"candidate_count": len(candidates), "matched_count": len([item for item in candidates if item["matched"]])},
-        evidence={
-            "category_candidates": ("category_candidates", "summary", "Candidate category ids derived from Keepa category search."),
-            "raw_categories": ("body.categories", "audit", "Raw Keepa category search response."),
-            "next_actions": ("next_actions", "summary", "Structured category follow-up actions."),
-            "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the category search."),
-        },
-    )
-
-
-def _keepa_body_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    data = payload.get("data")
-    if not isinstance(data, dict):
-        return {}
-    body = data.get("body")
-    if isinstance(body, dict):
-        return body
-    return data
-
-
-def _confirmation_required(command: str, params: Mapping[str, Any]) -> dict[str, Any] | None:
-    budget = estimate_request_budget(command, dict(params)).to_dict()
-    if not budget["requires_confirmation"]:
-        return None
-    if _bool_option(params, "dry_run", "dry-run") or params.get("fixture") or _bool_option(params, "yes"):
-        return None
-    return error_envelope(
-        command=command,
-        kind="confirmation_required",
-        message="request requires explicit confirmation because it may consume significant Keepa tokens",
-        details={
-            "resume_with": "--yes",
-            "estimated_tokens": budget["estimated_tokens"],
-            "worst_case_tokens": budget["worst_case_tokens"],
-        },
-        token_bucket={"estimated": budget},
-    )
 
 
 def _tokens_status(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
@@ -378,6 +69,7 @@ def _tokens_status(params: Mapping[str, Any], fixture_dir: Path | str | None) ->
         params={},
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
+        **_live_cache_options(params),
     )
 
 
@@ -458,276 +150,22 @@ def _lightningdeals_list(params: Mapping[str, Any], fixture_dir: Path | str | No
         params=request_params,
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
+        **_live_cache_options(params),
     )
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
-def _tracking_body(params: Mapping[str, Any]) -> list[dict[str, Any]]:
-    raw_value = _param(params, "tracking", "trackings")
-    tracking_file = _param(params, "tracking_file", "tracking-file")
-    if tracking_file is not None:
-        path = Path(str(tracking_file))
-        if not path.is_file():
-            raise ValueError(f"tracking file not found: {tracking_file}")
-        raw_value = json.loads(path.read_text(encoding="utf-8"))
-    elif isinstance(raw_value, str):
-        raw_value = json.loads(raw_value)
-
-    if isinstance(raw_value, Mapping):
-        return [dict(raw_value)]
-    if isinstance(raw_value, Sequence) and not isinstance(raw_value, (str, bytes, bytearray)):
-        result: list[dict[str, Any]] = []
-        for item in raw_value:
-            if not isinstance(item, Mapping):
-                raise ValueError("tracking list items must be JSON objects")
-            result.append(dict(item))
-        return result
-    raise ValueError("tracking.add requires tracking JSON object/list or tracking_file")
 
 
-def _redact_url_query_secrets(url: str) -> str:
-    parsed = urllib.parse.urlsplit(url)
-    query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
-    redacted_query = []
-    for key, value in query:
-        if key.lower() in {"key", "api_key", "apikey", "token", "authorization"}:
-            redacted_query.append((key, "[REDACTED]"))
-        else:
-            redacted_query.append((key, value))
-    return urllib.parse.urlunsplit(
-        (
-            parsed.scheme,
-            parsed.netloc,
-            parsed.path,
-            urllib.parse.urlencode(redacted_query),
-            parsed.fragment,
-        )
-    )
 
 
-def _sanitize_webhook_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    request = payload.get("request")
-    if not isinstance(request, dict):
-        return payload
-    params_redacted = request.get("params_redacted")
-    if not isinstance(params_redacted, dict):
-        return payload
-    url = params_redacted.get("url")
-    if isinstance(url, str):
-        params_redacted["url"] = _redact_url_query_secrets(url)
-    return payload
 
 
-def _tracking_request(command: str, params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    action = command.split(".", 1)[1]
-    request_params: dict[str, Any] = {}
-    method = "GET"
-    json_body: list[dict[str, Any]] | None = None
-
-    if action in {"list", "list-names"}:
-        request_params["type"] = "list"
-        if _bool_option(params, "asins_only", "asins-only"):
-            request_params["asins-only"] = "1"
-        if action == "list-names":
-            request_params["asins-only"] = "1"
-    elif action == "get":
-        asin = str(_param(params, "asin", default="")).strip()
-        if not asin:
-            return error_envelope(command=command, kind="invalid_argument", message="tracking.get requires an ASIN")
-        request_params.update({"type": "get", "asin": asin})
-    elif action == "add":
-        method = "POST"
-        request_params["type"] = "add"
-        json_body = _tracking_body(params)
-    elif action == "remove":
-        asin = str(_param(params, "asin", default="")).strip()
-        if not asin:
-            return error_envelope(command=command, kind="invalid_argument", message="tracking.remove requires an ASIN")
-        request_params.update({"type": "remove", "asin": asin})
-    elif action == "remove-all":
-        request_params["type"] = "removeAll"
-    elif action == "notifications":
-        request_params.update(
-            {
-                "type": "notification",
-                "since": str(_param(params, "since", default=0)),
-                "revise": _bool_param(_param(params, "revise", default=False)),
-            }
-        )
-    elif action == "webhook":
-        url = str(_param(params, "url", default="")).strip()
-        if not url:
-            return error_envelope(command=command, kind="invalid_argument", message="tracking.webhook requires a URL")
-        request_params.update({"type": "webhook", "url": url})
-    else:
-        return error_envelope(command=command, kind="unsupported_command", message=f"unsupported tracking action: {action}")
-
-    confirmation = _confirmation_required(command, {**dict(params), **request_params})
-    if confirmation is not None:
-        return confirmation
-
-    payload = _client(fixture_dir).request(
-        command=command,
-        method=method,
-        path="/tracking",
-        params=request_params,
-        json_body=json_body,
-        dry_run=_bool_option(params, "dry_run", "dry-run"),
-        fixture=params.get("fixture"),
-    )
-    if action == "webhook":
-        payload = _sanitize_webhook_payload(payload)
-    return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
-def _selection_query(
-    command: str,
-    path: str,
-    params: Mapping[str, Any],
-    fixture_dir: Path | str | None,
-) -> dict[str, Any]:
-    selection = load_selection(
-        _param(params, "selection"),
-        _param(params, "selection_file", "selection-file"),
-    )
-    request_params: dict[str, Any] = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "selection": selection_to_query_value(selection),
-    }
-    if _param(params, "max_tokens", "max-tokens") is not None:
-        request_params["max_tokens"] = int(_param(params, "max_tokens", "max-tokens"))
-
-    confirmation = _confirmation_required(command, {**dict(params), **request_params})
-    if confirmation is not None:
-        return confirmation
-
-    payload = _client(fixture_dir).request(
-        command=command,
-        method="GET",
-        path=path,
-        params=request_params,
-        dry_run=_bool_option(params, "dry_run", "dry-run"),
-        fixture=params.get("fixture"),
-    )
-    _attach_selection_profile(payload, command=command, selection=selection)
-    return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
-def _attach_selection_profile(payload: dict[str, Any], *, command: str, selection: Mapping[str, Any]) -> None:
-    data = payload.get("data")
-    if not payload.get("ok") or not isinstance(data, dict):
-        return
-    present = ["selection", "request"]
-    if isinstance(data.get("body"), Mapping):
-        present.append("body")
-    attach_agent_profile(
-        data,
-        view=command.replace(".", "_"),
-        summary=f"{command} selection request prepared",
-        key_facts={"selection_keys": sorted(selection.keys()), "dry_run": bool(data.get("dry_run"))},
-        present=present,
-        missing=[] if data.get("body") or data.get("dry_run") else ["body"],
-        selection_signals={"selection_keys": sorted(selection.keys()), "selection_size": len(selection)},
-        evidence={
-            "selection": ("request.params_redacted.selection", "audit", "Serialized Finder/Deals selection sent to Keepa."),
-            "body": ("body", "summary", "Raw response body when fixture/live data is available."),
-            "output": ("output", "audit", "Large response output path when --out is used."),
-            "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
-        },
-    )
 
-
-def _categories_finder_selection(params: Mapping[str, Any]) -> dict[str, Any]:
-    category = str(_param(params, "category", "category_id", "category-id", default="")).strip()
-    if not category:
-        return error_envelope(
-            command="categories.finder-selection",
-            kind="invalid_argument",
-            message="categories.finder-selection requires a category id",
-        )
-
-    domain = str(params.get("domain", "US"))
-    per_page = int(_param(params, "per_page", "per-page", default=50) or 50)
-    sales_rank_max = int(_param(params, "sales_rank_max", "sales-rank-max", default=20000) or 20000)
-    min_reviews = int(_param(params, "min_reviews", "min-reviews", default=50) or 50)
-    selection = {
-        "categories_include": [int(category) if category.isdigit() else category],
-        "current_SALES_gte": 1,
-        "current_SALES_lte": sales_rank_max,
-        "current_COUNT_REVIEWS_gte": min_reviews,
-        "sort": [["current_SALES", "asc"]],
-        "perPage": per_page,
-        "page": 0,
-    }
-    data: dict[str, Any] = {
-        "view": "finder_selection_scaffold",
-        "category_id": category,
-        "domain": domain,
-        "selection": selection,
-        "field_notes": [
-            "categories_include is an Agent-level scaffold field; verify against Keepa Finder field support before live query if your account expects a different category selector.",
-            "The scaffold is local-only and does not consume Keepa tokens.",
-        ],
-        "next_actions": [
-            build_action(
-                tool="finder.query",
-                params={"selection_file": "<PATH>", "domain": domain, "dry_run": True, "max_tokens": 25},
-                cli=f"finder query --selection-file <PATH> --domain {domain} --dry-run --max-tokens 25",
-                reason="validate the generated selection request shape without consuming tokens",
-                estimated_tokens=0,
-                requires_confirmation=False,
-            ),
-            build_action(
-                tool="categories.products",
-                params={"category": category, "domain": domain, "limit": 25, "dry_run": True},
-                cli=f"categories products {category} --domain {domain} --limit 25 --dry-run",
-                reason="preview Best Sellers category candidate retrieval",
-                estimated_tokens=0,
-                requires_confirmation=False,
-            ),
-        ],
-    }
-    output_path = _param(params, "out", "output")
-    if output_path:
-        path = Path(str(output_path))
-        if path.parent:
-            path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(selection, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        data["output"] = {
-            "path": str(path),
-            "format": "json",
-            "size_bytes": path.stat().st_size,
-            "result_count": 1,
-        }
-        data["next_actions"][0] = build_action(
-            tool="finder.query",
-            params={"selection_file": str(path), "domain": domain, "dry_run": True, "max_tokens": 25},
-            cli=f"finder query --selection-file {path} --domain {domain} --dry-run --max-tokens 25",
-            reason="validate the generated selection request shape without consuming tokens",
-            estimated_tokens=0,
-            requires_confirmation=False,
-        )
-    attach_agent_profile(
-        data,
-        view="finder_selection_scaffold",
-        summary=f"Finder selection scaffold for category {category}",
-        key_facts={"category_id": category, "domain": domain, "per_page": per_page},
-        present=["selection", "next_actions"],
-        notes=["local scaffold only; verify category selector field before live Finder query"],
-        selection_signals={"category_id": category, "sales_rank_max": sales_rank_max, "min_reviews": min_reviews},
-        evidence={
-            "selection": ("selection", "summary", "Generated Product Finder selection scaffold."),
-            "field_notes": ("field_notes", "audit", "Known caveats for category selector compatibility."),
-            "next_actions": ("next_actions", "summary", "Structured follow-up actions."),
-            "output": ("output", "audit", "Selection JSON output path when --out is used."),
-        },
-    )
-    return success_envelope(
-        command="categories.finder-selection",
-        data=data,
-        request={"transport": "service", "dry_run": True},
-        token_bucket={"estimated": estimate_request_budget("categories.finder-selection", dict(params)).to_dict()},
-    )
 
 
 def _seller_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
@@ -755,19 +193,27 @@ def _seller_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> di
         params=request_params,
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
+        **_live_cache_options(params),
     )
     data = payload.get("data")
     if payload.get("ok") and isinstance(data, dict):
+        body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
+        data["research_graph"] = build_seller_graph(sellers=sellers, body=body)
         attach_agent_profile(
             data,
             view="sellers_get",
             summary=f"{len(sellers)} seller ids requested",
-            key_facts={"seller_count": len(sellers), "storefront": bool(_param(params, "storefront"))},
+            key_facts={
+                "seller_count": len(sellers),
+                "storefront": bool(_param(params, "storefront")),
+                "research_graph_entities": data["research_graph"].get("entity_counts", {}),
+            },
             present=["request", "body"] if data.get("body") else ["request"],
             missing=[] if data.get("body") or data.get("dry_run") else ["body"],
             selection_signals={"seller_count": len(sellers), "storefront_requested": bool(_param(params, "storefront"))},
             evidence={
                 "seller_ids": ("request.params_redacted.seller", "summary", "Seller ids requested from Keepa."),
+                "research_graph": ("research_graph", "summary", "Seller and storefront product entities."),
                 "body": ("body.sellers", "summary", "Raw seller map when available."),
                 "output": ("output", "audit", "Large response output path when --out is used."),
                 "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
@@ -800,19 +246,37 @@ def _bestsellers_get(params: Mapping[str, Any], fixture_dir: Path | str | None) 
         params=request_params,
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
+        **_live_cache_options(params),
     )
     data = payload.get("data")
     if payload.get("ok") and isinstance(data, dict):
+        body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
+        bestsellers = body.get("bestSellersList") if isinstance(body.get("bestSellersList"), Mapping) else {}
+        asin_list = bestsellers.get("asinList") if isinstance(bestsellers.get("asinList"), list) else []
+        candidates = [
+            {"rank": index + 1, "asin": str(asin), "category_id": str(bestsellers.get("categoryId") or category)}
+            for index, asin in enumerate(asin_list[:25])
+            if str(asin).strip()
+        ]
+        data["research_graph"] = build_category_products_graph(
+            category_id=str(bestsellers.get("categoryId") or category),
+            candidates=candidates,
+        )
         attach_agent_profile(
             data,
             view="bestsellers_get",
             summary=f"Best Sellers request for category {category}",
-            key_facts={"category_id": category, "source": "bestsellers"},
+            key_facts={
+                "category_id": category,
+                "source": "bestsellers",
+                "research_graph_entities": data["research_graph"].get("entity_counts", {}),
+            },
             present=["request", "body"] if data.get("body") else ["request"],
             missing=[] if data.get("body") or data.get("dry_run") else ["body"],
-            selection_signals={"category_id": category, "source": "bestsellers"},
+            selection_signals={"category_id": category, "source": "bestsellers", "candidate_count": len(candidates)},
             evidence={
                 "request": ("request", "audit", "Best Sellers request specification."),
+                "research_graph": ("research_graph", "summary", "Category and product entities from Best Sellers."),
                 "body": ("body.bestSellersList", "summary", "Raw Best Sellers response when available."),
                 "output": ("output", "audit", "Large response output path when --out is used."),
                 "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
@@ -821,214 +285,13 @@ def _bestsellers_get(params: Mapping[str, Any], fixture_dir: Path | str | None) 
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
-def _categories_products(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    category = str(_param(params, "category", "category_id", "category-id", default="")).strip()
-    if not category:
-        return error_envelope(
-            command="categories.products",
-            kind="invalid_argument",
-            message="categories.products requires a category id",
-        )
-
-    limit = int(_param(params, "limit", "max_asins", "max-asins", default=25) or 25)
-    if limit <= 0:
-        return error_envelope(
-            command="categories.products",
-            kind="invalid_argument",
-            message="categories.products limit must be positive",
-        )
-    hydrate_top = int(_param(params, "hydrate_top", "hydrate-top", default=0) or 0)
-    if hydrate_top < 0:
-        return error_envelope(
-            command="categories.products",
-            kind="invalid_argument",
-            message="categories.products hydrate_top must be zero or positive",
-        )
-
-    request_params: dict[str, Any] = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "category": category,
-    }
-    confirmation = _confirmation_required("categories.products", {**dict(params), **request_params})
-    if confirmation is not None:
-        return confirmation
-
-    payload = _client(fixture_dir).request(
-        command="categories.products",
-        method="GET",
-        path="/bestsellers",
-        params=request_params,
-        dry_run=_bool_option(params, "dry_run", "dry-run"),
-        fixture=params.get("fixture"),
-    )
-    if not payload.get("ok"):
-        return payload
-    data = payload.get("data")
-    if not isinstance(data, dict):
-        return payload
-    if data.get("dry_run"):
-        data["view"] = "category_products"
-        data["category_id"] = category
-        data["source"] = "bestsellers"
-        data["limit"] = limit
-        data["hydration"] = {
-            "enabled": False,
-            "requested": hydrate_top,
-            "reason": "dry-run never hydrates products",
-        }
-        data["next_actions"] = [
-            build_action(
-                tool="categories.products",
-                params={"category": category, "domain": "<DOMAIN>", "limit": limit, "yes": True},
-                cli=f"categories products {category} --domain <DOMAIN> --limit {limit} --yes",
-                reason="fetch category ASIN candidates from Keepa Best Sellers",
-                estimated_tokens=50,
-            )
-        ]
-        if hydrate_top:
-            data["next_actions"].append(
-                build_action(
-                    tool="categories.products",
-                    params={"category": category, "domain": "<DOMAIN>", "limit": limit, "hydrate_top": hydrate_top, "yes": True},
-                    cli=f"categories products {category} --domain <DOMAIN> --limit {limit} --hydrate-top {hydrate_top} --yes",
-                    reason="fetch category ASIN candidates and explicitly hydrate top product summaries",
-                    estimated_tokens=50 + hydrate_top,
-                )
-            )
-        attach_agent_profile(
-            data,
-            view="category_products",
-            summary=f"Dry-run category product candidates for {category}",
-            key_facts={"category_id": category, "source": "bestsellers", "limit": limit},
-            present=["request", "next_actions"],
-            missing=["asins"],
-            selection_signals={"source": "bestsellers", "estimated_candidate_limit": limit},
-            evidence={
-                "request": ("request", "audit", "Dry-run Keepa request specification."),
-                "next_actions": ("next_actions", "summary", "Structured follow-up actions."),
-                "hydration": ("hydration", "summary", "Hydration status and requested top-N count."),
-            },
-        )
-        return payload
-
-    body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
-    normalized = _category_products_view(body, category=category, limit=limit, domain=str(params.get("domain", "US")))
-    data.update(normalized)
-    data["hydration"] = _hydrate_category_products(data["asins"], hydrate_top=hydrate_top, params=params, fixture_dir=fixture_dir)
-    attach_agent_profile(
-        data,
-        view="category_products",
-        summary=f"{len(data.get('asins') or [])} ASIN candidates from category {data.get('category_id')}",
-        key_facts={"category_id": data.get("category_id"), "candidate_count": data.get("candidate_count"), "source": data.get("source")},
-        present=["asins", "candidates", "next_actions"],
-        missing=[] if data.get("asins") else ["asins"],
-        selection_signals={"candidate_count": data.get("candidate_count"), "source": data.get("source"), "hydrated": bool(data["hydration"].get("enabled"))},
-        evidence={
-            "candidates": ("candidates", "summary", "Ranked ASIN candidates from Best Sellers."),
-            "asins": ("asins", "summary", "Candidate ASIN list for compare/get follow-up."),
-            "hydration": ("hydration", "summary", "Optional hydrated Agent product summaries."),
-            "raw_bestsellers": ("body.bestSellersList", "audit", "Raw Keepa Best Sellers payload."),
-            "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
-        },
-    )
-    token_bucket = payload.get("token_bucket")
-    if isinstance(token_bucket, dict):
-        token_bucket["estimated"] = estimate_request_budget("categories.products", {**dict(params), **request_params}).to_dict()
-    return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
-def _category_products_view(body: Mapping[str, Any], *, category: str, limit: int, domain: str) -> dict[str, Any]:
-    bestsellers = body.get("bestSellersList") if isinstance(body.get("bestSellersList"), Mapping) else {}
-    asin_list = bestsellers.get("asinList") if isinstance(bestsellers.get("asinList"), list) else []
-    asins = [str(asin) for asin in asin_list[:limit] if str(asin).strip()]
-    candidates = [
-        {
-            "rank": index + 1,
-            "asin": asin,
-            "source": "bestsellers",
-            "category_id": str(bestsellers.get("categoryId") or category),
-        }
-        for index, asin in enumerate(asins)
-    ]
-    compare_command = f"products compare {' '.join(asins[:10])} --domain {domain} --full --view deal" if asins else None
-    get_command = f"products get {asins[0]} --domain {domain} --full --agent-view --view summary" if asins else None
-    return {
-        "view": "category_products",
-        "source": "bestsellers",
-        "category_id": str(bestsellers.get("categoryId") or category),
-        "last_update": bestsellers.get("lastUpdate"),
-        "candidate_count": len(candidates),
-        "asins": asins,
-        "candidates": candidates,
-        "next_actions": [
-            item
-            for item in (
-                build_action(
-                    tool="products.compare",
-                    params={"asin": asins[:10], "domain": domain, "full": True, "view": "deal"},
-                    cli=compare_command or "",
-                    reason="compare top category candidates with deal profile",
-                    estimated_tokens=max(1, len(asins[:10])),
-                )
-                if compare_command
-                else None,
-                build_action(
-                    tool="products.get",
-                    params={"asin": asins[0], "domain": domain, "full": True, "agent_view": True, "view": "summary"},
-                    cli=get_command or "",
-                    reason="inspect the top category candidate with Agent summary",
-                )
-                if get_command
-                else None,
-            )
-            if item is not None
-        ],
-    }
 
 
-def _hydrate_category_products(
-    asins: Sequence[str],
-    *,
-    hydrate_top: int,
-    params: Mapping[str, Any],
-    fixture_dir: Path | str | None,
-) -> dict[str, Any]:
-    if hydrate_top <= 0:
-        return {
-            "enabled": False,
-            "requested": 0,
-            "reason": "pass --hydrate-top N to explicitly fetch top product summaries",
-        }
-    selected = [asin for asin in asins[:hydrate_top] if asin]
-    if not selected:
-        return {"enabled": True, "requested": hydrate_top, "asins": [], "products": [], "errors": []}
 
-    product_params: dict[str, Any] = {
-        "asin": selected,
-        "domain": params.get("domain", "US"),
-        "full": True,
-        "agent_view": True,
-        "view": "summary",
-        "history_limit": int(_param(params, "history_limit", "history-limit", default=3) or 3),
-        "temporal_windows": _param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
-    }
-    product_fixture = _param(params, "product_fixture", "product-fixture")
-    if product_fixture:
-        product_params["fixture"] = product_fixture
-    product_payload = _product_get(product_params, fixture_dir)
-    data = product_payload.get("data") if isinstance(product_payload.get("data"), Mapping) else {}
-    products = data.get("products") if isinstance(data.get("products"), list) else []
-    return {
-        "enabled": True,
-        "requested": hydrate_top,
-        "hydrated_count": len(products),
-        "asins": selected,
-        "view": data.get("view"),
-        "profile": data.get("profile"),
-        "products": products,
-        "errors": [] if product_payload.get("ok") else [product_payload.get("error")],
-        "token_bucket": product_payload.get("token_bucket", {}),
-    }
+
+
 
 
 def _topsellers_list(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
@@ -1050,170 +313,42 @@ def _topsellers_list(params: Mapping[str, Any], fixture_dir: Path | str | None) 
         params=request_params,
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
+        **_live_cache_options(params),
     )
     data = payload.get("data")
     if payload.get("ok") and isinstance(data, dict):
+        body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
+        sellers = body.get("topSellers") if isinstance(body.get("topSellers"), list) else []
+        seller_items = [item for item in sellers if isinstance(item, Mapping)]
+        data["research_graph"] = build_topsellers_graph(
+            sellers=seller_items,
+            category_id=str(category) if category is not None else None,
+        )
         attach_agent_profile(
             data,
             view="topsellers_list",
             summary="Top Sellers list request prepared",
-            key_facts={"category_id": str(category) if category is not None else None},
+            key_facts={
+                "category_id": str(category) if category is not None else None,
+                "seller_count": len(seller_items),
+                "research_graph_entities": data["research_graph"].get("entity_counts", {}),
+            },
             present=["request", "body"] if data.get("body") else ["request"],
             missing=[] if data.get("body") or data.get("dry_run") else ["body"],
-            selection_signals={"category_id": str(category) if category is not None else None, "source": "topseller"},
+            selection_signals={
+                "category_id": str(category) if category is not None else None,
+                "source": "topseller",
+                "seller_count": len(seller_items),
+            },
             evidence={
                 "request": ("request", "audit", "Top Sellers request specification."),
+                "research_graph": ("research_graph", "summary", "Seller ranking and category entities from Top Sellers."),
                 "body": ("body", "summary", "Raw Top Sellers response when available."),
                 "output": ("output", "audit", "Large response output path when --out is used."),
                 "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
             },
         )
     return attach_output_if_requested(payload, _param(params, "out", "output"))
-
-
-def _find_product(body: dict[str, Any], asin: str) -> dict[str, Any] | None:
-    products = body.get("products")
-    if not isinstance(products, list):
-        return None
-    for product in products:
-        if isinstance(product, dict) and str(product.get("asin", "")).upper() == asin.upper():
-            return product
-    for product in products:
-        if isinstance(product, dict):
-            return product
-    return None
-
-
-def _history_product_payload(
-    command: str,
-    params: Mapping[str, Any],
-    fixture_dir: Path | str | None,
-) -> dict[str, Any]:
-    asins = _as_list(params.get("asin") or params.get("asins"))
-    if len(asins) != 1:
-        return error_envelope(
-            command=command,
-            kind="invalid_argument",
-            message=f"{command} requires exactly one asin",
-        )
-
-    request_params: dict[str, Any] = {
-        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
-        "asin": asins[0],
-        "history": "1",
-    }
-    return _client(fixture_dir).request(
-        command=command,
-        method="GET",
-        path="/product",
-        params=request_params,
-        dry_run=bool(params.get("dry_run")),
-        fixture=params.get("fixture"),
-    )
-
-
-def _history_rows_from_payload(
-    command: str,
-    params: Mapping[str, Any],
-    payload: dict[str, Any],
-) -> tuple[dict[str, Any] | None, list[dict[str, Any]] | None, dict[str, Any] | None]:
-    asin = _as_list(params.get("asin") or params.get("asins"))[0]
-    body = _keepa_body_from_payload(payload)
-    product = _find_product(body, asin)
-    if product is None:
-        return (
-            error_envelope(
-                command=command,
-                kind="product_not_found",
-                message=f"product not found in Keepa response: {asin}",
-                token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else None,
-            ),
-            None,
-            None,
-        )
-
-    try:
-        rows = extract_history_rows(
-            product,
-            normalize_series_names(params.get("series")),
-            include_missing=bool(params.get("include_missing")),
-        )
-    except ValueError as exc:
-        return (
-            error_envelope(
-                command=command,
-                kind="history_unavailable",
-                message=str(exc),
-                token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else None,
-            ),
-            None,
-            None,
-        )
-    if not rows:
-        return (
-            error_envelope(
-                command=command,
-                kind="history_empty",
-                message="selected history series contains no data points",
-                token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else None,
-            ),
-            None,
-            None,
-        )
-    return None, rows, product
-
-
-def _history_export(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    payload = _history_product_payload("history.export", params, fixture_dir)
-    if not payload.get("ok") or payload.get("data", {}).get("dry_run"):
-        return payload
-
-    error, rows, product = _history_rows_from_payload("history.export", params, payload)
-    if error is not None:
-        return error
-    assert rows is not None
-    assert product is not None
-
-    output_format = str(params.get("format") or "json").lower()
-    data = build_history_export_data(
-        asin=str(product.get("asin", _as_list(params.get("asin"))[0])),
-        domain=str(params.get("domain", "US")),
-        rows=rows,
-        output_format=output_format,
-        output_path=params.get("out"),
-    )
-    return success_envelope(
-        command="history.export",
-        data=data,
-        request=payload.get("request") if isinstance(payload.get("request"), dict) else {},
-        token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else {},
-    )
-
-
-def _history_trend(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
-    payload = _history_product_payload("history.trend", params, fixture_dir)
-    if not payload.get("ok") or payload.get("data", {}).get("dry_run"):
-        return payload
-
-    error, rows, product = _history_rows_from_payload("history.trend", params, payload)
-    if error is not None:
-        return error
-    assert rows is not None
-    assert product is not None
-
-    window_days = [int(item) for item in _as_list(params.get("window_days"))] or [30, 90, 180]
-    data = {
-        "asin": str(product.get("asin", _as_list(params.get("asin"))[0])),
-        "domain": str(params.get("domain", "US")),
-        "series": normalize_series_names(params.get("series")),
-        "analysis": analyze_history_rows(rows, window_days=window_days),
-    }
-    return success_envelope(
-        command="history.trend",
-        data=data,
-        request=payload.get("request") if isinstance(payload.get("request"), dict) else {},
-        token_bucket=payload.get("token_bucket") if isinstance(payload.get("token_bucket"), dict) else {},
-    )
 
 
 def _schema_generate(params: Mapping[str, Any]) -> dict[str, Any]:
@@ -1242,6 +377,99 @@ def _cassettes_sanitize(params: Mapping[str, Any]) -> dict[str, Any]:
     return success_envelope(
         command="cassettes.sanitize",
         data=metadata,
+        request={"transport": "service"},
+        token_bucket={},
+    )
+
+
+def _cassettes_promote(params: Mapping[str, Any]) -> dict[str, Any]:
+    input_path = params.get("input") or params.get("in")
+    name = params.get("name")
+    if not input_path or not name:
+        return error_envelope(
+            command="cassettes.promote",
+            kind="invalid_argument",
+            message="cassettes.promote requires input and name",
+        )
+    metadata = promote_cassette_fixture(
+        Path(str(input_path)),
+        name=str(name),
+        tests_dir=Path(str(params.get("tests_dir") or params.get("tests-dir") or "tests/fixtures")),
+        package_dir=Path(str(params.get("package_dir") or params.get("package-dir") or "keepa_cli/fixtures")),
+        manifest_path=None if _bool_option(params, "no_manifest", "no-manifest") else Path(str(params.get("manifest") or "evidence/manifest.csv")),
+        title=str(params.get("title") or name),
+        dry_run=_bool_option(params, "dry_run", "dry-run"),
+    )
+    return success_envelope(
+        command="cassettes.promote",
+        data=metadata,
+        request={"transport": "service", "dry_run": _bool_option(params, "dry_run", "dry-run")},
+        token_bucket={},
+    )
+
+
+def _research_graph_merge(params: Mapping[str, Any]) -> dict[str, Any]:
+    graphs: list[dict[str, Any]] = []
+    sources: list[dict[str, Any]] = []
+    raw_graphs = params.get("graph") if params.get("graph") is not None else params.get("graphs")
+    if isinstance(raw_graphs, Mapping):
+        graph_inputs: list[Any] = [raw_graphs]
+    elif isinstance(raw_graphs, list | tuple):
+        graph_inputs = list(raw_graphs)
+    else:
+        graph_inputs = []
+    for index, graph in enumerate(graph_inputs):
+        if isinstance(graph, Mapping):
+            extracted = extract_research_graphs(graph)
+            graphs.extend(extracted)
+            sources.append({"kind": "inline", "index": index, "graph_count": len(extracted)})
+    for raw_path in _as_list(params.get("input") or params.get("inputs")):
+        path = Path(str(raw_path))
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        extracted = extract_research_graphs(payload)
+        graphs.extend(extracted)
+        sources.append({"kind": "file", "path": str(path), "graph_count": len(extracted)})
+    if not graphs:
+        return error_envelope(
+            command="research_graph.merge",
+            kind="invalid_argument",
+            message="research_graph.merge requires at least one input JSON with research_graph data",
+        )
+    root = str(_param(params, "root", default="merged_research_graph"))
+    label = str(_param(params, "label", default="merged research graph"))
+    graph = merge_research_graphs(graphs, root=root, label=label)
+    data: dict[str, Any] = {
+        "view": "research_graph_merge",
+        "graph": graph,
+        "summary": graph_summary(graph),
+        "input_graph_count": len(graphs),
+        "sources": sources,
+        "agent_brief": {
+            "one_line": f"merged {len(graphs)} research graphs into {graph.get('node_count', 0)} nodes",
+            "key_facts": graph_summary(graph),
+            "read_order": ["summary", "graph", "sources"],
+        },
+        "data_quality": {
+            "present": ["graph", "summary", "sources"],
+            "missing": [],
+            "confidence": "high",
+        },
+        "evidence_index": {
+            "graph": {"path": "graph", "section": "summary", "note": "Merged research graph."},
+            "sources": {"path": "sources", "section": "audit", "note": "Input files or inline graph sources."},
+        },
+        "provenance": {"source": "local", "network": False},
+    }
+    out = _param(params, "out", "output")
+    if out:
+        output_path = Path(str(out))
+        if output_path.parent:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(graph, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        data["output"] = {"path": str(output_path), "format": "json", "size_bytes": output_path.stat().st_size}
+    return success_envelope(
+        command="research_graph.merge",
+        data=data,
         request={"transport": "service"},
         token_bucket={},
     )
@@ -1283,6 +511,12 @@ def run_command(
             return handle_cache_command(command, params, env=env)
         if can_handle_workflow_command(command):
             return handle_workflow_command(command, params)
+        if can_handle_product_command(command):
+            return handle_product_command(command, params, fixture_dir=fixture_dir)
+        if can_handle_category_command(command):
+            return handle_category_command(command, params, fixture_dir=fixture_dir)
+        if can_handle_tracking_command(command):
+            return handle_tracking_command(command, params, fixture_dir=fixture_dir)
         if command == "config.show":
             return success_envelope(
                 command="config.show",
@@ -1333,65 +567,34 @@ def run_command(
                 request={"transport": "service", "dry_run": bool(params.get("dry_run"))},
                 token_bucket={},
             )
-        if command == "request.get" or command == "request.post":
-            method = command.rsplit(".", 1)[1].upper()
-            return _client(fixture_dir).request(
-                command=command,
-                method=method,
-                path=str(params.get("path", "")),
-                params=dict(params.get("params") or {}),
-                dry_run=bool(params.get("dry_run")),
-                fixture=params.get("fixture"),
-            )
+        if can_handle_raw_command(command):
+            return handle_raw_command(command, params, fixture_dir=fixture_dir)
         if command in {"tokens.status", "token.status"}:
             return _tokens_status(params, fixture_dir)
         if command in {"graphs.image", "graph.image"}:
             return _graph_image(params, fixture_dir)
         if command in {"lightningdeals.list", "lightningdeal.list"}:
             return _lightningdeals_list(params, fixture_dir)
-        if command in {
-            "tracking.list",
-            "tracking.list-names",
-            "tracking.get",
-            "tracking.add",
-            "tracking.remove",
-            "tracking.remove-all",
-            "tracking.notifications",
-            "tracking.webhook",
-        }:
-            return _tracking_request(command, params, fixture_dir)
-        if command == "products.get":
-            return _product_get(params, fixture_dir)
-        if command == "products.compare":
-            return _products_compare(params, fixture_dir)
-        if command == "products.search":
-            return _product_search(params, fixture_dir)
-        if command == "categories.get":
-            return _categories_get(params, fixture_dir)
-        if command == "categories.search":
-            return _categories_search(params, fixture_dir)
-        if command in {"categories.finder-selection", "categories.finder_selection"}:
-            return _categories_finder_selection(params)
-        if command == "categories.products":
-            return _categories_products(params, fixture_dir)
-        if command == "finder.query":
-            return _selection_query("finder.query", "/query", params, fixture_dir)
-        if command == "deals.query":
-            return _selection_query("deals.query", "/deal", params, fixture_dir)
+        if can_handle_finder_command(command):
+            return handle_finder_command(command, params, fixture_dir=fixture_dir)
+        if can_handle_deals_command(command):
+            return handle_deals_command(command, params, fixture_dir=fixture_dir)
         if command == "sellers.get":
             return _seller_get(params, fixture_dir)
         if command == "bestsellers.get":
             return _bestsellers_get(params, fixture_dir)
         if command in {"topsellers.list", "topseller.list"}:
             return _topsellers_list(params, fixture_dir)
-        if command == "history.export":
-            return _history_export(params, fixture_dir)
-        if command in {"history.trend", "history.analyze"}:
-            return _history_trend(params, fixture_dir)
+        if can_handle_history_command(command):
+            return handle_history_command(command, params, fixture_dir=fixture_dir)
         if command in {"schema.generate", "schemas.generate"}:
             return _schema_generate(params)
         if command in {"cassettes.sanitize", "cassette.sanitize"}:
             return _cassettes_sanitize(params)
+        if command in {"cassettes.promote", "cassette.promote", "fixtures.promote", "fixture.promote"}:
+            return _cassettes_promote(params)
+        if command in {"research_graph.merge", "research-graph.merge", "graph.merge"}:
+            return _research_graph_merge(params)
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         return error_envelope(command=command, kind="invalid_argument", message=str(exc))
 

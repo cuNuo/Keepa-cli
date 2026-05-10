@@ -18,6 +18,15 @@ from keepa_cli import __version__
 from keepa_cli.agent.mcp import iter_mcp_output
 from keepa_cli.agent.stdio import iter_stdio_output
 from keepa_cli.cli_builders.cache import add_cache_parser, maybe_run_cache_command
+from keepa_cli.cli_builders.categories import add_categories_parser, maybe_run_categories_command
+from keepa_cli.cli_builders.common import add_live_cache_options, live_cache_params
+from keepa_cli.cli_builders.deals import add_deals_parser, maybe_run_deals_command
+from keepa_cli.cli_builders.finder import add_finder_parser, maybe_run_finder_command
+from keepa_cli.cli_builders.history import add_history_parser, maybe_run_history_command
+from keepa_cli.cli_builders.products import add_products_parser, maybe_run_products_command
+from keepa_cli.cli_builders.raw import add_raw_request_parser, maybe_run_raw_request_command
+from keepa_cli.cli_builders.research_graph import add_research_graph_parser, maybe_run_research_graph_command
+from keepa_cli.cli_builders.tracking import add_tracking_parser, maybe_run_tracking_command
 from keepa_cli.cli_builders.workflows import add_workflow_parsers, maybe_run_workflow_command
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.service import run_command
@@ -78,149 +87,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     add_cache_parser(subparsers)
     add_workflow_parsers(subparsers)
-
-    products = subparsers.add_parser("products", help="产品查询命令。")
-    products_subparsers = products.add_subparsers(dest="products_command")
-    products_get = products_subparsers.add_parser("get", help="按 ASIN 或 code 查询产品。")
-    products_get.add_argument("asin", nargs="*", help="一个或多个 ASIN。")
-    products_get.add_argument("--code", action="append", default=[], help="UPC、EAN 或 ISBN-13，可重复。")
-    products_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_get.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=0、videos=1、aplus=1。")
-    products_get.add_argument("--stats-window", default="0", help="--full 使用的 stats 天数窗口；0 表示全历史/最大窗口。")
-    products_get.add_argument("--history", help="0 表示排除历史字段，1 表示包含。")
-    products_get.add_argument("--stats", help="统计窗口，例如 90 或日期区间。")
-    products_get.add_argument("--days", help="限制历史数据天数，降低响应体大小。")
-    products_get.add_argument("--update", help="刷新阈值小时；0 可能额外消耗 token。")
-    products_get.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
-    products_get.add_argument("--code-limit", help="按 code 查询时限制返回商品数量。")
-    products_get.add_argument("--only-live-offers", help="配合 --offers 使用，仅返回 live offers。")
-    products_get.add_argument("--videos", help="1 表示包含视频信息。")
-    products_get.add_argument("--aplus", help="1 表示包含 A+ 内容信息。")
-    products_get.add_argument("--rating", help="1 表示包含 rating 与 review count 历史。")
-    products_get.add_argument("--buybox", help="1 表示包含 Buy Box 历史。")
-    products_get.add_argument("--stock", help="1 表示包含 stock 信息，通常需配合 offers。")
-    products_get.add_argument("--historical-variations", help="1 表示包含历史 variation 数据。")
-    products_get.add_argument("--agent-view", action="store_true", help="返回 Agent 友好的稳定摘要视图，省略原始大 body。")
-    products_get.add_argument(
-        "--view",
-        choices=("raw", "agent", "summary", "research", "deal", "audit"),
-        default="raw",
-        help="输出视图；raw 为默认原始 Keepa body，其余为 Agent profile。",
-    )
-    products_get.add_argument("--fields", help="逗号分隔 Agent 视图字段，例如 identity,pricing,demand,rating。")
-    products_get.add_argument("--history-limit", type=int, default=10, help="Agent 视图中每个历史序列保留的最近点数。")
-    products_get.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
-    products_get.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
-    products_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    products_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    products_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    products_compare = products_subparsers.add_parser("compare", help="横向对比一个或多个 ASIN 的 Agent-safe 选品字段。")
-    products_compare.add_argument("asin", nargs="+", help="一个或多个 ASIN。")
-    products_compare.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_compare.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=0、videos=1、aplus=1。")
-    products_compare.add_argument("--stats-window", default="0", help="--full 使用的 stats 天数窗口；0 表示全历史/最大窗口。")
-    products_compare.add_argument("--view", choices=("summary", "research", "deal", "audit"), default="deal", help="对比前使用的 Agent profile。")
-    products_compare.add_argument("--fields", help="逗号分隔 Agent 视图字段。")
-    products_compare.add_argument("--history-limit", type=int, default=5, help="每个历史序列保留的最近点数。")
-    products_compare.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
-    products_compare.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
-    products_compare.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    products_compare.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    products_compare.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
-    products_compare.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    products_search = products_subparsers.add_parser("search", help="产品关键词搜索。")
-    products_search.add_argument("term", help="搜索词。")
-    products_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_search.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    products_search.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    products_by_code = products_subparsers.add_parser("by-code", help="按 UPC、EAN 或 ISBN-13 查询产品。")
-    products_by_code.add_argument("code", nargs="+", help="一个或多个 UPC、EAN 或 ISBN-13。")
-    products_by_code.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_by_code.add_argument("--code-limit", help="限制按 code 查询返回的商品数量。")
-    products_by_code.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    products_by_code.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    products_by_code.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    products_summary = products_subparsers.add_parser("summary", help="返回 Agent-safe 产品摘要。")
-    products_summary.add_argument("asin", nargs="+", help="一个或多个 ASIN。")
-    products_summary.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    products_summary.add_argument("--view", choices=("summary", "research", "deal", "audit"), default="summary", help="摘要 profile。")
-    products_summary.add_argument("--fields", help="逗号分隔 Agent 视图字段。")
-    products_summary.add_argument("--history-limit", type=int, default=10, help="每个历史序列保留的最近点数。")
-    products_summary.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
-    products_summary.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    products_summary.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
-    products_summary.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-
-    categories = subparsers.add_parser("categories", help="分类查询命令。")
-    categories_subparsers = categories.add_subparsers(dest="categories_command")
-    categories_get = categories_subparsers.add_parser("get", help="按 category id 查询分类。")
-    categories_get.add_argument("category", nargs="+", help="一个或多个 category id，0 表示 root categories。")
-    categories_get.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    categories_get.add_argument("--parents", action="store_true", help="包含父级分类树。")
-    categories_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    categories_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    categories_search = categories_subparsers.add_parser("search", help="分类关键词搜索。")
-    categories_search.add_argument("term", help="搜索词，多个关键词需全部匹配。")
-    categories_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    categories_search.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    categories_search.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    categories_finder = categories_subparsers.add_parser("finder-selection", help="从 category id 生成本地 Finder selection 草稿。")
-    categories_finder.add_argument("category", help="Keepa category id。")
-    categories_finder.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    categories_finder.add_argument("--per-page", type=int, default=50, help="Finder perPage 草稿值。")
-    categories_finder.add_argument("--sales-rank-max", type=int, default=20000, help="current_SALES_lte 草稿值。")
-    categories_finder.add_argument("--min-reviews", type=int, default=50, help="current_COUNT_REVIEWS_gte 草稿值。")
-    categories_finder.add_argument("--out", help="把 selection JSON 写入文件。")
-    categories_products = categories_subparsers.add_parser("products", help="按 category id 取相关商品候选。")
-    categories_products.add_argument("category", help="Keepa category id。")
-    categories_products.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    categories_products.add_argument("--limit", type=int, default=25, help="返回候选 ASIN 上限。")
-    categories_products.add_argument("--hydrate-top", type=int, default=0, help="显式拉取前 N 个商品的 Agent summary；默认 0 不额外耗 token。")
-    categories_products.add_argument("--product-fixture", help="hydrate-top 使用的产品 fixture，用于离线测试。")
-    categories_products.add_argument("--history-limit", type=int, default=3, help="hydrate 产品摘要中每个历史序列保留的最近点数。")
-    categories_products.add_argument("--temporal-window-days", action="append", default=[], help="hydrate 产品摘要的 Agent 时序窗口，可重复或逗号分隔。")
-    categories_products.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    categories_products.add_argument("--out", help="把原始 body 写入 JSON 文件。")
-    categories_products.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-
-    history = subparsers.add_parser("history", help="历史导出与趋势分析命令。")
-    history_subparsers = history.add_subparsers(dest="history_command")
-    history_export = history_subparsers.add_parser("export", help="展开 Keepa Product csv 历史。")
-    history_export.add_argument("asin", help="一个 ASIN。")
-    history_export.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    history_export.add_argument("--series", default="amazon,new,used,sales_rank", help="逗号分隔序列，例如 amazon,new,sales_rank。")
-    history_export.add_argument("--format", choices=("json", "jsonl", "csv"), default="json", help="导出格式。")
-    history_export.add_argument("--out", help="写入文件路径；不提供时写入 JSON envelope data。")
-    history_export.add_argument("--include-missing", action="store_true", help="保留 Keepa -1 缺失值。")
-    history_export.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    history_export.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    history_trend = history_subparsers.add_parser("trend", help="分析 Keepa Product csv 趋势。")
-    history_trend.add_argument("asin", help="一个 ASIN。")
-    history_trend.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    history_trend.add_argument("--series", default="amazon,new,used,sales_rank", help="逗号分隔序列，例如 amazon,new,sales_rank。")
-    history_trend.add_argument("--window-days", action="append", type=int, default=[], help="趋势窗口天数，可重复。")
-    history_trend.add_argument("--include-missing", action="store_true", help="保留 Keepa -1 缺失值。")
-    history_trend.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    history_trend.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-
-    finder = subparsers.add_parser("finder", help="Product Finder 高价值查询命令。")
-    finder_subparsers = finder.add_subparsers(dest="finder_command")
-    finder_query = finder_subparsers.add_parser("query", help="按 selection JSON 查询 ASIN 列表。")
-    finder_query.add_argument("--selection-file", required=True, help="Keepa Product Finder selection JSON 文件。")
-    finder_query.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    finder_query.add_argument("--max-tokens", type=int, default=10, help="Agent 预算上限提示。")
-    finder_query.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    finder_query.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    finder_query.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-
-    deals = subparsers.add_parser("deals", help="Keepa deals 查询命令。")
-    deals_subparsers = deals.add_subparsers(dest="deals_command")
-    deals_query = deals_subparsers.add_parser("query", help="按 selection JSON 查询 deals。")
-    deals_query.add_argument("--selection-file", required=True, help="Keepa deals selection JSON 文件。")
-    deals_query.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
-    deals_query.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    deals_query.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    deals_query.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_products_parser(subparsers)
+    add_categories_parser(subparsers)
+    add_history_parser(subparsers)
+    add_finder_parser(subparsers)
+    add_deals_parser(subparsers)
 
     sellers = subparsers.add_parser("sellers", help="卖家查询命令。")
     sellers_subparsers = sellers.add_subparsers(dest="sellers_command")
@@ -232,6 +103,7 @@ def _build_parser() -> argparse.ArgumentParser:
     sellers_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     sellers_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     sellers_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_live_cache_options(sellers_get)
 
     bestsellers = subparsers.add_parser("bestsellers", help="Best Sellers 榜单命令。")
     bestsellers_subparsers = bestsellers.add_subparsers(dest="bestsellers_command")
@@ -241,6 +113,7 @@ def _build_parser() -> argparse.ArgumentParser:
     bestsellers_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     bestsellers_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     bestsellers_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_live_cache_options(bestsellers_get)
 
     topsellers = subparsers.add_parser("topsellers", help="Top Sellers 榜单命令。")
     topsellers_subparsers = topsellers.add_subparsers(dest="topsellers_command")
@@ -250,12 +123,14 @@ def _build_parser() -> argparse.ArgumentParser:
     topsellers_list.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     topsellers_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     topsellers_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_live_cache_options(topsellers_list)
 
     tokens = subparsers.add_parser("tokens", help="Token bucket 状态命令。")
     tokens_subparsers = tokens.add_subparsers(dest="tokens_command")
     tokens_status = tokens_subparsers.add_parser("status", help="查询当前 Keepa token bucket 状态。")
     tokens_status.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     tokens_status.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_live_cache_options(tokens_status)
 
     graphs = subparsers.add_parser("graphs", help="Keepa 图像链路命令。")
     graphs_subparsers = graphs.add_subparsers(dest="graphs_command")
@@ -284,44 +159,9 @@ def _build_parser() -> argparse.ArgumentParser:
     lightningdeals_list.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     lightningdeals_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     lightningdeals_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_live_cache_options(lightningdeals_list)
 
-    tracking = subparsers.add_parser("tracking", help="Keepa tracking 请求命令。")
-    tracking_subparsers = tracking.add_subparsers(dest="tracking_command")
-    tracking_list = tracking_subparsers.add_parser("list", help="列出当前 tracking。")
-    tracking_list.add_argument("--asins-only", action="store_true", help="只返回被跟踪 ASIN 列表。")
-    tracking_list.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_list.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    tracking_list.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_list_names = tracking_subparsers.add_parser("list-names", help="列出 tracking ASIN 名称入口，等价 asins-only list。")
-    tracking_list_names.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_list_names.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    tracking_list_names.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_get = tracking_subparsers.add_parser("get", help="查询单个 ASIN 的 tracking。")
-    tracking_get.add_argument("asin", help="一个 ASIN。")
-    tracking_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_add = tracking_subparsers.add_parser("add", help="添加一个或一批 tracking。")
-    tracking_add.add_argument("--tracking-json", dest="tracking", help="Tracking JSON object/list。")
-    tracking_add.add_argument("--tracking-file", help="包含 Tracking JSON object/list 的文件。")
-    tracking_add.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_add.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
-    tracking_add.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_remove = tracking_subparsers.add_parser("remove", help="移除单个 ASIN 的 tracking。")
-    tracking_remove.add_argument("asin", help="一个 ASIN。")
-    tracking_remove.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_remove.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_remove_all = tracking_subparsers.add_parser("remove-all", help="移除所有 tracking。")
-    tracking_remove_all.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_remove_all.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_notifications = tracking_subparsers.add_parser("notifications", help="查询 tracking 通知。")
-    tracking_notifications.add_argument("--since", default=0, help="Keepa minute；0 表示全部。")
-    tracking_notifications.add_argument("--revise", action="store_true", help="包含已读通知。")
-    tracking_notifications.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_notifications.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
-    tracking_webhook = tracking_subparsers.add_parser("webhook", help="更新 tracking webhook URL。")
-    tracking_webhook.add_argument("url", help="Webhook URL。")
-    tracking_webhook.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
-    tracking_webhook.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    add_tracking_parser(subparsers)
 
     schema = subparsers.add_parser("schema", help="Agent schema 文档命令。")
     schema_subparsers = schema.add_subparsers(dest="schema_command")
@@ -334,20 +174,18 @@ def _build_parser() -> argparse.ArgumentParser:
     cassettes_sanitize = cassettes_subparsers.add_parser("sanitize", help="脱敏真实 Keepa cassette JSON。")
     cassettes_sanitize.add_argument("input", help="输入 cassette JSON 文件。")
     cassettes_sanitize.add_argument("--out", required=True, help="输出脱敏 JSON 文件。")
+    cassettes_promote = cassettes_subparsers.add_parser("promote", help="脱敏并提升 cassette 为双份 fixture。")
+    cassettes_promote.add_argument("input", help="输入真实或已脱敏 cassette JSON 文件。")
+    cassettes_promote.add_argument("--name", required=True, help="fixture 文件名，不含路径；可省略 .json。")
+    cassettes_promote.add_argument("--tests-dir", default="tests/fixtures", help="测试 fixture 目录。")
+    cassettes_promote.add_argument("--package-dir", default="keepa_cli/fixtures", help="包内 fixture 目录。")
+    cassettes_promote.add_argument("--manifest", default="evidence/manifest.csv", help="evidence manifest 路径。")
+    cassettes_promote.add_argument("--title", help="manifest 标题。")
+    cassettes_promote.add_argument("--no-manifest", action="store_true", help="不更新 evidence manifest。")
+    cassettes_promote.add_argument("--dry-run", action="store_true", help="只返回计划，不写文件。")
 
-    request = subparsers.add_parser("request", help="原始 Keepa API dry-run 逃生口。")
-    request_subparsers = request.add_subparsers(dest="request_method")
-    for method in ("get", "post"):
-        request_method = request_subparsers.add_parser(method, help=f"构建 {method.upper()} 请求规格。")
-        request_method.add_argument("path", help="Keepa API path，例如 /product。")
-        request_method.add_argument(
-            "--param",
-            action="append",
-            default=[],
-            metavar="KEY=VALUE",
-            help="添加 query 参数，可重复。",
-        )
-        request_method.add_argument("--dry-run", action="store_true", help="只输出 redacted request spec。")
+    add_research_graph_parser(subparsers)
+    add_raw_request_parser(subparsers)
 
     return parser
 
@@ -392,6 +230,30 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
     if workflow_result is not None:
         return workflow_result
 
+    products_result = maybe_run_products_command(args)
+    if products_result is not None:
+        return products_result
+
+    categories_result = maybe_run_categories_command(args)
+    if categories_result is not None:
+        return categories_result
+
+    history_result = maybe_run_history_command(args)
+    if history_result is not None:
+        return history_result
+
+    finder_result = maybe_run_finder_command(args)
+    if finder_result is not None:
+        return finder_result
+
+    deals_result = maybe_run_deals_command(args)
+    if deals_result is not None:
+        return deals_result
+
+    tracking_result = maybe_run_tracking_command(args)
+    if tracking_result is not None:
+        return tracking_result
+
     if args.command == "config" and args.config_command == "show":
         payload = run_command("config.show", {"path": args.path})
         return 0 if payload["ok"] else 1, payload
@@ -421,224 +283,6 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
         )
         return 0 if payload["ok"] else 1, payload
 
-    if args.command == "products" and args.products_command == "get":
-        payload = run_command(
-            "products.get",
-            {
-                "asin": args.asin,
-                "code": args.code,
-                "domain": args.domain,
-                "full": bool(args.full),
-                "stats_window": args.stats_window,
-                "history": args.history,
-                "stats": args.stats,
-                "days": args.days,
-                "update": args.update,
-                "offers": args.offers,
-                "code_limit": args.code_limit,
-                "only_live_offers": args.only_live_offers,
-                "videos": args.videos,
-                "aplus": args.aplus,
-                "rating": args.rating,
-                "buybox": args.buybox,
-                "stock": args.stock,
-                "historical_variations": args.historical_variations,
-                "agent_view": bool(args.agent_view),
-                "view": args.view,
-                "fields": args.fields,
-                "history_limit": args.history_limit,
-                "temporal_windows": args.temporal_window_days,
-                "chunks_dir": args.chunks_dir,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "products" and args.products_command == "compare":
-        payload = run_command(
-            "products.compare",
-            {
-                "asin": args.asin,
-                "domain": args.domain,
-                "full": bool(args.full),
-                "stats_window": args.stats_window,
-                "view": args.view,
-                "fields": args.fields,
-                "history_limit": args.history_limit,
-                "temporal_windows": args.temporal_window_days,
-                "offers": args.offers,
-                "fixture": args.fixture,
-                "out": args.out,
-                "chunks_dir": args.chunks_dir,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "products" and args.products_command == "search":
-        payload = run_command(
-            "products.search",
-            {
-                "term": args.term,
-                "domain": args.domain,
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "products" and args.products_command == "by-code":
-        payload = run_command(
-            "products.get",
-            {
-                "code": args.code,
-                "domain": args.domain,
-                "code_limit": args.code_limit,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "products" and args.products_command == "summary":
-        payload = run_command(
-            "products.get",
-            {
-                "asin": args.asin,
-                "domain": args.domain,
-                "agent_view": True,
-                "view": args.view,
-                "fields": args.fields,
-                "history_limit": args.history_limit,
-                "temporal_windows": args.temporal_window_days,
-                "fixture": args.fixture,
-                "chunks_dir": args.chunks_dir,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "categories" and args.categories_command == "get":
-        payload = run_command(
-            "categories.get",
-            {
-                "category": args.category,
-                "domain": args.domain,
-                "parents": bool(args.parents),
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "categories" and args.categories_command == "search":
-        payload = run_command(
-            "categories.search",
-            {
-                "term": args.term,
-                "domain": args.domain,
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "categories" and args.categories_command == "finder-selection":
-        payload = run_command(
-            "categories.finder-selection",
-            {
-                "category": args.category,
-                "domain": args.domain,
-                "per_page": args.per_page,
-                "sales_rank_max": args.sales_rank_max,
-                "min_reviews": args.min_reviews,
-                "out": args.out,
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "categories" and args.categories_command == "products":
-        payload = run_command(
-            "categories.products",
-            {
-                "category": args.category,
-                "domain": args.domain,
-                "limit": args.limit,
-                "hydrate_top": args.hydrate_top,
-                "product_fixture": args.product_fixture,
-                "history_limit": args.history_limit,
-                "temporal_windows": args.temporal_window_days,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "history" and args.history_command == "export":
-        payload = run_command(
-            "history.export",
-            {
-                "asin": args.asin,
-                "domain": args.domain,
-                "series": args.series,
-                "format": args.format,
-                "out": args.out,
-                "include_missing": bool(args.include_missing),
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "history" and args.history_command == "trend":
-        payload = run_command(
-            "history.trend",
-            {
-                "asin": args.asin,
-                "domain": args.domain,
-                "series": args.series,
-                "window_days": args.window_days,
-                "include_missing": bool(args.include_missing),
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "finder" and args.finder_command == "query":
-        payload = run_command(
-            "finder.query",
-            {
-                "selection_file": args.selection_file,
-                "domain": args.domain,
-                "max_tokens": args.max_tokens,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "deals" and args.deals_command == "query":
-        payload = run_command(
-            "deals.query",
-            {
-                "selection_file": args.selection_file,
-                "domain": args.domain,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
     if args.command == "sellers" and args.sellers_command == "get":
         payload = run_command(
             "sellers.get",
@@ -651,6 +295,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "out": args.out,
                 "dry_run": bool(args.dry_run),
                 "yes": bool(args.yes),
+                **live_cache_params(args),
             },
         )
         return 0 if payload["ok"] else 1, payload
@@ -665,6 +310,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "out": args.out,
                 "dry_run": bool(args.dry_run),
                 "yes": bool(args.yes),
+                **live_cache_params(args),
             },
         )
         return 0 if payload["ok"] else 1, payload
@@ -679,6 +325,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "out": args.out,
                 "dry_run": bool(args.dry_run),
                 "yes": bool(args.yes),
+                **live_cache_params(args),
             },
         )
         return 0 if payload["ok"] else 1, payload
@@ -689,6 +336,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
             {
                 "fixture": args.fixture,
                 "dry_run": bool(args.dry_run),
+                **live_cache_params(args),
             },
         )
         return 0 if payload["ok"] else 1, payload
@@ -723,105 +371,7 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "fixture": args.fixture,
                 "out": args.out,
                 "dry_run": bool(args.dry_run),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "list":
-        payload = run_command(
-            "tracking.list",
-            {
-                "asins_only": bool(args.asins_only),
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "list-names":
-        payload = run_command(
-            "tracking.list-names",
-            {
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "get":
-        payload = run_command(
-            "tracking.get",
-            {
-                "asin": args.asin,
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "add":
-        payload = run_command(
-            "tracking.add",
-            {
-                "tracking": args.tracking,
-                "tracking_file": args.tracking_file,
-                "fixture": args.fixture,
-                "out": args.out,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "remove":
-        payload = run_command(
-            "tracking.remove",
-            {
-                "asin": args.asin,
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "remove-all":
-        payload = run_command(
-            "tracking.remove-all",
-            {
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "notifications":
-        payload = run_command(
-            "tracking.notifications",
-            {
-                "since": args.since,
-                "revise": bool(args.revise),
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
-            },
-        )
-        return 0 if payload["ok"] else 1, payload
-
-    if args.command == "tracking" and args.tracking_command == "webhook":
-        payload = run_command(
-            "tracking.webhook",
-            {
-                "url": args.url,
-                "fixture": args.fixture,
-                "dry_run": bool(args.dry_run),
-                "yes": bool(args.yes),
+                **live_cache_params(args),
             },
         )
         return 0 if payload["ok"] else 1, payload
@@ -840,24 +390,29 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
         )
         return 0 if payload["ok"] else 1, payload
 
-    if args.command == "request" and args.request_method in {"get", "post"}:
-        try:
-            params = _parse_params(args.param)
-        except ValueError as exc:
-            return 2, error_envelope(
-                command="request",
-                kind="invalid_argument",
-                message=str(exc),
-            )
+    if args.command == "cassettes" and args.cassettes_command == "promote":
         payload = run_command(
-            f"request.{args.request_method}",
+            "cassettes.promote",
             {
-                "path": args.path,
-                "params": params,
+                "input": args.input,
+                "name": args.name,
+                "tests_dir": args.tests_dir,
+                "package_dir": args.package_dir,
+                "manifest": args.manifest,
+                "title": args.title,
+                "no_manifest": bool(args.no_manifest),
                 "dry_run": bool(args.dry_run),
             },
         )
         return 0 if payload["ok"] else 1, payload
+
+    research_graph_result = maybe_run_research_graph_command(args)
+    if research_graph_result is not None:
+        return research_graph_result
+
+    raw_request_result = maybe_run_raw_request_command(args, parse_params=_parse_params)
+    if raw_request_result is not None:
+        return raw_request_result
 
     return 2, error_envelope(
         command=args.command or "cli",
