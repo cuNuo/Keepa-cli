@@ -52,6 +52,7 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertEqual(params["stats"], "180")
         self.assertEqual(params["videos"], "1")
         self.assertEqual(params["aplus"], "1")
+        self.assertEqual(params["rating"], "1")
         self.assertNotIn("offers", params)
         self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 1)
 
@@ -111,6 +112,7 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertNotIn("body", data)
             self.assertTrue(out_path.is_file())
             self.assertEqual(data["raw"]["output"]["path"], str(out_path))
+            self.assertEqual(data["raw"]["output"]["result_count"], 1)
             self.assertEqual(product["identity"]["asin"], "B0TESTAGENT")
             self.assertEqual(product["pricing"]["current"]["new"]["amount"], 14.99)
             self.assertEqual(product["pricing"]["buy_box"]["seller_id"], "A1FIXTURE")
@@ -124,6 +126,12 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertEqual(new_history["point_count"], 3)
             self.assertEqual(len(new_history["last_points"]), 2)
             self.assertEqual(new_history["omitted_points"], 1)
+            new_features = product["temporal_features"]["series"]["new"]
+            self.assertEqual(new_features["latest_value"], 13.99)
+            self.assertEqual(new_features["change_abs"], -2.0)
+            self.assertEqual(new_features["trend_direction"], "down")
+            self.assertEqual(new_features["recent_30d"]["change_pct"], -12.5078)
+            self.assertEqual(product["selection_signals"]["price_stability"]["new_price_trend"], "down")
             self.assertTrue(product["raw_field_presence"]["csv"])
 
     def test_products_get_agent_view_supports_profiles_fields_and_chunks(self):
@@ -137,7 +145,7 @@ class ServiceCommandTests(unittest.TestCase):
                     "fixture": "product_agent_view_B0TEST.json",
                     "agent_view": True,
                     "view": "summary",
-                    "fields": "identity,pricing,data_quality,next_actions,selection_signals",
+                    "fields": "identity,pricing,data_quality,next_actions,selection_signals,temporal_features",
                     "chunks_dir": str(chunks_dir),
                 },
                 fixture_dir=FIXTURES,
@@ -152,6 +160,7 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertIn("pricing", product)
             self.assertIn("data_quality", product)
             self.assertIn("selection_signals", product)
+            self.assertIn("temporal_features", product)
             self.assertNotIn("history_summary", product)
             self.assertIn("offers.offers", product["data_quality"]["missing"])
             self.assertTrue(product["next_actions"])

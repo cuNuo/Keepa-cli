@@ -168,7 +168,9 @@ Agent 视图 profile：
 - `deal`：选品/交易视图，聚焦价格、rank、coupon、monthlySold、offer、Buy Box、媒体与 A+。
 - `audit`：审计视图，聚焦 provenance、缺失字段、schema notes 与 raw field presence。
 
-`--fields` 会覆盖 profile，只返回指定 product section；`--chunks-dir` 会把 identity、pricing、demand、rating、offers、media、aplus、selection_signals、history_summary 等 section 写成独立 JSON chunk，并在 `data.chunks` 返回路径。每个 product 都会包含 `data_quality`、`next_actions` 和 `selection_signals`，用于 Agent 判断是否需要补 `--offers 20`、`--rating 1`、`--aplus 1` 或 `--history 1`。
+`temporal_features` 从 `history_summary.series` 直接计算 Agent 可消费的时序特征，覆盖 `new`、`sales_rank`、`buy_box_shipping`、`new_fba`、`new_offer_count`、`new_fba_offer_count`、`rating`、`review_count` 等常用序列。每个序列包含首末变化、上一点变化、30/90 天窗口变化、均值、极值、range、波动系数、斜率和趋势方向。
+
+`--fields` 会覆盖 profile，只返回指定 product section；`--chunks-dir` 会把 identity、pricing、demand、rating、offers、media、aplus、selection_signals、history_summary、temporal_features 等 section 写成独立 JSON chunk，并在 `data.chunks` 返回路径。每个 product 都会包含 `data_quality`、`next_actions`、`temporal_features` 和 `selection_signals`，用于 Agent 判断是否需要补 `--offers 20`、`--rating 1`、`--aplus 1` 或 `--history 1`。
 
 `products.compare` 复用 `/product`，返回 `view=products_compare`，用统一 rows 暴露 `asin/title/brand/new_price/buy_box_price/sales_rank/monthly_sold/rating/review_count/coupon/offer/media/aplus/selection_signals/risk_flags/data_quality`，适合 Agent 做多 ASIN 横向比较。
 

@@ -143,7 +143,7 @@ kc --json products get B001GZ6QEC --domain US --full --agent-view --view deal --
 kc --json products compare B001GZ6QEC B08N5WRWNW --domain US --full --view deal
 ```
 
-Agent profiles are `summary`, `research`, `deal`, and `audit`. Product views include `data_quality`, `next_actions`, and `selection_signals` so downstream Agents can decide whether to request offers, rating, A+ content, or full history without guessing.
+Agent profiles are `summary`, `research`, `deal`, and `audit`. Product views include `data_quality`, `next_actions`, `temporal_features`, and `selection_signals` so downstream Agents can inspect history-derived trend, window change, volatility, and stability features without parsing raw Keepa `csv`.
 
 Use explicit flags when you need tighter history windows or specialized fields:
 

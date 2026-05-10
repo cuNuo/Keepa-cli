@@ -15,7 +15,19 @@ from typing import Any
 from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
-PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.2"
+PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.3"
+
+TEMPORAL_FEATURE_SERIES = (
+    "amazon",
+    "new",
+    "sales_rank",
+    "buy_box_shipping",
+    "new_fba",
+    "new_offer_count",
+    "new_fba_offer_count",
+    "rating",
+    "review_count",
+)
 
 PROFILE_FIELDS = {
     "summary": [
@@ -24,6 +36,7 @@ PROFILE_FIELDS = {
         "pricing",
         "demand",
         "rating",
+        "temporal_features",
         "selection_signals",
         "data_quality",
         "next_actions",
@@ -38,6 +51,7 @@ PROFILE_FIELDS = {
         "offers",
         "media",
         "aplus",
+        "temporal_features",
         "selection_signals",
         "data_quality",
         "next_actions",
@@ -47,6 +61,7 @@ PROFILE_FIELDS = {
         "identity",
         "data_quality",
         "next_actions",
+        "temporal_features",
         "selection_signals",
         "raw_field_presence",
     ],
@@ -113,7 +128,8 @@ def build_agent_product_view(
     chunks_dir: Path | str | None = None,
 ) -> dict[str, Any]:
     body = data.get("body")
-    products = body.get("products") if isinstance(body, Mapping) else None
+    source = body if isinstance(body, Mapping) else data
+    products = source.get("products") if isinstance(source, Mapping) else None
     product_items = products if isinstance(products, list) else []
     normalized_profile = _normalize_profile(view_profile)
     normalized_fields = _normalize_fields(fields)
@@ -218,7 +234,18 @@ def write_agent_view_chunks(agent_view: Mapping[str, Any], chunks_dir: Path | st
         if not isinstance(product, Mapping):
             continue
         asin = str((product.get("identity") or {}).get("asin") or f"product-{index}")
-        for section in ("identity", "pricing", "demand", "rating", "offers", "media", "aplus", "selection_signals", "history_summary"):
+        for section in (
+            "identity",
+            "pricing",
+            "demand",
+            "rating",
+            "offers",
+            "media",
+            "aplus",
+            "selection_signals",
+            "history_summary",
+            "temporal_features",
+        ):
             if section not in product:
                 continue
             path = output_dir / f"{asin}-{section}.json"
@@ -259,6 +286,7 @@ def _product_to_agent_view(
         "history_summary": _history_summary(product, history_limit),
         "raw_field_presence": _raw_field_presence(product),
     }
+    result["temporal_features"] = _temporal_features(product)
     result["data_quality"] = _data_quality(product, result)
     result["next_actions"] = _next_actions(result)
     result["selection_signals"] = _selection_signals(result)
@@ -385,12 +413,13 @@ def _rating(product: Mapping[str, Any], current: Any) -> dict[str, Any]:
 
 
 def _offers(product: Mapping[str, Any], stats: Mapping[str, Any]) -> dict[str, Any]:
+    out_of_stock_names = ["amazon", "new", "used", "lightning_deal", "prime_exclusive"]
     return _compact(
         {
-            "total_offer_count": stats.get("totalOfferCount"),
-            "retrieved_offer_count": stats.get("retrievedOfferCount"),
-            "offer_count_fba": stats.get("offerCountFBA"),
-            "offer_count_fbm": stats.get("offerCountFBM"),
+            "total_offer_count": _missing_if_negative(stats.get("totalOfferCount")),
+            "retrieved_offer_count": _missing_if_negative(stats.get("retrievedOfferCount")),
+            "offer_count_fba": _missing_if_negative(stats.get("offerCountFBA")),
+            "offer_count_fbm": _missing_if_negative(stats.get("offerCountFBM")),
             "buy_box_eligible_offer_counts": _map_fixed_list(
                 product.get("buyBoxEligibleOfferCounts"),
                 BUY_BOX_ELIGIBLE_OFFER_KEYS,
@@ -401,10 +430,10 @@ def _offers(product: Mapping[str, Any], stats: Mapping[str, Any]) -> dict[str, A
             else None,
             "out_of_stock_percentage": _compact(
                 {
-                    "30": stats.get("outOfStockPercentage30"),
-                    "90": stats.get("outOfStockPercentage90"),
-                    "180": stats.get("outOfStockPercentage180"),
-                    "365": stats.get("outOfStockPercentage365"),
+                    "30": _stats_percent_values(stats.get("outOfStockPercentage30"), names=out_of_stock_names),
+                    "90": _stats_percent_values(stats.get("outOfStockPercentage90"), names=out_of_stock_names),
+                    "180": _stats_percent_values(stats.get("outOfStockPercentage180"), names=out_of_stock_names),
+                    "365": _stats_percent_values(stats.get("outOfStockPercentage365"), names=out_of_stock_names),
                 }
             ),
             "lowest_fba_seller_ids": _limit_list(stats.get("sellerIdsLowestFBA"), 5),
@@ -585,6 +614,173 @@ def _history_summary(product: Mapping[str, Any], history_limit: int) -> dict[str
     )
 
 
+def _temporal_features(product: Mapping[str, Any]) -> dict[str, Any]:
+    csv_history = product.get("csv")
+    if not isinstance(csv_history, list):
+        return {"available": False}
+    requested = set(TEMPORAL_FEATURE_SERIES)
+    series: dict[str, Any] = {}
+    warnings: list[str] = []
+    for index, raw_values in enumerate(csv_history):
+        meta = CSV_TYPES.get(index, _unknown_csv_type(index))
+        name = str(meta["name"])
+        if name not in requested or not raw_values:
+            continue
+        if not isinstance(raw_values, list):
+            warnings.append(f"csv[{index}] is not a list")
+            continue
+        points, warning = _parse_csv_points(raw_values, meta)
+        if warning:
+            warnings.append(warning)
+        features = _series_temporal_features(name=name, unit=str(meta["unit"]), points=points)
+        if features:
+            series[name] = features
+    if not series:
+        warnings.append("no supported temporal series with at least two numeric points")
+    return _compact(
+        {
+            "available": bool(series),
+            "series_count": len(series),
+            "series": series,
+            "warnings": warnings,
+        }
+    )
+
+
+def _series_temporal_features(*, name: str, unit: str, points: list[dict[str, Any]]) -> dict[str, Any]:
+    points = _numeric_points(points)
+    if len(points) < 2:
+        return {}
+    values = [float(point["value"]) for point in points]
+    keepa_minutes = [int(point["keepa_minute"]) for point in points]
+    first = points[0]
+    latest = points[-1]
+    change = float(latest["value"]) - float(first["value"])
+    previous_change = float(latest["value"]) - float(points[-2]["value"])
+    duration_days = max(0.0, (keepa_minutes[-1] - keepa_minutes[0]) / 1440)
+    mean_value = sum(values) / len(values)
+    min_value = min(values)
+    max_value = max(values)
+    volatility = _coefficient_of_variation(values)
+    recent_30d = _window_change(points, days=30)
+    recent_90d = _window_change(points, days=90)
+    return _compact(
+        {
+            "unit": unit,
+            "name": name,
+            "point_count": len(points),
+            "duration_days": round(duration_days, 3),
+            "first_value": _round_metric(float(first["value"])),
+            "latest_value": _round_metric(float(latest["value"])),
+            "previous_value": _round_metric(float(points[-2]["value"])),
+            "change_abs": _round_metric(change),
+            "change_pct": _pct_change(float(first["value"]), float(latest["value"])),
+            "previous_change_abs": _round_metric(previous_change),
+            "previous_change_pct": _pct_change(float(points[-2]["value"]), float(latest["value"])),
+            "min_value": _round_metric(min_value),
+            "max_value": _round_metric(max_value),
+            "range_abs": _round_metric(max_value - min_value),
+            "range_pct_of_mean": _ratio_pct(max_value - min_value, mean_value),
+            "mean_value": _round_metric(mean_value),
+            "volatility_cv": volatility,
+            "trend_direction": _trend_direction(change),
+            "slope_per_day": _slope_per_day(change, duration_days),
+            "recent_30d": recent_30d,
+            "recent_90d": recent_90d,
+        }
+    )
+
+
+def _numeric_points(raw_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    points: list[dict[str, Any]] = []
+    for candidate in raw_points:
+        point_value = candidate.get("value")
+        keepa_minute = candidate.get("keepa_minute")
+        if not isinstance(point_value, (int, float)) or not isinstance(keepa_minute, int):
+            continue
+        points.append(
+            {
+                "timestamp": candidate.get("timestamp"),
+                "keepa_minute": keepa_minute,
+                "value": point_value,
+            }
+        )
+    deduped: dict[int, dict[str, Any]] = {}
+    for point in points:
+        deduped[int(point["keepa_minute"])] = point
+    return [deduped[key] for key in sorted(deduped)]
+
+
+def _window_change(points: list[dict[str, Any]], *, days: int) -> dict[str, Any] | None:
+    if len(points) < 2:
+        return None
+    latest = points[-1]
+    cutoff = int(latest["keepa_minute"]) - days * 1440
+    baseline = points[0]
+    for point in points:
+        if int(point["keepa_minute"]) >= cutoff:
+            baseline = point
+            break
+    if baseline is latest:
+        return None
+    change = float(latest["value"]) - float(baseline["value"])
+    return _compact(
+        {
+            "baseline_timestamp": baseline.get("timestamp"),
+            "latest_timestamp": latest.get("timestamp"),
+            "observed_days": round((int(latest["keepa_minute"]) - int(baseline["keepa_minute"])) / 1440, 3),
+            "baseline_value": _round_metric(float(baseline["value"])),
+            "latest_value": _round_metric(float(latest["value"])),
+            "change_abs": _round_metric(change),
+            "change_pct": _pct_change(float(baseline["value"]), float(latest["value"])),
+            "trend_direction": _trend_direction(change),
+        }
+    )
+
+
+def _coefficient_of_variation(values: list[float]) -> float | None:
+    if not values:
+        return None
+    mean_value = sum(values) / len(values)
+    if mean_value == 0:
+        return None
+    variance = sum((value - mean_value) ** 2 for value in values) / len(values)
+    return round((variance**0.5) / abs(mean_value), 4)
+
+
+def _pct_change(first: float, latest: float) -> float | None:
+    if first == 0:
+        return None
+    return round(((latest - first) / abs(first)) * 100, 4)
+
+
+def _ratio_pct(numerator: float, denominator: float) -> float | None:
+    if denominator == 0:
+        return None
+    return round((numerator / abs(denominator)) * 100, 4)
+
+
+def _slope_per_day(change: float, duration_days: float) -> float | None:
+    if duration_days <= 0:
+        return None
+    return _round_metric(change / duration_days)
+
+
+def _trend_direction(change: float) -> str:
+    if change > 0:
+        return "up"
+    if change < 0:
+        return "down"
+    return "flat"
+
+
+def _round_metric(value: float) -> float:
+    rounded = round(value, 4)
+    if rounded == -0.0:
+        return 0.0
+    return rounded
+
+
 def _parse_csv_points(values: list[Any], meta: Mapping[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
     group_size = 3 if meta.get("with_shipping") else 2
     warning = None
@@ -595,7 +791,7 @@ def _parse_csv_points(values: list[Any], meta: Mapping[str, Any]) -> tuple[list[
         keepa_minute = values[offset]
         raw_value = values[offset + 1]
         raw_shipping = values[offset + 2] if group_size == 3 else None
-        if raw_value in (-1, None):
+        if _is_missing_raw_value(raw_value):
             value = None
         else:
             value = _convert_raw_value(raw_value, meta)
@@ -634,6 +830,20 @@ def _stats_named_values(
     return result
 
 
+def _stats_percent_values(values: Any, *, names: list[str]) -> dict[str, Any]:
+    if not isinstance(values, list):
+        return {}
+    allowed_names = set(names)
+    result: dict[str, Any] = {}
+    for index, raw_value in enumerate(values):
+        meta = CSV_TYPES.get(index, _unknown_csv_type(index))
+        name = str(meta["name"])
+        if name not in allowed_names or _is_missing_raw_value(raw_value):
+            continue
+        result[name] = {"value": int(raw_value), "raw_value": raw_value, "unit": "percent"}
+    return result
+
+
 def _stats_range_values(values: Any) -> dict[str, Any]:
     if not isinstance(values, list):
         return {}
@@ -654,7 +864,7 @@ def _stats_range_values(values: Any) -> dict[str, Any]:
 
 
 def _value_object(raw_value: Any, meta: Mapping[str, Any]) -> dict[str, Any] | None:
-    if raw_value in (-1, None):
+    if _is_missing_raw_value(raw_value):
         return None
     value = _convert_raw_value(raw_value, meta)
     result = {"value": value, "raw_value": raw_value, "unit": meta["unit"]}
@@ -679,13 +889,17 @@ def _convert_raw_value(raw_value: Any, meta: Mapping[str, Any]) -> float | int:
 
 
 def _currency_value(raw_value: Any) -> dict[str, Any] | None:
-    if raw_value in (-1, None):
+    if _is_missing_raw_value(raw_value):
         return None
     return {"amount": _currency_decimal(raw_value), "raw_value": raw_value, "unit": "currency"}
 
 
 def _currency_decimal(raw_value: Any) -> float:
     return round(int(raw_value) / 100, 2)
+
+
+def _is_missing_raw_value(value: Any) -> bool:
+    return value is None or (isinstance(value, (int, float)) and value < 0)
 
 
 def _history_pairs(values: Any, *, history_limit: int) -> dict[str, Any] | None:
@@ -890,6 +1104,10 @@ def _selection_signals(view: Mapping[str, Any]) -> dict[str, Any]:
     media = view.get("media") if isinstance(view.get("media"), Mapping) else {}
     aplus = view.get("aplus") if isinstance(view.get("aplus"), Mapping) else {}
     category = view.get("category") if isinstance(view.get("category"), Mapping) else {}
+    temporal = view.get("temporal_features") if isinstance(view.get("temporal_features"), Mapping) else {}
+    temporal_series = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
+    new_temporal = temporal_series.get("new") if isinstance(temporal_series.get("new"), Mapping) else {}
+    rank_temporal = temporal_series.get("sales_rank") if isinstance(temporal_series.get("sales_rank"), Mapping) else {}
     current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
     risk_flags: list[str] = []
     monthly_sold = demand.get("monthly_sold")
@@ -933,6 +1151,11 @@ def _selection_signals(view: Mapping[str, Any]) -> dict[str, Any]:
                 "current_new": _amount_from_value(current.get("new")),
                 "current_buy_box": _amount_from_value((pricing.get("buy_box") or {}).get("price") if isinstance(pricing.get("buy_box"), Mapping) else None),
                 "coupon": pricing.get("coupon"),
+                "new_price_change_pct": new_temporal.get("change_pct"),
+                "new_price_volatility_cv": new_temporal.get("volatility_cv"),
+                "new_price_trend": new_temporal.get("trend_direction"),
+                "sales_rank_change_pct": rank_temporal.get("change_pct"),
+                "sales_rank_trend": rank_temporal.get("trend_direction"),
                 "history_series": (view.get("history_summary") or {}).get("series_count")
                 if isinstance(view.get("history_summary"), Mapping)
                 else None,
@@ -1000,7 +1223,17 @@ def _amount_from_value(value: Any) -> Any:
 def _map_fixed_list(value: Any, keys: list[str]) -> dict[str, Any]:
     if not isinstance(value, list):
         return {}
-    return {key: value[index] for index, key in enumerate(keys) if index < len(value)}
+    return {
+        key: normalized
+        for index, key in enumerate(keys)
+        if index < len(value) and (normalized := _missing_if_negative(value[index])) is not None
+    }
+
+
+def _missing_if_negative(value: Any) -> Any:
+    if isinstance(value, (int, float)) and value < 0:
+        return None
+    return value
 
 
 def _time_field(value: Any) -> dict[str, Any] | None:
