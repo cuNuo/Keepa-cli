@@ -1,12 +1,13 @@
 <p align="center">
   <h1 align="center">Keepa CLI</h1>
-  <p align="center">Agent-first Keepa API tooling with JSON, stdio, MCP, fixtures, token budgeting, and a command-first TUI.</p>
+  <p align="center">Agent-first Keepa API CLI for product research, safe automation, and MCP-native workflows.</p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/cuNuo/Keepa-cli/actions"><img alt="CI" src="https://img.shields.io/badge/ci-release_gate-2f855a"></a>
+  <a href="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776ab"></a>
   <a href="https://www.npmjs.com/package/@cunuo/keepa-cli"><img alt="npm" src="https://img.shields.io/badge/npm-%40cunuo%2Fkeepa--cli-cb3837"></a>
+  <a href="#agent-mode"><img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-6d28d9"></a>
   <a href="https://zread.ai/cuNuo/Keepa-cli"><img alt="zread" src="https://img.shields.io/badge/docs-zread-14b8a6"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-111827"></a>
 </p>
@@ -20,6 +21,8 @@
 </p>
 
 Keepa CLI wraps Keepa API workflows into a stable command-line surface for agents and humans. It is offline-first by default: dry-runs and fixtures do not call Keepa or spend tokens. Live requests require an explicit Keepa token.
+
+Use it when you need reproducible Amazon product research, category discovery, deal comparison, seller checks, tracking reads, local reports, or Agent pipelines that must account for token cost and evidence provenance.
 
 ## Features
 

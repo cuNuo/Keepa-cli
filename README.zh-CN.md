@@ -1,10 +1,15 @@
 <p align="center">
   <h1 align="center">Keepa CLI</h1>
-  <p align="center">面向 Agent 的 Keepa API 命令行工具，支持 JSON、stdio、MCP、fixture、token 预算和命令优先 TUI。</p>
+  <p align="center">面向 Agent 的 Keepa API CLI，用于商品研究、安全自动化和 MCP 原生工作流。</p>
 </p>
 
 <p align="center">
+  <a href="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/cuNuo/Keepa-cli/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776ab"></a>
+  <a href="https://www.npmjs.com/package/@cunuo/keepa-cli"><img alt="npm" src="https://img.shields.io/badge/npm-%40cunuo%2Fkeepa--cli-cb3837"></a>
+  <a href="#agent-模式"><img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-6d28d9"></a>
   <a href="https://zread.ai/cuNuo/Keepa-cli"><img alt="zread" src="https://img.shields.io/badge/docs-zread-14b8a6"></a>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-111827"></a>
 </p>
 
 <p align="center">
@@ -16,6 +21,8 @@
 </p>
 
 Keepa CLI 将 Keepa API 工作流封装为稳定、可审计、适合 Agent 和人类共同使用的命令行界面。默认离线优先：dry-run 和 fixture 不访问 Keepa，也不消耗 token。真实请求必须显式配置 Keepa token。
+
+适合用于可复现的 Amazon 商品研究、类目发现、Deal 对比、Seller 检查、Tracking 只读审计、本地报告，以及需要明确 token 成本和 evidence provenance 的 Agent pipeline。
 
 ## 能力概览
 

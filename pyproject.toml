@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "keepa-cli"
 version = "0.1.0"
-description = "Agent-first Keepa API CLI with keepa-cli and kc entry points."
+description = "Agent-first Keepa API CLI for product research, safe automation, and MCP-native workflows."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -13,7 +13,17 @@ dependencies = [
 ]
 license = {file = "LICENSE"}
 authors = [{name = "cuNuo"}]
-keywords = ["keepa", "cli", "agent", "amazon"]
+keywords = [
+    "keepa",
+    "keepa-api",
+    "amazon",
+    "amazon-product-research",
+    "cli",
+    "agent",
+    "mcp",
+    "stdio",
+    "fixture",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -30,6 +40,8 @@ classifiers = [
 Homepage = "https://github.com/cuNuo/Keepa-cli"
 Repository = "https://github.com/cuNuo/Keepa-cli"
 Issues = "https://github.com/cuNuo/Keepa-cli/issues"
+Documentation = "https://zread.ai/cuNuo/Keepa-cli"
+Changelog = "https://github.com/cuNuo/Keepa-cli/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = []

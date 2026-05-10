@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible Keepa CLI problem.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Do not paste Keepa API keys, `.env` files, or unredacted live responses.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+      placeholder: The command failed when...
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: Paste the exact command. Redact paths or arguments if needed.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: Paste the relevant output with secrets removed.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - fixture / dry-run
+        - live Keepa API
+        - TUI
+        - stdio
+        - MCP
+        - package / install
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: kc --json doctor
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, Node version, shell, and install method.
+      placeholder: Windows 11, Python 3.12, Node 22, PowerShell, editable install
+    validations:
+      required: false

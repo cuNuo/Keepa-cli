@@ -1,7 +1,7 @@
 {
   "name": "@cunuo/keepa-cli",
   "version": "0.1.0",
-  "description": "Agent-first Keepa API CLI with keepa-cli and kc entry points.",
+  "description": "Agent-first Keepa API CLI for product research, safe automation, and MCP-native workflows.",
   "license": "MIT",
   "type": "commonjs",
   "bin": {
@@ -29,8 +29,13 @@
   },
   "keywords": [
     "keepa",
+    "keepa-api",
+    "amazon-product-research",
     "cli",
     "agent",
+    "mcp",
+    "stdio",
+    "fixture",
     "amazon"
   ],
   "repository": {
