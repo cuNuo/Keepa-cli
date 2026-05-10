@@ -16,6 +16,7 @@ from typing import Any
 
 from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.capabilities import build_capabilities
+from keepa_cli.cassettes import sanitize_cassette_file
 from keepa_cli.client import KeepaClient
 from keepa_cli.commands.workflows import can_handle as can_handle_workflow_command
 from keepa_cli.commands.workflows import handle_workflow_command
@@ -25,7 +26,8 @@ from keepa_cli.domains import list_domains, resolve_domain
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.high_value import attach_output_if_requested, load_selection, selection_to_query_value
 from keepa_cli.history_export import build_history_export_data, extract_history_rows, normalize_series_names
-from keepa_cli.product_view import build_agent_product_view
+from keepa_cli.product_view import build_agent_product_view, build_product_compare_view
+from keepa_cli.schema_docs import generate_product_agent_schema
 from keepa_cli.token_budget import estimate_request_budget
 
 
@@ -128,8 +130,51 @@ def _product_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> d
         data = payload.get("data")
         if payload.get("ok") and isinstance(data, dict) and not data.get("dry_run"):
             history_limit = int(_param(params, "history_limit", "history-limit") or 10)
-            data = build_agent_product_view(data, history_limit=history_limit)
+            data = build_agent_product_view(
+                data,
+                history_limit=history_limit,
+                view_profile=view,
+                fields=_param(params, "fields"),
+                chunks_dir=_param(params, "chunks_dir", "chunks-dir"),
+            )
             payload["data"] = data
+    return payload
+
+
+def _products_compare(params: Mapping[str, Any], fixture_dir: Path | str | None) -> dict[str, Any]:
+    asins = _as_list(params.get("asin") or params.get("asins"))
+    if not asins:
+        return error_envelope(
+            command="products.compare",
+            kind="invalid_argument",
+            message="products.compare requires at least one ASIN",
+        )
+
+    request_params: dict[str, Any] = {
+        "domain": str(resolve_domain(params.get("domain", "US")).domain_id),
+        "asin": ",".join(asins),
+    }
+    request_params.update(_product_query_options(params))
+    payload = _client(fixture_dir).request(
+        command="products.compare",
+        method="GET",
+        path="/product",
+        params=request_params,
+        dry_run=bool(params.get("dry_run")),
+        fixture=params.get("fixture"),
+    )
+    payload = attach_output_if_requested(payload, _param(params, "out", "output"))
+    data = payload.get("data")
+    if payload.get("ok") and isinstance(data, dict) and not data.get("dry_run"):
+        history_limit = int(_param(params, "history_limit", "history-limit") or 5)
+        agent_view = build_agent_product_view(
+            data,
+            history_limit=history_limit,
+            view_profile=str(_param(params, "view") or "deal"),
+            fields=_param(params, "fields"),
+            chunks_dir=_param(params, "chunks_dir", "chunks-dir"),
+        )
+        payload["data"] = build_product_compare_view(agent_view)
     return payload
 
 
@@ -707,6 +752,37 @@ def _history_trend(params: Mapping[str, Any], fixture_dir: Path | str | None) ->
     )
 
 
+def _schema_generate(params: Mapping[str, Any]) -> dict[str, Any]:
+    metadata = generate_product_agent_schema(
+        Path(str(params.get("snapshot") or "tests/snapshots/agent_schema_snapshot.json")),
+        Path(str(params.get("out") or "docs/schema/products.agent-view.schema.json")),
+    )
+    return success_envelope(
+        command="schema.generate",
+        data=metadata,
+        request={"transport": "service"},
+        token_bucket={},
+    )
+
+
+def _cassettes_sanitize(params: Mapping[str, Any]) -> dict[str, Any]:
+    input_path = params.get("input") or params.get("in")
+    output_path = params.get("out") or params.get("output")
+    if not input_path or not output_path:
+        return error_envelope(
+            command="cassettes.sanitize",
+            kind="invalid_argument",
+            message="cassettes.sanitize requires input and out paths",
+        )
+    metadata = sanitize_cassette_file(Path(str(input_path)), Path(str(output_path)))
+    return success_envelope(
+        command="cassettes.sanitize",
+        data=metadata,
+        request={"transport": "service"},
+        token_bucket={},
+    )
+
+
 def run_command(
     command: str,
     params: Mapping[str, Any] | None = None,
@@ -820,6 +896,8 @@ def run_command(
             return _tracking_request(command, params, fixture_dir)
         if command == "products.get":
             return _product_get(params, fixture_dir)
+        if command == "products.compare":
+            return _products_compare(params, fixture_dir)
         if command == "products.search":
             return _product_search(params, fixture_dir)
         if command == "categories.get":
@@ -840,6 +918,10 @@ def run_command(
             return _history_export(params, fixture_dir)
         if command in {"history.trend", "history.analyze"}:
             return _history_trend(params, fixture_dir)
+        if command in {"schema.generate", "schemas.generate"}:
+            return _schema_generate(params)
+        if command in {"cassettes.sanitize", "cassette.sanitize"}:
+            return _cassettes_sanitize(params)
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         return error_envelope(command=command, kind="invalid_argument", message=str(exc))
 

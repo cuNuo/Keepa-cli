@@ -134,6 +134,17 @@ For Agent ingestion, prefer the compact product view. It keeps identity, categor
 kc --json products get B001GZ6QEC --domain US --full --agent-view --history-limit 10 --out .\product-full.json
 ```
 
+Use profiles and field selection to control context size:
+
+```powershell
+kc --json products get B001GZ6QEC --domain US --full --agent-view --view summary
+kc --json products get B001GZ6QEC --domain US --full --agent-view --fields identity,pricing,demand,rating
+kc --json products get B001GZ6QEC --domain US --full --agent-view --view deal --chunks-dir .\agent-chunks
+kc --json products compare B001GZ6QEC B08N5WRWNW --domain US --full --view deal
+```
+
+Agent profiles are `summary`, `research`, `deal`, and `audit`. Product views include `data_quality`, `next_actions`, and `selection_signals` so downstream Agents can decide whether to request offers, rating, A+ content, or full history without guessing.
+
 Use explicit flags when you need tighter history windows or specialized fields:
 
 ```powershell

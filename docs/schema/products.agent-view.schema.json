@@ -1,0 +1,339 @@
+{
+  "command": "products.get",
+  "notes": [
+    "This file is generated from tests/snapshots/agent_schema_snapshot.json.",
+    "Values are type names, not example payload values.",
+    "Use the CLI envelope ok/error fields before consuming data."
+  ],
+  "schema_kind": "shape-snapshot",
+  "shape": {
+    "command": "str",
+    "data": {
+      "cache_provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "field_notes": [
+        "str",
+        "str",
+        "str"
+      ],
+      "product_count": "int",
+      "products": [
+        {
+          "category": {
+            "category_ids": [
+              "int",
+              "int"
+            ],
+            "category_tree": [
+              {
+                "id": "int",
+                "name": "str"
+              },
+              {
+                "id": "int",
+                "name": "str"
+              }
+            ],
+            "root_category": "int",
+            "sales_rank_current": {
+              "raw_value": "int",
+              "unit": "str",
+              "value": "int"
+            },
+            "sales_rank_display_group": "str",
+            "sales_rank_reference": "int"
+          },
+          "data_quality": {
+            "confidence": "str",
+            "missing": [
+              "str",
+              "str",
+              "str",
+              "str",
+              "str"
+            ],
+            "notes": [
+              "str",
+              "str"
+            ],
+            "present": [
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str",
+              "str"
+            ]
+          },
+          "demand": {
+            "monthly_sold": "int",
+            "monthly_sold_history": {
+              "last_points": [
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                }
+              ],
+              "latest": {
+                "keepa_minute": "int",
+                "timestamp": "str",
+                "value": "int"
+              },
+              "omitted_points": "int",
+              "point_count": "int"
+            },
+            "sales_rank_drops": {
+              "180": "int",
+              "30": "int",
+              "365": "int",
+              "90": "int"
+            }
+          },
+          "identity": {
+            "asin": "str",
+            "brand": "str",
+            "domain_id": "int",
+            "item_type_keyword": "str",
+            "manufacturer": "str",
+            "product_group": "str",
+            "product_type": "int",
+            "title": "str",
+            "type": "str",
+            "url_slug": "str"
+          },
+          "next_actions": [
+            {
+              "command": "str",
+              "estimated_tokens": "int",
+              "reason": "str"
+            }
+          ],
+          "pricing": {
+            "avg30": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              }
+            },
+            "avg90": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              }
+            },
+            "buy_box": {
+              "is_fba": "bool",
+              "is_prime_eligible": "bool",
+              "price": {
+                "amount": "float",
+                "raw_value": "int",
+                "unit": "str"
+              },
+              "seller_id": "str",
+              "shipping": {
+                "amount": "float",
+                "raw_value": "int",
+                "unit": "str"
+              }
+            },
+            "coupon": [
+              "int",
+              "int"
+            ],
+            "coupon_history": {
+              "last_points": [
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                },
+                {
+                  "keepa_minute": "int",
+                  "timestamp": "str",
+                  "value": "int"
+                }
+              ],
+              "latest": {
+                "keepa_minute": "int",
+                "timestamp": "str",
+                "value": "int"
+              },
+              "omitted_points": "int",
+              "point_count": "int"
+            },
+            "current": {
+              "buy_box_shipping": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "list_price": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              },
+              "new_fba": {
+                "amount": "float",
+                "currency_value": "float",
+                "raw_value": "int",
+                "unit": "str",
+                "value": "float"
+              }
+            }
+          },
+          "rating": {
+            "rating": {
+              "raw_value": "int",
+              "unit": "str",
+              "value": "float"
+            },
+            "review_count": {
+              "raw_value": "int",
+              "unit": "str",
+              "value": "int"
+            },
+            "reviews_object_available": "bool"
+          },
+          "selection_signals": {
+            "competition": {
+              "offer_count_fba": "int",
+              "offer_count_fbm": "int",
+              "retrieved_offer_count": "int",
+              "total_offer_count": "int"
+            },
+            "content_quality": {
+              "aplus_available": "bool",
+              "aplus_module_count": "int",
+              "image_count": "int",
+              "video_count": "int"
+            },
+            "demand": {
+              "monthly_sold": "int",
+              "sales_rank": "int",
+              "sales_rank_drops": {
+                "180": "int",
+                "30": "int",
+                "365": "int",
+                "90": "int"
+              }
+            },
+            "price_stability": {
+              "coupon": [
+                "int",
+                "int"
+              ],
+              "current_buy_box": "float",
+              "current_new": "float",
+              "history_series": "int"
+            },
+            "risk_flags": []
+          }
+        }
+      ],
+      "profile": "str",
+      "raw": {
+        "body_omitted": "bool",
+        "fixture": "str",
+        "offline": "bool"
+      },
+      "schema_version": "str",
+      "view": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "dry_run": "bool",
+      "endpoint": "str",
+      "method": "str",
+      "params_redacted": {
+        "asin": "str",
+        "domain": "str"
+      }
+    },
+    "token_bucket": {
+      "estimated": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "refill_in_ms": "int",
+      "refill_rate": "int",
+      "tokens_consumed": "int",
+      "tokens_left": "int"
+    }
+  },
+  "source_snapshot": "tests\\snapshots\\agent_schema_snapshot.json",
+  "title": "Keepa CLI products.get agent view schema",
+  "view": "agent_product"
+}

@@ -39,7 +39,18 @@ class SchemaSnapshotTests(unittest.TestCase):
                     "domain": "US",
                     "fixture": "product_agent_view_B0TEST.json",
                     "agent_view": True,
+                    "view": "summary",
                     "history_limit": 2,
+                },
+                env={},
+            ),
+            "products_compare": run_command(
+                "products.compare",
+                {
+                    "asin": ["B0TESTAGENT"],
+                    "domain": "US",
+                    "fixture": "product_agent_view_B0TEST.json",
+                    "full": True,
                 },
                 env={},
             ),
@@ -118,6 +129,11 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"tracking": {"asin": "B09YNQCQKR", "domain": 1}, "dry_run": True},
                 env={},
             ),
+            "schema_generate": run_command(
+                "schema.generate",
+                {"out": "tmp-schema-snapshot.json"},
+                env={},
+            ),
             "templates_list": run_command("templates.list", env={}),
             "audit_cost": run_command(
                 "audit.cost",
@@ -140,6 +156,7 @@ class SchemaSnapshotTests(unittest.TestCase):
                 env={},
             ),
         }
+        Path("tmp-schema-snapshot.json").unlink(missing_ok=True)
 
         actual = build_agent_schema_snapshot(payloads)
         expected = json.loads(SNAPSHOT.read_text(encoding="utf-8"))

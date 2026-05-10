@@ -186,6 +186,50 @@ class CliTests(unittest.TestCase):
         self.assertEqual(product["identity"]["asin"], "B0TESTAGENT")
         self.assertEqual(len(product["history_summary"]["series"]["new"]["last_points"]), 1)
 
+    def test_products_get_cli_supports_agent_profiles_and_fields(self):
+        result = self.run_module(
+            "--json",
+            "products",
+            "get",
+            "B0TESTAGENT",
+            "--domain",
+            "US",
+            "--fixture",
+            "product_agent_view_B0TEST.json",
+            "--agent-view",
+            "--view",
+            "summary",
+            "--fields",
+            "identity,pricing,data_quality",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        product = payload["data"]["products"][0]
+        self.assertEqual(payload["data"]["profile"], "summary")
+        self.assertIn("identity", product)
+        self.assertIn("pricing", product)
+        self.assertIn("data_quality", product)
+        self.assertNotIn("history_summary", product)
+
+    def test_products_compare_cli_returns_rows(self):
+        result = self.run_module(
+            "--json",
+            "products",
+            "compare",
+            "B0TESTAGENT",
+            "--domain",
+            "US",
+            "--fixture",
+            "product_agent_view_B0TEST.json",
+            "--full",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["command"], "products.compare")
+        self.assertEqual(payload["data"]["rows"][0]["asin"], "B0TESTAGENT")
+
     def test_categories_search_fixture_returns_category_data(self):
         result = self.run_module(
             "--json",

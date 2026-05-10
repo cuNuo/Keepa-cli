@@ -126,6 +126,59 @@ class ServiceCommandTests(unittest.TestCase):
             self.assertEqual(new_history["omitted_points"], 1)
             self.assertTrue(product["raw_field_presence"]["csv"])
 
+    def test_products_get_agent_view_supports_profiles_fields_and_chunks(self):
+        with TemporaryDirectory() as temp_dir:
+            chunks_dir = Path(temp_dir) / "chunks"
+            payload = run_command(
+                "products.get",
+                {
+                    "asin": ["B0TESTAGENT"],
+                    "domain": "US",
+                    "fixture": "product_agent_view_B0TEST.json",
+                    "agent_view": True,
+                    "view": "summary",
+                    "fields": "identity,pricing,data_quality,next_actions,selection_signals",
+                    "chunks_dir": str(chunks_dir),
+                },
+                fixture_dir=FIXTURES,
+                env={},
+            )
+
+            self.assertTrue(payload["ok"])
+            data = payload["data"]
+            product = data["products"][0]
+            self.assertEqual(data["profile"], "summary")
+            self.assertIn("identity", product)
+            self.assertIn("pricing", product)
+            self.assertIn("data_quality", product)
+            self.assertIn("selection_signals", product)
+            self.assertNotIn("history_summary", product)
+            self.assertIn("offers.offers", product["data_quality"]["missing"])
+            self.assertTrue(product["next_actions"])
+            self.assertTrue(any(item["name"] == "identity" for item in data["chunks"]))
+            self.assertTrue((chunks_dir / "B0TESTAGENT-identity.json").is_file())
+
+    def test_products_compare_returns_agent_safe_rows(self):
+        payload = run_command(
+            "products.compare",
+            {
+                "asin": ["B0TESTAGENT"],
+                "domain": "US",
+                "fixture": "product_agent_view_B0TEST.json",
+                "full": True,
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["command"], "products.compare")
+        row = payload["data"]["rows"][0]
+        self.assertEqual(row["asin"], "B0TESTAGENT")
+        self.assertEqual(row["new_price"], 14.99)
+        self.assertEqual(row["monthly_sold"], 100000)
+        self.assertIn("selection_signals", row)
+
     def test_categories_get_uses_category_endpoint_and_parents_flag(self):
         payload = run_command(
             "categories.get",

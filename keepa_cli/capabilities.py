@@ -12,7 +12,7 @@ from typing import Any
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-10.1"
+SCHEMA_VERSION = "2026-05-10.2"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -30,6 +30,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "cache.explain", "supports_fixture": True, "supports_live": False, "output": "json"},
     {"name": "audit.cost", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "products.get", "supports_fixture": True, "supports_live": True, "output": "json-or-agent-view"},
+    {"name": "products.compare", "supports_fixture": True, "supports_live": True, "output": "json-agent-view"},
     {"name": "products.search", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "categories.get", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "categories.search", "supports_fixture": True, "supports_live": True, "output": "json"},
@@ -51,6 +52,8 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "tracking.remove-all", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "tracking.notifications", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "tracking.webhook", "supports_fixture": True, "supports_live": True, "output": "json"},
+    {"name": "schema.generate", "supports_fixture": False, "supports_live": False, "output": "json-file"},
+    {"name": "cassettes.sanitize", "supports_fixture": False, "supports_live": False, "output": "json-file"},
     {"name": "request.get", "supports_fixture": True, "supports_live": True, "output": "json"},
     {"name": "request.post", "supports_fixture": True, "supports_live": True, "output": "json"},
 )

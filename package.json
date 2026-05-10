@@ -12,6 +12,8 @@
     "bin/",
     "keepa_cli/**/*.py",
     "keepa_cli/fixtures/*.json",
+    "scripts/generate_agent_schema.py",
+    "docs/schema/*.json",
     "README.md",
     "LICENSE",
     "pyproject.toml"

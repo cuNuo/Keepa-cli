@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from keepa_cli.service import run_command
 from scripts.check_fixture_sync import compare_fixture_dirs
 from scripts.redact_cassette import redact_cassette_payload
 
@@ -56,6 +57,23 @@ class ProjectToolTests(unittest.TestCase):
         redacted = redact_cassette_payload(json.loads(json.dumps(payload)))
 
         self.assertEqual(redacted[0]["request"]["url"], "https://api.keepa.com/token?key=%5BREDACTED%5D")
+
+    def test_cassette_sanitize_command_writes_redacted_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "live.json"
+            output_path = root / "redacted.json"
+            input_path.write_text(
+                json.dumps({"url": "https://api.keepa.com/product?key=SECRET", "body": {"token": "SECRET"}}),
+                encoding="utf-8",
+            )
+
+            payload = run_command("cassettes.sanitize", {"input": str(input_path), "out": str(output_path)}, env={})
+
+            self.assertTrue(payload["ok"])
+            content = output_path.read_text(encoding="utf-8")
+            self.assertNotIn("SECRET", content)
+            self.assertIn("[REDACTED]", content)
 
 
 if __name__ == "__main__":

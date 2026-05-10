@@ -7,13 +7,50 @@ keepa_cli/product_view.py
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
-PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.1"
+PRODUCT_VIEW_SCHEMA_VERSION = "2026-05-10.2"
+
+PROFILE_FIELDS = {
+    "summary": [
+        "identity",
+        "category",
+        "pricing",
+        "demand",
+        "rating",
+        "selection_signals",
+        "data_quality",
+        "next_actions",
+    ],
+    "research": [],
+    "deal": [
+        "identity",
+        "category",
+        "pricing",
+        "demand",
+        "rating",
+        "offers",
+        "media",
+        "aplus",
+        "selection_signals",
+        "data_quality",
+        "next_actions",
+        "raw_field_presence",
+    ],
+    "audit": [
+        "identity",
+        "data_quality",
+        "next_actions",
+        "selection_signals",
+        "raw_field_presence",
+    ],
+}
 
 CSV_TYPES: dict[int, dict[str, Any]] = {
     0: {"name": "amazon", "unit": "currency", "is_price": True, "with_shipping": False},
@@ -66,10 +103,20 @@ BUY_BOX_ELIGIBLE_OFFER_KEYS = [
 ]
 
 
-def build_agent_product_view(data: Mapping[str, Any], *, history_limit: int = 10, media_limit: int = 5) -> dict[str, Any]:
+def build_agent_product_view(
+    data: Mapping[str, Any],
+    *,
+    history_limit: int = 10,
+    media_limit: int = 5,
+    view_profile: str = "research",
+    fields: Any = None,
+    chunks_dir: Path | str | None = None,
+) -> dict[str, Any]:
     body = data.get("body")
     products = body.get("products") if isinstance(body, Mapping) else None
     product_items = products if isinstance(products, list) else []
+    normalized_profile = _normalize_profile(view_profile)
+    normalized_fields = _normalize_fields(fields)
     raw: dict[str, Any] = {
         "body_omitted": True,
         "offline": bool(data.get("offline")),
@@ -81,10 +128,17 @@ def build_agent_product_view(data: Mapping[str, Any], *, history_limit: int = 10
 
     result: dict[str, Any] = {
         "view": "agent_product",
+        "profile": normalized_profile,
         "schema_version": PRODUCT_VIEW_SCHEMA_VERSION,
         "product_count": len(product_items),
         "products": [
-            _product_to_agent_view(product, history_limit=max(0, history_limit), media_limit=max(1, media_limit))
+            _product_to_agent_view(
+                product,
+                history_limit=max(0, history_limit),
+                media_limit=max(1, media_limit),
+                view_profile=normalized_profile,
+                fields=normalized_fields,
+            )
             for product in product_items
             if isinstance(product, Mapping)
         ],
@@ -97,13 +151,99 @@ def build_agent_product_view(data: Mapping[str, Any], *, history_limit: int = 10
     }
     if data.get("cache_provenance"):
         result["cache_provenance"] = data.get("cache_provenance")
+    if chunks_dir:
+        result["chunks"] = write_agent_view_chunks(result, chunks_dir)
     return result
 
 
-def _product_to_agent_view(product: Mapping[str, Any], *, history_limit: int, media_limit: int) -> dict[str, Any]:
+def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
+    products = agent_view.get("products") if isinstance(agent_view.get("products"), list) else []
+    rows: list[dict[str, Any]] = []
+    for product in products:
+        if not isinstance(product, Mapping):
+            continue
+        identity = product.get("identity") if isinstance(product.get("identity"), Mapping) else {}
+        pricing = product.get("pricing") if isinstance(product.get("pricing"), Mapping) else {}
+        demand = product.get("demand") if isinstance(product.get("demand"), Mapping) else {}
+        rating = product.get("rating") if isinstance(product.get("rating"), Mapping) else {}
+        offers = product.get("offers") if isinstance(product.get("offers"), Mapping) else {}
+        media = product.get("media") if isinstance(product.get("media"), Mapping) else {}
+        aplus = product.get("aplus") if isinstance(product.get("aplus"), Mapping) else {}
+        category = product.get("category") if isinstance(product.get("category"), Mapping) else {}
+        current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
+        buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
+        rows.append(
+            _compact(
+                {
+                    "asin": identity.get("asin"),
+                    "title": identity.get("title"),
+                    "brand": identity.get("brand"),
+                    "new_price": _amount_from_value(current.get("new")),
+                    "buy_box_price": _amount_from_value(buy_box.get("price") or current.get("buy_box_shipping")),
+                    "sales_rank": _plain_value(category.get("sales_rank_current")),
+                    "monthly_sold": demand.get("monthly_sold"),
+                    "rating": _plain_value(rating.get("rating")),
+                    "review_count": _plain_value(rating.get("review_count")),
+                    "coupon": pricing.get("coupon"),
+                    "total_offer_count": offers.get("total_offer_count"),
+                    "video_count": media.get("video_count"),
+                    "aplus_available": aplus.get("available"),
+                    "selection_signals": product.get("selection_signals"),
+                    "risk_flags": (product.get("selection_signals") or {}).get("risk_flags")
+                    if isinstance(product.get("selection_signals"), Mapping)
+                    else None,
+                    "data_quality": product.get("data_quality"),
+                }
+            )
+        )
+    return {
+        "view": "products_compare",
+        "schema_version": PRODUCT_VIEW_SCHEMA_VERSION,
+        "product_count": len(rows),
+        "rows": rows,
+        "source_view": {
+            "profile": agent_view.get("profile"),
+            "raw": agent_view.get("raw"),
+            "chunks": agent_view.get("chunks"),
+        },
+    }
+
+
+def write_agent_view_chunks(agent_view: Mapping[str, Any], chunks_dir: Path | str) -> list[dict[str, Any]]:
+    output_dir = Path(chunks_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    chunks: list[dict[str, Any]] = []
+    products = agent_view.get("products") if isinstance(agent_view.get("products"), list) else []
+    for index, product in enumerate(products):
+        if not isinstance(product, Mapping):
+            continue
+        asin = str((product.get("identity") or {}).get("asin") or f"product-{index}")
+        for section in ("identity", "pricing", "demand", "rating", "offers", "media", "aplus", "selection_signals", "history_summary"):
+            if section not in product:
+                continue
+            path = output_dir / f"{asin}-{section}.json"
+            content = {
+                "asin": asin,
+                "section": section,
+                "schema_version": PRODUCT_VIEW_SCHEMA_VERSION,
+                "data": product[section],
+            }
+            path.write_text(json.dumps(content, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            chunks.append({"asin": asin, "name": section, "path": str(path), "format": "json", "size_bytes": path.stat().st_size})
+    return chunks
+
+
+def _product_to_agent_view(
+    product: Mapping[str, Any],
+    *,
+    history_limit: int,
+    media_limit: int,
+    view_profile: str,
+    fields: list[str],
+) -> dict[str, Any]:
     stats = product.get("stats") if isinstance(product.get("stats"), Mapping) else {}
     current = stats.get("current") if isinstance(stats, Mapping) else None
-    return {
+    result = {
         "identity": _identity(product),
         "category": _category(product, current),
         "pricing": _pricing(product, stats),
@@ -119,6 +259,10 @@ def _product_to_agent_view(product: Mapping[str, Any], *, history_limit: int, me
         "history_summary": _history_summary(product, history_limit),
         "raw_field_presence": _raw_field_presence(product),
     }
+    result["data_quality"] = _data_quality(product, result)
+    result["next_actions"] = _next_actions(result)
+    result["selection_signals"] = _selection_signals(result)
+    return _filter_product_view(result, view_profile=view_profile, fields=fields)
 
 
 def _identity(product: Mapping[str, Any]) -> dict[str, Any]:
@@ -651,6 +795,206 @@ def _raw_field_presence(product: Mapping[str, Any]) -> dict[str, Any]:
         "reviews",
     ]
     return {key: key in product and product.get(key) is not None for key in keys}
+
+
+def _data_quality(product: Mapping[str, Any], view: Mapping[str, Any]) -> dict[str, Any]:
+    raw_presence = view.get("raw_field_presence") if isinstance(view.get("raw_field_presence"), Mapping) else {}
+    present = [key for key, value in raw_presence.items() if value]
+    missing = [key for key, value in raw_presence.items() if not value]
+    pricing = view.get("pricing") if isinstance(view.get("pricing"), Mapping) else {}
+    demand = view.get("demand") if isinstance(view.get("demand"), Mapping) else {}
+    rating = view.get("rating") if isinstance(view.get("rating"), Mapping) else {}
+    offers = view.get("offers") if isinstance(view.get("offers"), Mapping) else {}
+    aplus = view.get("aplus") if isinstance(view.get("aplus"), Mapping) else {}
+    next_missing: list[str] = []
+    if not (pricing.get("current") or pricing.get("buy_box")):
+        next_missing.append("pricing.current")
+    if demand.get("monthly_sold") is None and not demand.get("sales_rank_drops"):
+        next_missing.append("demand.monthly_sold")
+    if not rating.get("rating"):
+        next_missing.append("rating.rating")
+    if not raw_presence.get("offers"):
+        next_missing.append("offers.offers")
+    if not aplus.get("available"):
+        next_missing.append("aplus")
+    if "csv" not in present:
+        next_missing.append("history.csv")
+    evidence_count = len(present) + len([item for item in ("pricing.current", "demand.monthly_sold", "rating.rating") if item not in next_missing])
+    confidence = "high" if evidence_count >= 7 and not next_missing[:2] else "medium" if evidence_count >= 4 else "low"
+    return {
+        "present": sorted(set(present)),
+        "missing": sorted(set(missing + next_missing)),
+        "confidence": confidence,
+        "notes": _data_quality_notes(product, view, next_missing),
+    }
+
+
+def _data_quality_notes(product: Mapping[str, Any], view: Mapping[str, Any], missing: list[str]) -> list[str]:
+    notes: list[str] = []
+    if missing:
+        notes.append("some agent-relevant fields are absent or not requested")
+    if product.get("offers") is None and product.get("liveOffersOrder") is None:
+        notes.append("offer detail usually requires an explicit --offers request")
+    if (view.get("history_summary") or {}).get("available") is not True:
+        notes.append("history summary is unavailable because raw csv history is absent")
+    return notes
+
+
+def _next_actions(view: Mapping[str, Any]) -> list[dict[str, Any]]:
+    identity = view.get("identity") if isinstance(view.get("identity"), Mapping) else {}
+    asin = identity.get("asin") or "<ASIN>"
+    domain = "<DOMAIN>"
+    quality = view.get("data_quality") if isinstance(view.get("data_quality"), Mapping) else {}
+    missing = set(quality.get("missing") or [])
+    actions: list[dict[str, Any]] = []
+    if "offers.offers" in missing:
+        actions.append(
+            {
+                "command": f"products get {asin} --domain {domain} --full --offers 20 --agent-view --view deal",
+                "reason": "offer detail is missing; request one offer page only if seller-level competition matters",
+                "estimated_tokens": 6,
+            }
+        )
+    if "rating.rating" in missing:
+        actions.append(
+            {
+                "command": f"products get {asin} --domain {domain} --full --rating 1 --agent-view --view research",
+                "reason": "rating or review count is missing",
+                "estimated_tokens": 1,
+            }
+        )
+    if "aplus" in missing:
+        actions.append(
+            {
+                "command": f"products get {asin} --domain {domain} --full --aplus 1 --agent-view --view research",
+                "reason": "A+ content is missing; useful for content-quality checks",
+                "estimated_tokens": 1,
+            }
+        )
+    if "history.csv" in missing:
+        actions.append(
+            {
+                "command": f"products get {asin} --domain {domain} --history 1 --stats 180 --agent-view --view research",
+                "reason": "history is missing; needed for price and rank stability",
+                "estimated_tokens": 1,
+            }
+        )
+    return actions
+
+
+def _selection_signals(view: Mapping[str, Any]) -> dict[str, Any]:
+    pricing = view.get("pricing") if isinstance(view.get("pricing"), Mapping) else {}
+    demand = view.get("demand") if isinstance(view.get("demand"), Mapping) else {}
+    rating = view.get("rating") if isinstance(view.get("rating"), Mapping) else {}
+    offers = view.get("offers") if isinstance(view.get("offers"), Mapping) else {}
+    media = view.get("media") if isinstance(view.get("media"), Mapping) else {}
+    aplus = view.get("aplus") if isinstance(view.get("aplus"), Mapping) else {}
+    category = view.get("category") if isinstance(view.get("category"), Mapping) else {}
+    current = pricing.get("current") if isinstance(pricing.get("current"), Mapping) else {}
+    risk_flags: list[str] = []
+    monthly_sold = demand.get("monthly_sold")
+    review_count = _plain_value(rating.get("review_count"))
+    rating_value = _plain_value(rating.get("rating"))
+    offer_count = offers.get("total_offer_count")
+    if monthly_sold is None:
+        risk_flags.append("missing_monthly_sold")
+    if rating_value is None:
+        risk_flags.append("missing_rating")
+    elif rating_value < 4.0:
+        risk_flags.append("rating_below_4")
+    if review_count is None:
+        risk_flags.append("missing_review_count")
+    if offer_count is None:
+        risk_flags.append("missing_offer_detail")
+    elif offer_count > 20:
+        risk_flags.append("high_offer_competition")
+    if not aplus.get("available"):
+        risk_flags.append("missing_aplus")
+    if not media.get("video_count"):
+        risk_flags.append("missing_video")
+    return {
+        "demand": _compact(
+            {
+                "monthly_sold": monthly_sold,
+                "sales_rank": _plain_value(category.get("sales_rank_current")),
+                "sales_rank_drops": demand.get("sales_rank_drops"),
+            }
+        ),
+        "competition": _compact(
+            {
+                "total_offer_count": offer_count,
+                "retrieved_offer_count": offers.get("retrieved_offer_count"),
+                "offer_count_fba": offers.get("offer_count_fba"),
+                "offer_count_fbm": offers.get("offer_count_fbm"),
+            }
+        ),
+        "price_stability": _compact(
+            {
+                "current_new": _amount_from_value(current.get("new")),
+                "current_buy_box": _amount_from_value((pricing.get("buy_box") or {}).get("price") if isinstance(pricing.get("buy_box"), Mapping) else None),
+                "coupon": pricing.get("coupon"),
+                "history_series": (view.get("history_summary") or {}).get("series_count")
+                if isinstance(view.get("history_summary"), Mapping)
+                else None,
+            }
+        ),
+        "content_quality": _compact(
+            {
+                "image_count": media.get("image_count"),
+                "video_count": media.get("video_count"),
+                "aplus_available": aplus.get("available"),
+                "aplus_module_count": aplus.get("module_count"),
+            }
+        ),
+        "risk_flags": risk_flags,
+    }
+
+
+def _filter_product_view(result: dict[str, Any], *, view_profile: str, fields: list[str]) -> dict[str, Any]:
+    if fields:
+        selected = fields
+    else:
+        selected = PROFILE_FIELDS.get(view_profile, PROFILE_FIELDS["research"])
+    if not selected:
+        return result
+    required = {"identity"}
+    selected_set = set(selected) | required
+    return {key: value for key, value in result.items() if key in selected_set}
+
+
+def _normalize_profile(value: str) -> str:
+    profile = (value or "research").strip().lower()
+    if profile in {"agent", "raw"}:
+        return "research"
+    if profile not in PROFILE_FIELDS:
+        return "research"
+    return profile
+
+
+def _normalize_fields(value: Any) -> list[str]:
+    if value is None or value == "":
+        return []
+    if isinstance(value, str):
+        raw_items = value.split(",")
+    elif isinstance(value, (list, tuple, set)):
+        raw_items = []
+        for item in value:
+            raw_items.extend(str(item).split(","))
+    else:
+        raw_items = [str(value)]
+    return [item.strip() for item in raw_items if item.strip()]
+
+
+def _plain_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return value.get("value")
+    return value
+
+
+def _amount_from_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return value.get("amount") or value.get("currency_value") or value.get("value")
+    return value
 
 
 def _map_fixed_list(value: Any, keys: list[str]) -> dict[str, Any]:

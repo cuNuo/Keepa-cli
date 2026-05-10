@@ -96,11 +96,30 @@ def _build_parser() -> argparse.ArgumentParser:
     products_get.add_argument("--stock", help="1 表示包含 stock 信息，通常需配合 offers。")
     products_get.add_argument("--historical-variations", help="1 表示包含历史 variation 数据。")
     products_get.add_argument("--agent-view", action="store_true", help="返回 Agent 友好的稳定摘要视图，省略原始大 body。")
-    products_get.add_argument("--view", choices=("raw", "agent"), default="raw", help="输出视图；raw 为默认原始 Keepa body。")
+    products_get.add_argument(
+        "--view",
+        choices=("raw", "agent", "summary", "research", "deal", "audit"),
+        default="raw",
+        help="输出视图；raw 为默认原始 Keepa body，其余为 Agent profile。",
+    )
+    products_get.add_argument("--fields", help="逗号分隔 Agent 视图字段，例如 identity,pricing,demand,rating。")
     products_get.add_argument("--history-limit", type=int, default=10, help="Agent 视图中每个历史序列保留的最近点数。")
+    products_get.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
     products_get.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     products_get.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
     products_get.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
+    products_compare = products_subparsers.add_parser("compare", help="横向对比一个或多个 ASIN 的 Agent-safe 选品字段。")
+    products_compare.add_argument("asin", nargs="+", help="一个或多个 ASIN。")
+    products_compare.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    products_compare.add_argument("--full", action="store_true", help="低成本完整详情预设：history=1、stats=180、videos=1、aplus=1。")
+    products_compare.add_argument("--view", choices=("summary", "research", "deal", "audit"), default="deal", help="对比前使用的 Agent profile。")
+    products_compare.add_argument("--fields", help="逗号分隔 Agent 视图字段。")
+    products_compare.add_argument("--history-limit", type=int, default=5, help="每个历史序列保留的最近点数。")
+    products_compare.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
+    products_compare.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
+    products_compare.add_argument("--out", help="把大响应 body 写入 JSON 文件。")
+    products_compare.add_argument("--chunks-dir", help="把 Agent 视图关键 section 分块写入目录。")
+    products_compare.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
     products_search = products_subparsers.add_parser("search", help="产品关键词搜索。")
     products_search.add_argument("term", help="搜索词。")
     products_search.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
@@ -261,6 +280,18 @@ def _build_parser() -> argparse.ArgumentParser:
     tracking_webhook.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
     tracking_webhook.add_argument("--dry-run", action="store_true", help="只输出请求规格，不访问 API。")
 
+    schema = subparsers.add_parser("schema", help="Agent schema 文档命令。")
+    schema_subparsers = schema.add_subparsers(dest="schema_command")
+    schema_generate = schema_subparsers.add_parser("generate", help="从 snapshot 生成产品 Agent 视图 schema 文档。")
+    schema_generate.add_argument("--snapshot", default="tests/snapshots/agent_schema_snapshot.json", help="输入 snapshot 路径。")
+    schema_generate.add_argument("--out", default="docs/schema/products.agent-view.schema.json", help="输出 schema 文档路径。")
+
+    cassettes = subparsers.add_parser("cassettes", help="Keepa cassette 本地处理命令。")
+    cassettes_subparsers = cassettes.add_subparsers(dest="cassettes_command")
+    cassettes_sanitize = cassettes_subparsers.add_parser("sanitize", help="脱敏真实 Keepa cassette JSON。")
+    cassettes_sanitize.add_argument("input", help="输入 cassette JSON 文件。")
+    cassettes_sanitize.add_argument("--out", required=True, help="输出脱敏 JSON 文件。")
+
     request = subparsers.add_parser("request", help="原始 Keepa API dry-run 逃生口。")
     request_subparsers = request.add_subparsers(dest="request_method")
     for method in ("get", "post"):
@@ -366,9 +397,30 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "historical_variations": args.historical_variations,
                 "agent_view": bool(args.agent_view),
                 "view": args.view,
+                "fields": args.fields,
                 "history_limit": args.history_limit,
+                "chunks_dir": args.chunks_dir,
                 "fixture": args.fixture,
                 "out": args.out,
+                "dry_run": bool(args.dry_run),
+            },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "products" and args.products_command == "compare":
+        payload = run_command(
+            "products.compare",
+            {
+                "asin": args.asin,
+                "domain": args.domain,
+                "full": bool(args.full),
+                "view": args.view,
+                "fields": args.fields,
+                "history_limit": args.history_limit,
+                "offers": args.offers,
+                "fixture": args.fixture,
+                "out": args.out,
+                "chunks_dir": args.chunks_dir,
                 "dry_run": bool(args.dry_run),
             },
         )
@@ -655,6 +707,20 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
                 "dry_run": bool(args.dry_run),
                 "yes": bool(args.yes),
             },
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "schema" and args.schema_command == "generate":
+        payload = run_command(
+            "schema.generate",
+            {"snapshot": args.snapshot, "out": args.out},
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "cassettes" and args.cassettes_command == "sanitize":
+        payload = run_command(
+            "cassettes.sanitize",
+            {"input": args.input, "out": args.out},
         )
         return 0 if payload["ok"] else 1, payload
 

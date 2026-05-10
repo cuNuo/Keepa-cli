@@ -35,7 +35,7 @@ def estimate_request_budget(command: str, params: dict[str, Any] | None = None) 
     params = params or {}
     normalized = command.lower()
 
-    if normalized in {"products.get", "product.get"}:
+    if normalized in {"products.get", "product.get", "products.compare"}:
         asin_count = _count_items(params.get("asin") or params.get("asins"))
         code_count = _count_items(params.get("code") or params.get("codes"))
         item_count = max(asin_count, code_count, 1)
