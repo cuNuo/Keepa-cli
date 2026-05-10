@@ -68,6 +68,46 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertTrue(shown["ok"])
         self.assertEqual(shown["data"]["kind"], "tracking.batch")
 
+    def test_workflow_plan_category_research_is_local_agent_graph(self):
+        payload = run_command(
+            "workflow.plan",
+            {"name": "category-research", "term": "home kitchen", "domain": "US", "hydrate_top": 2},
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["view"], "workflow_plan")
+        self.assertEqual(payload["data"]["steps"][0]["tool"], "categories.search")
+        self.assertIn("search-categories", payload["data"]["steps"][1]["depends_on"])
+        self.assertEqual(payload["data"]["totals"]["estimated_tokens"], 55)
+        self.assertTrue(payload["data"]["totals"]["requires_confirmation"])
+        self.assertEqual(payload["data"]["next_actions"][0]["tool"], "categories.search")
+
+    def test_workflow_plan_product_research_cli(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "keepa_cli",
+                "--json",
+                "workflow",
+                "plan",
+                "product-research",
+                "--asin",
+                "B0D8W1YVBX",
+                "--domain",
+                "US",
+                "--goal",
+                "deal",
+            ],
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["data"]["steps"][0]["params"]["view"], "deal")
+
     def test_cli_workflow_commands_return_json(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             asin_file = Path(temp_dir) / "asins.txt"

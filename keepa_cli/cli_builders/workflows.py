@@ -62,6 +62,16 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     audit_cost.add_argument("--spec-file", help="JSON 文件，形如 [{\"command\":\"products.get\",\"params\":{...}}]。")
     audit_cost.add_argument("--param", action="append", default=[], metavar="KEY=VALUE", help="命令参数，可重复。")
 
+    workflow = subparsers.add_parser("workflow", help="Agent 工作流规划命令。")
+    workflow_subparsers = workflow.add_subparsers(dest="workflow_command")
+    workflow_plan = workflow_subparsers.add_parser("plan", help="生成不耗 token 的 Agent 执行图。")
+    workflow_plan.add_argument("name", choices=("category-research", "product-research"), help="工作流名称。")
+    workflow_plan.add_argument("--term", help="category-research 使用的关键词。")
+    workflow_plan.add_argument("--asin", help="product-research 使用的 ASIN。")
+    workflow_plan.add_argument("--domain", default="US", help="Keepa domain，例如 US、1、com。")
+    workflow_plan.add_argument("--goal", default="research", choices=("research", "deal"), help="产品研究目标。")
+    workflow_plan.add_argument("--hydrate-top", type=int, default=0, help="category-research 中显式规划 hydrate 前 N 个商品。")
+
 
 def maybe_run_workflow_command(
     args: argparse.Namespace,
@@ -121,6 +131,20 @@ def maybe_run_workflow_command(
                 payload = run_command("audit.cost", {"target_command": args.target_command or "", "params": parsed_params})
         except (OSError, json.JSONDecodeError, ValueError) as exc:
             return 2, error_envelope(command="audit.cost", kind="invalid_argument", message=str(exc))
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "workflow" and args.workflow_command == "plan":
+        payload = run_command(
+            "workflow.plan",
+            {
+                "name": args.name,
+                "term": args.term,
+                "asin": args.asin,
+                "domain": args.domain,
+                "goal": args.goal,
+                "hydrate_top": args.hydrate_top,
+            },
+        )
         return 0 if payload["ok"] else 1, payload
 
     return None

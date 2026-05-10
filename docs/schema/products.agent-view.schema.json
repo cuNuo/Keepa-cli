@@ -100,9 +100,20 @@
             ],
             "recommended_next_actions": [
               {
+                "cli": "str",
                 "command": "str",
                 "estimated_tokens": "int",
-                "reason": "str"
+                "params": {
+                  "agent_view": "bool",
+                  "asin": "str",
+                  "domain": "str",
+                  "full": "bool",
+                  "offers": "str",
+                  "view": "str"
+                },
+                "reason": "str",
+                "requires_confirmation": "bool",
+                "tool": "str"
               }
             ],
             "temporal_by_window": {
@@ -1623,9 +1634,20 @@
           },
           "next_actions": [
             {
+              "cli": "str",
               "command": "str",
               "estimated_tokens": "int",
-              "reason": "str"
+              "params": {
+                "agent_view": "bool",
+                "asin": "str",
+                "domain": "str",
+                "full": "bool",
+                "offers": "str",
+                "view": "str"
+              },
+              "reason": "str",
+              "requires_confirmation": "bool",
+              "tool": "str"
             }
           ],
           "offers": {

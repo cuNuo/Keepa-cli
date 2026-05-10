@@ -174,7 +174,7 @@ Agent 视图 profile：
 
 `temporal_features` 从原始 `csv` 全量序列直接计算 Agent 可消费的时序特征，覆盖 `new`、`sales_rank`、`buy_box_shipping`、`new_fba`、`new_offer_count`、`new_fba_offer_count`、`rating`、`review_count` 等常用序列。默认窗口为 7/30/90/180/365 天，也可用 `--temporal-window-days` 重复指定或传逗号列表。每个序列包含首末变化、上一点变化、多窗口变化、均值、极值、range、波动系数、斜率、采样密度、分位数、最新 z-score、IQR/MAD、方向变化、离群点、最大回撤/反弹、最长上升/下降段和趋势方向。
 
-`--fields` 会覆盖 profile，只返回指定 product section；`--chunks-dir` 会把 agent_brief、identity、pricing、demand、rating、offers、media、aplus、selection_signals、evidence_index、history_summary、temporal_features 等 section 写成独立 JSON chunk，并在 `data.chunks` 返回路径。每个 product 都会包含 `agent_brief`、`data_quality`、`next_actions`、`temporal_features` 和 `selection_signals`，用于 Agent 判断是否需要补 `--offers 20`、`--rating 1`、`--aplus 1` 或 `--history 1`。
+`--fields` 会覆盖 profile，只返回指定 product section；`--chunks-dir` 会把 agent_brief、identity、pricing、demand、rating、offers、media、aplus、selection_signals、evidence_index、history_summary、temporal_features 等 section 写成独立 JSON chunk，并在 `data.chunks` 返回路径。每个 product 都会包含 `agent_brief`、`data_quality`、`next_actions`、`temporal_features` 和 `selection_signals`，用于 Agent 判断是否需要补 `--offers 20`、`--rating 1`、`--aplus 1` 或 `--history 1`。`next_actions` 保留旧的 `command` 字符串，同时新增 `tool`、`params`、`cli`、`estimated_tokens` 和 `requires_confirmation`，Agent 应优先使用 `tool+params` 执行，只有展示给人时使用 `command/cli`。
 
 `products.compare` 复用 `/product`，返回 `view=products_compare`，用统一 rows 暴露 `asin/title/brand/new_price/buy_box_price/sales_rank/monthly_sold/rating/review_count/coupon/offer/media/aplus/selection_signals/risk_flags/data_quality`，适合 Agent 做多 ASIN 横向比较。
 
@@ -188,7 +188,17 @@ Agent 视图 profile：
 .\.venv\Scripts\python.exe -m keepa_cli --json categories products 172282 --domain US --limit 25 --hydrate-top 3 --yes
 ```
 
-`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`，并在成功响应中派生 `view=category_search`、`category_candidates` 与 `next_actions`，引导 Agent 先 dry-run `categories products` 或生成 Finder selection 草稿。`categories.finder-selection` 是纯本地 scaffold 命令，不访问 Keepa，不消耗 token，会输出 `view=finder_selection_scaffold`、`selection`、`field_notes` 与可选 `output.path`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。`--hydrate-top N` 默认关闭，显式开启后只拉取前 N 个候选的 `products.get --full --agent-view --view summary` 摘要，并在预算中追加 `hydrate_top=N` token 组件。
+`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`，并在成功响应中派生 `view=category_search`、`category_candidates` 与结构化 `next_actions`，引导 Agent 先 dry-run `categories products` 或生成 Finder selection 草稿。`categories.finder-selection` 是纯本地 scaffold 命令，不访问 Keepa，不消耗 token，会输出 `view=finder_selection_scaffold`、`selection`、`field_notes` 与可选 `output.path`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。`--hydrate-top N` 默认关闭，显式开启后只拉取前 N 个候选的 `products.get --full --agent-view --view summary` 摘要，并在预算中追加 `hydrate_top=N` token 组件。category、finder、deals、seller、bestsellers 与 topsellers 的 Agent-facing 响应会尽量提供统一 profile：`agent_brief`、`data_quality`、`selection_signals`、`next_actions`、`evidence_index`、`provenance`。
+
+### workflow plan
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan category-research --term "home kitchen" --domain US
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan category-research --term "home kitchen" --domain US --hydrate-top 3
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan product-research --asin B0D8W1YVBX --domain US --goal deal
+```
+
+`workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`steps`、`totals`、`parallel_groups`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation` 和 `fixture_replay`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
 
 ### history export/trend
 

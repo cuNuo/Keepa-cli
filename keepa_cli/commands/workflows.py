@@ -15,6 +15,7 @@ from keepa_cli.workflows import (
     audit_cost,
     build_batch_asins,
     build_browse_snapshot,
+    build_workflow_plan,
     build_report,
     explain_cache,
     list_templates,
@@ -30,6 +31,7 @@ WORKFLOW_COMMANDS = {
     "reports.build",
     "cache.explain",
     "audit.cost",
+    "workflow.plan",
 }
 
 
@@ -91,6 +93,15 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
                 }
             ]
         data = audit_cost([dict(item) for item in specs if isinstance(item, Mapping)])
+    elif command == "workflow.plan":
+        data = build_workflow_plan(
+            name=str(_param(params, "name", "workflow", default="")),
+            term=_param(params, "term"),
+            asin=_param(params, "asin"),
+            domain=str(_param(params, "domain", default="US")),
+            goal=str(_param(params, "goal", default="research")),
+            hydrate_top=int(_param(params, "hydrate_top", "hydrate-top", default=0) or 0),
+        )
     else:
         raise ValueError(f"unsupported workflow command: {command}")
 

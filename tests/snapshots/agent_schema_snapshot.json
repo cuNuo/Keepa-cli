@@ -47,13 +47,68 @@
   "bestsellers_get": {
     "command": "str",
     "data": {
+      "agent_brief": {
+        "key_facts": {
+          "category_id": "str",
+          "source": "str"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
       "cache_provenance": {
         "cache_hit": "bool",
         "endpoint": "str",
         "params_hash": "str",
         "source": "str"
       },
-      "dry_run": "bool"
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [],
+        "present": [
+          "str"
+        ]
+      },
+      "dry_run": "bool",
+      "evidence_index": {
+        "body": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "output": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "provenance": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "request": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
+      "provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "selection_signals": {
+        "category_id": "str",
+        "source": "str"
+      }
     },
     "ok": "bool",
     "request": {
@@ -465,6 +520,15 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -488,22 +552,89 @@
   "categories_finder_selection": {
     "command": "str",
     "data": {
+      "agent_brief": {
+        "key_facts": {
+          "category_id": "str",
+          "domain": "str",
+          "per_page": "int"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
       "category_id": "str",
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [
+          "str"
+        ],
+        "present": [
+          "str",
+          "str"
+        ]
+      },
       "domain": "str",
+      "evidence_index": {
+        "field_notes": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "next_actions": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "output": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "selection": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
       "field_notes": [
         "str",
         "str"
       ],
       "next_actions": [
         {
+          "cli": "str",
           "command": "str",
           "estimated_tokens": "int",
-          "reason": "str"
+          "params": {
+            "domain": "str",
+            "dry_run": "bool",
+            "max_tokens": "int",
+            "selection_file": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
         },
         {
+          "cli": "str",
           "command": "str",
           "estimated_tokens": "int",
-          "reason": "str"
+          "params": {
+            "category": "str",
+            "domain": "str",
+            "dry_run": "bool",
+            "limit": "int"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
         }
       ],
       "selection": {
@@ -521,6 +652,11 @@
             "str"
           ]
         ]
+      },
+      "selection_signals": {
+        "category_id": "str",
+        "min_reviews": "int",
+        "sales_rank_max": "int"
       },
       "view": "str"
     },
@@ -542,6 +678,22 @@
   "categories_products": {
     "command": "str",
     "data": {
+      "agent_brief": {
+        "key_facts": {
+          "candidate_count": "int",
+          "category_id": "str",
+          "source": "str"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
       "asins": [
         "str",
         "str"
@@ -582,6 +734,43 @@
         }
       ],
       "category_id": "str",
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [],
+        "present": [
+          "str",
+          "str",
+          "str"
+        ]
+      },
+      "evidence_index": {
+        "asins": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "candidates": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "hydration": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "provenance": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "raw_bestsellers": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
       "fixture": "str",
       "hydration": {
         "enabled": "bool",
@@ -591,17 +780,51 @@
       "last_update": "int",
       "next_actions": [
         {
+          "cli": "str",
           "command": "str",
           "estimated_tokens": "int",
-          "reason": "str"
+          "params": {
+            "asin": [
+              "str",
+              "str"
+            ],
+            "domain": "str",
+            "full": "bool",
+            "view": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
         },
         {
+          "cli": "str",
           "command": "str",
           "estimated_tokens": "int",
-          "reason": "str"
+          "params": {
+            "agent_view": "bool",
+            "asin": "str",
+            "domain": "str",
+            "full": "bool",
+            "view": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
         }
       ],
       "offline": "bool",
+      "provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "selection_signals": {
+        "candidate_count": "int",
+        "hydrated": "bool",
+        "source": "str"
+      },
       "source": "str",
       "view": "str"
     },
@@ -640,6 +863,22 @@
   "categories_search": {
     "command": "str",
     "data": {
+      "agent_brief": {
+        "key_facts": {
+          "candidate_count": "int",
+          "term": "str",
+          "top_category_id": "str"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
       "body": {
         "categories": {
           "1055398": {
@@ -674,33 +913,102 @@
           "name": "str",
           "next_actions": [
             {
+              "cli": "str",
               "command": "str",
               "estimated_tokens": "int",
-              "reason": "str"
+              "params": {
+                "category": "str",
+                "domain": "str",
+                "dry_run": "bool",
+                "limit": "int"
+              },
+              "reason": "str",
+              "requires_confirmation": "bool",
+              "tool": "str"
             },
             {
+              "cli": "str",
               "command": "str",
               "estimated_tokens": "int",
-              "reason": "str"
+              "params": {
+                "category": "str",
+                "domain": "str",
+                "out": "str"
+              },
+              "reason": "str",
+              "requires_confirmation": "bool",
+              "tool": "str"
             }
           ],
           "parent": "int"
         }
       ],
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [],
+        "present": [
+          "str",
+          "str"
+        ]
+      },
+      "evidence_index": {
+        "category_candidates": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "next_actions": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "provenance": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "raw_categories": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
       "fixture": "str",
       "next_actions": [
         {
+          "cli": "str",
           "command": "str",
           "estimated_tokens": "int",
-          "reason": "str"
+          "params": {
+            "category": "str",
+            "domain": "str",
+            "dry_run": "bool",
+            "limit": "int"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
         },
         {
+          "cli": "str",
           "command": "str",
           "estimated_tokens": "int",
-          "reason": "str"
+          "params": {
+            "category": "str",
+            "domain": "str",
+            "out": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
         }
       ],
       "offline": "bool",
+      "selection_signals": {
+        "candidate_count": "int",
+        "matched_count": "int"
+      },
       "term": "str",
       "view": "str"
     },
@@ -756,13 +1064,83 @@
   "finder_query": {
     "command": "str",
     "data": {
+      "agent_brief": {
+        "key_facts": {
+          "dry_run": "bool",
+          "selection_keys": [
+            "str",
+            "str",
+            "str",
+            "str",
+            "str",
+            "str"
+          ]
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
       "cache_provenance": {
         "cache_hit": "bool",
         "endpoint": "str",
         "params_hash": "str",
         "source": "str"
       },
-      "dry_run": "bool"
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [],
+        "present": [
+          "str",
+          "str"
+        ]
+      },
+      "dry_run": "bool",
+      "evidence_index": {
+        "body": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "output": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "provenance": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "selection": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
+      "provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "selection_signals": {
+        "selection_keys": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "selection_size": "int"
+      }
     },
     "ok": "bool",
     "request": {
@@ -1251,9 +1629,20 @@
             ],
             "recommended_next_actions": [
               {
+                "cli": "str",
                 "command": "str",
                 "estimated_tokens": "int",
-                "reason": "str"
+                "params": {
+                  "agent_view": "bool",
+                  "asin": "str",
+                  "domain": "str",
+                  "full": "bool",
+                  "offers": "str",
+                  "view": "str"
+                },
+                "reason": "str",
+                "requires_confirmation": "bool",
+                "tool": "str"
               }
             ],
             "temporal_by_window": {
@@ -2774,9 +3163,20 @@
           },
           "next_actions": [
             {
+              "cli": "str",
               "command": "str",
               "estimated_tokens": "int",
-              "reason": "str"
+              "params": {
+                "agent_view": "bool",
+                "asin": "str",
+                "domain": "str",
+                "full": "bool",
+                "offers": "str",
+                "view": "str"
+              },
+              "reason": "str",
+              "requires_confirmation": "bool",
+              "tool": "str"
             }
           ],
           "offers": {
@@ -4333,6 +4733,21 @@
   "sellers_get": {
     "command": "str",
     "data": {
+      "agent_brief": {
+        "key_facts": {
+          "seller_count": "int",
+          "storefront": "bool"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
       "body": {
         "refillRate": "int",
         "sellers": {
@@ -4357,8 +4772,50 @@
         "params_hash": "str",
         "source": "str"
       },
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [],
+        "present": [
+          "str",
+          "str"
+        ]
+      },
+      "evidence_index": {
+        "body": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "output": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "provenance": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "seller_ids": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
       "fixture": "str",
-      "offline": "bool"
+      "offline": "bool",
+      "provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "fixture": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "selection_signals": {
+        "seller_count": "int",
+        "storefront_requested": "bool"
+      }
     },
     "ok": "bool",
     "request": {
@@ -4617,5 +5074,191 @@
         "worst_case_tokens": "int"
       }
     }
+  },
+  "workflow_plan": {
+    "command": "str",
+    "data": {
+      "agent_brief": {
+        "key_facts": {
+          "estimated_tokens": "int",
+          "name": "str",
+          "requires_confirmation": "bool",
+          "step_count": "int",
+          "worst_case_tokens": "int"
+        },
+        "one_line": "str",
+        "read_order": [
+          "str",
+          "str",
+          "str",
+          "str"
+        ],
+        "view": "str"
+      },
+      "data_quality": {
+        "confidence": "str",
+        "missing": [],
+        "notes": [
+          "str"
+        ],
+        "present": [
+          "str",
+          "str",
+          "str"
+        ]
+      },
+      "domain": "str",
+      "evidence_index": {
+        "fixture_replay": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "next_actions": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "steps": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "totals": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        }
+      },
+      "goal": "str",
+      "name": "str",
+      "next_actions": [
+        {
+          "cli": "str",
+          "command": "str",
+          "estimated_tokens": "int",
+          "params": {
+            "domain": "str",
+            "term": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "tool": "str"
+        }
+      ],
+      "parallel_groups": [
+        "str"
+      ],
+      "provenance": {
+        "cache_hit": "bool",
+        "endpoint": "str",
+        "params_hash": "str",
+        "source": "str"
+      },
+      "selection_signals": {
+        "parallel_group_count": "int",
+        "step_count": "int"
+      },
+      "steps": [
+        {
+          "cli": "str",
+          "command": "str",
+          "depends_on": [],
+          "estimated_tokens": "int",
+          "fixture_replay": "str",
+          "id": "str",
+          "parallel_group": "null",
+          "params": {
+            "domain": "str",
+            "term": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "title": "str",
+          "tool": "str",
+          "worst_case_tokens": "int"
+        },
+        {
+          "cli": "str",
+          "command": "str",
+          "depends_on": [
+            "str"
+          ],
+          "estimated_tokens": "int",
+          "fixture_replay": "null",
+          "id": "str",
+          "parallel_group": "str",
+          "params": {
+            "category": "str",
+            "domain": "str",
+            "out": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "title": "str",
+          "tool": "str",
+          "worst_case_tokens": "int"
+        },
+        {
+          "cli": "str",
+          "command": "str",
+          "depends_on": [
+            "str"
+          ],
+          "estimated_tokens": "int",
+          "fixture_replay": "str",
+          "id": "str",
+          "parallel_group": "str",
+          "params": {
+            "category": "str",
+            "domain": "str",
+            "hydrate_top": "int",
+            "limit": "int",
+            "yes": "bool"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "title": "str",
+          "tool": "str",
+          "worst_case_tokens": "int"
+        },
+        {
+          "cli": "str",
+          "command": "str",
+          "depends_on": [
+            "str"
+          ],
+          "estimated_tokens": "int",
+          "fixture_replay": "str",
+          "id": "str",
+          "parallel_group": "null",
+          "params": {
+            "asin": [
+              "str",
+              "str"
+            ],
+            "domain": "str",
+            "full": "bool",
+            "view": "str"
+          },
+          "reason": "str",
+          "requires_confirmation": "bool",
+          "title": "str",
+          "tool": "str",
+          "worst_case_tokens": "int"
+        }
+      ],
+      "totals": {
+        "estimated_tokens": "int",
+        "requires_confirmation": "bool",
+        "worst_case_tokens": "int"
+      },
+      "view": "str"
+    },
+    "ok": "bool",
+    "request": {
+      "transport": "str"
+    },
+    "token_bucket": {}
   }
 }

@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from keepa_cli.agent_contract import build_action
 from keepa_cli.keepa_time import keepa_minutes_to_iso
 
 
@@ -1254,35 +1255,40 @@ def _next_actions(view: Mapping[str, Any]) -> list[dict[str, Any]]:
     actions: list[dict[str, Any]] = []
     if "offers.offers" in missing:
         actions.append(
-            {
-                "command": f"products get {asin} --domain {domain} --full --offers 20 --agent-view --view deal",
-                "reason": "offer detail is missing; request one offer page only if seller-level competition matters",
-                "estimated_tokens": 13,
-            }
+            build_action(
+                tool="products.get",
+                params={"asin": asin, "domain": domain, "full": True, "offers": "20", "agent_view": True, "view": "deal"},
+                cli=f"products get {asin} --domain {domain} --full --offers 20 --agent-view --view deal",
+                reason="offer detail is missing; request one offer page only if seller-level competition matters",
+                estimated_tokens=13,
+            )
         )
     if "rating.rating" in missing:
         actions.append(
-            {
-                "command": f"products get {asin} --domain {domain} --full --rating 1 --agent-view --view research",
-                "reason": "rating or review count is missing",
-                "estimated_tokens": 1,
-            }
+            build_action(
+                tool="products.get",
+                params={"asin": asin, "domain": domain, "full": True, "rating": "1", "agent_view": True, "view": "research"},
+                cli=f"products get {asin} --domain {domain} --full --rating 1 --agent-view --view research",
+                reason="rating or review count is missing",
+            )
         )
     if "aplus" in missing:
         actions.append(
-            {
-                "command": f"products get {asin} --domain {domain} --full --aplus 1 --agent-view --view research",
-                "reason": "A+ content is missing; useful for content-quality checks",
-                "estimated_tokens": 1,
-            }
+            build_action(
+                tool="products.get",
+                params={"asin": asin, "domain": domain, "full": True, "aplus": "1", "agent_view": True, "view": "research"},
+                cli=f"products get {asin} --domain {domain} --full --aplus 1 --agent-view --view research",
+                reason="A+ content is missing; useful for content-quality checks",
+            )
         )
     if "history.csv" in missing:
         actions.append(
-            {
-                "command": f"products get {asin} --domain {domain} --history 1 --stats 180 --agent-view --view research",
-                "reason": "history is missing; needed for price and rank stability",
-                "estimated_tokens": 1,
-            }
+            build_action(
+                tool="products.get",
+                params={"asin": asin, "domain": domain, "history": "1", "stats": "180", "agent_view": True, "view": "research"},
+                cli=f"products get {asin} --domain {domain} --history 1 --stats 180 --agent-view --view research",
+                reason="history is missing; needed for price and rank stability",
+            )
         )
     return actions
 

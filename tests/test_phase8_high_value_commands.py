@@ -38,6 +38,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 10)
         self.assertEqual(payload["token_bucket"]["estimated"]["worst_case_tokens"], 25)
         self.assertTrue(payload["token_bucket"]["estimated"]["requires_confirmation"])
+        self.assertEqual(payload["data"]["agent_brief"]["view"], "finder_query")
+        self.assertIn("evidence_index", payload["data"])
 
     def test_deals_query_fixture_can_write_large_result_to_out_file(self):
         with TemporaryDirectory() as temp_dir:
@@ -114,6 +116,9 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         self.assertEqual(payload["data"]["asins"], ["B001GZ6QEC"])
         self.assertEqual(payload["data"]["candidates"][0]["rank"], 1)
         self.assertIn("products compare", payload["data"]["next_actions"][0]["command"])
+        self.assertEqual(payload["data"]["next_actions"][0]["tool"], "products.compare")
+        self.assertEqual(payload["data"]["agent_brief"]["view"], "category_products")
+        self.assertIn("evidence_index", payload["data"])
 
     def test_categories_search_fixture_adds_candidate_next_actions(self):
         payload = run_command(
@@ -129,6 +134,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
         commands = [item["command"] for item in payload["data"]["next_actions"]]
         self.assertTrue(any(command.startswith("categories products 1055398") for command in commands))
         self.assertTrue(any(command.startswith("categories finder-selection 1055398") for command in commands))
+        self.assertEqual(payload["data"]["next_actions"][0]["tool"], "categories.products")
+        self.assertEqual(payload["data"]["agent_brief"]["view"], "category_search")
 
     def test_categories_finder_selection_writes_local_scaffold(self):
         with TemporaryDirectory() as temp_dir:
@@ -146,6 +153,8 @@ class Phase8HighValueCommandTests(unittest.TestCase):
             saved = json.loads(out_path.read_text(encoding="utf-8"))
             self.assertEqual(saved["categories_include"], [1055398])
             self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 0)
+            self.assertEqual(payload["data"]["next_actions"][0]["tool"], "finder.query")
+            self.assertEqual(payload["data"]["data_quality"]["confidence"], "high")
 
     def test_categories_products_hydrate_top_is_explicit(self):
         payload = run_command(

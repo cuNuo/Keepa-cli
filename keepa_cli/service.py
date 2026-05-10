@@ -14,6 +14,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from keepa_cli.agent_contract import attach_agent_profile, build_action
 from keepa_cli.analysis import analyze_history_rows
 from keepa_cli.capabilities import build_capabilities
 from keepa_cli.cassettes import sanitize_cassette_file
@@ -292,21 +293,25 @@ def _category_search_view(body: Mapping[str, Any], *, term: str, domain: str) ->
                 "children_count": len(children),
                 "matched": bool(raw_category.get("matched")),
                 "next_actions": [
-                    {
-                        "command": f"categories products {category_id} --domain {domain} --limit 25 --dry-run",
-                        "reason": "preview the 50-token Best Sellers request before fetching ASIN candidates",
-                        "estimated_tokens": 0,
-                    },
-                    {
-                        "command": f"categories finder-selection {category_id} --domain {domain} --out finder-category-{category_id}.json",
-                        "reason": "create a local Product Finder selection scaffold for this category",
-                        "estimated_tokens": 0,
-                    },
+                    build_action(
+                        tool="categories.products",
+                        params={"category": category_id, "domain": domain, "limit": 25, "dry_run": True},
+                        cli=f"categories products {category_id} --domain {domain} --limit 25 --dry-run",
+                        reason="preview the 50-token Best Sellers request before fetching ASIN candidates",
+                        estimated_tokens=0,
+                        requires_confirmation=False,
+                    ),
+                    build_action(
+                        tool="categories.finder-selection",
+                        params={"category": category_id, "domain": domain, "out": f"finder-category-{category_id}.json"},
+                        cli=f"categories finder-selection {category_id} --domain {domain} --out finder-category-{category_id}.json",
+                        reason="create a local Product Finder selection scaffold for this category",
+                    ),
                 ],
             }
         )
     candidates.sort(key=lambda item: (not item["matched"], str(item.get("name") or ""), item["category_id"]))
-    return {
+    result = {
         "view": "category_search",
         "term": term,
         "category_candidate_count": len(candidates),
@@ -317,6 +322,21 @@ def _category_search_view(body: Mapping[str, Any], *, term: str, domain: str) ->
             for item in candidate["next_actions"]
         ],
     }
+    return attach_agent_profile(
+        result,
+        view="category_search",
+        summary=f"{len(candidates)} category candidates for {term}",
+        key_facts={"term": term, "candidate_count": len(candidates), "top_category_id": candidates[0]["category_id"] if candidates else None},
+        present=["categories", "category_candidates"] if candidates else ["categories"],
+        missing=[] if candidates else ["category_candidates"],
+        selection_signals={"candidate_count": len(candidates), "matched_count": len([item for item in candidates if item["matched"]])},
+        evidence={
+            "category_candidates": ("category_candidates", "summary", "Candidate category ids derived from Keepa category search."),
+            "raw_categories": ("body.categories", "audit", "Raw Keepa category search response."),
+            "next_actions": ("next_actions", "summary", "Structured category follow-up actions."),
+            "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the category search."),
+        },
+    )
 
 
 def _keepa_body_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
@@ -587,7 +607,32 @@ def _selection_query(
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
     )
+    _attach_selection_profile(payload, command=command, selection=selection)
     return attach_output_if_requested(payload, _param(params, "out", "output"))
+
+
+def _attach_selection_profile(payload: dict[str, Any], *, command: str, selection: Mapping[str, Any]) -> None:
+    data = payload.get("data")
+    if not payload.get("ok") or not isinstance(data, dict):
+        return
+    present = ["selection", "request"]
+    if isinstance(data.get("body"), Mapping):
+        present.append("body")
+    attach_agent_profile(
+        data,
+        view=command.replace(".", "_"),
+        summary=f"{command} selection request prepared",
+        key_facts={"selection_keys": sorted(selection.keys()), "dry_run": bool(data.get("dry_run"))},
+        present=present,
+        missing=[] if data.get("body") or data.get("dry_run") else ["body"],
+        selection_signals={"selection_keys": sorted(selection.keys()), "selection_size": len(selection)},
+        evidence={
+            "selection": ("request.params_redacted.selection", "audit", "Serialized Finder/Deals selection sent to Keepa."),
+            "body": ("body", "summary", "Raw response body when fixture/live data is available."),
+            "output": ("output", "audit", "Large response output path when --out is used."),
+            "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
+        },
+    )
 
 
 def _categories_finder_selection(params: Mapping[str, Any]) -> dict[str, Any]:
@@ -622,16 +667,22 @@ def _categories_finder_selection(params: Mapping[str, Any]) -> dict[str, Any]:
             "The scaffold is local-only and does not consume Keepa tokens.",
         ],
         "next_actions": [
-            {
-                "command": f"finder query --selection-file <PATH> --domain {domain} --dry-run --max-tokens 25",
-                "reason": "validate the generated selection request shape without consuming tokens",
-                "estimated_tokens": 0,
-            },
-            {
-                "command": f"categories products {category} --domain {domain} --limit 25 --dry-run",
-                "reason": "preview Best Sellers category candidate retrieval",
-                "estimated_tokens": 0,
-            },
+            build_action(
+                tool="finder.query",
+                params={"selection_file": "<PATH>", "domain": domain, "dry_run": True, "max_tokens": 25},
+                cli=f"finder query --selection-file <PATH> --domain {domain} --dry-run --max-tokens 25",
+                reason="validate the generated selection request shape without consuming tokens",
+                estimated_tokens=0,
+                requires_confirmation=False,
+            ),
+            build_action(
+                tool="categories.products",
+                params={"category": category, "domain": domain, "limit": 25, "dry_run": True},
+                cli=f"categories products {category} --domain {domain} --limit 25 --dry-run",
+                reason="preview Best Sellers category candidate retrieval",
+                estimated_tokens=0,
+                requires_confirmation=False,
+            ),
         ],
     }
     output_path = _param(params, "out", "output")
@@ -646,7 +697,29 @@ def _categories_finder_selection(params: Mapping[str, Any]) -> dict[str, Any]:
             "size_bytes": path.stat().st_size,
             "result_count": 1,
         }
-        data["next_actions"][0]["command"] = f"finder query --selection-file {path} --domain {domain} --dry-run --max-tokens 25"
+        data["next_actions"][0] = build_action(
+            tool="finder.query",
+            params={"selection_file": str(path), "domain": domain, "dry_run": True, "max_tokens": 25},
+            cli=f"finder query --selection-file {path} --domain {domain} --dry-run --max-tokens 25",
+            reason="validate the generated selection request shape without consuming tokens",
+            estimated_tokens=0,
+            requires_confirmation=False,
+        )
+    attach_agent_profile(
+        data,
+        view="finder_selection_scaffold",
+        summary=f"Finder selection scaffold for category {category}",
+        key_facts={"category_id": category, "domain": domain, "per_page": per_page},
+        present=["selection", "next_actions"],
+        notes=["local scaffold only; verify category selector field before live Finder query"],
+        selection_signals={"category_id": category, "sales_rank_max": sales_rank_max, "min_reviews": min_reviews},
+        evidence={
+            "selection": ("selection", "summary", "Generated Product Finder selection scaffold."),
+            "field_notes": ("field_notes", "audit", "Known caveats for category selector compatibility."),
+            "next_actions": ("next_actions", "summary", "Structured follow-up actions."),
+            "output": ("output", "audit", "Selection JSON output path when --out is used."),
+        },
+    )
     return success_envelope(
         command="categories.finder-selection",
         data=data,
@@ -681,6 +754,23 @@ def _seller_get(params: Mapping[str, Any], fixture_dir: Path | str | None) -> di
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
     )
+    data = payload.get("data")
+    if payload.get("ok") and isinstance(data, dict):
+        attach_agent_profile(
+            data,
+            view="sellers_get",
+            summary=f"{len(sellers)} seller ids requested",
+            key_facts={"seller_count": len(sellers), "storefront": bool(_param(params, "storefront"))},
+            present=["request", "body"] if data.get("body") else ["request"],
+            missing=[] if data.get("body") or data.get("dry_run") else ["body"],
+            selection_signals={"seller_count": len(sellers), "storefront_requested": bool(_param(params, "storefront"))},
+            evidence={
+                "seller_ids": ("request.params_redacted.seller", "summary", "Seller ids requested from Keepa."),
+                "body": ("body.sellers", "summary", "Raw seller map when available."),
+                "output": ("output", "audit", "Large response output path when --out is used."),
+                "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
+            },
+        )
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
@@ -709,6 +799,23 @@ def _bestsellers_get(params: Mapping[str, Any], fixture_dir: Path | str | None) 
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
     )
+    data = payload.get("data")
+    if payload.get("ok") and isinstance(data, dict):
+        attach_agent_profile(
+            data,
+            view="bestsellers_get",
+            summary=f"Best Sellers request for category {category}",
+            key_facts={"category_id": category, "source": "bestsellers"},
+            present=["request", "body"] if data.get("body") else ["request"],
+            missing=[] if data.get("body") or data.get("dry_run") else ["body"],
+            selection_signals={"category_id": category, "source": "bestsellers"},
+            evidence={
+                "request": ("request", "audit", "Best Sellers request specification."),
+                "body": ("body.bestSellersList", "summary", "Raw Best Sellers response when available."),
+                "output": ("output", "audit", "Large response output path when --out is used."),
+                "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
+            },
+        )
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 
@@ -768,26 +875,60 @@ def _categories_products(params: Mapping[str, Any], fixture_dir: Path | str | No
             "reason": "dry-run never hydrates products",
         }
         data["next_actions"] = [
-            {
-                "command": f"categories products {category} --domain <DOMAIN> --limit {limit} --yes",
-                "reason": "fetch category ASIN candidates from Keepa Best Sellers",
-                "estimated_tokens": 50,
-            }
+            build_action(
+                tool="categories.products",
+                params={"category": category, "domain": "<DOMAIN>", "limit": limit, "yes": True},
+                cli=f"categories products {category} --domain <DOMAIN> --limit {limit} --yes",
+                reason="fetch category ASIN candidates from Keepa Best Sellers",
+                estimated_tokens=50,
+            )
         ]
         if hydrate_top:
             data["next_actions"].append(
-                {
-                    "command": f"categories products {category} --domain <DOMAIN> --limit {limit} --hydrate-top {hydrate_top} --yes",
-                    "reason": "fetch category ASIN candidates and explicitly hydrate top product summaries",
-                    "estimated_tokens": 50 + hydrate_top,
-                }
+                build_action(
+                    tool="categories.products",
+                    params={"category": category, "domain": "<DOMAIN>", "limit": limit, "hydrate_top": hydrate_top, "yes": True},
+                    cli=f"categories products {category} --domain <DOMAIN> --limit {limit} --hydrate-top {hydrate_top} --yes",
+                    reason="fetch category ASIN candidates and explicitly hydrate top product summaries",
+                    estimated_tokens=50 + hydrate_top,
+                )
             )
+        attach_agent_profile(
+            data,
+            view="category_products",
+            summary=f"Dry-run category product candidates for {category}",
+            key_facts={"category_id": category, "source": "bestsellers", "limit": limit},
+            present=["request", "next_actions"],
+            missing=["asins"],
+            selection_signals={"source": "bestsellers", "estimated_candidate_limit": limit},
+            evidence={
+                "request": ("request", "audit", "Dry-run Keepa request specification."),
+                "next_actions": ("next_actions", "summary", "Structured follow-up actions."),
+                "hydration": ("hydration", "summary", "Hydration status and requested top-N count."),
+            },
+        )
         return payload
 
     body = data.get("body") if isinstance(data.get("body"), Mapping) else {}
     normalized = _category_products_view(body, category=category, limit=limit, domain=str(params.get("domain", "US")))
     data.update(normalized)
     data["hydration"] = _hydrate_category_products(data["asins"], hydrate_top=hydrate_top, params=params, fixture_dir=fixture_dir)
+    attach_agent_profile(
+        data,
+        view="category_products",
+        summary=f"{len(data.get('asins') or [])} ASIN candidates from category {data.get('category_id')}",
+        key_facts={"category_id": data.get("category_id"), "candidate_count": data.get("candidate_count"), "source": data.get("source")},
+        present=["asins", "candidates", "next_actions"],
+        missing=[] if data.get("asins") else ["asins"],
+        selection_signals={"candidate_count": data.get("candidate_count"), "source": data.get("source"), "hydrated": bool(data["hydration"].get("enabled"))},
+        evidence={
+            "candidates": ("candidates", "summary", "Ranked ASIN candidates from Best Sellers."),
+            "asins": ("asins", "summary", "Candidate ASIN list for compare/get follow-up."),
+            "hydration": ("hydration", "summary", "Optional hydrated Agent product summaries."),
+            "raw_bestsellers": ("body.bestSellersList", "audit", "Raw Keepa Best Sellers payload."),
+            "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
+        },
+    )
     token_bucket = payload.get("token_bucket")
     if isinstance(token_bucket, dict):
         token_bucket["estimated"] = estimate_request_budget("categories.products", {**dict(params), **request_params}).to_dict()
@@ -820,18 +961,21 @@ def _category_products_view(body: Mapping[str, Any], *, category: str, limit: in
         "next_actions": [
             item
             for item in (
-                {
-                    "command": compare_command,
-                    "reason": "compare top category candidates with deal profile",
-                    "estimated_tokens": max(1, len(asins[:10])),
-                }
+                build_action(
+                    tool="products.compare",
+                    params={"asin": asins[:10], "domain": domain, "full": True, "view": "deal"},
+                    cli=compare_command or "",
+                    reason="compare top category candidates with deal profile",
+                    estimated_tokens=max(1, len(asins[:10])),
+                )
                 if compare_command
                 else None,
-                {
-                    "command": get_command,
-                    "reason": "inspect the top category candidate with Agent summary",
-                    "estimated_tokens": 1,
-                }
+                build_action(
+                    tool="products.get",
+                    params={"asin": asins[0], "domain": domain, "full": True, "agent_view": True, "view": "summary"},
+                    cli=get_command or "",
+                    reason="inspect the top category candidate with Agent summary",
+                )
                 if get_command
                 else None,
             )
@@ -905,6 +1049,23 @@ def _topsellers_list(params: Mapping[str, Any], fixture_dir: Path | str | None) 
         dry_run=_bool_option(params, "dry_run", "dry-run"),
         fixture=params.get("fixture"),
     )
+    data = payload.get("data")
+    if payload.get("ok") and isinstance(data, dict):
+        attach_agent_profile(
+            data,
+            view="topsellers_list",
+            summary="Top Sellers list request prepared",
+            key_facts={"category_id": str(category) if category is not None else None},
+            present=["request", "body"] if data.get("body") else ["request"],
+            missing=[] if data.get("body") or data.get("dry_run") else ["body"],
+            selection_signals={"category_id": str(category) if category is not None else None, "source": "topseller"},
+            evidence={
+                "request": ("request", "audit", "Top Sellers request specification."),
+                "body": ("body", "summary", "Raw Top Sellers response when available."),
+                "output": ("output", "audit", "Large response output path when --out is used."),
+                "provenance": ("cache_provenance", "audit", "Fixture/cache/source provenance for the request."),
+            },
+        )
     return attach_output_if_requested(payload, _param(params, "out", "output"))
 
 

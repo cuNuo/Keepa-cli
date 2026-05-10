@@ -150,6 +150,11 @@ class SchemaSnapshotTests(unittest.TestCase):
                 {"target_command": "products.get", "params": {"asin": ["B001GZ6QEC"]}},
                 env={},
             ),
+            "workflow_plan": run_command(
+                "workflow.plan",
+                {"name": "category-research", "term": "home kitchen", "domain": "US", "hydrate_top": 1},
+                env={},
+            ),
             "stdio_products_get": handle_stdio_message(
                 json.dumps(
                     {

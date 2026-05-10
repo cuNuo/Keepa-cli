@@ -165,7 +165,7 @@ kc --json bestsellers get 172282 --domain US --dry-run
 kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json --domain US --dry-run --max-tokens 25
 ```
 
-`categories search` enriches category results with `category_candidates` and `next_actions`. `categories finder-selection` is local-only and writes a Product Finder selection scaffold from a category id. `categories products` uses Keepa Best Sellers and costs 50 tokens for live requests; `--hydrate-top N` is never enabled by default and adds one product-summary token per hydrated ASIN.
+`categories search` enriches category results with `category_candidates` and structured `next_actions`. Each action keeps the human `command` string and also exposes `tool`, `params`, `cli`, `estimated_tokens`, and `requires_confirmation` for safe Agent execution. `categories finder-selection` is local-only and writes a Product Finder selection scaffold from a category id. `categories products` uses Keepa Best Sellers and costs 50 tokens for live requests; `--hydrate-top N` is never enabled by default and adds one product-summary token per hydrated ASIN.
 
 Graph Image live downloads must write to a file:
 
@@ -249,6 +249,8 @@ JSON envelope examples:
 kc --json capabilities
 kc --json domains list
 kc --json request get /product --param domain=1 --param asin=B001GZ6QEC --dry-run
+kc --json workflow plan category-research --term "home kitchen" --domain US
+kc --json workflow plan product-research --asin B0D8W1YVBX --goal deal
 ```
 
 stdio JSON Lines:
@@ -261,6 +263,8 @@ Contracts:
 
 - [Agent contract](docs/agent-contract.md)
 - [Keepa official API notes](docs/keepa-official-api-notes.md)
+
+Agent-facing result profiles use the same top-level shape where possible: `agent_brief`, `data_quality`, `selection_signals`, `next_actions`, `evidence_index`, and `provenance`. `workflow plan` is local-only and returns an execution graph with step dependencies, parallel groups, token budgets, confirmation flags, and fixture replay hints.
 
 ## Development
 

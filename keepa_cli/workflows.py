@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
+from keepa_cli.agent_contract import build_action, build_evidence_index
 from keepa_cli.cache import build_cache_provenance
 from keepa_cli.token_budget import estimate_request_budget
 
@@ -239,6 +240,183 @@ def show_template(name: str, out: str | None = None) -> dict[str, Any]:
     if out:
         template["output"] = write_json(out, template)
     return template
+
+
+def _plan_step(
+    *,
+    step_id: str,
+    title: str,
+    action: dict[str, Any],
+    depends_on: list[str] | None = None,
+    parallel_group: str | None = None,
+    fixture_replay: str | None = None,
+) -> dict[str, Any]:
+    budget = estimate_request_budget(action["tool"], dict(action.get("params") or {})).to_dict()
+    return {
+        "id": step_id,
+        "title": title,
+        "tool": action["tool"],
+        "params": action["params"],
+        "cli": action["cli"],
+        "command": action["command"],
+        "reason": action["reason"],
+        "depends_on": depends_on or [],
+        "parallel_group": parallel_group,
+        "estimated_tokens": action["estimated_tokens"],
+        "worst_case_tokens": budget["worst_case_tokens"],
+        "requires_confirmation": action["requires_confirmation"],
+        "fixture_replay": fixture_replay,
+    }
+
+
+def _category_research_plan(*, term: str, domain: str, hydrate_top: int) -> list[dict[str, Any]]:
+    return [
+        _plan_step(
+            step_id="search-categories",
+            title="Find candidate categories",
+            action=build_action(
+                tool="categories.search",
+                params={"term": term, "domain": domain},
+                cli=f"categories search {json.dumps(term)} --domain {domain}",
+                reason="discover candidate Keepa category ids for the search term",
+            ),
+            fixture_replay="category_search_home.json",
+        ),
+        _plan_step(
+            step_id="scaffold-finder",
+            title="Generate local Finder scaffold",
+            action=build_action(
+                tool="categories.finder-selection",
+                params={"category": "<CATEGORY_ID>", "domain": domain, "out": "finder-category-<CATEGORY_ID>.json"},
+                cli=f"categories finder-selection <CATEGORY_ID> --domain {domain} --out finder-category-<CATEGORY_ID>.json",
+                reason="create a local Product Finder selection scaffold from the chosen category",
+            ),
+            depends_on=["search-categories"],
+            parallel_group="category-followups",
+        ),
+        _plan_step(
+            step_id="fetch-category-products",
+            title="Fetch category ASIN candidates",
+            action=build_action(
+                tool="categories.products",
+                params={"category": "<CATEGORY_ID>", "domain": domain, "limit": 25, "hydrate_top": hydrate_top, "yes": True},
+                cli=f"categories products <CATEGORY_ID> --domain {domain} --limit 25"
+                + (f" --hydrate-top {hydrate_top}" if hydrate_top else "")
+                + " --yes",
+                reason="fetch Best Sellers ASIN candidates for the chosen category",
+            ),
+            depends_on=["search-categories"],
+            parallel_group="category-followups",
+            fixture_replay="bestsellers_home.json",
+        ),
+        _plan_step(
+            step_id="compare-candidates",
+            title="Compare candidate products",
+            action=build_action(
+                tool="products.compare",
+                params={"asin": ["<ASIN_1>", "<ASIN_2>"], "domain": domain, "full": True, "view": "deal"},
+                cli=f"products compare <ASIN_1> <ASIN_2> --domain {domain} --full --view deal",
+                reason="compare top candidates using deal-oriented Agent fields",
+            ),
+            depends_on=["fetch-category-products"],
+            fixture_replay="product_agent_view_B0TEST.json",
+        ),
+    ]
+
+
+def _product_research_plan(*, asin: str, domain: str, goal: str) -> list[dict[str, Any]]:
+    view = "deal" if goal == "deal" else "research"
+    return [
+        _plan_step(
+            step_id="get-product-summary",
+            title="Fetch Agent product view",
+            action=build_action(
+                tool="products.get",
+                params={"asin": asin, "domain": domain, "full": True, "agent_view": True, "view": view},
+                cli=f"products get {asin} --domain {domain} --full --agent-view --view {view}",
+                reason="fetch the core Agent product view for the requested goal",
+            ),
+            fixture_replay="product_agent_view_B0TEST.json",
+        ),
+        _plan_step(
+            step_id="optional-offers",
+            title="Optionally fetch offer detail",
+            action=build_action(
+                tool="products.get",
+                params={"asin": asin, "domain": domain, "full": True, "offers": "20", "agent_view": True, "view": "deal"},
+                cli=f"products get {asin} --domain {domain} --full --offers 20 --agent-view --view deal",
+                reason="only run if data_quality shows offers.offers missing and seller-level competition matters",
+                estimated_tokens=13,
+            ),
+            depends_on=["get-product-summary"],
+        ),
+    ]
+
+
+def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain: str, goal: str, hydrate_top: int) -> dict[str, Any]:
+    if name == "category-research":
+        if not term:
+            raise ValueError("workflow plan category-research requires --term")
+        steps = _category_research_plan(term=term, domain=domain, hydrate_top=hydrate_top)
+    elif name == "product-research":
+        if not asin:
+            raise ValueError("workflow plan product-research requires --asin")
+        steps = _product_research_plan(asin=asin, domain=domain, goal=goal)
+    else:
+        raise ValueError("workflow plan supports category-research and product-research")
+
+    totals = {
+        "estimated_tokens": sum(int(step["estimated_tokens"]) for step in steps),
+        "worst_case_tokens": sum(int(step["worst_case_tokens"]) for step in steps),
+        "requires_confirmation": any(bool(step["requires_confirmation"]) for step in steps),
+    }
+    return {
+        "view": "workflow_plan",
+        "name": name,
+        "domain": domain,
+        "goal": goal,
+        "steps": steps,
+        "totals": totals,
+        "parallel_groups": sorted({str(step["parallel_group"]) for step in steps if step.get("parallel_group")}),
+        "agent_brief": {
+            "view": "workflow_plan",
+            "one_line": f"{name} plan with {len(steps)} steps; estimated {totals['estimated_tokens']} tokens",
+            "key_facts": {"name": name, "step_count": len(steps), **totals},
+            "read_order": ["agent_brief", "steps", "totals", "evidence_index"],
+        },
+        "data_quality": {
+            "present": ["steps", "totals", "next_actions"],
+            "missing": [],
+            "confidence": "high",
+            "notes": ["workflow plan is local-only and does not consume Keepa tokens"],
+        },
+        "selection_signals": {"step_count": len(steps), "parallel_group_count": len({step["parallel_group"] for step in steps if step.get("parallel_group")})},
+        "next_actions": [
+            build_action(
+                tool=step["tool"],
+                params=step["params"],
+                cli=step["cli"],
+                reason=f"execute workflow step {step['id']}: {step['reason']}",
+                estimated_tokens=step["estimated_tokens"],
+                requires_confirmation=step["requires_confirmation"],
+            )
+            for step in steps
+            if not step["depends_on"]
+        ],
+        "evidence_index": build_evidence_index(
+            {
+                "steps": ("steps", "summary", "Ordered execution graph with dependencies and budgets."),
+                "totals": ("totals", "summary", "Total estimated and worst-case token budget."),
+                "next_actions": ("next_actions", "summary", "Root actions safe for an Agent to start from."),
+                "fixture_replay": ("steps[].fixture_replay", "audit", "Suggested fixture names for offline replay."),
+            }
+        ),
+        "provenance": build_cache_provenance(
+            endpoint="local://workflow.plan",
+            params={"name": name, "term": term or "", "asin": asin or "", "domain": domain, "goal": goal, "hydrate_top": hydrate_top},
+            source="local",
+        ),
+    }
 
 
 def _report_rows_from_input(payload: Any) -> list[dict[str, Any]]:
