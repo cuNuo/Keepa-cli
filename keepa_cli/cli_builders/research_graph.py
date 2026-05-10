@@ -20,6 +20,7 @@ def add_research_graph_parser(subparsers: argparse._SubParsersAction[argparse.Ar
     merge.add_argument("input", nargs="+", help="包含 research_graph 字段的 JSON 文件，可传多个。")
     merge.add_argument("--root", default="merged_research_graph", help="合并后 graph root id。")
     merge.add_argument("--label", default="merged research graph", help="合并 graph 标签。")
+    merge.add_argument("--prefer-source", help="冲突解析时优先采用的 source index 或 source root。")
     merge.add_argument("--out", help="只把合并后的 graph 写入 JSON 文件。")
 
 
@@ -27,7 +28,7 @@ def maybe_run_research_graph_command(args: argparse.Namespace) -> tuple[int, dic
     if args.command == "research-graph" and args.research_graph_command == "merge":
         payload = run_command(
             "research_graph.merge",
-            {"input": list(args.input), "root": args.root, "label": args.label, "out": args.out},
+            {"input": list(args.input), "root": args.root, "label": args.label, "prefer_source": args.prefer_source, "out": args.out},
         )
         return 0 if payload["ok"] else 1, payload
     return None

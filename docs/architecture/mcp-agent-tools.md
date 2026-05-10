@@ -170,8 +170,13 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 | `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升流程 |
 | `keepa://evidence/recent` | 最近 evidence 摘要 JSON | 快速了解近期验证与变更 |
 
-动态资源用于 chunk 与输出文件：
+资源模板用于按规则寻址本地资产：
 
+- `keepa://schema/{name}`：按稳定名称读取 schema。
+- `keepa://fixtures/{name}`：按文件名读取双份 fixture 中的 JSON 样本。
+- `keepa://cache-key/{command}/{encoded_params}`：对 base64url JSON 参数预览 `AgentSession` cache key，不读取会话内存。
+- `keepa://asin/{asin}/fixture`：查找文件名包含 ASIN 的本地 fixture 候选。
+- `keepa://evidence/{encoded_logical_path}`：按 manifest 中的 logical path 读取 evidence task log。
 - `keepa://chunk/<base64-path>`：由 `data.chunks[*].path` 派生，通常是产品 Agent view section JSON。
 - `keepa://output/<base64-path>`：由 `output.path` 派生，通常是报告、graph 或大 body 输出。
 
@@ -310,7 +315,7 @@ MCP 输出必须延续现有 Agent profile：
 
 `research_graph` 使用轻量实体关系结构：产品命令的 `nodes` 包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation` 等类型；category/finder/deals/seller/ranking 命令还会输出 `search_term`、`selection`、`deal_set`、`deal`、`seller_request`、`seller_ranking`。`products.compare` 会额外输出合并后的 `research_graph` 与 `risk_summary`；`categories.search/products`、`finder.query`、`deals.query`、`sellers.get`、`bestsellers.get`、`topsellers.list` 都提供同名字段，便于跨命令拼接实体记忆。
 
-`research_graph.merge` / `keepa.research_graph_merge` 负责把多条命令结果合并为单个研究图。它支持文件输入和 inline graph/payload 输入，递归抽取所有 `research_graph`，合并时去重节点/边，添加 `research_graph` root 节点与 `includes_graph` 边，并返回 `summary.entity_counts`、`sources`、`diagnostics`、`data_quality` 和 `evidence_index`。`sources` 给出 `source_weight/confidence`，`diagnostics` 记录重复节点、孤立节点、label/type 冲突和 source weight 范围。典型链路是 `categories.search -> categories.products -> products.compare -> sellers.get`。
+`research_graph.merge` / `keepa.research_graph_merge` 负责把多条命令结果合并为单个研究图。它支持文件输入和 inline graph/payload 输入，递归抽取所有 `research_graph`，合并时去重节点/边，添加 `research_graph` root 节点与 `includes_graph` 边，并返回 `summary.entity_counts`、`sources`、`diagnostics`、`diff`、`data_quality` 和 `evidence_index`。`sources` 给出 `source_weight/confidence`，`diagnostics` 记录重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 给出冲突节点的 variant 列表与 resolution；`--prefer-source` / `prefer_source` 可指定 source index 或 source root，帮助 Agent 在多来源 label/type 不一致时做确定性选择。典型链路是 `categories.search -> categories.products -> products.compare -> sellers.get`。
 
 新增 MCP 层 provenance：
 
@@ -407,9 +412,9 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 
 当前最适合继续完善的是：
 
-1. 为 `reports` 与 `tracking-readonly` 增加 Agent evaluation fixtures，断言本地文件输出、只读 tracking 参数和 ledger。
-2. 继续扩展 MCP resource templates，例如按 `cache_key`、ASIN、graph root 查询缓存命中和图谱摘要。
-3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。
+1. 为 `reports` 与 `tracking-readonly` 增加 Agent evaluation fixtures，断言本地文件输出、只读 tracking 参数和 ledger。（已完成）
+2. 继续扩展 MCP resource templates，例如按 `cache_key`、ASIN、graph root 查询缓存命中和图谱摘要。（cache-key/ASIN/evidence 已完成，graph root 后续）
+3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。（已完成）
 4. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。

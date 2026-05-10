@@ -1,0 +1,36 @@
+{
+  "id": "tracking_readonly_session_ledger",
+  "description": "tracking-readonly MCP 工具只读参数质量、session cache 与 budget ledger。",
+  "kind": "session",
+  "steps": [
+    {
+      "command": "tracking.list",
+      "tool": "keepa.tracking_list",
+      "params": {"asins_only": true, "fixture": "tracking_list.json"}
+    },
+    {
+      "command": "tracking.list",
+      "tool": "keepa.tracking_list",
+      "params": {"fixture": "tracking_list.json", "asins_only": true}
+    },
+    {
+      "command": "tracking.notifications",
+      "tool": "keepa.tracking_notifications",
+      "params": {"since": 0, "revise": true, "dry_run": true}
+    }
+  ],
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "payloads", "length": 3},
+    {"path": "payloads.0.ok", "equals": true},
+    {"path": "payloads.0.request.params_redacted.type", "equals": "list"},
+    {"path": "payloads.0.request.params_redacted.asins-only", "equals": "1"},
+    {"path": "payloads.1.cache_hit", "equals": true},
+    {"path": "payloads.2.ok", "equals": true},
+    {"path": "payloads.2.request.params_redacted.type", "equals": "notification"},
+    {"path": "payloads.2.request.params_redacted.revise", "equals": "1"},
+    {"path": "budget_ledger.cache_hits", "equals": 1},
+    {"path": "budget_ledger.session_estimated", "min": 0},
+    {"path": "budget_ledger.blocked_actions", "length": 0}
+  ]
+}

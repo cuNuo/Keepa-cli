@@ -17,10 +17,11 @@ from pathlib import Path
 from typing import Any
 
 from keepa_cli import __version__
+from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.research_graph import graph_summary
 
 
-RESOURCE_SCHEMA_VERSION = "2026-05-10.2"
+RESOURCE_SCHEMA_VERSION = "2026-05-10.3"
 MAX_RESOURCE_TEXT_BYTES = 1_000_000
 
 
@@ -66,6 +67,24 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "mimeType": "application/json",
     },
     {
+        "uriTemplate": "keepa://cache-key/{command}/{encoded_params}",
+        "name": "session-cache-key-preview",
+        "description": "Preview the deterministic AgentSession cache key for a service command and base64url JSON params.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://asin/{asin}/fixture",
+        "name": "asin-fixture-candidates",
+        "description": "List local fixture files whose names contain an ASIN.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://evidence/{encoded_logical_path}",
+        "name": "evidence-by-logical-path",
+        "description": "Read an evidence task log by base64url encoded logical_path from evidence/manifest.csv.",
+        "mimeType": "text/markdown",
+    },
+    {
         "uriTemplate": "keepa://chunk/{encoded_path}",
         "name": "chunk-file-by-encoded-path",
         "description": "Read a chunk file referenced by an MCP resource manifest.",
@@ -98,6 +117,12 @@ def read_mcp_resource(uri: str, *, root: Path | str | None = None) -> dict[str, 
         return {"uri": uri, "mimeType": "text/markdown", "text": _cassette_promotion_guide()}
     if uri == "keepa://evidence/recent":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_recent_evidence(repo_root), ensure_ascii=False, indent=2)}
+    if uri.startswith("keepa://cache-key/"):
+        return _read_cache_key_resource(uri)
+    if uri.startswith("keepa://asin/"):
+        return _read_asin_fixture_resource(uri, repo_root=repo_root)
+    if uri.startswith("keepa://evidence/"):
+        return _read_evidence_resource(uri, repo_root=repo_root)
     if uri.startswith("keepa://chunk/"):
         return _read_path_resource(uri, repo_root=repo_root, kind="chunk")
     if uri.startswith("keepa://output/"):
@@ -142,8 +167,12 @@ def compact_payload_for_mcp(payload: Mapping[str, Any]) -> dict[str, Any]:
 
 def path_to_resource_uri(path: Path | str, *, kind: str = "chunk") -> str:
     resolved = str(Path(path).resolve())
-    token = base64.urlsafe_b64encode(resolved.encode("utf-8")).decode("ascii").rstrip("=")
+    token = _base64url_encode(resolved)
     return f"keepa://{kind}/{token}"
+
+
+def text_to_resource_token(value: str) -> str:
+    return _base64url_encode(value)
 
 
 def _read_text_resource(uri: str, path: Path, mime_type: str) -> dict[str, str]:
@@ -180,11 +209,71 @@ def _read_fixture_resource(uri: str, *, repo_root: Path) -> dict[str, str]:
     raise ValueError(f"fixture resource not found: {filename}")
 
 
+def _read_cache_key_resource(uri: str) -> dict[str, str]:
+    rest = uri.removeprefix("keepa://cache-key/")
+    command, separator, token = rest.partition("/")
+    if not separator or not command:
+        raise ValueError("cache-key resource requires keepa://cache-key/{command}/{encoded_params}")
+    params = json.loads(_base64url_decode(token))
+    if not isinstance(params, Mapping):
+        raise ValueError("cache-key encoded params must decode to a JSON object")
+    payload = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "command": command,
+        "params": dict(params),
+        "cache_key": build_cache_key(command, params),
+        "note": "Preview only; resources/read does not inspect live AgentSession memory.",
+    }
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _read_asin_fixture_resource(uri: str, *, repo_root: Path) -> dict[str, str]:
+    rest = uri.removeprefix("keepa://asin/")
+    asin, separator, suffix = rest.partition("/")
+    if not separator or suffix != "fixture" or not asin.strip():
+        raise ValueError("asin fixture resource requires keepa://asin/{asin}/fixture")
+    normalized = asin.strip().upper()
+    matches: list[dict[str, Any]] = []
+    for base_name, base in (("package", repo_root / "keepa_cli/fixtures"), ("tests", repo_root / "tests/fixtures")):
+        if not base.exists():
+            continue
+        for path in sorted(base.glob("*.json")):
+            if normalized in path.name.upper():
+                matches.append({"name": path.name, "location": base_name, "path": str(path), "uri": f"keepa://fixtures/{path.name}"})
+    payload = {"schema_version": RESOURCE_SCHEMA_VERSION, "asin": normalized, "match_count": len(matches), "fixtures": matches}
+    return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+
+
+def _read_evidence_resource(uri: str, *, repo_root: Path) -> dict[str, str]:
+    encoded = uri.removeprefix("keepa://evidence/").strip()
+    logical_path = _base64url_decode(encoded)
+    if not logical_path.startswith("evidence/tasks/") or ".." in Path(logical_path).parts:
+        raise ValueError(f"unsupported evidence logical path: {logical_path}")
+    manifest = repo_root / "evidence/manifest.csv"
+    known_paths: set[str] = set()
+    if manifest.exists():
+        with manifest.open("r", encoding="utf-8", newline="") as handle:
+            known_paths = {str(row.get("logical_path") or "") for row in csv.DictReader(handle)}
+    if logical_path not in known_paths:
+        raise ValueError(f"evidence logical path not found in manifest: {logical_path}")
+    path = (repo_root / logical_path).resolve()
+    if not _is_relative_to(path, (repo_root / "evidence/tasks").resolve()):
+        raise ValueError(f"evidence path is outside evidence/tasks: {path}")
+    return _read_text_resource(uri, path, _mime_type(path))
+
+
 def _path_from_resource_uri(uri: str, *, kind: str) -> Path:
     prefix = f"keepa://{kind}/"
-    token = uri[len(prefix) :]
+    return Path(_base64url_decode(uri[len(prefix) :]))
+
+
+def _base64url_encode(value: str) -> str:
+    return base64.urlsafe_b64encode(value.encode("utf-8")).decode("ascii").rstrip("=")
+
+
+def _base64url_decode(token: str) -> str:
     padding = "=" * (-len(token) % 4)
-    return Path(base64.urlsafe_b64decode((token + padding).encode("ascii")).decode("utf-8"))
+    return base64.urlsafe_b64decode((token + padding).encode("ascii")).decode("utf-8")
 
 
 def _collect_file_resources(value: Any, resources: list[dict[str, Any]], *, path_stack: list[str]) -> None:

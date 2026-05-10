@@ -8,7 +8,8 @@
       "tests/fixtures/agent_eval_products_compare_output.json",
       "tests/fixtures/agent_eval_seller_output.json"
     ],
-    "root": "agent_selection_research"
+    "root": "agent_selection_research",
+    "prefer_source": "products_compare"
   },
   "assertions": [
     {"path": "ok", "equals": true},
@@ -19,12 +20,15 @@
     {"path": "data.summary.entity_counts.seller", "min": 1},
     {"path": "data.summary.entity_counts.research_graph", "equals": 1},
     {"path": "data.summary.diagnostics.highest_source_weight", "min": 1},
+    {"path": "data.summary.diff.changed_node_count", "min": 0},
     {"path": "data.diagnostics.highest_source_weight", "min": 1},
+    {"path": "data.diff.resolved_conflict_count", "min": 0},
     {"path": "data.graph.sources.0.source_weight", "min": 1},
     {"path": "data.graph.sources", "length_min": 3},
     {"path": "data.graph.edges.0.type", "contains_any": ["includes_graph", "buybox_sold_by", "in_category", "matched_category", "sells_product"]},
     {"path": "data.data_quality.confidence", "equals": "high"},
     {"path": "data.evidence_index.diagnostics.path", "equals": "diagnostics"},
+    {"path": "data.evidence_index.diff.path", "equals": "diff"},
     {"path": "data.evidence_index.graph.path", "equals": "graph"}
   ]
 }

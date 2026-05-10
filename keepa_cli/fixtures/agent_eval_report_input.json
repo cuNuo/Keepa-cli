@@ -1,0 +1,18 @@
+{
+  "tasks": [
+    {
+      "command": "products.get",
+      "asin": "B0D8W1YVBX",
+      "domain": "US",
+      "estimated_tokens": 1,
+      "brand": "EQQUALBERRY"
+    },
+    {
+      "command": "products.compare",
+      "asin": "B0EVALCMP1",
+      "domain": "US",
+      "estimated_tokens": 3,
+      "brand": "Fixture Brand"
+    }
+  ]
+}

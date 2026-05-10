@@ -1,0 +1,259 @@
+{
+  "id": "2026-05-10-215740",
+  "generated_at": "2026-05-10T13:57:40.6988426Z",
+  "language": "zh",
+  "pages": [
+    {
+      "slug": "1-gai-lan",
+      "title": "概览",
+      "file": "1-gai-lan.md",
+      "section": "快速开始",
+      "level": "Beginner"
+    },
+    {
+      "slug": "2-kuai-su-shang-shou",
+      "title": "快速上手",
+      "file": "2-kuai-su-shang-shou.md",
+      "section": "快速开始",
+      "level": "Beginner"
+    },
+    {
+      "slug": "3-shuang-ru-kou-an-zhuang-fang-shi-python-bao-yu-npm-bao-zhuang-qi",
+      "title": "双入口安装方式：Python 包与 npm 包装器",
+      "file": "3-shuang-ru-kou-an-zhuang-fang-shi-python-bao-yu-npm-bao-zhuang-qi.md",
+      "section": "快速开始",
+      "group": "安装与运行入口",
+      "level": "Beginner"
+    },
+    {
+      "slug": "4-mo-kuai-ru-kou-ming-ling-ru-kou-yu-ben-di-kai-fa-yan-zheng",
+      "title": "模块入口、命令入口与本地开发验证",
+      "file": "4-mo-kuai-ru-kou-ming-ling-ru-kou-yu-ben-di-kai-fa-yan-zheng.md",
+      "section": "快速开始",
+      "group": "安装与运行入口",
+      "level": "Beginner"
+    },
+    {
+      "slug": "5-keepa-token-pei-zhi-huan-jing-bian-liang-you-xian-ji-yu-ben-di-pei-zhi-wen-jian-wei-zhi",
+      "title": "Keepa Token 配置、环境变量优先级与本地配置文件位置",
+      "file": "5-keepa-token-pei-zhi-huan-jing-bian-liang-you-xian-ji-yu-ben-di-pei-zhi-wen-jian-wei-zhi.md",
+      "section": "快速开始",
+      "group": "首次配置",
+      "level": "Beginner"
+    },
+    {
+      "slug": "6-yu-yan-qie-huan-mo-ren-yu-ming-yu-dan-ci-qing-qiu-token-yu-suan-she-zhi",
+      "title": "语言切换、默认域名与单次请求 Token 预算设置",
+      "file": "6-yu-yan-qie-huan-mo-ren-yu-ming-yu-dan-ci-qing-qiu-token-yu-suan-she-zhi.md",
+      "section": "快速开始",
+      "group": "首次配置",
+      "level": "Beginner"
+    },
+    {
+      "slug": "7-shi-yong-doctor-ming-ling-jian-cha-ren-zheng-chi-xian-neng-li-yu-yun-xing-huan-jing",
+      "title": "使用 doctor 命令检查认证、离线能力与运行环境",
+      "file": "7-shi-yong-doctor-ming-ling-jian-cha-ren-zheng-chi-xian-neng-li-yu-yun-xing-huan-jing.md",
+      "section": "快速开始",
+      "group": "首次配置",
+      "level": "Beginner"
+    },
+    {
+      "slug": "8-fixture-yu-dry-run-ling-cheng-ben-shi-yong-zhen-shi-gong-zuo-liu-xing-zhuang",
+      "title": "fixture 与 dry-run：零成本试用真实工作流形状",
+      "file": "8-fixture-yu-dry-run-ling-cheng-ben-shi-yong-zhen-shi-gong-zuo-liu-xing-zhuang.md",
+      "section": "快速开始",
+      "group": "立即可用的离线体验",
+      "level": "Beginner"
+    },
+    {
+      "slug": "9-chan-pin-li-shi-bang-dan-yu-finder-de-zui-xiao-ke-yun-xing-shi-li",
+      "title": "产品、历史、榜单与 Finder 的最小可运行示例",
+      "file": "9-chan-pin-li-shi-bang-dan-yu-finder-de-zui-xiao-ke-yun-xing-shi-li.md",
+      "section": "快速开始",
+      "group": "立即可用的离线体验",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "10-ben-di-pi-chu-li-bao-gao-sheng-cheng-yu-liu-lan-kuai-zhao-gong-zuo-liu",
+      "title": "本地批处理、报告生成与浏览快照工作流",
+      "file": "10-ben-di-pi-chu-li-bao-gao-sheng-cheng-yu-liu-lan-kuai-zhao-gong-zuo-liu.md",
+      "section": "快速开始",
+      "group": "立即可用的离线体验",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "11-ming-ling-you-xian-tui-de-shi-yong-fang-shi-yu-jing-dian-mo-shi-hui-tui",
+      "title": "命令优先 TUI 的使用方式与经典模式回退",
+      "file": "11-ming-ling-you-xian-tui-de-shi-yong-fang-shi-yu-jing-dian-mo-shi-hui-tui.md",
+      "section": "快速开始",
+      "group": "交互与 Agent 接入",
+      "level": "Beginner"
+    },
+    {
+      "slug": "12-json-stdio-json-lines-yu-mcp-san-chong-agent-ru-kou",
+      "title": "JSON、stdio JSON Lines 与 MCP 三种 Agent 入口",
+      "file": "12-json-stdio-json-lines-yu-mcp-san-chong-agent-ru-kou.md",
+      "section": "快速开始",
+      "group": "交互与 Agent 接入",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "13-zheng-ti-she-ji-zhe-xue-mian-xiang-agent-chi-xian-you-xian-tong-fu-wu-nei-he",
+      "title": "整体设计哲学：面向 Agent、离线优先、统一服务内核",
+      "file": "13-zheng-ti-she-ji-zhe-xue-mian-xiang-agent-chi-xian-you-xian-tong-fu-wu-nei-he.md",
+      "section": "深入解析",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "14-gao-ceng-jia-gou-zong-lan-cli-tui-stdio-mcp-gong-yong-tong-ming-ling-fu-wu",
+      "title": "高层架构总览：CLI、TUI、stdio、MCP 共用同一命令服务",
+      "file": "14-gao-ceng-jia-gou-zong-lan-cli-tui-stdio-mcp-gong-yong-tong-ming-ling-fu-wu.md",
+      "section": "深入解析",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "15-ming-ling-jie-xi-ceng-can-shu-gou-jian-qi-yu-ming-ling-fen-fa-biao-de-zhi-ze-fen-chi",
+      "title": "命令解析层：参数构建器与命令分发表的职责分离",
+      "file": "15-ming-ling-jie-xi-ceng-can-shu-gou-jian-qi-yu-ming-ling-fen-fa-biao-de-zhi-ze-fen-chi.md",
+      "section": "深入解析",
+      "group": "核心执行主线",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "16-fu-wu-ceng-zhong-shu-run_command-ru-he-tong-ye-wu-ming-ling-pei-zhi-ming-ling-yu-ben-di-gong-ju-ming-ling",
+      "title": "服务层中枢：run_command 如何统一业务命令、配置命令与本地工具命令",
+      "file": "16-fu-wu-ceng-zhong-shu-run_command-ru-he-tong-ye-wu-ming-ling-pei-zhi-ming-ling-yu-ben-di-gong-ju-ming-ling.md",
+      "section": "深入解析",
+      "group": "核心执行主线",
+      "level": "Advanced"
+    },
+    {
+      "slug": "17-http-ke-hu-duan-zhi-xing-lian-jian-quan-yu-suan-gu-suan-tuo-min-wang-luo-qing-qiu-yu-cuo-wu-feng-zhuang",
+      "title": "HTTP 客户端执行链：鉴权、预算估算、脱敏、网络请求与错误封装",
+      "file": "17-http-ke-hu-duan-zhi-xing-lian-jian-quan-yu-suan-gu-suan-tuo-min-wang-luo-qing-qiu-yu-cuo-wu-feng-zhuang.md",
+      "section": "深入解析",
+      "group": "核心执行主线",
+      "level": "Advanced"
+    },
+    {
+      "slug": "18-json-envelope-gui-fan-wen-ding-shu-chu-cuo-wu-mo-xing-yu-agent-you-hao-xiang-ying",
+      "title": "JSON Envelope 规范：稳定输出、错误模型与 Agent 友好响应",
+      "file": "18-json-envelope-gui-fan-wen-ding-shu-chu-cuo-wu-mo-xing-yu-agent-you-hao-xiang-ying.md",
+      "section": "深入解析",
+      "group": "数据安全与可审计性",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "19-sqlite-xiang-ying-huan-cun-jian-she-ji-huan-cun-lai-yuan-shuo-ming-yu-chi-jiu-hua-ce-lue",
+      "title": "SQLite 响应缓存：键设计、缓存来源说明与持久化策略",
+      "file": "19-sqlite-xiang-ying-huan-cun-jian-she-ji-huan-cun-lai-yuan-shuo-ming-yu-chi-jiu-hua-ce-lue.md",
+      "section": "深入解析",
+      "group": "数据安全与可审计性",
+      "level": "Advanced"
+    },
+    {
+      "slug": "20-cheng-ben-zhi-li-token-yu-suan-que-ren-men-jin-yu-gao-cheng-ben-qing-qiu-bao-hu",
+      "title": "成本治理：Token 预算、确认门禁与高成本请求保护",
+      "file": "20-cheng-ben-zhi-li-token-yu-suan-que-ren-men-jin-yu-gao-cheng-ben-qing-qiu-bao-hu.md",
+      "section": "深入解析",
+      "group": "数据安全与可审计性",
+      "level": "Advanced"
+    },
+    {
+      "slug": "21-tuo-min-yu-zheng-ju-lian-pei-zhi-da-ma-cassette-qing-xi-yu-evidence-qing-dan",
+      "title": "脱敏与证据链：配置打码、cassette 清洗与 evidence 清单",
+      "file": "21-tuo-min-yu-zheng-ju-lian-pei-zhi-da-ma-cassette-qing-xi-yu-evidence-qing-dan.md",
+      "section": "深入解析",
+      "group": "数据安全与可审计性",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "22-mcp-gong-ju-zhu-ce-biao-qiang-lei-xing-gong-ju-mian-toolset-fen-zu-yu-ming-ling-ying-she",
+      "title": "MCP 工具注册表：强类型工具面、toolset 分组与命令映射",
+      "file": "22-mcp-gong-ju-zhu-ce-biao-qiang-lei-xing-gong-ju-mian-toolset-fen-zu-yu-ming-ling-ying-she.md",
+      "section": "深入解析",
+      "group": "Agent 协议层",
+      "level": "Advanced"
+    },
+    {
+      "slug": "23-mcp-zi-yuan-xi-tong-schema-fixture-evidence-yu-da-xiang-ying-zi-yuan-yin-yong",
+      "title": "MCP 资源系统：Schema、fixture、evidence 与大响应资源引用",
+      "file": "23-mcp-zi-yuan-xi-tong-schema-fixture-evidence-yu-da-xiang-ying-zi-yuan-yin-yong.md",
+      "section": "深入解析",
+      "group": "Agent 协议层",
+      "level": "Advanced"
+    },
+    {
+      "slug": "24-chang-hui-hua-neng-li-stdio-mcp-hui-hua-zi-yuan-fen-kuai-yu-shang-xia-wen-kong-zhi",
+      "title": "长会话能力：stdio/MCP 会话、资源分块与上下文控制",
+      "file": "24-chang-hui-hua-neng-li-stdio-mcp-hui-hua-zi-yuan-fen-kuai-yu-shang-xia-wen-kong-zhi.md",
+      "section": "深入解析",
+      "group": "Agent 协议层",
+      "level": "Advanced"
+    },
+    {
+      "slug": "25-xian-dai-tui-she-ji-slash-ming-ling-zhuang-tai-lan-yu-fu-wu-fu-yong",
+      "title": "现代 TUI 设计：slash 命令、状态栏与服务复用",
+      "file": "25-xian-dai-tui-she-ji-slash-ming-ling-zhuang-tai-lan-yu-fu-wu-fu-yong.md",
+      "section": "深入解析",
+      "group": "用户界面与本地工作台",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "26-chi-xian-gong-zuo-liu-yin-qing-mo-ban-pi-chu-li-ji-hua-bao-gao-yu-html-liu-lan-ye-sheng-cheng",
+      "title": "离线工作流引擎：模板、批处理计划、报告与 HTML 浏览页生成",
+      "file": "26-chi-xian-gong-zuo-liu-yin-qing-mo-ban-pi-chu-li-ji-hua-bao-gao-yu-html-liu-lan-ye-sheng-cheng.md",
+      "section": "深入解析",
+      "group": "用户界面与本地工作台",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "27-chan-pin-yan-jiu-zhu-xian-chan-pin-xiang-qing-bi-jiao-shi-tu-li-shi-dao-chu-yu-agent-shi-tu",
+      "title": "产品研究主线：产品详情、比较视图、历史导出与 Agent 视图",
+      "file": "27-chan-pin-yan-jiu-zhu-xian-chan-pin-xiang-qing-bi-jiao-shi-tu-li-shi-dao-chu-yu-agent-shi-tu.md",
+      "section": "深入解析",
+      "group": "领域能力版图",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "28-sou-suo-yu-fa-xian-zhu-xian-lei-mu-finder-deals-seller-yu-bang-dan-cha-xun",
+      "title": "搜索与发现主线：类目、Finder、Deals、Seller 与榜单查询",
+      "file": "28-sou-suo-yu-fa-xian-zhu-xian-lei-mu-finder-deals-seller-yu-bang-dan-cha-xun.md",
+      "section": "深入解析",
+      "group": "领域能力版图",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "29-yan-jiu-tu-pu-neng-li-kua-ming-ling-research-graph-he-bing-zhen-duan-yu-zhai-yao",
+      "title": "研究图谱能力：跨命令 research graph 合并、诊断与摘要",
+      "file": "29-yan-jiu-tu-pu-neng-li-kua-ming-ling-research-graph-he-bing-zhen-duan-yu-zhai-yao.md",
+      "section": "深入解析",
+      "group": "领域能力版图",
+      "level": "Advanced"
+    },
+    {
+      "slug": "30-ce-shi-ban-tu-dan-yuan-ce-shi-fixture-shuang-fen-tong-bu-yu-xie-yi-qi-yue-fu-gai",
+      "title": "测试版图：单元测试、fixture 双份同步与协议契约覆盖",
+      "file": "30-ce-shi-ban-tu-dan-yuan-ce-shi-fixture-shuang-fen-tong-bu-yu-xie-yi-qi-yue-fu-gai.md",
+      "section": "深入解析",
+      "group": "工程质量与发布体系",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "31-fa-bu-men-jin-kua-python-node-sheng-tai-de-an-zhuang-yan-zheng-smoke-yu-release-check",
+      "title": "发布门禁：跨 Python/Node 生态的安装验证、smoke 与 release check",
+      "file": "31-fa-bu-men-jin-kua-python-node-sheng-tai-de-an-zhuang-yan-zheng-smoke-yu-release-check.md",
+      "section": "深入解析",
+      "group": "工程质量与发布体系",
+      "level": "Intermediate"
+    },
+    {
+      "slug": "32-gua-he-shui-yue-du-zhe-tao-dai-ma-cli-gong-cheng-shi-agent-gong-ju-kai-fa-zhe-yu-xue-xi-zhe-de-shou-huo-lu-jing",
+      "title": "适合谁阅读这套代码：CLI 工程师、Agent 工具开发者与学习者的收获路径",
+      "file": "32-gua-he-shui-yue-du-zhe-tao-dai-ma-cli-gong-cheng-shi-agent-gong-ju-kai-fa-zhe-yu-xue-xi-zhe-de-shou-huo-lu-jing.md",
+      "section": "深入解析",
+      "group": "工程质量与发布体系",
+      "level": "Intermediate"
+    }
+  ]
+}

@@ -7,6 +7,7 @@
   <a href="https://github.com/cuNuo/Keepa-cli/actions"><img alt="CI" src="https://img.shields.io/badge/ci-release_gate-2f855a"></a>
   <a href="https://www.python.org/downloads/"><img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3776ab"></a>
   <a href="https://www.npmjs.com/package/@cunuo/keepa-cli"><img alt="npm" src="https://img.shields.io/badge/npm-%40cunuo%2Fkeepa--cli-cb3837"></a>
+  <a href="https://zread.ai/cuNuo/Keepa-cli"><img alt="zread" src="https://img.shields.io/badge/docs-zread-14b8a6"></a>
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-111827"></a>
 </p>
 
@@ -279,7 +280,7 @@ MCP JSON-RPC over stdio:
 
 MCP defaults to the compact `research` toolset and accepts structured JSON arguments, not CLI strings. Use `tools/list` with `toolset` set to `research`, `audit`, `reports`, `tracking-readonly`, or `all` to control context size. Research tools include product, category, local Finder scaffold, Finder, Deals, seller, ranking, workflow planning, and `keepa.research_graph_merge`; audit tools include cost estimation plus cassette sanitize/promote; reports tools expose local report and browse snapshot builders; tracking only exposes read-only operations. Agent results include `risk_taxonomy` where applicable and a cross-command `research_graph`; tool envelopes include `structuredContent`, compact JSON text fallback, `cache_key`, `cache_hit`, and `budget_ledger`.
 
-MCP resources expose stable reference material without enlarging `tools/list`: `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` also advertises `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}` so Agents can discover resource URI shapes instead of hard-coding them. Large tool responses keep the full payload in `structuredContent`; the text fallback returns a summary plus `mcp_resource_manifest` entries so Agents can load heavy sections only when needed.
+MCP resources expose stable reference material without enlarging `tools/list`: `keepa://schema/products-agent-view`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, and `keepa://evidence/recent`. `resources/templates/list` also advertises `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://cache-key/{command}/{encoded_params}`, `keepa://asin/{asin}/fixture`, `keepa://evidence/{encoded_logical_path}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}` so Agents can discover resource URI shapes instead of hard-coding them. Large tool responses keep the full payload in `structuredContent`; the text fallback returns a summary plus `mcp_resource_manifest` entries so Agents can load heavy sections only when needed.
 
 Contracts:
 
@@ -287,7 +288,27 @@ Contracts:
 - [MCP Agent tools architecture](docs/architecture/mcp-agent-tools.md)
 - [Keepa official API notes](docs/keepa-official-api-notes.md)
 
-Agent-facing result profiles use the same top-level shape where possible: `agent_brief`, `data_quality`, `selection_signals`, `next_actions`, `evidence_index`, and `provenance`. `workflow plan` is local-only and returns an execution graph with step dependencies, parallel groups, token budgets, confirmation flags, and fixture replay hints. `research-graph merge` can combine category discovery, category products, product compare, deals, and seller outputs into one deduplicated graph for report generation or downstream Agent memory; the merged graph includes source weights plus duplicate/orphan/conflict diagnostics for audit.
+Agent-facing result profiles use the same top-level shape where possible: `agent_brief`, `data_quality`, `selection_signals`, `next_actions`, `evidence_index`, and `provenance`. `workflow plan` is local-only and returns an execution graph with step dependencies, parallel groups, token budgets, confirmation flags, and fixture replay hints. `research-graph merge` can combine category discovery, category products, product compare, deals, and seller outputs into one deduplicated graph for report generation or downstream Agent memory; the merged graph includes source weights, duplicate/orphan/conflict diagnostics, `diff` summaries, and optional `--prefer-source` conflict resolution.
+
+## zread Docs
+
+This repository includes a committed zread wiki snapshot under `.zread/wiki/`. Open the generated documentation locally:
+
+```powershell
+zread browse
+```
+
+Agents and scripts should prefer stdio mode:
+
+```powershell
+zread browse --stdio
+```
+
+The current local snapshot is indexed by [.zread/wiki/current](.zread/wiki/current) and [.zread/wiki/versions/2026-05-10-215740/wiki.json](.zread/wiki/versions/2026-05-10-215740/wiki.json). The badge above links to the public zread page when available. For local development, regenerate after large architecture changes:
+
+```powershell
+zread generate -y --stdio --draft clear --skip-failed
+```
 
 ## Development
 
@@ -318,6 +339,7 @@ npm pack --dry-run --json
 ## Documentation
 
 - [Implementation research report](docs/reports/2026-05-09-keepa-cli-implementation-report.md)
+- [zread wiki snapshot](.zread/wiki/versions/2026-05-10-215740/wiki.json)
 - [Development roadmap](docs/roadmaps/2026-05-09-keepa-cli-development-roadmap.md)
 - [service.py / cli.py split plan](docs/architecture/service-cli-split-plan.md)
 - [Companion skill](.codex/skills/keepa-cli/SKILL.md)

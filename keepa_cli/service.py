@@ -437,27 +437,30 @@ def _research_graph_merge(params: Mapping[str, Any]) -> dict[str, Any]:
         )
     root = str(_param(params, "root", default="merged_research_graph"))
     label = str(_param(params, "label", default="merged research graph"))
-    graph = merge_research_graphs(graphs, root=root, label=label)
+    prefer_source = _param(params, "prefer_source", "prefer-source")
+    graph = merge_research_graphs(graphs, root=root, label=label, prefer_source=prefer_source)
     data: dict[str, Any] = {
         "view": "research_graph_merge",
         "graph": graph,
         "summary": graph_summary(graph),
         "diagnostics": graph.get("diagnostics", {}),
+        "diff": graph.get("diff", {}),
         "input_graph_count": len(graphs),
         "sources": sources,
         "agent_brief": {
             "one_line": f"merged {len(graphs)} research graphs into {graph.get('node_count', 0)} nodes",
             "key_facts": graph_summary(graph),
-            "read_order": ["summary", "diagnostics", "graph", "sources"],
+            "read_order": ["summary", "diagnostics", "diff", "graph", "sources"],
         },
         "data_quality": {
-            "present": ["graph", "summary", "diagnostics", "sources"],
+            "present": ["graph", "summary", "diagnostics", "diff", "sources"],
             "missing": [],
             "confidence": "high",
         },
         "evidence_index": {
             "graph": {"path": "graph", "section": "summary", "note": "Merged research graph."},
             "diagnostics": {"path": "diagnostics", "section": "audit", "note": "Duplicate, orphan, conflict, and source-weight checks."},
+            "diff": {"path": "diff", "section": "audit", "note": "Changed node variants and selected source-preference resolutions."},
             "sources": {"path": "sources", "section": "audit", "note": "Input files or inline graph sources."},
         },
         "provenance": {"source": "local", "network": False},

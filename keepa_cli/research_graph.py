@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from typing import Any
 
 
-RESEARCH_GRAPH_SCHEMA_VERSION = "2026-05-10.2"
+RESEARCH_GRAPH_SCHEMA_VERSION = "2026-05-10.3"
 
 
 def graph_node(node_id: str, node_type: str, label: Any, **attributes: Any) -> dict[str, Any]:
@@ -55,6 +55,7 @@ def merge_research_graphs(
     *,
     root: str = "merged_research_graph",
     label: str = "merged research graph",
+    prefer_source: str | int | None = None,
 ) -> dict[str, Any]:
     nodes = [graph_node(root, "research_graph", label, graph_count=len(graphs))]
     edges: list[dict[str, Any]] = []
@@ -62,7 +63,9 @@ def merge_research_graphs(
     seen_node_ids: set[str] = {root}
     duplicate_node_ids: dict[str, int] = {}
     node_variants: dict[str, list[Mapping[str, Any]]] = {}
+    variant_sources: dict[str, list[dict[str, Any]]] = {}
     root_ids: list[str] = []
+    source_infos: list[dict[str, Any]] = []
     for index, graph in enumerate(graphs):
         if not isinstance(graph, Mapping):
             continue
@@ -71,32 +74,33 @@ def merge_research_graphs(
         source_root = str(graph.get("root") or f"graph:{index + 1}")
         root_ids.append(source_root)
         source_weight = _source_weight(graph, index=index)
-        sources.append(
-            _compact(
-                {
-                    "index": index,
-                    "root": source_root,
-                    "node_count": graph.get("node_count"),
-                    "edge_count": graph.get("edge_count"),
-                    "entity_counts": graph.get("entity_counts"),
-                    "source_weight": source_weight,
-                    "confidence": _source_confidence(source_weight),
-                }
-            )
+        source_info = _compact(
+            {
+                "index": index,
+                "root": source_root,
+                "node_count": graph.get("node_count"),
+                "edge_count": graph.get("edge_count"),
+                "entity_counts": graph.get("entity_counts"),
+                "source_weight": source_weight,
+                "confidence": _source_confidence(source_weight),
+            }
         )
+        source_infos.append(source_info)
+        sources.append(source_info)
         for node in graph_nodes:
             if isinstance(node, Mapping):
                 node_id = str(node.get("id") or "")
-                if node_id:
-                    node_variants.setdefault(node_id, []).append(node)
-                if node_id in seen_node_ids:
-                    duplicate_node_ids[node_id] = duplicate_node_ids.get(node_id, 1) + 1
-                elif node_id:
-                    seen_node_ids.add(node_id)
                 item = dict(node)
                 attributes = item.get("attributes")
                 if isinstance(attributes, Mapping):
                     item["attributes"] = _compact({**dict(attributes), "source_weight": source_weight})
+                if node_id:
+                    node_variants.setdefault(node_id, []).append(item)
+                    variant_sources.setdefault(node_id, []).append(source_info)
+                if node_id in seen_node_ids:
+                    duplicate_node_ids[node_id] = duplicate_node_ids.get(node_id, 1) + 1
+                elif node_id:
+                    seen_node_ids.add(node_id)
                 nodes.append(item)
         for edge in graph_edges:
             if isinstance(edge, Mapping):
@@ -106,12 +110,20 @@ def merge_research_graphs(
 
     merged = build_research_graph(root=root, nodes=nodes, edges=edges)
     merged["sources"] = sources
+    diff = graph_diff(
+        node_variants,
+        variant_sources=variant_sources,
+        prefer_source=prefer_source,
+        sources=source_infos,
+    )
+    _apply_diff_resolutions(merged, node_variants=node_variants, variant_sources=variant_sources, diff=diff)
     merged["diagnostics"] = graph_diagnostics(
         merged,
         duplicate_node_ids=duplicate_node_ids,
         root_ids=root_ids,
-        conflicts=_node_conflicts_from_variants(node_variants),
+        conflicts=diff.get("conflicts", []),
     )
+    merged["diff"] = diff
     return merged
 
 
@@ -138,7 +150,70 @@ def graph_summary(graph: Mapping[str, Any]) -> dict[str, Any]:
             "conflict_count": diagnostics.get("conflict_count", 0),
             "highest_source_weight": diagnostics.get("highest_source_weight", 0),
         }
+    diff = graph.get("diff")
+    if isinstance(diff, Mapping):
+        summary["diff"] = {
+            "changed_node_count": diff.get("changed_node_count", 0),
+            "resolved_conflict_count": diff.get("resolved_conflict_count", 0),
+            "preferred_source": diff.get("preferred_source"),
+        }
     return summary
+
+
+def graph_diff(
+    node_variants: Mapping[str, list[Mapping[str, Any]]],
+    *,
+    variant_sources: Mapping[str, list[Mapping[str, Any]]] | None = None,
+    prefer_source: str | int | None = None,
+    sources: list[Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    conflicts = _node_conflicts_from_variants(node_variants)
+    source_lookup = _source_lookup(sources or [])
+    preferred = _resolve_preferred_source(prefer_source, source_lookup)
+    changes: list[dict[str, Any]] = []
+    resolutions: list[dict[str, Any]] = []
+    source_variants = variant_sources or {}
+    for conflict in conflicts:
+        node_id = str(conflict.get("id") or "")
+        variants = node_variants.get(node_id) or []
+        variant_items = _variant_items(variants, source_variants.get(node_id) or [])
+        changes.append(
+            _compact(
+                {
+                    "id": node_id,
+                    "labels": conflict.get("labels"),
+                    "types": conflict.get("types"),
+                    "seen": conflict.get("seen"),
+                    "variants": variant_items,
+                }
+            )
+        )
+        winner = _choose_variant(variant_items, preferred_source=preferred)
+        if winner:
+            resolutions.append(
+                _compact(
+                    {
+                        "id": node_id,
+                        "selected_label": winner.get("label"),
+                        "selected_type": winner.get("type"),
+                        "source_index": winner.get("source_index"),
+                        "source_root": winner.get("source_root"),
+                        "source_weight": winner.get("source_weight"),
+                        "strategy": "preferred_source" if preferred is not None and _variant_matches_source(winner, preferred) else "highest_source_weight",
+                    }
+                )
+            )
+    return _compact(
+        {
+            "changed_node_count": len(changes),
+            "conflict_count": len(conflicts),
+            "resolved_conflict_count": len(resolutions),
+            "preferred_source": preferred,
+            "conflicts": conflicts[:20],
+            "changes": changes[:20],
+            "resolutions": resolutions[:20],
+        }
+    )
 
 
 def graph_diagnostics(
@@ -183,6 +258,49 @@ def graph_diagnostics(
             "lowest_source_weight": min(source_weights) if source_weights else 0,
         }
     )
+
+
+def _apply_diff_resolutions(
+    graph: dict[str, Any],
+    *,
+    node_variants: Mapping[str, list[Mapping[str, Any]]],
+    variant_sources: Mapping[str, list[dict[str, Any]]],
+    diff: Mapping[str, Any],
+) -> None:
+    resolutions = diff.get("resolutions")
+    if not isinstance(resolutions, list):
+        return
+    selected_by_id = {str(item.get("id")): item for item in resolutions if isinstance(item, Mapping) and item.get("id")}
+    nodes = graph.get("nodes")
+    if not isinstance(nodes, list) or not selected_by_id:
+        return
+    replaced: dict[str, dict[str, Any]] = {}
+    for node_id, resolution in selected_by_id.items():
+        variants = node_variants.get(node_id) or []
+        sources = variant_sources.get(node_id) or []
+        selected = _select_node_variant_for_resolution(variants, sources, resolution)
+        if selected is not None:
+            replaced[node_id] = dict(selected)
+    if not replaced:
+        return
+    graph["nodes"] = [replaced.get(str(node.get("id") or ""), node) if isinstance(node, Mapping) else node for node in nodes]
+    graph["entity_counts"] = entity_counts([dict(node) for node in graph["nodes"] if isinstance(node, Mapping)])
+
+
+def _select_node_variant_for_resolution(
+    variants: list[Mapping[str, Any]],
+    sources: list[Mapping[str, Any]],
+    resolution: Mapping[str, Any],
+) -> Mapping[str, Any] | None:
+    for index, variant in enumerate(variants):
+        source = sources[index] if index < len(sources) else {}
+        if resolution.get("source_index") is not None:
+            if source.get("index") == resolution.get("source_index"):
+                return variant
+            continue
+        if resolution.get("source_root") not in (None, "") and source.get("root") == resolution.get("source_root"):
+            return variant
+    return variants[-1] if variants else None
 
 
 def build_category_graph(
@@ -445,6 +563,76 @@ def _node_conflicts_from_variants(by_id: Mapping[str, list[Mapping[str, Any]]]) 
         if len(labels) > 1 or len(types) > 1:
             conflicts.append(_compact({"id": node_id, "labels": labels, "types": types, "seen": len(items)}))
     return conflicts
+
+
+def _source_lookup(sources: list[Mapping[str, Any]]) -> dict[str, Mapping[str, Any]]:
+    lookup: dict[str, Mapping[str, Any]] = {}
+    for source in sources:
+        index = source.get("index")
+        root = source.get("root")
+        if index is not None:
+            lookup[str(index)] = source
+        if root not in (None, ""):
+            lookup[str(root)] = source
+    return lookup
+
+
+def _resolve_preferred_source(prefer_source: str | int | None, lookup: Mapping[str, Mapping[str, Any]]) -> dict[str, Any] | None:
+    if prefer_source in (None, ""):
+        return None
+    key = str(prefer_source)
+    source = lookup.get(key)
+    if source is None and key.isdigit():
+        source = lookup.get(str(int(key)))
+    if source is None:
+        return {"requested": key, "matched": False}
+    return _compact(
+        {
+            "requested": key,
+            "matched": True,
+            "index": source.get("index"),
+            "root": source.get("root"),
+            "source_weight": source.get("source_weight"),
+            "confidence": source.get("confidence"),
+        }
+    )
+
+
+def _variant_items(variants: list[Mapping[str, Any]], sources: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    for index, variant in enumerate(variants):
+        source = sources[index] if index < len(sources) else {}
+        items.append(
+            _compact(
+                {
+                    "label": variant.get("label"),
+                    "type": variant.get("type"),
+                    "source_index": source.get("index"),
+                    "source_root": source.get("root"),
+                    "source_weight": source.get("source_weight"),
+                    "confidence": source.get("confidence"),
+                }
+            )
+        )
+    return items
+
+
+def _choose_variant(variants: list[Mapping[str, Any]], *, preferred_source: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
+    if not variants:
+        return None
+    if preferred_source and preferred_source.get("matched"):
+        for variant in variants:
+            if _variant_matches_source(variant, preferred_source):
+                return variant
+    return max(variants, key=lambda item: int(item.get("source_weight") or 0))
+
+
+def _variant_matches_source(variant: Mapping[str, Any], preferred_source: Mapping[str, Any]) -> bool:
+    preferred_index = preferred_source.get("index")
+    preferred_root = preferred_source.get("root")
+    if preferred_index is not None:
+        return variant.get("source_index") == preferred_index
+    return preferred_root not in (None, "") and variant.get("source_root") == preferred_root
 
 
 def _graph_id_part(value: Any) -> str:

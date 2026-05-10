@@ -1,0 +1,19 @@
+{
+  "id": "reports_build_local_output",
+  "description": "reports toolset 可从本地 JSON 生成报告并返回可审计输出文件。",
+  "command": "reports.build",
+  "params": {
+    "input": "tests/fixtures/agent_eval_report_input.json",
+    "format": "markdown",
+    "title": "Agent Eval Report",
+    "out": "{tmp}/agent-report.md"
+  },
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "data.format", "equals": "markdown"},
+    {"path": "data.row_count", "equals": 2},
+    {"path": "data.output.path", "contains": "agent-report.md"},
+    {"path": "data.provenance.source", "equals": "local"},
+    {"path": "data.provenance.endpoint", "equals": "local://reports.build"}
+  ]
+}

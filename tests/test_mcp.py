@@ -8,6 +8,7 @@ tests/test_mcp.py
 import json
 import tempfile
 import unittest
+import base64
 from pathlib import Path
 
 from keepa_cli.agent.mcp import handle_mcp_message, iter_mcp_output
@@ -346,6 +347,9 @@ class McpProtocolTests(unittest.TestCase):
 
         self.assertIn("keepa://schema/{name}", uri_templates)
         self.assertIn("keepa://fixtures/{name}", uri_templates)
+        self.assertIn("keepa://cache-key/{command}/{encoded_params}", uri_templates)
+        self.assertIn("keepa://asin/{asin}/fixture", uri_templates)
+        self.assertIn("keepa://evidence/{encoded_logical_path}", uri_templates)
         fixture = handle_mcp_message(
             json.dumps(
                 {
@@ -361,6 +365,55 @@ class McpProtocolTests(unittest.TestCase):
         content = fixture["result"]["contents"][0]
         self.assertEqual(content["mimeType"], "application/json")
         self.assertIn('"research_graph"', content["text"])
+
+    def test_resource_templates_read_cache_key_asin_and_evidence(self):
+        params_token = base64.urlsafe_b64encode(b'{"asin":"B0D8W1YVBX","domain":"US"}').decode("ascii").rstrip("=")
+        cache_key = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "cache-key",
+                    "method": "resources/read",
+                    "params": {"uri": f"keepa://cache-key/products.get/{params_token}"},
+                }
+            ),
+            env={},
+        )
+        cache_payload = json.loads(cache_key["result"]["contents"][0]["text"])
+        self.assertEqual(cache_payload["command"], "products.get")
+        self.assertTrue(cache_payload["cache_key"].startswith("products.get:"))
+
+        asin_resource = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "asin-fixtures",
+                    "method": "resources/read",
+                    "params": {"uri": "keepa://asin/B0D8W1YVBX/fixture"},
+                }
+            ),
+            env={},
+        )
+        asin_payload = json.loads(asin_resource["result"]["contents"][0]["text"])
+        self.assertGreaterEqual(asin_payload["match_count"], 1)
+        self.assertTrue(any(item["uri"].startswith("keepa://fixtures/") for item in asin_payload["fixtures"]))
+
+        logical_path = "evidence/tasks/20260510-zread-review-mcp-resource-templates-graph-diagnostics.md"
+        evidence_token = base64.urlsafe_b64encode(logical_path.encode("utf-8")).decode("ascii").rstrip("=")
+        evidence = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "evidence",
+                    "method": "resources/read",
+                    "params": {"uri": f"keepa://evidence/{evidence_token}"},
+                }
+            ),
+            env={},
+        )
+        evidence_content = evidence["result"]["contents"][0]
+        self.assertEqual(evidence_content["mimeType"], "text/markdown")
+        self.assertIn("GitHub CI", evidence_content["text"])
 
     def test_tools_call_with_chunks_returns_compact_text_resource_manifest(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -458,6 +511,8 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("diagnostics", structured["data"]["summary"])
         self.assertGreaterEqual(structured["data"]["diagnostics"]["highest_source_weight"], 1)
         self.assertGreaterEqual(structured["data"]["graph"]["sources"][0]["source_weight"], 1)
+        self.assertIn("diff", structured["data"])
+        self.assertIn("diff", structured["data"]["summary"])
 
     def test_research_graph_merge_reports_duplicate_label_conflicts(self):
         graph_a = {
@@ -480,7 +535,7 @@ class McpProtocolTests(unittest.TestCase):
                     "method": "tools/call",
                     "params": {
                         "name": "keepa.research_graph_merge",
-                        "arguments": {"graph": [graph_a, graph_b], "root": "agent_research"},
+                        "arguments": {"graph": [graph_a, graph_b], "root": "agent_research", "prefer_source": "1"},
                     },
                 }
             ),
@@ -491,6 +546,10 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(diagnostics["duplicate_node_count"], 1)
         self.assertEqual(diagnostics["conflict_count"], 1)
         self.assertEqual(diagnostics["conflicts"][0]["id"], "product:B0TEST")
+        diff = merged["result"]["structuredContent"]["data"]["diff"]
+        self.assertEqual(diff["changed_node_count"], 1)
+        self.assertEqual(diff["preferred_source"]["index"], 1)
+        self.assertEqual(diff["resolutions"][0]["selected_label"], "New title")
 
 
 if __name__ == "__main__":

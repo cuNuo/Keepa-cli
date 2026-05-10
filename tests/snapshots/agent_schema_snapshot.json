@@ -654,6 +654,24 @@
             "mimeType": "str",
             "name": "str",
             "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
           }
         ],
         "resources": [
@@ -2306,6 +2324,10 @@
                   "type": "str"
                 },
                 "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "prefer_source": {
                   "description": "str",
                   "type": "str"
                 },
@@ -10033,6 +10055,11 @@
             "highest_source_weight": "int",
             "orphan_node_count": "int"
           },
+          "diff": {
+            "changed_node_count": "int",
+            "preferred_source": "null",
+            "resolved_conflict_count": "int"
+          },
           "edge_count": "int",
           "entity_counts": {
             "brand": "int",
@@ -10054,6 +10081,7 @@
           "str",
           "str",
           "str",
+          "str",
           "str"
         ]
       },
@@ -10061,6 +10089,7 @@
         "confidence": "str",
         "missing": [],
         "present": [
+          "str",
           "str",
           "str",
           "str",
@@ -10128,8 +10157,18 @@
         "lowest_source_weight": "int",
         "orphan_node_count": "int"
       },
+      "diff": {
+        "changed_node_count": "int",
+        "conflict_count": "int",
+        "resolved_conflict_count": "int"
+      },
       "evidence_index": {
         "diagnostics": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        },
+        "diff": {
           "note": "str",
           "path": "str",
           "section": "str"
@@ -10206,6 +10245,11 @@
           "highest_source_weight": "int",
           "lowest_source_weight": "int",
           "orphan_node_count": "int"
+        },
+        "diff": {
+          "changed_node_count": "int",
+          "conflict_count": "int",
+          "resolved_conflict_count": "int"
         },
         "edge_count": "int",
         "edges": [
@@ -10664,6 +10708,11 @@
           "duplicate_node_count": "int",
           "highest_source_weight": "int",
           "orphan_node_count": "int"
+        },
+        "diff": {
+          "changed_node_count": "int",
+          "preferred_source": "null",
+          "resolved_conflict_count": "int"
         },
         "edge_count": "int",
         "entity_counts": {

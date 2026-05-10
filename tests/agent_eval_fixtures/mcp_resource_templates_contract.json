@@ -5,10 +5,13 @@
   "method": "resources/templates/list",
   "params": {},
   "assertions": [
-    {"path": "result.resourceTemplates", "length_min": 4},
+    {"path": "result.resourceTemplates", "length_min": 7},
     {"path": "result.resourceTemplates.0.uriTemplate", "equals": "keepa://schema/{name}"},
     {"path": "result.resourceTemplates.1.uriTemplate", "equals": "keepa://fixtures/{name}"},
-    {"path": "result.resourceTemplates.2.uriTemplate", "equals": "keepa://chunk/{encoded_path}"},
-    {"path": "result.resourceTemplates.3.uriTemplate", "equals": "keepa://output/{encoded_path}"}
+    {"path": "result.resourceTemplates.2.uriTemplate", "equals": "keepa://cache-key/{command}/{encoded_params}"},
+    {"path": "result.resourceTemplates.3.uriTemplate", "equals": "keepa://asin/{asin}/fixture"},
+    {"path": "result.resourceTemplates.4.uriTemplate", "equals": "keepa://evidence/{encoded_logical_path}"},
+    {"path": "result.resourceTemplates.5.uriTemplate", "equals": "keepa://chunk/{encoded_path}"},
+    {"path": "result.resourceTemplates.6.uriTemplate", "equals": "keepa://output/{encoded_path}"}
   ]
 }

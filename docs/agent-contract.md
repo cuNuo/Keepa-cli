@@ -297,7 +297,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json research-graph merge .\category.json .\compare.json .\seller.json --root agent_selection_research --out .\research-graph.json
 ```
 
-`research_graph.merge` 是纯本地命令，不访问 Keepa，不消耗 token。它会递归读取输入 JSON 中的 `research_graph` 字段，去重合并节点和边，添加 root 类型 `research_graph` 与 `includes_graph` 边，并返回 `view=research_graph_merge`、`summary`、`sources`、`diagnostics`、`data_quality`、`evidence_index` 与可选 `output.path`。`sources` 包含 `source_weight/confidence`，`diagnostics` 包含重复节点、孤立节点、label/type 冲突和 source weight 范围。MCP 对应工具为 `keepa.research_graph_merge`，适合把 category search -> category products -> products compare -> seller/deals 串成单个研究图。
+`research_graph.merge` 是纯本地命令，不访问 Keepa，不消耗 token。它会递归读取输入 JSON 中的 `research_graph` 字段，去重合并节点和边，添加 root 类型 `research_graph` 与 `includes_graph` 边，并返回 `view=research_graph_merge`、`summary`、`sources`、`diagnostics`、`diff`、`data_quality`、`evidence_index` 与可选 `output.path`。`sources` 包含 `source_weight/confidence`，`diagnostics` 包含重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 包含冲突节点 variants 与 resolution；CLI 的 `--prefer-source` 和 MCP 的 `prefer_source` 可指定 source index 或 source root，让 Agent 在多来源 label/type 不一致时做确定性选择。MCP 对应工具为 `keepa.research_graph_merge`，适合把 category search -> category products -> products compare -> seller/deals 串成单个研究图。
 
 ### categories get/search
 

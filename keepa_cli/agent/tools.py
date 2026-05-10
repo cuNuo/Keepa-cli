@@ -268,6 +268,7 @@ RESEARCH_GRAPH_MERGE_SCHEMA: JsonSchema = {
         },
         "root": _string_schema("Merged graph root id.", default="merged_research_graph"),
         "label": _string_schema("Merged graph label.", default="merged research graph"),
+        "prefer_source": _string_schema("Optional source index or source root to prefer when resolving node label/type conflicts."),
         "out": _string_schema("Optional output path for the merged graph JSON."),
         "from_cache": _string_schema("Session cache key to reuse."),
     },

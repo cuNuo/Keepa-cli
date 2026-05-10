@@ -8,47 +8,17 @@ keepa_cli/agent/session.py
 from __future__ import annotations
 
 import copy
-import hashlib
-import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.envelope import error_envelope
 from keepa_cli.service import run_command
 from keepa_cli.token_budget import estimate_request_budget
 
 
 Runner = Callable[[str, Mapping[str, Any]], dict[str, Any]]
-
-RUNTIME_KEYS = {"from_cache", "yes"}
-SECRET_KEY_PARTS = ("key", "api_key", "apikey", "token", "authorization", "password", "secret")
-
-
-def _is_secret_key(key: str) -> bool:
-    normalized = key.lower().replace("-", "_")
-    return any(part in normalized for part in SECRET_KEY_PARTS)
-
-
-def _safe_for_cache_key(value: Any) -> Any:
-    if isinstance(value, Mapping):
-        return {
-            str(key): ("[REDACTED]" if _is_secret_key(str(key)) else _safe_for_cache_key(item))
-            for key, item in sorted(value.items(), key=lambda item: str(item[0]))
-            if str(key) not in RUNTIME_KEYS
-        }
-    if isinstance(value, list):
-        return [_safe_for_cache_key(item) for item in value]
-    if isinstance(value, tuple):
-        return [_safe_for_cache_key(item) for item in value]
-    return value
-
-
-def build_cache_key(command: str, params: Mapping[str, Any] | None = None) -> str:
-    normalized = _safe_for_cache_key(dict(params or {}))
-    raw = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
-    digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
-    return f"{command}:{digest}"
 
 
 def _bypass_confirmation(params: Mapping[str, Any]) -> bool:
