@@ -38,10 +38,14 @@ class ModernTuiTests(unittest.TestCase):
         groups = {item.group for item in catalog}
 
         self.assertIn("Product", labels)
+        self.assertIn("Login", labels)
         self.assertIn("/product B001GZ6QEC --fixture product_B001GZ6QEC.json", commands)
+        self.assertIn("/batch asins.txt --domain US --dry-run --out batch.json", commands)
+        self.assertIn("/report --input batch.json --format markdown --out report.md", commands)
         self.assertIn("/token <64-char Keepa key>", commands)
         self.assertIn("Inspect", groups)
         self.assertIn("Config", groups)
+        self.assertIn("Local", groups)
         self.assertIn("Operate", groups)
         self.assertTrue(all(item.service_command for item in catalog))
 
@@ -66,30 +70,57 @@ class ModernTuiTests(unittest.TestCase):
         product = modern_tui._iter_completion_candidates("/pro", language="en")
         fuzzy = modern_tui._iter_completion_candidates("/prd", language="en")
         config = modern_tui._iter_completion_candidates("/max", language="en")
+        report = modern_tui._iter_completion_candidates("/rep", language="en")
 
         self.assertIn("/doctor", {item.slash for item in slash})
         self.assertIn("/capabilities", {item.slash for item in slash})
         self.assertEqual([item.service_command for item in product], ["products.get"])
         self.assertEqual([item.service_command for item in fuzzy], ["products.get"])
         self.assertEqual([item.service_command for item in config], ["config.set-max-tokens"])
+        self.assertEqual([item.service_command for item in report], ["reports.build"])
 
     def test_completion_ignores_non_slash_text(self):
         self.assertEqual(modern_tui._iter_completion_candidates("doctor", language="en"), ())
 
     def test_slash_parser_supports_config_shortcuts(self):
         token_command, token_params = _slash_to_command("/token " + "A" * 64)
+        login_command, login_params = _slash_to_command("/login " + "B" * 64)
         budget_command, budget_params = _slash_to_command("/max-tokens 250")
         language_command, language_params = _slash_to_command("/language zh")
 
         self.assertEqual(token_command, "config.set-token")
         self.assertEqual(token_params["token"], "A" * 64)
+        self.assertEqual(login_command, "config.set-token")
+        self.assertEqual(login_params["token"], "B" * 64)
         self.assertEqual(budget_command, "config.set-max-tokens")
         self.assertEqual(budget_params["max_tokens"], "250")
         self.assertEqual(language_command, "config.set-language")
         self.assertEqual(language_params["language"], "zh")
+        self.assertEqual(modern_tui._redact_transcript_command("/login " + "B" * 64), "/login [REDACTED]")
+
+    def test_slash_parser_supports_workflow_shortcuts(self):
+        batch_command, batch_params = _slash_to_command("/batch asins.txt --domain US --dry-run")
+        report_command, report_params = _slash_to_command("/report --input batch.json --format markdown")
+        cache_command, cache_params = _slash_to_command("/cache --input response.json --command products.get")
+        cost_command, cost_params = _slash_to_command("/cost products.get")
+
+        self.assertEqual(batch_command, "batch.asins")
+        self.assertEqual(batch_params["asin_file"], "asins.txt")
+        self.assertEqual(batch_params["dry-run"], True)
+        self.assertEqual(report_command, "reports.build")
+        self.assertEqual(report_params["input"], "batch.json")
+        self.assertEqual(cache_command, "cache.explain")
+        self.assertEqual(cache_params["command"], "products.get")
+        self.assertEqual(cost_command, "audit.cost")
+        self.assertEqual(cost_params["target_command"], "products.get")
 
     def test_format_result_contains_summary_and_error_details(self):
         ok_payload = {"ok": True, "command": "doctor", "data": {"auth": {}, "offline": {}}}
+        workflow_payload = {
+            "ok": True,
+            "command": "batch.asins",
+            "data": {"task_count": 2, "estimated_tokens": 2, "dry_run": True},
+        }
         error_payload = {
             "ok": False,
             "command": "config.set-token",
@@ -97,6 +128,7 @@ class ModernTuiTests(unittest.TestCase):
         }
 
         self.assertIn("[doctor] OK", modern_tui._format_result(ok_payload))
+        self.assertIn("Batch   tasks=2 tokens=2", modern_tui._format_result(workflow_payload))
         self.assertIn("token must be 64", modern_tui._format_result(error_payload))
 
     def test_run_modern_tui_falls_back_when_prompt_toolkit_is_missing(self):
@@ -109,7 +141,7 @@ class ModernTuiTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         fallback.assert_called_once_with(env={})
 
-    def test_prompt_loop_runs_command_and_prints_copyable_json(self):
+    def test_prompt_loop_runs_command_without_dumping_json_by_default(self):
         session = FakePromptSession(["/doctor", "/quit"])
 
         with patch("builtins.print") as fake_print:
@@ -120,7 +152,29 @@ class ModernTuiTests(unittest.TestCase):
         self.assertIn("kc › ", session.prompts[0][0][0][1])
         self.assertIn("$ kc /doctor", rendered)
         self.assertIn("[doctor] OK", rendered)
+        self.assertIn("(Full JSON: /json)", rendered)
+        self.assertNotIn('"command": "doctor"', rendered)
+
+    def test_prompt_loop_prints_last_json_on_demand(self):
+        session = FakePromptSession(["/doctor", "/json", "/quit"])
+
+        with patch("builtins.print") as fake_print:
+            exit_code = modern_tui._run_prompt_loop(env={}, session=session)
+
+        rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
+        self.assertEqual(exit_code, 0)
+        self.assertIn("Last JSON:", rendered)
         self.assertIn('"command": "doctor"', rendered)
+
+    def test_prompt_loop_handles_json_before_first_command(self):
+        session = FakePromptSession(["/json", "/quit"])
+
+        with patch("builtins.print") as fake_print:
+            exit_code = modern_tui._run_prompt_loop(env={}, session=session)
+
+        rendered = "\n".join(str(call.args[0]) for call in fake_print.call_args_list if call.args)
+        self.assertEqual(exit_code, 0)
+        self.assertIn("No command response yet.", rendered)
 
     def test_prompt_loop_prints_help_without_running_service(self):
         session = FakePromptSession(["/help", "/quit"])

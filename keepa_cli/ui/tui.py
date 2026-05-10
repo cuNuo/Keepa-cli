@@ -262,6 +262,21 @@ def _slash_to_command(line: str) -> tuple[str, dict[str, Any]]:
         return "tracking.remove", {"asin": positional[0] if positional else "", **options}
     if slash_command == "tracking-notifications":
         return "tracking.notifications", options
+    if slash_command == "browse":
+        return "browse.snapshot", {"input": options.get("input"), **options}
+    if slash_command == "batch":
+        asin_file = positional[0] if positional else options.get("asin_file") or options.get("asin-file", "")
+        return "batch.asins", {"asin_file": asin_file, **options}
+    if slash_command == "templates":
+        if positional and positional[0].lower() == "show":
+            return "templates.show", {"name": positional[1] if len(positional) > 1 else "", **options}
+        return "templates.list", options
+    if slash_command == "report":
+        return "reports.build", options
+    if slash_command == "cache":
+        return "cache.explain", options
+    if slash_command == "cost":
+        return "audit.cost", {"target_command": positional[0] if positional else "", **options}
     if slash_command == "category":
         return "categories.get", {"category": positional, **options}
     if slash_command == "category-search":
@@ -292,6 +307,45 @@ def _summarize_success(payload: dict[str, Any]) -> list[str]:
         return lines
 
     if isinstance(data, dict):
+        if command == "browse.snapshot":
+            lines.append(f"浏览    rows={data.get('row_count', 0)} dir={data.get('out_dir', '')}")
+            lines.append(f"打开    {data.get('index', '')}")
+            return lines
+        if command == "batch.asins":
+            lines.append(f"批处理  tasks={data.get('task_count', 0)} tokens={data.get('estimated_tokens', 0)}")
+            output = data.get("output")
+            if isinstance(output, dict):
+                lines.append(f"文件    {output.get('path', '')}")
+            return lines
+        if command == "templates.list":
+            templates = data.get("templates", [])
+            count = len(templates) if isinstance(templates, list) else 0
+            names = ", ".join(str(item.get("name", "")) for item in templates[:4] if isinstance(item, dict))
+            lines.append(f"模板    count={count}")
+            if names:
+                lines.append(f"名称    {names}")
+            return lines
+        if command == "templates.show":
+            lines.append(f"模板    {data.get('name', '')} kind={data.get('kind', '')}")
+            return lines
+        if command == "reports.build":
+            lines.append(f"报告    rows={data.get('row_count', 0)} format={data.get('format', '')}")
+            output = data.get("output")
+            if isinstance(output, dict):
+                lines.append(f"文件    {output.get('path', '')}")
+            return lines
+        if command == "cache.explain":
+            lines.append(f"缓存    source={data.get('source', 'unknown')} hit={data.get('cache_hit', False)}")
+            lines.append(f"Token   saved={data.get('estimated_tokens_saved', 0)} live={data.get('estimated_tokens_if_live', 0)}")
+            return lines
+        if command == "audit.cost":
+            totals = data.get("totals", {})
+            if isinstance(totals, dict):
+                lines.append(
+                    f"成本    estimated={totals.get('estimated_tokens', 0)} worst={totals.get('worst_case_tokens', 0)}"
+                )
+            lines.append(f"确认    {data.get('requires_confirmation', False)}")
+            return lines
         if data.get("dry_run"):
             estimate = payload.get("token_bucket", {}).get("estimated", {})
             if isinstance(estimate, dict):

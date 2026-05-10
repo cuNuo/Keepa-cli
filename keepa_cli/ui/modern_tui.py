@@ -23,21 +23,30 @@ from keepa_cli.ui.tui import _doctor_context, _slash_to_command, _summarize_succ
 TEXT: dict[str, dict[str, str]] = {
     "en": {
         "brand": "Keepa CLI",
-        "ready": "Type / for commands. Ctrl-L clears the screen. Ctrl-C exits.",
-        "setup_token": "Auth is missing. Use /token <64-char Keepa key> or export KEEPA_API_KEY.",
-        "setup_budget": "Request budget is using the default. Use /max-tokens 250 to widen it.",
+        "ready": "Type / for commands, /json for the last response, Ctrl-L to clear.",
+        "setup_token": "No token. Run /login <64-char Keepa key> or export KEEPA_API_KEY.",
+        "setup_budget": "Default request cap is 20 tokens. Raise it with /max-tokens 250.",
         "bye": "bye",
         "help": "Commands",
         "json": "Full JSON",
+        "no_json": "No command response yet.",
+        "last_json": "Last JSON",
         "doctor": "Doctor",
         "capabilities": "Capabilities",
         "domains": "Domains",
+        "browse": "Browse",
+        "batch": "Batch",
+        "templates": "Templates",
+        "report": "Report",
+        "cache": "Cache",
+        "cost": "Cost",
         "product": "Product",
         "history": "History",
         "finder": "Finder",
         "bestsellers": "Best Sellers",
         "graph": "Graph Image",
         "tracking": "Tracking",
+        "login": "Login",
         "token": "Set Token",
         "budget": "Set Budget",
         "language": "Language",
@@ -45,21 +54,30 @@ TEXT: dict[str, dict[str, str]] = {
     },
     "zh": {
         "brand": "Keepa CLI",
-        "ready": "输入 / 查看命令。Ctrl-L 清屏，Ctrl-C 退出。",
-        "setup_token": "认证未配置。使用 /token <64字符 Keepa key> 或导出 KEEPA_API_KEY。",
-        "setup_budget": "请求预算仍为默认值。使用 /max-tokens 250 调宽。",
+        "ready": "输入 / 查看命令，/json 查看上一条完整响应，Ctrl-L 清屏。",
+        "setup_token": "未配置 token。运行 /login <64字符 Keepa key> 或导出 KEEPA_API_KEY。",
+        "setup_budget": "默认单次请求上限为 20 tokens，可用 /max-tokens 250 调宽。",
         "bye": "再见",
         "help": "命令",
         "json": "完整 JSON",
+        "no_json": "还没有可查看的命令响应。",
+        "last_json": "上一条 JSON",
         "doctor": "诊断",
         "capabilities": "能力",
         "domains": "域名",
+        "browse": "浏览",
+        "batch": "批处理",
+        "templates": "模板",
+        "report": "报告",
+        "cache": "缓存",
+        "cost": "成本",
         "product": "产品",
         "history": "历史",
         "finder": "筛选",
         "bestsellers": "榜单",
         "graph": "图像",
         "tracking": "跟踪",
+        "login": "登录",
         "token": "配置 Token",
         "budget": "配置预算",
         "language": "语言",
@@ -75,6 +93,17 @@ class CommandItem:
     slash: str
     service_command: str
     description: str
+    insert: str | None = None
+
+    @property
+    def command_name(self) -> str:
+        return self.slash.split()[0]
+
+    @property
+    def completion_text(self) -> str:
+        if self.insert is not None:
+            return self.insert
+        return self.command_name if " " not in self.slash else f"{self.command_name} "
 
 
 def is_prompt_tui_available() -> bool:
@@ -102,9 +131,40 @@ def build_command_catalog(language: str = "en") -> tuple[CommandItem, ...]:
         CommandItem(text["capabilities"], "Inspect", "/capabilities", "capabilities", "Agent protocol surface"),
         CommandItem(text["domains"], "Inspect", "/domains", "domains.list", "Amazon domain map"),
         CommandItem(text["config"], "Config", "/config", "config.show", "Show effective local config"),
+        CommandItem(text["login"], "Config", "/login <64-char Keepa key>", "config.set-token", "Save local token"),
         CommandItem(text["token"], "Config", "/token <64-char Keepa key>", "config.set-token", "Save local token"),
         CommandItem(text["budget"], "Config", "/max-tokens 250", "config.set-max-tokens", "Set request budget"),
         CommandItem(text["language"], "Config", "/language zh", "config.set-language", "Switch UI language"),
+        CommandItem(
+            text["browse"],
+            "Local",
+            "/browse --input batch.json --out-dir keepa-browse",
+            "browse.snapshot",
+            "Build local HTML browse view",
+        ),
+        CommandItem(
+            text["batch"],
+            "Local",
+            "/batch asins.txt --domain US --dry-run --out batch.json",
+            "batch.asins",
+            "Plan ASIN batch queries",
+        ),
+        CommandItem(text["templates"], "Local", "/templates", "templates.list", "List workflow templates"),
+        CommandItem(
+            text["report"],
+            "Local",
+            "/report --input batch.json --format markdown --out report.md",
+            "reports.build",
+            "Build local report",
+        ),
+        CommandItem(
+            text["cache"],
+            "Local",
+            "/cache --input response.json --command products.get",
+            "cache.explain",
+            "Explain cache provenance",
+        ),
+        CommandItem(text["cost"], "Local", "/cost products.get", "audit.cost", "Estimate token cost"),
         CommandItem(
             text["product"],
             "Catalog",
@@ -189,12 +249,13 @@ def _iter_completion_candidates(text: str, *, language: str = "en") -> tuple[Com
     normalized = query.lstrip("/")
     matches: list[CommandItem] = []
     for item in build_command_catalog(language):
-        command_name = item.slash.split()[0].lstrip("/").lower()
+        command_name = item.command_name.lstrip("/").lower()
         if (
             item.slash.lower().startswith(query)
             or command_name.startswith(normalized)
             or _is_subsequence(normalized, command_name)
             or item.label.lower().startswith(normalized)
+            or item.service_command.lower().startswith(normalized)
         ):
             matches.append(item)
     return tuple(matches)
@@ -257,6 +318,45 @@ def _summarize_success_english(payload: dict[str, Any]) -> list[str]:
         return lines
 
     if isinstance(data, dict):
+        if command == "browse.snapshot":
+            lines.append(f"Browse  rows={data.get('row_count', 0)} dir={data.get('out_dir', '')}")
+            lines.append(f"Open    {data.get('index', '')}")
+            return lines
+        if command == "batch.asins":
+            lines.append(f"Batch   tasks={data.get('task_count', 0)} tokens={data.get('estimated_tokens', 0)}")
+            output = data.get("output")
+            if isinstance(output, dict):
+                lines.append(f"File    {output.get('path', '')}")
+            return lines
+        if command == "templates.list":
+            templates = data.get("templates", [])
+            count = len(templates) if isinstance(templates, list) else 0
+            names = ", ".join(str(item.get("name", "")) for item in templates[:4] if isinstance(item, dict))
+            lines.append(f"Templates count={count}")
+            if names:
+                lines.append(f"Names   {names}")
+            return lines
+        if command == "templates.show":
+            lines.append(f"Template {data.get('name', '')} kind={data.get('kind', '')}")
+            return lines
+        if command == "reports.build":
+            lines.append(f"Report  rows={data.get('row_count', 0)} format={data.get('format', '')}")
+            output = data.get("output")
+            if isinstance(output, dict):
+                lines.append(f"File    {output.get('path', '')}")
+            return lines
+        if command == "cache.explain":
+            lines.append(f"Cache   source={data.get('source', 'unknown')} hit={data.get('cache_hit', False)}")
+            lines.append(f"Tokens  saved={data.get('estimated_tokens_saved', 0)} live={data.get('estimated_tokens_if_live', 0)}")
+            return lines
+        if command == "audit.cost":
+            totals = data.get("totals", {})
+            if isinstance(totals, dict):
+                lines.append(
+                    f"Cost    estimated={totals.get('estimated_tokens', 0)} worst={totals.get('worst_case_tokens', 0)}"
+                )
+            lines.append(f"Confirm {data.get('requires_confirmation', False)}")
+            return lines
         if data.get("dry_run"):
             estimate = payload.get("token_bucket", {}).get("estimated", {})
             if isinstance(estimate, dict):
@@ -333,8 +433,8 @@ def _summarize_success_english(payload: dict[str, Any]) -> list[str]:
 
 
 def _redact_transcript_command(line: str) -> str:
-    command, _params = _slash_to_command(line)
-    if command == "config.set-token":
+    first_token = line.strip().split(maxsplit=1)[0].lower() if line.strip() else ""
+    if first_token in {"/token", "/login"}:
         parts = line.split(maxsplit=1)
         return parts[0] + " [REDACTED]" if parts else "[REDACTED]"
     return line
@@ -346,10 +446,7 @@ def _status_bar(env: Mapping[str, str] | None) -> str:
     default_domain = config.get("default_domain", "US")
     max_tokens = config.get("max_tokens_per_request", 20)
     language = _language(str(config.get("language", "en")))
-    status = (
-        f" Keepa CLI  auth:{context['auth']}  domain:{default_domain}  "
-        f"max/request:{max_tokens}  lang:{language}  schema:{SCHEMA_VERSION} "
-    )
+    status = f" auth:{context['auth']}  {default_domain}  max:{max_tokens}  {language}  /help /json /quit "
     return html.escape(status)
 
 
@@ -358,11 +455,7 @@ def _startup_lines(env: Mapping[str, str] | None) -> list[str]:
     text = TEXT[language]
     config = _config_data(env)
     context = _doctor_context(env)
-    lines = [
-        text["brand"],
-        f"Auth {context['auth']} | Domain {config.get('default_domain', 'US')} | Max/request {config.get('max_tokens_per_request', 20)} | Schema {SCHEMA_VERSION}",
-        text["ready"],
-    ]
+    lines = [f"{text['brand']}  auth:{context['auth']}  schema:{SCHEMA_VERSION}", text["ready"]]
     if not _has_configured_token(config) and context["auth"] == "missing":
         lines.append(text["setup_token"])
     if not _has_custom_budget(config):
@@ -373,9 +466,16 @@ def _startup_lines(env: Mapping[str, str] | None) -> list[str]:
 def _help_lines(*, language: str = "en") -> list[str]:
     text = TEXT[_language(language)]
     lines = [text["help"]]
+    current_group = ""
     for item in build_command_catalog(language):
-        lines.append(f"  {item.slash:<72} {item.description}")
-    lines.append("  /quit                                                                    Exit")
+        if item.group != current_group:
+            current_group = item.group
+            lines.append(f"{current_group}:")
+        lines.append(f"  {item.slash:<52} {item.description}")
+    lines.append("Session:")
+    lines.append("  /json                                                Show last full JSON response")
+    lines.append("  /clear                                               Clear screen")
+    lines.append("  /quit                                                Exit")
     return lines
 
 
@@ -387,10 +487,10 @@ def _create_completer(*, language: str = "en"):
             before_cursor = document.text_before_cursor
             for item in _iter_completion_candidates(before_cursor, language=language):
                 yield Completion(
-                    item.slash,
+                    item.completion_text,
                     start_position=-len(before_cursor),
-                    display=item.slash,
-                    display_meta=item.description,
+                    display=f"{item.command_name:<18} {item.label}",
+                    display_meta=f"{item.group} · {item.description}",
                 )
 
     return KeepaCompleter()
@@ -429,6 +529,7 @@ def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = Non
     language = _active_language(env)
     text = TEXT[language]
     prompt_session = session or _create_session(language=language)
+    last_payload: dict[str, Any] | None = None
     _print_block(_startup_lines(env))
 
     while True:
@@ -454,13 +555,23 @@ def _run_prompt_loop(*, env: Mapping[str, str] | None, session: Any | None = Non
         if value == "/help":
             _print_block(_help_lines(language=language))
             continue
+        if value == "/json":
+            if last_payload is None:
+                print(text["no_json"])
+            else:
+                print(f"{text['last_json']}:")
+                print(json.dumps(last_payload, ensure_ascii=False, indent=2))
+            continue
 
-        command, params = _slash_to_command(value)
-        payload = run_command(command, params, env=env)
+        try:
+            command, params = _slash_to_command(value)
+            payload = run_command(command, params, env=env)
+        except ValueError as exc:
+            payload = {"ok": False, "command": value.lstrip("/").split()[0] or "input", "error": {"kind": "input", "message": str(exc)}}
+        last_payload = payload
         print(f"\n$ kc {_redact_transcript_command(value)}")
         print(_format_result(payload, language=language))
-        print(f"{text['json']}:")
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        print(f"({text['json']}: /json)")
         language = _active_language(env)
         text = TEXT[language]
 

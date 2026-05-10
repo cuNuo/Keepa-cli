@@ -6,3 +6,4 @@ evidence/tasks/20260510-0018-textual现代tui工作台.md,Textual 现代 TUI 工
 evidence/tasks/20260510-0048-token配置与英文默认界面.md,token 配置与英文默认界面,active,2026-05-10,"记录 token 配置闭环、TUI 文案降噪、默认英文/中文可选语言与 README 开源首页重排。"
 evidence/tasks/20260510-v1-v1.5里程碑补齐.md,v1.0 与 v1.5 里程碑补齐,active,2026-05-10,"记录 v1.0 本地工作流、v1.5 发布生态、companion skill、跨平台安装验证与全量发布门禁结果。"
 evidence/tasks/20260510-config容错与workflow拆分优化.md,config 容错与 workflow 拆分优化,active,2026-05-10,"记录坏 TOML 配置不再导致 CLI/TUI 崩溃、doctor config_error 报告、workflow service/CLI 拆分样板与验证结果。"
+evidence/tasks/20260510-1111-tui交互收敛优化.md,TUI 交互收敛优化,active,2026-05-10,"记录现代 TUI 启动降噪、slash 补全改进、按需 /json、workflow 快捷入口、结果短摘要与全量测试验证。"
