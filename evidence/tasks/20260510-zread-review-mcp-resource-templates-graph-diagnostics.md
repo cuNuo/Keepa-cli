@@ -62,6 +62,24 @@ zread generate -y --stdio --draft clear --skip-failed
 - `resources/templates/list` 目前提供静态 URI 形状；按 `cache_key`、ASIN、graph root 查询仍是后续项。
 - Graph diagnostics 已覆盖重复、孤立和 label/type 冲突；尚未输出完整 graph diff 或 source preference 决策。
 
+## GitHub CI 反馈与修复
+
+首次推送 commit `c2fce3e` 后，GitHub Actions run `25625966938` 在所有平台的 unit tests 阶段失败。失败根因是干净 CI 环境未安装可选依赖 `prompt_toolkit`，而 `keepa_cli/ui/modern_tui.py` 的 prompt loop 在测试路径中直接导入该依赖。
+
+已追加 commit `6b76ae6`：
+
+- `_run_prompt_loop()` 在缺少 `prompt_toolkit` 且没有注入 session 时回退到 classic TUI。
+- 测试注入 `FakePromptSession` 时提供轻量 `HTML()` / `clear()` fallback，保证无可选依赖也能覆盖 slash command loop。
+- 新增单测模拟 `prompt_toolkit` 缺失，避免本地环境依赖掩盖 CI 问题。
+
+最终 GitHub Actions run `25626082285` 已通过：
+
+- Ubuntu Python 3.11 / 3.12：通过。
+- macOS Python 3.11 / 3.12：通过。
+- Windows Python 3.11 / 3.12：通过。
+
+GitHub 仅返回 runner 层提示：`actions/checkout@v4` 与 `actions/setup-python@v5` 仍运行在 Node.js 20 action runtime，GitHub 将在 2026-06-02 默认切到 Node.js 24。该提示不影响本轮 CI 结论，但后续可增加 workflow 兼容性跟踪项。
+
 ## 后续最适合方向
 
 1. 启动或重新配置 zread LLM endpoint 后重新生成 wiki，并把 wiki 结论转为 docs/evidence backlog。
