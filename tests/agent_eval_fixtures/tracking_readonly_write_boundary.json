@@ -1,0 +1,56 @@
+{
+  "id": "tracking_readonly_write_boundary",
+  "description": "tracking-readonly 发现面和 profile 边界不暴露 tracking 写工具。",
+  "kind": "mcp_session",
+  "steps": [
+    {
+      "id": "readonly-toolset",
+      "method": "tools/list",
+      "params": {"toolset": "tracking-readonly", "profile": "tracking_readonly"}
+    },
+    {
+      "id": "mixed-allow-list",
+      "method": "tools/list",
+      "params": {
+        "toolset": "all",
+        "profile": "tracking_readonly",
+        "allow_tools": [
+          "keepa.tracking_add",
+          "keepa.tracking_remove",
+          "keepa.tracking_remove_all",
+          "keepa.tracking_webhook",
+          "keepa.tracking_list"
+        ]
+      }
+    },
+    {
+      "id": "readonly-call",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.tracking_list",
+        "arguments": {"asins_only": true, "fixture": "tracking_list.json", "profile": "tracking_readonly"}
+      }
+    }
+  ],
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "responses", "length": 3},
+    {"path": "responses.0.result.toolset", "equals": "tracking-readonly"},
+    {"path": "responses.0.result.profile", "equals": "tracking_readonly"},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_add"}},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_remove"}},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_remove_all"}},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_webhook"}},
+    {"path": "responses.1.result.filters.allow_tools", "contains": "keepa.tracking_add"},
+    {"path": "responses.1.result.tools", "length": 1},
+    {"path": "responses.1.result.tools.0.name", "equals": "keepa.tracking_list"},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_add"}},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_remove"}},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_remove_all"}},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_webhook"}},
+    {"path": "responses.2.result.structuredContent.ok", "equals": true},
+    {"path": "responses.2.result.structuredContent.command", "equals": "tracking.list"},
+    {"path": "responses.2.result.structuredContent.request.params_redacted.asins-only", "equals": "1"},
+    {"path": "budget_ledger.blocked_actions", "length": 0}
+  ]
+}

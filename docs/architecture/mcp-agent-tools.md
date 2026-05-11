@@ -198,6 +198,7 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 - `keepa://research/{cache_key}`：读取同一 MCP session 内缓存响应的审计摘要，便于 Agent 回查 provenance、evidence、ledger 与 graph summary。
 - `keepa://research/{cache_key}/brief`：读取同一 MCP session 内 `research_brief.export` 的完整 brief。
 - `keepa://research/{cache_key}/graph`：读取同一 MCP session 内 `research_brief.export` 的图谱摘要与输入摘要。
+- `keepa://workflow/runtime-contract`：列出支持 `resource_uri`、`artifact`、`workflow_inputs` 等 runtime 参数的 MCP tools、参数名与 `missing_inputs` 约定，便于外部 Agent 不加载全部 schema 也能安全接续工作流产物。
 - `keepa://graphs/{root}`：按 graph root 在 session cache 和本地 fixture 中查图谱来源，便于审计合并图谱的输入与证据。
 - `keepa://toolsets/{toolset}`：按 toolset 读取紧凑 manifest，包含工具名、service command、分组和单 tool 资源 URI。
 - `keepa://tools/{name}`：按 MCP tool 名读取完整 input/output schema 与执行说明。
@@ -452,6 +453,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 18. 落地 `keepa://workflow/{encoded_params}/policy`，让资源优先客户端用 base64url JSON 计划参数读取紧凑 `workflow_policy` 与步骤摘要。（已完成）
 19. 扩展 `workflow.plan` 到 `report-research` 与 `tracking-audit`，让本地报告链路和 tracking-readonly 审计链路也输出 profile/toolset/ledger 策略。（已完成）
 20. 扩展 `workflow.plan` 的结构化输入/产物契约：新增 `workflow_inputs`、`artifacts`、`resource_templates`、step `input_refs` 与 `artifact_refs`，并用 resource-first Agent eval 固化 `context policy -> resolve target -> workflow policy resource -> tools/list filtered -> execute` 起手链路。（已完成）
+21. 落地 workflow artifact resolver：MCP `tools/call` 可用 `resource_uri`、`resource_uris`、`artifact`、`artifacts`、`workflow_inputs` 与 `workflow_context` 把 `keepa://research/{cache_key}`、graph resource、output path、`artifact.output.path` 或 inline artifact 自动解析为下游工具参数；缺依赖时返回结构化 `missing_inputs`，成功时返回 `data.workflow_resolution` 供 Agent 审计来源；`keepa://workflow/runtime-contract` 暴露 resolver tool 清单与参数契约。（已完成）
 
 ## 迁移风险
 
@@ -472,6 +474,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 5. workflow policy resource template 已完成，资源优先客户端可不加载完整 plan 先读取执行策略。
 6. `workflow.plan` 覆盖四类内置计划：`category-research`、`product-research`、`report-research`、`tracking-audit`；其中 report 计划固定走 `reports` + `offline_fixture_only`，tracking 计划固定走 `tracking-readonly` + `tracking_readonly`。
 7. `workflow.plan` 已输出 `workflow_inputs`、`artifacts` 与 step 输入/产物引用，Agent 不需要再解析 CLI 字符串来连接图谱、brief、报告和 tracking 只读产物。
-8. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
+8. MCP workflow resolver 已能把 session cache/resource/path/inline artifact/output.path 转为实际工具参数，并用 `missing_inputs` 明确提示缺失依赖。
+9. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。

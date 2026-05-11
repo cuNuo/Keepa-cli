@@ -11,11 +11,11 @@ from typing import Any
 
 from keepa_cli.agent.prompts import list_mcp_prompts
 from keepa_cli.agent.resources import list_mcp_resource_templates, list_mcp_resources
-from keepa_cli.agent.tools import list_mcp_tools, profile_names, toolset_names
+from keepa_cli.agent.tools import list_mcp_tools, profile_names, toolset_names, workflow_runtime_contract
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-11.7"
+SCHEMA_VERSION = "2026-05-11.9"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -106,6 +106,7 @@ def build_capabilities() -> dict[str, Any]:
             "resources": list_mcp_resources(),
             "resource_templates": list_mcp_resource_templates(),
             "prompts": list_mcp_prompts(),
+            "workflow_runtime": workflow_runtime_contract(),
         },
         "commands": commands,
     }

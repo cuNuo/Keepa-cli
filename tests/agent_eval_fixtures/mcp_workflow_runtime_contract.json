@@ -1,0 +1,47 @@
+{
+  "id": "mcp_workflow_runtime_contract",
+  "description": "MCP runtime contract resource exposes resolver-enabled tools and missing_inputs semantics.",
+  "kind": "mcp",
+  "method": "resources/read",
+  "params": {
+    "uri": "keepa://workflow/runtime-contract"
+  },
+  "assertions": [
+    {
+      "path": "result.contents.0.mimeType",
+      "equals": "application/json"
+    },
+    {
+      "path": "result.contents.0.text.$json.argument_names",
+      "contains": "resource_uri"
+    },
+    {
+      "path": "result.contents.0.text.$json.argument_names",
+      "contains": "workflow_inputs"
+    },
+    {
+      "path": "result.contents.0.text.$json.failure_kind",
+      "equals": "missing_inputs"
+    },
+    {
+      "path": "result.contents.0.text.$json.success_field",
+      "equals": "data.workflow_resolution"
+    },
+    {
+      "path": "result.contents.0.text.$json.tools",
+      "contains_item": {
+        "name": "keepa.products_compare"
+      }
+    },
+    {
+      "path": "result.contents.0.text.$json.tools",
+      "contains_item": {
+        "name": "keepa.research_graph_merge"
+      }
+    },
+    {
+      "path": "result.contents.0.text.$json.tool_count",
+      "min": 8
+    }
+  ]
+}

@@ -71,6 +71,10 @@ def _assert_spec(payload: dict[str, Any], spec: dict[str, Any]) -> None:
             expected = assertion["contains_item"]
             if not isinstance(value, list) or not any(isinstance(item, dict) and all(item.get(key) == expected_value for key, expected_value in expected.items()) for item in value):
                 raise AssertionError(f"{assertion['path']} expected to contain item matching {expected!r}")
+        if "not_contains_item" in assertion:
+            expected = assertion["not_contains_item"]
+            if isinstance(value, list) and any(isinstance(item, dict) and all(item.get(key) == expected_value for key, expected_value in expected.items()) for item in value):
+                raise AssertionError(f"{assertion['path']} expected not to contain item matching {expected!r}")
         if "length" in assertion and len(value) != assertion["length"]:
             raise AssertionError(f"{assertion['path']} expected length {assertion['length']!r}, got {len(value)!r}")
         if "length_min" in assertion and len(value) < assertion["length_min"]:

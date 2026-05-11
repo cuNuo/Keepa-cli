@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from keepa_cli.agent.workflow_resolver import workflow_runtime_argument_names
+
 
 JsonSchema = dict[str, Any]
 
@@ -114,12 +116,20 @@ class ToolDefinition:
     groups: tuple[str, ...] = ("research",)
     read_only: bool = True
     destructive: bool = False
+    workflow_runtime: bool = False
 
     def to_mcp_tool(self) -> dict[str, Any]:
+        keepa_meta: dict[str, Any] = {
+            "service_command": self.command,
+            "groups": list(self.groups),
+        }
+        if self.workflow_runtime:
+            keepa_meta["workflow_runtime"] = True
+            keepa_meta["workflow_runtime_args"] = sorted(workflow_runtime_argument_names())
         return {
             "name": self.name,
             "description": self.description,
-            "inputSchema": _schema_with_common_properties(self.input_schema),
+            "inputSchema": _schema_with_common_properties(self.input_schema, workflow_runtime=self.workflow_runtime),
             "outputSchema": self.output_schema,
             "annotations": {
                 "readOnlyHint": self.read_only,
@@ -127,10 +137,7 @@ class ToolDefinition:
                 "idempotentHint": True,
                 "openWorldHint": False,
             },
-            "x-keepa": {
-                "service_command": self.command,
-                "groups": list(self.groups),
-            },
+            "x-keepa": keepa_meta,
         }
 
 
@@ -165,10 +172,17 @@ PROFILE_SCHEMA: JsonSchema = {
 }
 
 
-def _schema_with_common_properties(schema: JsonSchema) -> JsonSchema:
+def _schema_with_common_properties(schema: JsonSchema, *, workflow_runtime: bool = False) -> JsonSchema:
     patched = dict(schema)
     properties = dict(patched.get("properties") or {})
     properties.setdefault("profile", PROFILE_SCHEMA)
+    if workflow_runtime:
+        properties.setdefault("artifact", {"type": "object", "description": "Workflow artifact object from a prior MCP tool call."})
+        properties.setdefault("artifacts", {"type": "array", "items": {}, "description": "Workflow artifact objects or resource refs from prior MCP tool calls."})
+        properties.setdefault("resource_uri", _string_schema("MCP resource URI used to satisfy a workflow input."))
+        properties.setdefault("resource_uris", _string_array_schema("MCP resource URIs used to satisfy workflow inputs."))
+        properties.setdefault("workflow_inputs", {"type": "object", "description": "workflow.plan workflow_inputs object or subset for late-bound input resolution."})
+        properties.setdefault("workflow_context", {"type": "object", "description": "Additional workflow context with artifacts/resource_uris from prior steps."})
     patched["properties"] = properties
     return patched
 
@@ -703,6 +717,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Fetch Keepa product data and return Agent-safe product views with risk_taxonomy, research_graph, data_quality, and next_actions.",
         input_schema=PRODUCTS_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("research", "product"),
     ),
     ToolDefinition(
@@ -711,6 +726,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Compare ASINs using Agent-safe deal/research rows with unified risk summary and merged research graph.",
         input_schema=PRODUCTS_COMPARE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("research", "product", "compare"),
     ),
     ToolDefinition(
@@ -727,6 +743,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Fetch candidate ASINs for a category via Best Sellers; live calls require confirmation.",
         input_schema=CATEGORIES_PRODUCTS_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("research", "category"),
     ),
     ToolDefinition(
@@ -735,6 +752,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Generate a local Product Finder selection scaffold from a category without calling Keepa.",
         input_schema=CATEGORIES_FINDER_SELECTION_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("research", "category", "finder"),
     ),
     ToolDefinition(
@@ -791,6 +809,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Merge research_graph objects from category, product, compare, deal, and seller outputs without calling Keepa.",
         input_schema=RESEARCH_GRAPH_MERGE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
@@ -799,6 +818,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Export a compact decision brief from merged graphs and Agent payloads without calling Keepa.",
         input_schema=RESEARCH_BRIEF_EXPORT_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
@@ -847,6 +867,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Estimate token cost and confirmation requirements for Keepa CLI commands.",
         input_schema=AUDIT_COST_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("audit", "tracking-readonly"),
     ),
     ToolDefinition(
@@ -879,6 +900,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Build a local markdown/json/csv report from existing Keepa CLI JSON output.",
         input_schema=REPORTS_BUILD_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("reports",),
     ),
     ToolDefinition(
@@ -887,6 +909,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Create a local HTML browsing snapshot from existing Keepa CLI JSON output.",
         input_schema=BROWSE_SNAPSHOT_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("reports",),
     ),
     ToolDefinition(
@@ -911,6 +934,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Read tracking details for one ASIN.",
         input_schema=TRACKING_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
@@ -1025,6 +1049,8 @@ def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] |
         arguments = {}
     allowed = set(tool.input_schema.get("properties") or {})
     allowed.add("profile")
+    if tool.workflow_runtime:
+        allowed.update(workflow_runtime_argument_names())
     required = set(tool.input_schema.get("required") or [])
     errors: list[str] = []
     for key in arguments:
@@ -1054,3 +1080,58 @@ def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] |
 
 def tool_names() -> list[str]:
     return [tool.name for tool in TOOL_DEFINITIONS]
+
+
+def workflow_runtime_contract() -> dict[str, Any]:
+    args = sorted(workflow_runtime_argument_names())
+    tools = [
+        {
+            "name": tool.name,
+            "service_command": tool.command,
+            "groups": list(tool.groups),
+            "resource_uri": f"keepa://tools/{tool.name}",
+            "runtime_args": args,
+        }
+        for tool in TOOL_DEFINITIONS
+        if tool.workflow_runtime
+    ]
+    return {
+        "schema_version": "2026-05-11.1",
+        "argument_names": args,
+        "tool_count": len(tools),
+        "tools": tools,
+        "accepted_sources": [
+            {
+                "argument": "resource_uri",
+                "sources": [
+                    "keepa://research/{cache_key}",
+                    "keepa://research/{cache_key}/graph",
+                    "keepa://output/{encoded_path}",
+                    "keepa://chunk/{encoded_path}",
+                    "other JSON MCP resources",
+                ],
+            },
+            {
+                "argument": "resource_uris",
+                "sources": ["array of resource_uri values"],
+            },
+            {
+                "argument": "artifact",
+                "sources": ["inline payload, graph, path, cache_key, uri, or resource_uri"],
+            },
+            {
+                "argument": "artifacts",
+                "sources": ["array of artifact values"],
+            },
+            {
+                "argument": "workflow_inputs",
+                "sources": ["workflow.plan workflow_inputs object"],
+            },
+            {
+                "argument": "workflow_context",
+                "sources": ["client-managed workflow state object"],
+            },
+        ],
+        "failure_kind": "missing_inputs",
+        "success_field": "data.workflow_resolution",
+    }

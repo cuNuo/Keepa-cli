@@ -375,6 +375,8 @@ Agent 语义层：
 
 `workflow_inputs` 明确区分用户已给参数、后续步骤产物和占位值；`artifacts` 给出每个中间产物的 kind、producer、路径或可用 resource template；`resource_templates` 汇总可复用的 `keepa://workflow/{encoded_params}/policy`、`keepa://research/{cache_key}`、`keepa://graphs/{root}`、`keepa://output/{encoded_path}` 等读取入口。Agent 应优先使用这些字段连接步骤，不应解析 `cli` 字符串来猜测输入和输出路径。
 
+MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uris`、`artifact`、`artifacts`、`workflow_inputs` 与 `workflow_context`。这些字段不会传入业务 service，而是在执行前解析为实际参数：`keepa://research/{cache_key}` 可提供完整 cached envelope，`keepa://research/{cache_key}/graph` 可提供 graph merge 输入，`keepa://output/{encoded_path}` 可提供本地文件路径，inline artifact 可提供 `payload` 或 `graph`，`artifact.output.path` / `artifact.data.output.path` 可直接续接本地 graph -> brief -> reports 链路；`keepa://graphs/{root}` 是图谱来源审计入口，不直接替代完整 graph 输入。外部 Agent 可读取 `keepa://workflow/runtime-contract` 获取支持 runtime 参数的 tool 清单、参数名和缺参错误约定，避免遍历全部 tool schema。解析成功的响应会在 `data.workflow_resolution` 记录来源、推导出的 ASIN/category、graph_count、payload_count 与临时文件；依赖不足时返回 tool error `missing_inputs`，其中 `error.details.missing_inputs` 会说明缺少的字段和可接受来源。
+
 当前内置计划：
 
 - `category-research`：关键词 -> category candidates -> Finder scaffold -> category products -> compare candidates；推荐 `research` toolset 与 `dry_run_default` profile，高成本 category products 需要确认。

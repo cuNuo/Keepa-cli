@@ -1,0 +1,116 @@
+{
+  "id": "workflow_artifact_resolver_mcp",
+  "description": "MCP workflow resolver 能把前序 cache/resource 自动装配为 compare、graph merge 与 report 输入。",
+  "kind": "mcp_session",
+  "steps": [
+    {
+      "id": "category-products",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.categories_products",
+        "arguments": {
+          "category": "1055398",
+          "domain": "US",
+          "fixture": "bestsellers_home.json",
+          "limit": 5,
+          "yes": true
+        }
+      }
+    },
+    {
+      "id": "compare-from-resource",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.products_compare",
+        "arguments": {
+          "resource_uri": "keepa://research/categories.products:6f25fe463674001668f4a5df",
+          "domain": "US",
+          "fixture": "products_compare_agent_eval.json",
+          "full": true,
+          "view": "deal"
+        }
+      }
+    },
+    {
+      "id": "merge-from-resource",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.research_graph_merge",
+        "arguments": {
+          "resource_uri": "keepa://research/products.compare:18813807e24992648b82e8c4/graph",
+          "root": "workflow-agent-research"
+        }
+      }
+    },
+    {
+      "id": "report-from-resource",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.reports_build",
+        "arguments": {
+          "resource_uri": "keepa://research/research_graph.merge:23f7479e9703f5bc57c183e4",
+          "format": "json",
+          "title": "Workflow Resolver Report"
+        }
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "path": "ok",
+      "equals": true
+    },
+    {
+      "path": "responses",
+      "length": 4
+    },
+    {
+      "path": "responses.0.result.structuredContent.ok",
+      "equals": true
+    },
+    {
+      "path": "responses.0.result.structuredContent.cache_key",
+      "equals": "categories.products:6f25fe463674001668f4a5df"
+    },
+    {
+      "path": "responses.1.result.structuredContent.command",
+      "equals": "products.compare"
+    },
+    {
+      "path": "responses.1.result.structuredContent.data.workflow_resolution.derived_values.asins",
+      "contains": "B001GZ6QEC"
+    },
+    {
+      "path": "responses.1.result.structuredContent.data.workflow_resolution.resolved.0.cache_key",
+      "equals": "categories.products:6f25fe463674001668f4a5df"
+    },
+    {
+      "path": "responses.2.result.structuredContent.data.workflow_resolution.graph_count",
+      "equals": 4
+    },
+    {
+      "path": "responses.2.result.structuredContent.data.summary.entity_counts.product",
+      "min": 3
+    },
+    {
+      "path": "responses.3.result.structuredContent.command",
+      "equals": "reports.build"
+    },
+    {
+      "path": "responses.3.result.structuredContent.data.research_graph.entity_counts.research_graph",
+      "equals": 1
+    },
+    {
+      "path": "responses.3.result.structuredContent.data.workflow_resolution.temp_paths",
+      "length_min": 1
+    },
+    {
+      "path": "budget_ledger.session_estimated",
+      "min": 52
+    },
+    {
+      "path": "budget_ledger.session_consumed",
+      "min": 53
+    }
+  ]
+}

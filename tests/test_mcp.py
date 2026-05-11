@@ -113,6 +113,39 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(response["result"]["filters"]["allow_tools"], ["keepa.context_policy", "keepa.resolve_research_target"])
         self.assertEqual(response["result"]["filters"]["exclude_tools"], ["keepa.context_policy"])
 
+    def test_workflow_runtime_args_only_exposed_on_resolver_tools(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "runtime-schema",
+                    "method": "tools/list",
+                    "params": {"toolset": "all", "allow_tools": ["keepa.products_compare", "keepa.context_policy"]},
+                }
+            ),
+            env={},
+        )
+        tools = {item["name"]: item for item in response["result"]["tools"]}
+
+        compare_props = tools["keepa.products_compare"]["inputSchema"]["properties"]
+        policy_props = tools["keepa.context_policy"]["inputSchema"]["properties"]
+        self.assertIn("resource_uri", compare_props)
+        self.assertNotIn("resource_uri", policy_props)
+
+        invalid = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "runtime-unsupported",
+                    "method": "tools/call",
+                    "params": {"name": "keepa.context_policy", "arguments": {"resource_uri": "keepa://research/example"}},
+                }
+            ),
+            env={},
+        )
+        self.assertEqual(invalid["error"]["code"], -32602)
+        self.assertIn("unsupported argument: resource_uri", invalid["error"]["data"]["errors"])
+
     def test_tools_list_marks_inactive_tools_for_profile(self):
         response = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "profile", "method": "tools/list", "params": {"toolset": "all", "profile": "offline_fixture_only"}}),
@@ -499,6 +532,26 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("missing required argument: term", response["error"]["data"]["errors"])
         self.assertIn("unsupported argument: extra", response["error"]["data"]["errors"])
 
+    def test_tools_call_missing_workflow_input_returns_structured_error(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "missing-workflow-input",
+                    "method": "tools/call",
+                    "params": {"name": "keepa.research_graph_merge", "arguments": {}},
+                }
+            ),
+            env={},
+        )
+
+        result = response["result"]
+        structured = result["structuredContent"]
+        self.assertTrue(result["isError"])
+        self.assertFalse(structured["ok"])
+        self.assertEqual(structured["error"]["kind"], "missing_inputs")
+        self.assertEqual(structured["error"]["details"]["missing_inputs"][0]["field"], "graph")
+
     def test_high_cost_tool_without_confirmation_returns_structured_error(self):
         response = handle_mcp_message(
             json.dumps(
@@ -583,6 +636,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa://guides/cassette-promotion", uris)
         self.assertIn("keepa://evidence/recent", uris)
         self.assertIn("keepa://tools/index", uris)
+        self.assertIn("keepa://workflow/runtime-contract", uris)
         self.assertIn("keepa://prompts/index", uris)
         self.assertIn("keepa://zread/wiki/current", uris)
         self.assertIn("keepa://zread/wiki/toc", uris)
@@ -603,6 +657,22 @@ class McpProtocolTests(unittest.TestCase):
         content = guide["result"]["contents"][0]
         self.assertEqual(content["mimeType"], "text/markdown")
         self.assertIn("cassettes promote", content["text"])
+
+        runtime = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "runtime-contract",
+                    "method": "resources/read",
+                    "params": {"uri": "keepa://workflow/runtime-contract"},
+                }
+            ),
+            env={},
+        )
+        runtime_payload = json.loads(runtime["result"]["contents"][0]["text"])
+        self.assertIn("resource_uri", runtime_payload["argument_names"])
+        self.assertEqual(runtime_payload["failure_kind"], "missing_inputs")
+        self.assertTrue(any(item["name"] == "keepa.products_compare" for item in runtime_payload["tools"]))
 
     def test_zread_resources_read_current_toc_pages_and_page(self):
         current = handle_mcp_message(
@@ -728,6 +798,7 @@ class McpProtocolTests(unittest.TestCase):
         )
         toolset_payload = json.loads(toolset["result"]["contents"][0]["text"])
         self.assertEqual(toolset_payload["toolset"], "research")
+        self.assertEqual(toolset_payload["workflow_runtime_contract_uri"], "keepa://workflow/runtime-contract")
         self.assertTrue(any(item["resource_uri"] == "keepa://tools/keepa.products_get" for item in toolset_payload["tools"]))
 
         tool = handle_mcp_message(
@@ -737,6 +808,8 @@ class McpProtocolTests(unittest.TestCase):
         tool_payload = json.loads(tool["result"]["contents"][0]["text"])
         self.assertEqual(tool_payload["tool"]["name"], "keepa.products_get")
         self.assertEqual(tool_payload["execution"]["service_command"], "products.get")
+        self.assertTrue(tool_payload["execution"]["workflow_runtime"])
+        self.assertEqual(tool_payload["execution"]["workflow_runtime_contract_uri"], "keepa://workflow/runtime-contract")
         self.assertIn("inputSchema", tool_payload["tool"])
 
         prompts = handle_mcp_message(
@@ -942,6 +1015,242 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["data"]["view"], "research_graph_merge")
         self.assertEqual(structured["data"]["input_graph_count"], 2)
         self.assertGreaterEqual(structured["data"]["summary"]["entity_counts"]["category"], 1)
+
+    def test_workflow_resource_uri_resolves_category_products_to_compare(self):
+        session = AgentSession(env={})
+        category_products = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "category-products",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.categories_products",
+                        "arguments": {
+                            "category": "1055398",
+                            "domain": "US",
+                            "fixture": "bestsellers_home.json",
+                            "limit": 5,
+                            "yes": True,
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+
+        compared = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "compare-from-resource",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_compare",
+                        "arguments": {
+                            "resource_uri": f"keepa://research/{category_products['cache_key']}",
+                            "domain": "US",
+                            "fixture": "products_compare_agent_eval.json",
+                            "full": True,
+                            "view": "deal",
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+
+        self.assertTrue(compared["ok"])
+        self.assertEqual(compared["command"], "products.compare")
+        self.assertEqual(compared["data"]["product_count"], 3)
+        self.assertEqual(compared["data"]["workflow_resolution"]["derived_values"]["asins"][:2], ["B001GZ6QEC", "B000TEST001"])
+        self.assertEqual(compared["data"]["workflow_resolution"]["resolved"][0]["cache_key"], category_products["cache_key"])
+
+    def test_workflow_resource_uri_resolves_graph_for_report_tools(self):
+        session = AgentSession(env={})
+        product = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "product-for-report",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_get",
+                        "arguments": {
+                            "asin": "B0D8W1YVBX",
+                            "domain": "US",
+                            "fixture": "product_B0D8W1YVBX_agent_eval.json",
+                            "agent_view": True,
+                            "view": "summary",
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+
+        merged = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "merge-resource",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.research_graph_merge",
+                        "arguments": {
+                            "resource_uri": f"keepa://research/{product['cache_key']}/graph",
+                            "root": "agent-report",
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+        self.assertTrue(merged["ok"])
+        self.assertEqual(merged["data"]["input_graph_count"], 1)
+        self.assertEqual(merged["data"]["workflow_resolution"]["graph_count"], 1)
+
+        report = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "report-from-resource",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.reports_build",
+                        "arguments": {
+                            "resource_uri": f"keepa://research/{merged['cache_key']}",
+                            "format": "json",
+                            "title": "Agent Report",
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+
+        self.assertTrue(report["ok"])
+        self.assertEqual(report["command"], "reports.build")
+        self.assertEqual(report["data"]["research_graph"]["entity_counts"]["research_graph"], 1)
+        self.assertGreaterEqual(len(report["data"]["workflow_resolution"]["temp_paths"]), 1)
+
+    def test_workflow_artifact_output_path_resolves_local_report_chain(self):
+        session = AgentSession(env={})
+        with tempfile.TemporaryDirectory() as temp_dir:
+            graph_path = str(Path(temp_dir) / "merged-graph.json")
+            brief_path = str(Path(temp_dir) / "brief.json")
+            product = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "artifact-product",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.products_get",
+                            "arguments": {
+                                "asin": "B0D8W1YVBX",
+                                "domain": "US",
+                                "fixture": "product_B0D8W1YVBX_agent_eval.json",
+                                "agent_view": True,
+                                "view": "summary",
+                            },
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+            merged = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "artifact-merge",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.research_graph_merge",
+                            "arguments": {
+                                "resource_uri": f"keepa://research/{product['cache_key']}/graph",
+                                "root": "artifact-report-chain",
+                                "out": graph_path,
+                            },
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+            brief = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "artifact-brief",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.research_brief_export",
+                            "arguments": {"artifact": merged, "title": "Artifact Brief", "out": brief_path},
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+            report = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "artifact-report",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.reports_build",
+                            "arguments": {"artifact": {"output": {"path": graph_path}}, "format": "json", "title": "Artifact Report"},
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+        self.assertTrue(merged["ok"])
+        self.assertTrue(brief["ok"])
+        self.assertTrue(report["ok"])
+        self.assertEqual(brief["data"]["workflow_resolution"]["resolved"][0]["kind"], "path")
+        self.assertEqual(brief["data"]["workflow_resolution"]["resolved"][0]["path"], graph_path)
+        self.assertEqual(report["data"]["workflow_resolution"]["resolved"][0]["kind"], "path")
+        self.assertEqual(report["data"]["workflow_resolution"]["resolved"][0]["path"], graph_path)
+        self.assertEqual(report["data"]["research_graph"]["entity_counts"]["research_graph"], 1)
+
+    def test_graph_root_resource_is_audit_only_for_workflow_resolution(self):
+        session = AgentSession(env={})
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "graph-root-audit-only",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.research_graph_merge",
+                        "arguments": {"resource_uri": "keepa://graphs/product_compare_agent_eval", "root": "audit-only"},
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )
+
+        structured = response["result"]["structuredContent"]
+        self.assertFalse(structured["ok"])
+        self.assertEqual(structured["error"]["kind"], "missing_inputs")
+        resolution = structured["error"]["details"]["workflow_resolution"]
+        self.assertEqual(resolution["resolved"][0]["kind"], "graph_audit_resource")
+        self.assertEqual(resolution["missing_inputs"][0]["field"], "graph")
 
     def test_research_brief_export_tool_and_resources_use_session_cache(self):
         session = AgentSession(env={})

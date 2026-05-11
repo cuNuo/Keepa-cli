@@ -944,6 +944,12 @@
             "mimeType": "str",
             "name": "str",
             "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
           }
         ],
         "server_name": "str",
@@ -966,6 +972,15 @@
                 },
                 "aplus": {
                   "description": "str",
+                  "type": "str"
+                },
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
                   "type": "str"
                 },
                 "asin": {
@@ -1064,6 +1079,17 @@
                   "description": "str",
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "stats": {
                   "description": "str",
                   "type": "str"
@@ -1105,6 +1131,14 @@
                     "str",
                     "str"
                   ],
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
                   "type": "str"
                 },
                 "yes": {
@@ -1186,7 +1220,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -1200,6 +1243,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "asin": {
                   "description": "str",
                   "items": {
@@ -1259,6 +1311,17 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "stats_window": {
                   "default": "str",
                   "description": "str",
@@ -1290,6 +1353,14 @@
                     "str",
                     "str"
                   ],
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
                   "type": "str"
                 },
                 "yes": {
@@ -1375,7 +1446,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -1513,6 +1593,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "category": {
                   "description": "str",
                   "type": "str"
@@ -1568,6 +1657,17 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "temporal_window_days": {
                   "description": "str",
                   "oneOf": [
@@ -1584,6 +1684,14 @@
                       "type": "str"
                     }
                   ]
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
+                  "type": "str"
                 },
                 "yes": {
                   "default": "bool",
@@ -1667,7 +1775,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -1681,6 +1798,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "category": {
                   "description": "str",
                   "type": "str"
@@ -1721,10 +1847,29 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "sales_rank_max": {
                   "default": "int",
                   "description": "str",
                   "minimum": "int",
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
                   "type": "str"
                 }
               },
@@ -1805,7 +1950,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -2677,6 +2831,15 @@
                 }
               ],
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "from_cache": {
                   "description": "str",
                   "type": "str"
@@ -2733,8 +2896,27 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "root": {
                   "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
                   "description": "str",
                   "type": "str"
                 }
@@ -2813,7 +2995,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -2844,6 +3035,15 @@
                 }
               ],
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "from_cache": {
                   "description": "str",
                   "type": "str"
@@ -2909,8 +3109,27 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "title": {
                   "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
                   "description": "str",
                   "type": "str"
                 }
@@ -2989,7 +3208,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -3579,6 +3807,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "commands": {
                   "description": "str",
                   "items": {
@@ -3617,7 +3854,26 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "target_command": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
                   "description": "str",
                   "type": "str"
                 }
@@ -3695,7 +3951,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -4122,6 +4387,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "format": {
                   "default": "str",
                   "description": "str",
@@ -4155,8 +4429,27 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "title": {
                   "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
                   "description": "str",
                   "type": "str"
                 }
@@ -4236,7 +4529,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -4250,6 +4552,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "from_cache": {
                   "description": "str",
                   "type": "str"
@@ -4274,10 +4585,29 @@
                   ],
                   "type": "str"
                 },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
                 "title": {
                   "default": "str",
                   "description": "str",
                   "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
+                  "type": "str"
                 }
               },
               "required": [
@@ -4355,7 +4685,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -4619,6 +4958,15 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
                 "asin": {
                   "description": "str",
                   "type": "str"
@@ -4651,6 +4999,25 @@
                     "str"
                   ],
                   "type": "str"
+                },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
+                  "type": "str"
                 }
               },
               "required": [
@@ -4728,7 +5095,16 @@
                 "str"
               ],
               "inactive_reason": "null",
-              "service_command": "str"
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
             }
           },
           {
@@ -4873,7 +5249,236 @@
           "str",
           "str"
         ],
-        "transport": "str"
+        "transport": "str",
+        "workflow_runtime": {
+          "accepted_sources": [
+            {
+              "argument": "str",
+              "sources": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
+            },
+            {
+              "argument": "str",
+              "sources": [
+                "str"
+              ]
+            },
+            {
+              "argument": "str",
+              "sources": [
+                "str"
+              ]
+            },
+            {
+              "argument": "str",
+              "sources": [
+                "str"
+              ]
+            },
+            {
+              "argument": "str",
+              "sources": [
+                "str"
+              ]
+            },
+            {
+              "argument": "str",
+              "sources": [
+                "str"
+              ]
+            }
+          ],
+          "argument_names": [
+            "str",
+            "str",
+            "str",
+            "str",
+            "str",
+            "str"
+          ],
+          "failure_kind": "str",
+          "schema_version": "str",
+          "success_field": "str",
+          "tool_count": "int",
+          "tools": [
+            {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str",
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str",
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str",
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str",
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            }
+          ]
+        }
       },
       "protocols": [
         "str",
@@ -7614,6 +8219,12 @@
     "jsonrpc": "str",
     "result": {
       "resources": [
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
         {
           "description": "str",
           "mimeType": "str",

@@ -26,6 +26,7 @@ from keepa_cli.agent.tools import (
     toolset_names,
     validate_tool_arguments,
 )
+from keepa_cli.agent.workflow_resolver import resolve_workflow_arguments
 from keepa_cli.envelope import error_envelope
 
 
@@ -198,7 +199,27 @@ def _handle_tools_call(
     arguments = params.get("arguments") or {}
     if not isinstance(arguments, dict):
         return _jsonrpc_error(message_id, -32602, "Invalid tool arguments", {"tool": name})
+    active_session = session or AgentSession(env=env)
+    workflow_resolution = None
+    if tool.workflow_runtime:
+        arguments, workflow_resolution = resolve_workflow_arguments(tool.name, arguments, session_cache=active_session.cache)
     validation_errors = validate_tool_arguments(tool, arguments)
+    missing_inputs = workflow_resolution.get("missing_inputs") if isinstance(workflow_resolution, Mapping) else None
+    if missing_inputs:
+        payload = error_envelope(
+            command=tool.command,
+            kind="missing_inputs",
+            message=f"tool {tool.name} is missing workflow inputs",
+            details={
+                "tool": tool.name,
+                "missing_inputs": missing_inputs,
+                "workflow_resolution": workflow_resolution,
+            },
+        )
+        payload["cache_key"] = ""
+        payload["cache_hit"] = False
+        payload["budget_ledger"] = active_session.ledger.to_dict()
+        return _jsonrpc_result(message_id, _tool_result(payload))
     if validation_errors:
         return _jsonrpc_error(message_id, -32602, "Invalid tool arguments", {"tool": name, "errors": validation_errors})
 
@@ -212,13 +233,15 @@ def _handle_tools_call(
         )
         payload["cache_key"] = ""
         payload["cache_hit"] = False
-        active_session = session or AgentSession(env=env)
         payload["budget_ledger"] = active_session.ledger.to_dict()
         return _jsonrpc_result(message_id, _tool_result(payload))
 
     command_params = tool_params_to_command_params(tool, arguments)
-    active_session = session or AgentSession(env=env)
     payload = active_session.execute(tool.command, command_params, tool=tool.name)
+    if isinstance(workflow_resolution, Mapping) and workflow_resolution.get("resolved"):
+        data = payload.get("data")
+        if isinstance(data, dict):
+            data["workflow_resolution"] = workflow_resolution
     return _jsonrpc_result(message_id, _tool_result(payload))
 
 

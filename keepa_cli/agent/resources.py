@@ -19,7 +19,7 @@ from typing import Any
 from keepa_cli import __version__
 from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
-from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names
+from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names, workflow_runtime_contract
 from keepa_cli.research_brief import brief_graph_resource_payload, brief_resource_payload
 from keepa_cli.research_context import build_context_policy
 from keepa_cli.research_graph import extract_research_graphs, graph_summary
@@ -64,6 +64,12 @@ STATIC_RESOURCES: tuple[dict[str, str], ...] = (
         "uri": "keepa://tools/index",
         "name": "mcp-tools-index",
         "description": "Compact MCP toolset and tool schema index for Agent discovery without loading every tool schema.",
+        "mimeType": "application/json",
+    },
+    {
+        "uri": "keepa://workflow/runtime-contract",
+        "name": "workflow-runtime-contract",
+        "description": "MCP tools/call runtime argument contract for resource_uri, artifacts, workflow_inputs, and missing_inputs handling.",
         "mimeType": "application/json",
     },
     {
@@ -220,6 +226,8 @@ def read_mcp_resource(
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(build_context_policy(repo_root=repo_root), ensure_ascii=False, indent=2)}
     if uri == "keepa://tools/index":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_tools_index(), ensure_ascii=False, indent=2)}
+    if uri == "keepa://workflow/runtime-contract":
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(workflow_runtime_contract(), ensure_ascii=False, indent=2)}
     if uri == "keepa://prompts/index":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_prompts_index(), ensure_ascii=False, indent=2)}
     if uri == "keepa://zread/wiki/current":
@@ -582,10 +590,12 @@ def _tools_index() -> dict[str, Any]:
                 "description": tool.get("description"),
                 "service_command": (tool.get("x-keepa") or {}).get("service_command"),
                 "groups": (tool.get("x-keepa") or {}).get("groups", []),
+                "workflow_runtime": bool((tool.get("x-keepa") or {}).get("workflow_runtime")),
                 "resource_uri": f"keepa://tools/{tool['name']}",
             }
             for tool in list_mcp_tools(toolsets="all")
         ],
+        "workflow_runtime_contract_uri": "keepa://workflow/runtime-contract",
     }
 
 
@@ -606,10 +616,12 @@ def _read_toolset_resource(uri: str) -> dict[str, str]:
                 "description": tool.get("description"),
                 "service_command": (tool.get("x-keepa") or {}).get("service_command"),
                 "groups": (tool.get("x-keepa") or {}).get("groups", []),
+                "workflow_runtime": bool((tool.get("x-keepa") or {}).get("workflow_runtime")),
                 "resource_uri": f"keepa://tools/{tool['name']}",
             }
             for tool in tools
         ],
+        "workflow_runtime_contract_uri": "keepa://workflow/runtime-contract",
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
 
@@ -627,6 +639,8 @@ def _read_tool_resource(uri: str) -> dict[str, str]:
             "service_command": tool.command,
             "argument_mode": "structured_json",
             "cli_string_is_display_only": True,
+            "workflow_runtime": tool.workflow_runtime,
+            "workflow_runtime_contract_uri": "keepa://workflow/runtime-contract" if tool.workflow_runtime else None,
         },
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}

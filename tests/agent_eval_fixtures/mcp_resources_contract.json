@@ -11,6 +11,7 @@
     {"path": "result.resources.2.uri", "equals": "keepa://guides/cassette-promotion"},
     {"path": "result.resources.3.uri", "equals": "keepa://evidence/recent"},
     {"path": "result.resources", "contains_item": {"uri": "keepa://context/policy"}},
+    {"path": "result.resources", "contains_item": {"uri": "keepa://workflow/runtime-contract"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://zread/wiki/current"}}
   ]
 }
