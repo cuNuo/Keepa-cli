@@ -121,6 +121,25 @@ def _payload_for_prepared_spec(spec: dict[str, Any], fixture_dir: Path) -> dict[
         for step in spec.get("steps") or []:
             payloads.append(session.execute(step["command"], step.get("params") or {}, tool=step.get("tool")))
         return {"ok": True, "kind": "session", "payloads": payloads, "budget_ledger": session.ledger.to_dict()}
+    if kind == "mcp_session":
+        session = AgentSession(env={})
+        responses = []
+        for index, step in enumerate(spec.get("steps") or []):
+            response = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": step.get("id") or f"agent-eval-{index}",
+                        "method": step["method"],
+                        "params": step.get("params") or {},
+                    }
+                ),
+                env={},
+                session=session,
+            )
+            if response is not None:
+                responses.append(response)
+        return {"ok": True, "kind": "mcp_session", "responses": responses, "budget_ledger": session.ledger.to_dict()}
     raise AssertionError(f"unsupported agent eval spec kind: {kind}")
 
 

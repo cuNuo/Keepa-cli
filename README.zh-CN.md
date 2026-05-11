@@ -209,7 +209,7 @@ kc --json research-graph merge .\category.json .\compare.json .\seller.json --ro
 
 合并结果会给出 `source_weight`、重复节点、孤立节点、label/type 冲突诊断、`diff` 摘要和可选 `--prefer-source` 冲突解析，便于 Agent 在多来源结果不一致时先审计再写报告。`reports build` 可以直接读取 merged graph JSON，并在 Markdown 中生成实体关系报告，或在 JSON 输出中写入 `research_graph_report`。
 
-`workflow plan` 现在会同时输出 `workflow_policy`，包含推荐 MCP `toolset`、会话 `profile`、allowed/inactive tools、profile switch points、确认策略、缓存建议和预算账本种子。支持 `category-research`、`product-research`、`report-research` 与 `tracking-audit`；其中 `report-research` 只走本地 reports toolset，`tracking-audit` 只走 tracking-readonly toolset。Agent 应先按 `workflow_policy.tool_discovery` 收窄 `tools/list`，再根据 `profile_switch_points` 逐步切换 profile；高成本步骤只在用户确认后追加 `yes=true`。
+`workflow plan` 现在会同时输出 `workflow_inputs`、`artifacts`、`resource_templates` 与 `workflow_policy`。`workflow_policy` 包含推荐 MCP `toolset`、会话 `profile`、allowed/inactive tools、profile switch points、确认策略、缓存建议和预算账本种子；每个 step 还会暴露 `input_refs` 与 `artifact_refs`，避免 Agent 从 CLI 字符串里推断中间产物。支持 `category-research`、`product-research`、`report-research` 与 `tracking-audit`；其中 `report-research` 只走本地 reports toolset，`tracking-audit` 只走 tracking-readonly toolset。Agent 应先按 `workflow_policy.tool_discovery` 收窄 `tools/list`，再根据 `profile_switch_points` 逐步切换 profile；高成本步骤只在用户确认后追加 `yes=true`。
 
 ## zread 文档
 

@@ -369,9 +369,11 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan tracking-audit --asin B0D8W1YVBX --domain US
 ```
 
-`workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`steps`、`totals`、`parallel_groups`、`workflow_policy`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`mcp_tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation`、`fixture_replay`、`mcp` 与 `execution`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
+`workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`workflow_inputs`、`artifacts`、`resource_templates`、`steps`、`totals`、`parallel_groups`、`workflow_policy`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`mcp_tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation`、`fixture_replay`、`input_refs`、`artifact_refs`、`mcp` 与 `execution`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
 
 `workflow_policy` 是 Agent 执行阶段的第一读字段：`recommended_toolset` 与 `recommended_profile` 给出默认 `tools/list` 过滤；`allowed_tools` / `inactive_tools` 说明当前 profile 下哪些工具可调用、哪些步骤需要切换 profile；`profile_switch_points` 给出阶段切换点；`confirmation_policy` 列出必须暂停等待确认的 step；`budget_ledger_seed` 给出计划预算和初始 blocked actions；`tool_discovery.params.allow_tools` 可直接作为 MCP `tools/list` 参数复用。Agent 不应直接给高成本步骤补 `yes=true`，除非用户确认了对应 step。
+
+`workflow_inputs` 明确区分用户已给参数、后续步骤产物和占位值；`artifacts` 给出每个中间产物的 kind、producer、路径或可用 resource template；`resource_templates` 汇总可复用的 `keepa://workflow/{encoded_params}/policy`、`keepa://research/{cache_key}`、`keepa://graphs/{root}`、`keepa://output/{encoded_path}` 等读取入口。Agent 应优先使用这些字段连接步骤，不应解析 `cli` 字符串来猜测输入和输出路径。
 
 当前内置计划：
 
