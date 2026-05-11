@@ -250,6 +250,7 @@ PRODUCTS_COMPARE_SCHEMA: JsonSchema = {
         },
         "fields": _string_schema("Comma-separated Agent view sections."),
         "history_limit": _integer_schema("Recent points retained per history series.", minimum=0, default=5),
+        "keep_history_points": _boolean_schema("Retain bounded per-ASIN history points in compare rows for offline multi-ASIN figures.", default=False),
         "temporal_window_days": {
             "oneOf": [{"type": "integer"}, {"type": "array", "items": {"type": "integer"}}, {"type": "string"}],
             "description": "Temporal feature windows in days.",

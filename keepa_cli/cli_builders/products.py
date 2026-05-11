@@ -60,6 +60,11 @@ def add_products_parser(subparsers: argparse._SubParsersAction[argparse.Argument
     products_compare.add_argument("--view", choices=("summary", "research", "deal", "audit"), default="deal", help="对比前使用的 Agent profile。")
     products_compare.add_argument("--fields", help="逗号分隔 Agent 视图字段。")
     products_compare.add_argument("--history-limit", type=int, default=5, help="每个历史序列保留的最近点数。")
+    products_compare.add_argument(
+        "--keep-history-points",
+        action="store_true",
+        help="在每个 ASIN 对比行中保留 bounded history points，便于离线多 ASIN 时序图。",
+    )
     products_compare.add_argument("--temporal-window-days", action="append", default=[], help="Agent 时序特征窗口天数，可重复或逗号分隔。")
     products_compare.add_argument("--offers", help="请求 offer 数，官方范围 20-100，会显著消耗 token。")
     products_compare.add_argument("--fixture", help="使用 tests/fixtures 下的离线响应文件。")
@@ -145,6 +150,7 @@ def maybe_run_products_command(args: argparse.Namespace) -> tuple[int, dict[str,
                 "view": args.view,
                 "fields": args.fields,
                 "history_limit": args.history_limit,
+                "keep_history_points": bool(args.keep_history_points),
                 "temporal_windows": args.temporal_window_days,
                 "offers": args.offers,
                 "fixture": args.fixture,

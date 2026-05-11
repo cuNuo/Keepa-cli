@@ -54,3 +54,50 @@
 - 当前 SVG 仍是标准库静态图，优势是零依赖和 MCP 友好；后续如需要出版级复杂统计样式，可考虑可选 extras，但不应进入核心依赖。
 - 多 ASIN small multiples 在 compare 摘要下使用当前指标标准化；若要画多 ASIN 真实历史折线，需要 compare 命令保留每个 ASIN 的 bounded `history_summary.last_points`。
 - 下一步最值得做：让 `mcp_report_research_example.py` 演示 `keepa://research/{cache_key}/figures` resource 链路，并在 Agent eval 中断言 Markdown report 中的 SVG 链接可读取。
+
+## 2026-05-11 增量收口
+
+### 前置说明
+
+- 本次继续沿用 `nature-figure` 的图表契约，但保持核心包零新增绘图库依赖；SVG 仍由标准库生成，重点补齐科学图表基本结构。
+- 未访问真实 Keepa API，未消耗 token；预览使用 `tests/fixtures/agent_eval_products_compare_output.json` 与本地 `evidence/runtime-logs/20260510-B0D8W1YVBX-full.json`。
+- `evidence/runtime/` 下预览产物仅用于本地查看，不进入提交。
+
+### 已落地
+
+1. 独立 SVG 图表
+   - `figures.research` 现在除兼容的 `agent-research-summary.svg` 外，还生成独立图：`product-metric-comparison.svg`、`history-lines.svg`、`window-change-heatmap.svg`、`small-multiples.svg`、`risk-graph-summary.svg`。
+   - 每张图在 manifest 中记录 `kind`、`x_axis`、`y_axis`、`caption`、`source_data_path` 与 MCP `resource_uri`。
+   - 图表补齐白底、标题、副标题、坐标轴、刻度、图注与轻量语义色。
+
+2. Raw Keepa body 时序提取
+   - `figures.research` 可直接识别根层 Keepa raw body 的 `products[].csv`，复用 `product_view` 的 csv 解析逻辑生成 `history_series` 和 `window_heatmap`。
+   - `B0D8W1YVBX-full.json` 离线预览已能提取 `history_series_count=4`、`window_heatmap_cell_count=35`。
+
+3. MCP / report 链路
+   - `scripts/mcp_report_research_example.py` 显式演示 `keepa://research/{cache_key}/figures`，并读取其中 SVG resource。
+   - `reports.build` 的 figure 条目新增 `resource_uri`，Markdown 中追加 `- MCP resource: ...`，Agent 可直接通过 `resources/read` 读取 SVG。
+   - Agent/MCP 测试新增 report Markdown SVG resource 可读断言。
+
+4. products.compare 与 token 等待
+   - `products.compare` 新增 `--keep-history-points` / `keep_history_points`，可在每个 ASIN 行保留 bounded `history_summary.series.*.last_points`，默认关闭以避免上下文膨胀。
+   - Keepa live JSON 请求遇到 429 且返回 `refillIn` 时会最多等待一次再重试，成功时记录 `token_bucket.waited_for_refill_ms`；等待上限为 60 秒，避免长时间挂起。
+
+### 预览产物
+
+- Report Markdown：`evidence/runtime/report-preview-20260511-full/b0d8w1yvbx-report.md`
+- 历史折线：`evidence/runtime/report-preview-20260511-full/b0d8w1yvbx-report-figures/history-lines.svg`
+- 窗口热图：`evidence/runtime/report-preview-20260511-full/b0d8w1yvbx-report-figures/window-change-heatmap.svg`
+- 多 ASIN 标准化图：`evidence/runtime/report-preview-20260511/agent-report-figures/small-multiples.svg`
+
+### 已执行验证
+
+- `.\.venv\Scripts\python.exe -m unittest tests.test_phase10_workflows tests.test_mcp tests.test_service_commands tests.test_client -v`：83 tests OK。
+- `.\.venv\Scripts\python.exe scripts\check_agent_eval_fixtures.py`：29 specs OK。
+- `.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json`：OK，确认 `keepa://research/{cache_key}/figures` 可读 SVG。
+
+### 后续建议
+
+- 针对真实多 ASIN full response 沉淀一个离线 sanitized fixture，用于验证多 ASIN 真实历史 small multiples，而不只验证当前指标标准化。
+- 为 `figures.research` 增加可选 `--figure-set history|compare|audit|all`，让 Agent 控制返回图数量，进一步降低上下文和报告噪声。
+- 增加 SVG 视觉快照 smoke：检查每张图存在标题、轴标签、至少一个数据几何元素或明确空态，防止后续图形回退。

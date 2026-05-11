@@ -39,6 +39,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
             )
             merged_resource_uri = research_resource_uri(str(merged["cache_key"]))
             merged_graph_uri = research_resource_uri(str(merged["cache_key"]), "/graph")
+            merged_figures_uri = research_resource_uri(str(merged["cache_key"]), "/figures")
             brief = client.call_tool("keepa.research_brief_export", {"resource_uri": merged_resource_uri, "title": args.title})
             browse = client.call_tool(
                 "keepa.browse_snapshot",
@@ -57,6 +58,9 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                 },
             )
             figures = figures_result["structuredContent"]
+            figures_resource = client.read_resource_json(merged_figures_uri)
+            resource_svg = _first_svg_resource_from_manifest(figures_resource.get("mcp_resource_manifest", {}))
+            resource_svg_text, resource_svg_mime = client.read_resource_text(str(resource_svg.get("uri") or ""))
             report = client.call_tool(
                 "keepa.reports_build",
                 {
@@ -91,6 +95,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                         "cache_key": merged["cache_key"],
                         "resource_uri": merged_resource_uri,
                         "graph_resource_uri": merged_graph_uri,
+                        "figures_resource_uri": merged_figures_uri,
                         "entity_counts": graph_counts(merged),
                         "output_path": graph_path,
                         "output_exists_during_run": graph_file.exists(),
@@ -113,6 +118,10 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                         "svg_path": figures["data"].get("figures", [{}])[0].get("path"),
                         "svg_resource_uri": svg_resource.get("uri"),
                         "svg_mime_type": svg_resource.get("mimeType"),
+                        "research_figures_resource_uri": merged_figures_uri,
+                        "research_figures_svg_resource_uri": resource_svg.get("uri"),
+                        "research_figures_svg_mime_type": resource_svg_mime,
+                        "research_figures_svg_read_bytes": len(resource_svg_text.encode("utf-8")),
                         "data_summary": figures["data"].get("data_summary", {}),
                     },
                     "report": {
@@ -137,6 +146,14 @@ def _first_svg_resource(result: dict[str, Any]) -> dict[str, Any]:
     except json.JSONDecodeError:
         return {}
     manifest = text_payload.get("mcp_resource_manifest") if isinstance(text_payload, dict) else {}
+    resources = manifest.get("resources") if isinstance(manifest, dict) and isinstance(manifest.get("resources"), list) else []
+    for resource in resources:
+        if isinstance(resource, dict) and resource.get("mimeType") == "image/svg+xml":
+            return resource
+    return {}
+
+
+def _first_svg_resource_from_manifest(manifest: Any) -> dict[str, Any]:
     resources = manifest.get("resources") if isinstance(manifest, dict) and isinstance(manifest.get("resources"), list) else []
     for resource in resources:
         if isinstance(resource, dict) and resource.get("mimeType") == "image/svg+xml":

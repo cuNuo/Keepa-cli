@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from keepa_cli.agent_contract import build_action, build_evidence_index
+from keepa_cli.agent.resources import path_to_resource_uri
 from keepa_cli.agent.tools import is_tool_active_for_profile, profile_allowed_tools, profile_names
 from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path, explain_response_cache_key
 from keepa_cli.figures import build_research_figures
@@ -1076,6 +1077,7 @@ def _report_figure_info(
                     "format": path.suffix.lower().lstrip(".") or "file",
                     "size_bytes": path.stat().st_size,
                     "markdown": _markdown_image_path(path),
+                    "resource_uri": path_to_resource_uri(path, kind="output"),
                 }
             ],
         }
@@ -1088,6 +1090,7 @@ def _report_figure_info(
             continue
         entry = dict(item)
         entry["markdown"] = _markdown_image_path(Path(str(item.get("path") or "")))
+        entry["resource_uri"] = path_to_resource_uri(Path(str(item.get("path") or "")), kind="output")
         figures.append(entry)
     return {
         "mode": "generated",
@@ -1118,6 +1121,10 @@ def _figures_markdown(figure_info: Mapping[str, Any]) -> str:
         image = item.get("markdown") or item.get("path")
         title = item.get("name") or "Keepa research figure"
         lines.append(f"![{title}]({image})")
+        resource_uri = item.get("resource_uri")
+        if resource_uri:
+            lines.append("")
+            lines.append(f"- MCP resource: `{resource_uri}`")
         source = item.get("source_data_path")
         if source:
             lines.append("")

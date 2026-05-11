@@ -251,12 +251,20 @@ class KeepaClient:
         request = urllib.request.Request(url, data=body_bytes, headers=headers, method=method)
         secret_values = [str(params["key"])] if params.get("key") else []
         attempts = 0
+        token_wait_ms = 0
         while True:
             try:
                 with self.opener(request, timeout=self.timeout_seconds) as response:
                     response_body = self._decode_response_body(response)
                 break
             except urllib.error.HTTPError as exc:
+                if exc.code == 429 and attempts == 0:
+                    wait_ms = self._token_retry_wait_ms(exc)
+                    if wait_ms is not None:
+                        attempts += 1
+                        token_wait_ms = wait_ms
+                        self.sleeper(wait_ms / 1000)
+                        continue
                 if exc.code >= 500 and attempts == 0:
                     attempts += 1
                     self.sleeper(2.0)
@@ -286,6 +294,8 @@ class KeepaClient:
                 )
 
         token_bucket = self._token_bucket_from_body(response_body, budget)
+        if token_wait_ms:
+            token_bucket["waited_for_refill_ms"] = token_wait_ms
         cache_metadata = None
         if response_cache is not None and cache_key is not None:
             cache_metadata = response_cache.set(
@@ -318,6 +328,20 @@ class KeepaClient:
             request=request_payload,
             token_bucket=token_bucket,
         )
+
+    @staticmethod
+    def _token_retry_wait_ms(exc: urllib.error.HTTPError) -> int | None:
+        if exc.code != 429:
+            return None
+        body = KeepaClient._read_http_error_body(exc)
+        refill = body.get("refillIn")
+        try:
+            wait_ms = int(refill)
+        except (TypeError, ValueError):
+            return None
+        if wait_ms <= 0:
+            return 0
+        return min(wait_ms, 60_000)
 
     def _live_binary_response(
         self,

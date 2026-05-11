@@ -309,6 +309,27 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertEqual(row["monthly_sold"], 100000)
         self.assertIn("selection_signals", row)
 
+    def test_products_compare_can_keep_bounded_history_points(self):
+        payload = run_command(
+            "products.compare",
+            {
+                "asin": ["B0TESTAGENT"],
+                "domain": "US",
+                "fixture": "product_agent_view_B0TEST.json",
+                "full": True,
+                "history_limit": 2,
+                "keep_history_points": True,
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        row = payload["data"]["rows"][0]
+        self.assertTrue(payload["data"]["source_view"]["history_points_retained"])
+        self.assertIn("bounded_history_points", row)
+        self.assertLessEqual(len(row["bounded_history_points"]["series"]["new"]["last_points"]), 2)
+
     def test_categories_get_uses_category_endpoint_and_parents_flag(self):
         payload = run_command(
             "categories.get",

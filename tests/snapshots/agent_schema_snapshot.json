@@ -1323,6 +1323,11 @@
                   "minimum": "int",
                   "type": "str"
                 },
+                "keep_history_points": {
+                  "default": "bool",
+                  "description": "str",
+                  "type": "str"
+                },
                 "offers": {
                   "description": "str",
                   "type": "str"
@@ -8962,6 +8967,7 @@
       "schema_version": "str",
       "source_view": {
         "chunks": "null",
+        "history_points_retained": "bool",
         "profile": "str",
         "raw": {
           "body_omitted": "bool",

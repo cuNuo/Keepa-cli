@@ -199,7 +199,7 @@ def build_agent_product_view(
     return result
 
 
-def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
+def build_product_compare_view(agent_view: Mapping[str, Any], *, include_history_points: bool = False) -> dict[str, Any]:
     products = agent_view.get("products") if isinstance(agent_view.get("products"), list) else []
     rows: list[dict[str, Any]] = []
     for product in products:
@@ -217,6 +217,8 @@ def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
         buy_box = pricing.get("buy_box") if isinstance(pricing.get("buy_box"), Mapping) else {}
         risk_taxonomy = product.get("risk_taxonomy") if isinstance(product.get("risk_taxonomy"), Mapping) else {}
         research_graph = product.get("research_graph") if isinstance(product.get("research_graph"), Mapping) else {}
+        history_summary = product.get("history_summary") if isinstance(product.get("history_summary"), Mapping) else {}
+        bounded_history = _compare_bounded_history_points(history_summary) if include_history_points else None
         rows.append(
             _compact(
                 {
@@ -240,6 +242,7 @@ def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
                     if isinstance(product.get("selection_signals"), Mapping)
                     else None,
                     "data_quality": product.get("data_quality"),
+                    "bounded_history_points": bounded_history,
                 }
             )
         )
@@ -255,6 +258,28 @@ def build_product_compare_view(agent_view: Mapping[str, Any]) -> dict[str, Any]:
             "raw": agent_view.get("raw"),
             "chunks": agent_view.get("chunks"),
         },
+    }
+
+
+def _compare_bounded_history_points(history_summary: Mapping[str, Any]) -> dict[str, Any] | None:
+    series_map = history_summary.get("series") if isinstance(history_summary.get("series"), Mapping) else {}
+    rows: dict[str, Any] = {}
+    for name in ("new", "buy_box_shipping", "sales_rank", "review_count", "rating", "new_offer_count"):
+        entry = series_map.get(name) if isinstance(series_map.get(name), Mapping) else {}
+        points = entry.get("last_points") if isinstance(entry.get("last_points"), list) else []
+        if not points:
+            continue
+        rows[name] = {
+            "unit": entry.get("unit"),
+            "point_count": entry.get("point_count"),
+            "omitted_points": entry.get("omitted_points"),
+            "last_points": points,
+        }
+    if not rows:
+        return None
+    return {
+        "data_basis": "agent_view.history_summary.series.*.last_points",
+        "series": rows,
     }
 
 

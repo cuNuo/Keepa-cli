@@ -228,7 +228,7 @@ class KeepaClientTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertNotIn("CONFIG_SECRET", encoded)
 
-    def test_http_429_maps_refill_to_retry_after_without_leaking_key(self):
+    def test_http_429_waits_once_then_maps_refill_to_retry_after_without_leaking_key(self):
         body = json.dumps({"refillIn": 12000, "tokensLeft": -1, "error": {"type": "TOKEN_LIMIT"}}).encode(
             "utf-8"
         )
@@ -239,7 +239,14 @@ class KeepaClientTests(unittest.TestCase):
             hdrs={},
             fp=io.BytesIO(body),
         )
-        opener = SequenceOpener([error])
+        retry_error = urllib.error.HTTPError(
+            url="https://api.keepa.com/product?key=SECRET123",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={},
+            fp=io.BytesIO(body),
+        )
+        opener = SequenceOpener([error, retry_error])
         client = KeepaClient(opener=opener, sleeper=lambda seconds: None)
 
         payload = client.request(
@@ -256,6 +263,39 @@ class KeepaClientTests(unittest.TestCase):
         self.assertEqual(payload["error"]["details"]["retry_after_ms"], 12000)
         self.assertEqual(payload["token_bucket"]["refill_in_ms"], 12000)
         self.assertNotIn("SECRET123", encoded)
+
+    def test_http_429_waits_for_refill_once_before_success(self):
+        body = json.dumps({"refillIn": 12000, "tokensLeft": -1, "error": {"type": "TOKEN_LIMIT"}}).encode(
+            "utf-8"
+        )
+        error = urllib.error.HTTPError(
+            url="https://api.keepa.com/product?key=SECRET123",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={},
+            fp=io.BytesIO(body),
+        )
+        waits: list[float] = []
+        opener = SequenceOpener(
+            [
+                error,
+                FakeResponse(b'{"tokensLeft":8,"tokensConsumed":1,"products":[]}'),
+            ]
+        )
+        client = KeepaClient(opener=opener, sleeper=waits.append)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
+        )
+
+        self.assertTrue(payload["ok"])
+        self.assertEqual(opener.calls, 2)
+        self.assertEqual(waits, [12.0])
+        self.assertEqual(payload["token_bucket"]["waited_for_refill_ms"], 12000)
 
     def test_server_error_retries_once_before_success(self):
         server_error = urllib.error.HTTPError(

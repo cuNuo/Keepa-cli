@@ -1520,6 +1520,9 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(payload["found"])
         self.assertTrue(payload["ok"])
         self.assertGreaterEqual(payload["figure_result"]["data_summary"]["small_multiple_count"], 3)
+        figure_names = {item["name"] for item in payload["figure_result"]["figures"]}
+        self.assertIn("history-lines", figure_names)
+        self.assertIn("window-change-heatmap", figure_names)
         svg_resource = payload["svg_resources"][0]
         svg = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "research-svg", "method": "resources/read", "params": {"uri": svg_resource["uri"]}}),
@@ -1529,6 +1532,59 @@ class McpProtocolTests(unittest.TestCase):
         content = svg["result"]["contents"][0]
         self.assertEqual(content["mimeType"], "image/svg+xml")
         self.assertIn("Multi-ASIN small multiples", content["text"])
+
+    def test_report_markdown_svg_resource_links_are_readable(self):
+        session = AgentSession(env={})
+        with tempfile.TemporaryDirectory() as temp_dir:
+            graph_path = str(Path(temp_dir) / "merged-graph.json")
+            report_path = str(Path(temp_dir) / "report.md")
+            merged = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "report-svg-merge",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.research_graph_merge",
+                            "arguments": {
+                                "input": "tests/fixtures/agent_eval_products_compare_output.json",
+                                "root": "report-svg-links",
+                                "out": graph_path,
+                            },
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+            self.assertTrue(merged["ok"])
+            report = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "report-svg-build",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.reports_build",
+                            "arguments": {"input": graph_path, "format": "markdown", "out": report_path, "title": "SVG Report"},
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+            self.assertTrue(report["ok"])
+            markdown = Path(report_path).read_text(encoding="utf-8")
+            resource_uri = next(line.split("`")[1] for line in markdown.splitlines() if line.startswith("- MCP resource: `"))
+            svg = handle_mcp_message(
+                json.dumps({"jsonrpc": "2.0", "id": "report-svg-read", "method": "resources/read", "params": {"uri": resource_uri}}),
+                env={},
+                session=session,
+            )
+            content = svg["result"]["contents"][0]
+            self.assertEqual(content["mimeType"], "image/svg+xml")
+            self.assertIn("<svg", content["text"])
 
     def test_research_graph_merge_reports_duplicate_label_conflicts(self):
         graph_a = {

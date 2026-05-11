@@ -115,15 +115,19 @@ def products_compare(params: Mapping[str, Any], fixture_dir: Path | str | None) 
     data = payload.get("data")
     if payload.get("ok") and isinstance(data, dict) and not data.get("dry_run"):
         history_limit = int(param(params, "history_limit", "history-limit") or 5)
+        keep_history_points = bool(param(params, "keep_history_points", "keep-history-points", "bounded_history_points", "bounded-history-points"))
+        compare_profile = str(param(params, "view") or "deal")
         agent_view = build_agent_product_view(
             data,
             history_limit=history_limit,
             temporal_windows=param(params, "temporal_windows", "temporal-window-days", "temporal_window_days"),
-            view_profile=str(param(params, "view") or "deal"),
+            view_profile="research" if keep_history_points and compare_profile == "deal" else compare_profile,
             fields=param(params, "fields"),
             chunks_dir=param(params, "chunks_dir", "chunks-dir"),
         )
-        payload["data"] = build_product_compare_view(agent_view)
+        payload["data"] = build_product_compare_view(agent_view, include_history_points=keep_history_points)
+        payload["data"]["source_view"]["profile"] = compare_profile
+        payload["data"]["source_view"]["history_points_retained"] = keep_history_points
     return payload
 
 

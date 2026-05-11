@@ -15,10 +15,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from keepa_cli.product_view import _history_summary, _temporal_features
 from keepa_cli.research_graph import extract_research_graphs
 
 
-FIGURE_SCHEMA_VERSION = "2026-05-11.1"
+FIGURE_SCHEMA_VERSION = "2026-05-11.2"
 
 
 PALETTE = {
@@ -50,33 +51,55 @@ def build_research_figures_from_payload(
     figure_data = _figure_data(payload)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
+    source_path = out / "agent-research-summary.source.json"
+    _write_text(source_path, json.dumps({"schema_version": FIGURE_SCHEMA_VERSION, **figure_data}, ensure_ascii=False, indent=2) + "\n")
+
+    figure_items: list[dict[str, Any]] = []
     svg_path = out / "agent-research-summary.svg"
     svg_text = _summary_svg(figure_data, title=title)
     _write_text(svg_path, svg_text)
-    source_path = out / "agent-research-summary.source.json"
-    _write_text(source_path, json.dumps({"schema_version": FIGURE_SCHEMA_VERSION, **figure_data}, ensure_ascii=False, indent=2) + "\n")
+    figure_items.append(
+        {
+            "name": "agent-research-summary",
+            "kind": "multi_panel_svg",
+            "path": str(svg_path),
+            "format": "svg",
+            "size_bytes": svg_path.stat().st_size,
+            "source_data_path": str(source_path),
+            "source_data_bytes": source_path.stat().st_size,
+            "panels": [
+                "product_metric_comparison",
+                "price_rank_history",
+                "window_change_heatmap",
+                "multi_asin_small_multiples",
+                "risk_and_graph_summary",
+            ],
+            "caption": "Overview page combining all Agent research figure panels for backward-compatible reports.",
+        }
+    )
+    for spec in _single_figure_specs(figure_data, title=title):
+        path = out / f"{spec['name']}.svg"
+        _write_text(path, str(spec["svg"]))
+        figure_items.append(
+            {
+                "name": spec["name"],
+                "kind": spec["kind"],
+                "path": str(path),
+                "format": "svg",
+                "size_bytes": path.stat().st_size,
+                "source_data_path": str(source_path),
+                "source_data_bytes": source_path.stat().st_size,
+                "panels": [spec["panel"]],
+                "x_axis": spec.get("x_axis"),
+                "y_axis": spec.get("y_axis"),
+                "caption": spec.get("caption"),
+            }
+        )
     return {
         "schema_version": FIGURE_SCHEMA_VERSION,
         "title": title,
         "format": "svg",
-        "figures": [
-            {
-                "name": "agent-research-summary",
-                "kind": "multi_panel_svg",
-                "path": str(svg_path),
-                "format": "svg",
-                "size_bytes": svg_path.stat().st_size,
-                "source_data_path": str(source_path),
-                "source_data_bytes": source_path.stat().st_size,
-                "panels": [
-                    "product_metric_comparison",
-                    "price_rank_history",
-                    "window_change_heatmap",
-                    "multi_asin_small_multiples",
-                    "risk_and_graph_summary",
-                ],
-            }
-        ],
+        "figures": figure_items,
         "data_summary": {
             "product_count": len(figure_data["products"]),
             "risk_code_count": len(figure_data["risk_codes"]),
@@ -155,6 +178,11 @@ def _product_rows_for_figures(value: Any) -> list[dict[str, Any]]:
             for product in raw_products:
                 if isinstance(product, Mapping):
                     rows.append(_product_metric_row(product))
+        if not rows:
+            raw_products = value.get("products") if isinstance(value.get("products"), list) else []
+            for product in raw_products:
+                if isinstance(product, Mapping):
+                    rows.append(_product_metric_row(product))
     return _dedupe_products(rows)[:8]
 
 
@@ -221,6 +249,8 @@ def _history_series_for_figures(value: Any) -> list[dict[str, Any]]:
             identity = item.get("identity") if isinstance(item.get("identity"), Mapping) else {}
             current_asin = str(item.get("asin") or identity.get("asin") or asin or "")
             history = item.get("history_summary") if isinstance(item.get("history_summary"), Mapping) else {}
+            if not history and isinstance(item.get("csv"), list):
+                history = _history_summary(item, 120)
             history_series = history.get("series") if isinstance(history.get("series"), Mapping) else {}
             for name in preferred:
                 entry = history_series.get(name) if isinstance(history_series.get(name), Mapping) else {}
@@ -314,6 +344,10 @@ def _window_heatmap_for_figures(value: Any) -> list[dict[str, Any]]:
             direct = item.get("temporal_by_window")
             if isinstance(direct, Mapping):
                 collect_from_windows(direct, path=f"{path}.temporal_by_window", asin=current_asin)
+            if not isinstance(direct, Mapping) and isinstance(item.get("csv"), list):
+                direct = _raw_temporal_windows(item)
+                if direct:
+                    collect_from_windows(direct, path=f"{path}.csv.temporal_features", asin=current_asin)
             brief = item.get("agent_brief") if isinstance(item.get("agent_brief"), Mapping) else {}
             brief_windows = brief.get("temporal_by_window") if isinstance(brief.get("temporal_by_window"), Mapping) else {}
             if brief_windows:
@@ -359,6 +393,21 @@ def _dedupe_heatmap_cells(cells: list[dict[str, Any]]) -> list[dict[str, Any]]:
         seen.add(key)
         result.append(cell)
     return result
+
+
+def _raw_temporal_windows(product: Mapping[str, Any]) -> dict[str, Any]:
+    temporal = _temporal_features(product, windows=(7, 30, 90, 180, 365))
+    series_map = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
+    windows: dict[str, dict[str, Any]] = {}
+    for series_name, series in series_map.items():
+        if not isinstance(series, Mapping):
+            continue
+        window_map = series.get("windows") if isinstance(series.get("windows"), Mapping) else {}
+        for window_name, window in window_map.items():
+            if not isinstance(window, Mapping):
+                continue
+            windows.setdefault(str(window_name), {"series": {}})["series"][str(series_name)] = window
+    return windows
 
 
 def _small_multiples_for_figures(products: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
@@ -445,36 +494,147 @@ def _summary_svg(data: Mapping[str, Any], *, title: str) -> str:
 """
 
 
+def _single_figure_specs(data: Mapping[str, Any], *, title: str) -> list[dict[str, Any]]:
+    return [
+        {
+            "name": "product-metric-comparison",
+            "kind": "product_metric_bar_svg",
+            "panel": "product_metric_comparison",
+            "x_axis": "Product ASIN",
+            "y_axis": "Primary metric value",
+            "caption": "Current product metric comparison; monthlySold is preferred when present, otherwise review count.",
+            "svg": _single_svg(
+                _panel_product_comparison(data.get("products") or [], x=56, y=92, w=760, h=430),
+                title=f"{title}: product metric comparison",
+                subtitle="Current product-level signal; monthlySold is preferred when available.",
+                caption="Bars encode the selected current metric. Values are copied from the Agent view source JSON.",
+                width=880,
+                height=620,
+            ),
+        },
+        {
+            "name": "history-lines",
+            "kind": "history_line_svg",
+            "panel": "price_rank_history",
+            "x_axis": "Recent Keepa history point index",
+            "y_axis": "Series value",
+            "caption": "Bounded recent Keepa history points for price, rank, and review series.",
+            "svg": _single_svg(
+                _panel_history_lines(data.get("history_series") or [], x=56, y=92, w=840, h=430),
+                title=f"{title}: bounded history lines",
+                subtitle="Recent Keepa samples retained for Agent-safe inspection.",
+                caption="Each line is scaled to its own observed range; labels show start-to-end change for the retained window.",
+                width=960,
+                height=620,
+            ),
+        },
+        {
+            "name": "window-change-heatmap",
+            "kind": "window_heatmap_svg",
+            "panel": "window_change_heatmap",
+            "x_axis": "Temporal window",
+            "y_axis": "Keepa series",
+            "caption": "Percent changes across configured temporal windows.",
+            "svg": _single_svg(
+                _panel_window_heatmap(data.get("window_heatmap") or [], x=56, y=92, w=780, h=430),
+                title=f"{title}: window change heatmap",
+                subtitle="Percent change by series and window; green means lower, red means higher.",
+                caption="Cells use the Agent temporal_by_window / temporal_features fields, not a new Keepa request.",
+                width=900,
+                height=620,
+            ),
+        },
+        {
+            "name": "small-multiples",
+            "kind": "small_multiples_svg",
+            "panel": "multi_asin_small_multiples",
+            "x_axis": "Normalized metric",
+            "y_axis": "Normalized score",
+            "caption": "Multi-ASIN normalized comparison; rank is inverted so higher means better.",
+            "svg": _single_svg(
+                _panel_small_multiples(data.get("small_multiples") or [], x=56, y=92, w=820, h=430),
+                title=f"{title}: multi-ASIN small multiples",
+                subtitle="Comparable current metrics normalized within this result set.",
+                caption="Scores are relative to the visible ASIN set; use them as transparent inputs, not a black-box recommendation.",
+                width=940,
+                height=620,
+            ),
+        },
+        {
+            "name": "risk-graph-summary",
+            "kind": "risk_graph_bar_svg",
+            "panel": "risk_and_graph_summary",
+            "x_axis": "Audit category",
+            "y_axis": "Count or signal magnitude",
+            "caption": "Risk taxonomy, research graph entity counts, and fallback temporal signals.",
+            "svg": _single_svg(
+                _panel_risk_graph_summary(
+                    data.get("risk_codes") or [],
+                    data.get("entity_counts") or [],
+                    data.get("temporal_signals") or [],
+                    x=56,
+                    y=92,
+                    w=900,
+                    h=430,
+                ),
+                title=f"{title}: risk and graph audit",
+                subtitle="Structured audit signals for Agent follow-up decisions.",
+                caption="Risk codes and graph entities come from local Agent output; no live request is made during figure generation.",
+                width=1020,
+                height=620,
+            ),
+        },
+    ]
+
+
+def _single_svg(panel: str, *, title: str, subtitle: str, caption: str, width: int, height: int) -> str:
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="{_esc(title)}">
+  <rect width="{width}" height="{height}" fill="#ffffff"/>
+  <text x="56" y="42" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" fill="{PALETTE['ink']}">{_esc(title)}</text>
+  <text x="56" y="66" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="{PALETTE['muted']}">{_esc(subtitle)}</text>
+  {panel}
+  <text x="56" y="{height - 38}" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="{PALETTE['muted']}">{_esc(caption)}</text>
+</svg>
+"""
+
+
 def _panel_product_comparison(products: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
     metric = "monthly_sold" if any(_num(p.get("monthly_sold")) is not None for p in products) else "review_count"
-    values = [_num(product.get(metric)) or 0 for product in products]
+    visible = products[:6]
+    values = [_num(product.get(metric)) or 0 for product in visible]
     max_value = max(values, default=1) or 1
-    rows = []
-    for index, product in enumerate(products[:6]):
-        row_y = y + 70 + index * 34
+    plot_x = x + 142
+    plot_y = y + 82
+    plot_w = max(140, w - 220)
+    rows: list[str] = []
+    rows.extend(_axis_ticks(x=plot_x, y=plot_y + len(visible) * 34 + 8, w=plot_w, max_value=max_value, label=metric.replace("_", " ")))
+    for index, product in enumerate(visible):
+        row_y = plot_y + index * 34
         value = _num(product.get(metric)) or 0
-        bar_w = int((w - 190) * value / max_value)
+        bar_w = int(plot_w * value / max_value)
         label = product.get("asin") or product.get("title")
         rows.append(
             f'<text x="{x + 20}" y="{row_y + 14}" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="{PALETTE["ink"]}">{_esc(label)}</text>'
-            f'<rect x="{x + 118}" y="{row_y}" width="{max(bar_w, 2)}" height="18" rx="3" fill="{PALETTE["blue"]}"/>'
-            f'<text x="{x + 128 + bar_w}" y="{row_y + 14}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">{_fmt(value)}</text>'
+            f'<rect x="{plot_x}" y="{row_y}" width="{max(bar_w, 2)}" height="18" rx="3" fill="{PALETTE["blue"]}"/>'
+            f'<text x="{plot_x + 8 + bar_w}" y="{row_y + 14}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">{_fmt(value)}</text>'
         )
     if not rows:
         rows.append(_empty_panel_text(x, y, "No product metric rows found"))
-    return _panel_frame(x, y, w, h, "A  Product comparison", f"Primary metric: {metric.replace('_', ' ')}") + "".join(rows) + "</g>"
+    return (
+        _panel_frame(x, y, w, h, "A  Product comparison", f"Primary metric: {metric.replace('_', ' ')}")
+        + "".join(rows)
+        + _axis_label(plot_x + plot_w / 2, y + h - 18, metric.replace("_", " "), anchor="middle")
+        + "</g>"
+    )
 
 
 def _panel_history_lines(series: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
     selected = _select_history_series(series)
-    plot_x = x + 58
-    plot_y = y + 74
-    plot_w = w - 96
-    plot_h = h - 124
-    elements = [
-        f'<line x1="{plot_x}" y1="{plot_y + plot_h}" x2="{plot_x + plot_w}" y2="{plot_y + plot_h}" stroke="{PALETTE["grid"]}" stroke-width="1"/>',
-        f'<line x1="{plot_x}" y1="{plot_y}" x2="{plot_x}" y2="{plot_y + plot_h}" stroke="{PALETTE["grid"]}" stroke-width="1"/>',
-    ]
+    plot_x = x + 72
+    plot_y = y + 82
+    plot_w = w - 128
+    plot_h = h - 148
+    elements: list[str] = []
     colors = [PALETTE["teal"], PALETTE["blue"], PALETTE["yellow"], PALETTE["purple"]]
     for index, item in enumerate(selected):
         points = item.get("points") if isinstance(item.get("points"), list) else []
@@ -485,6 +645,8 @@ def _panel_history_lines(series: list[Mapping[str, Any]], *, x: int, y: int, w: 
         low = min(values)
         high = max(values)
         span = high - low or 1
+        if index == 0:
+            elements.extend(_xy_axes(plot_x, plot_y, plot_w, plot_h, x_label="recent point index", y_label=str(item.get("name") or "value"), min_value=low, max_value=high, x_ticks=len(values)))
         coords = []
         count = len(values)
         for point_index, value in enumerate(values):
@@ -496,12 +658,12 @@ def _panel_history_lines(series: list[Mapping[str, Any]], *, x: int, y: int, w: 
         elements.append(f'<polyline points="{" ".join(coords)}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>')
         elements.append(f'<circle cx="{coords[-1].split(",")[0]}" cy="{coords[-1].split(",")[1]}" r="3.2" fill="{color}"/>')
         elements.append(
-            f'<text x="{plot_x + index * 176}" y="{y + h - 28}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{color}">{_esc(str(label)[:28])}</text>'
+            f'<text x="{plot_x + index * 176}" y="{y + h - 40}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{color}">{_esc(str(label)[:28])}</text>'
         )
         elements.append(
-            f'<text x="{plot_x + index * 176}" y="{y + h - 15}" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{_fmt(values[0])} -> {_fmt(values[-1])}</text>'
+            f'<text x="{plot_x + index * 176}" y="{y + h - 27}" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{_fmt(values[0])} -> {_fmt(values[-1])}</text>'
         )
-    if len(elements) <= 2:
+    if not elements:
         elements.append(_empty_panel_text(x, y, "No history_summary.last_points with numeric values found"))
     return _panel_frame(x, y, w, h, "B  Price / rank history", "Real recent Keepa points when full Agent history is present") + "".join(elements) + "</g>"
 
@@ -527,7 +689,10 @@ def _panel_window_heatmap(cells: list[Mapping[str, Any]], *, x: int, y: int, w: 
     start_x = x + 140
     start_y = y + 78
     lookup = {(str(cell.get("window")), str(cell.get("series"))): cell for cell in cells}
-    elements = []
+    elements: list[str] = [
+        _axis_label(start_x + max(len(windows), 1) * cell_w / 2, start_y - 34, "window", anchor="middle"),
+        _rotated_axis_label(x + 32, start_y + max(len(series), 1) * cell_h / 2, "series"),
+    ]
     for col, window in enumerate(windows):
         elements.append(
             f'<text x="{start_x + col * cell_w + cell_w / 2:.1f}" y="{start_y - 12}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["muted"]}">{_esc(window.replace("recent_", ""))}</text>'
@@ -546,6 +711,13 @@ def _panel_window_heatmap(cells: list[Mapping[str, Any]], *, x: int, y: int, w: 
                 elements.append(
                     f'<text x="{x0 + (cell_w - 4) / 2:.1f}" y="{y0 + 17}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["ink"]}">{_esc(label)}%</text>'
                 )
+    legend_x = start_x
+    legend_y = y + h - 44
+    legend = [(-30, "lower"), (0, "flat"), (30, "higher")]
+    for index, (value, label) in enumerate(legend):
+        lx = legend_x + index * 82
+        elements.append(f'<rect x="{lx}" y="{legend_y}" width="24" height="12" rx="3" fill="{_heat_color(value)}" stroke="#ffffff" stroke-width="1"/>')
+        elements.append(f'<text x="{lx + 30}" y="{legend_y + 10}" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{label}</text>')
     if not elements:
         elements.append(_empty_panel_text(x, y, "No temporal windows found; run with --agent-view --view research"))
     return _panel_frame(x, y, w, h, "C  Window change heatmap", "Percent change by official Keepa history windows") + "".join(elements) + "</g>"
@@ -565,10 +737,67 @@ def _heat_color(value: float | None) -> str:
     return "#eef2f7"
 
 
+def _axis_ticks(*, x: float, y: float, w: float, max_value: float, label: str) -> list[str]:
+    elements = [f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x + w:.1f}" y2="{y:.1f}" stroke="{PALETTE["grid"]}" stroke-width="1"/>']
+    for index in range(4):
+        value = max_value * index / 3
+        tx = x + w * index / 3
+        elements.append(f'<line x1="{tx:.1f}" y1="{y - 4:.1f}" x2="{tx:.1f}" y2="{y + 4:.1f}" stroke="{PALETTE["grid"]}" stroke-width="1"/>')
+        elements.append(
+            f'<text x="{tx:.1f}" y="{y + 18:.1f}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{_esc(_fmt(value))}</text>'
+        )
+    elements.append(_axis_label(x + w, y + 34, label, anchor="end"))
+    return elements
+
+
+def _xy_axes(
+    x: float,
+    y: float,
+    w: float,
+    h: float,
+    *,
+    x_label: str,
+    y_label: str,
+    min_value: float,
+    max_value: float,
+    x_ticks: int,
+) -> list[str]:
+    elements = [
+        f'<line x1="{x:.1f}" y1="{y + h:.1f}" x2="{x + w:.1f}" y2="{y + h:.1f}" stroke="{PALETTE["grid"]}" stroke-width="1"/>',
+        f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x:.1f}" y2="{y + h:.1f}" stroke="{PALETTE["grid"]}" stroke-width="1"/>',
+    ]
+    for index in range(4):
+        value = min_value + (max_value - min_value) * index / 3
+        ty = y + h - h * index / 3
+        elements.append(f'<line x1="{x - 4:.1f}" y1="{ty:.1f}" x2="{x + w:.1f}" y2="{ty:.1f}" stroke="{PALETTE["grid"]}" stroke-width="0.65" opacity="0.85"/>')
+        elements.append(
+            f'<text x="{x - 8:.1f}" y="{ty + 3:.1f}" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{_esc(_fmt(value))}</text>'
+        )
+    for index in range(min(5, max(x_ticks, 1))):
+        denom = max(min(5, max(x_ticks, 1)) - 1, 1)
+        value = round((x_ticks - 1) * index / denom)
+        tx = x + w * index / denom
+        elements.append(f'<line x1="{tx:.1f}" y1="{y + h:.1f}" x2="{tx:.1f}" y2="{y + h + 4:.1f}" stroke="{PALETTE["grid"]}" stroke-width="1"/>')
+        elements.append(
+            f'<text x="{tx:.1f}" y="{y + h + 18:.1f}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{value}</text>'
+        )
+    elements.append(_axis_label(x + w / 2, y + h + 38, x_label, anchor="middle"))
+    elements.append(_rotated_axis_label(x - 52, y + h / 2, y_label))
+    return elements
+
+
+def _axis_label(x: float, y: float, text: str, *, anchor: str = "start") -> str:
+    return f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["muted"]}">{_esc(text)}</text>'
+
+
+def _rotated_axis_label(x: float, y: float, text: str) -> str:
+    return f'<text x="{x:.1f}" y="{y:.1f}" transform="rotate(-90 {x:.1f} {y:.1f})" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["muted"]}">{_esc(text)}</text>'
+
+
 def _panel_small_multiples(rows: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
     elements = []
     card_w = int((w - 58) / 2)
-    card_h = 70
+    card_h = 88
     for index, row in enumerate(rows[:6]):
         col = index % 2
         line = index // 2
@@ -579,14 +808,18 @@ def _panel_small_multiples(rows: list[Mapping[str, Any]], *, x: int, y: int, w: 
         point_elements = []
         elements.append(f'<rect x="{left}" y="{top}" width="{card_w}" height="{card_h}" rx="6" fill="#fbfcff" stroke="{PALETTE["grid"]}" stroke-width="1"/>')
         elements.append(f'<text x="{left + 10}" y="{top + 16}" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700" fill="{PALETTE["ink"]}">{_esc(str(row.get("label") or "")[:24])}</text>')
+        elements.append(f'<line x1="{left + 16}" y1="{top + 62}" x2="{left + card_w - 16}" y2="{top + 62}" stroke="{PALETTE["grid"]}" stroke-width="1"/>')
+        elements.append(f'<line x1="{left + 16}" y1="{top + 28}" x2="{left + 16}" y2="{top + 62}" stroke="{PALETTE["grid"]}" stroke-width="1"/>')
+        elements.append(f'<text x="{left + 10}" y="{top + 31}" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="{PALETTE["muted"]}">1</text>')
+        elements.append(f'<text x="{left + 10}" y="{top + 64}" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="{PALETTE["muted"]}">0</text>')
         for point_index, point in enumerate(points[:4]):
             score = _num(point.get("normalized_score")) or 0
-            px = left + 14 + point_index * ((card_w - 28) / max(min(len(points), 4) - 1, 1))
-            py = top + 48 - score * 34
+            px = left + 18 + point_index * ((card_w - 36) / max(min(len(points), 4) - 1, 1))
+            py = top + 62 - score * 34
             coords.append(f"{px:.1f},{py:.1f}")
             point_elements.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="3.2" fill="{PALETTE["blue"]}"/>')
             point_elements.append(
-                f'<text x="{px:.1f}" y="{top + 63}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="{PALETTE["muted"]}">{_esc(point.get("label"))}</text>'
+                f'<text x="{px:.1f}" y="{top + 78}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="{PALETTE["muted"]}">{_esc(point.get("label"))}</text>'
             )
         if len(coords) >= 2:
             elements.append(f'<polyline points="{" ".join(coords)}" fill="none" stroke="{PALETTE["blue"]}" stroke-width="1.8"/>')

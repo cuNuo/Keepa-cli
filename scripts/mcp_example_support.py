@@ -91,6 +91,16 @@ class KeepaMcpClient:
             raise McpClientError(f"resource {uri} is not a text JSON resource")
         return json.loads(text)
 
+    def read_resource_text(self, uri: str) -> tuple[str, str]:
+        result = self.request("resources/read", {"uri": uri})
+        contents = result.get("contents") or []
+        if not contents:
+            raise McpClientError(f"resource {uri} returned no contents")
+        text = contents[0].get("text")
+        if not isinstance(text, str):
+            raise McpClientError(f"resource {uri} is not a text resource")
+        return text, str(contents[0].get("mimeType") or "")
+
 
 def tool_names(result: Mapping[str, Any]) -> list[str]:
     tools = result.get("tools") if isinstance(result.get("tools"), list) else []
