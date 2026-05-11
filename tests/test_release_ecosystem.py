@@ -44,9 +44,12 @@ class ReleaseEcosystemTests(unittest.TestCase):
         self.assertIn("node scripts/release_gate.js", scripts["release:check"])
         self.assertIn("node scripts/release_gate.js", scripts["prepack"])
 
-    def test_release_gate_runs_agent_eval_fixture_check(self):
-        content = Path("scripts/release_gate.py").read_text(encoding="utf-8")
-        self.assertIn("scripts/check_agent_eval_fixtures.py", content)
+    def test_release_gate_routes_mcp_checks_through_quality_gate(self):
+        release_gate = Path("scripts/release_gate.py").read_text(encoding="utf-8")
+        quality_gate = Path("scripts/check_mcp_quality_gate.py").read_text(encoding="utf-8")
+        self.assertIn("scripts/check_mcp_quality_gate.py", release_gate)
+        self.assertIn("scripts/check_agent_eval_fixtures.py", quality_gate)
+        self.assertIn("scripts/export_mcp_inspector_snapshot.py", quality_gate)
 
 
 if __name__ == "__main__":

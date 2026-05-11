@@ -21,6 +21,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from keepa_cli.agent.mcp_sdk_adapter import (
+    SDK_DEFAULT_PROMPT_PAGE_SIZE,
+    SDK_DEFAULT_RESOURCE_PAGE_SIZE,
+    SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE,
+    SDK_DEFAULT_TOOL_PAGE_SIZE,
+)
+
 DEFAULT_FIXTURE = REPO_ROOT / "tests" / "agent_eval_fixtures" / "mcp_inspector_protocol_fixture.json"
 
 
@@ -52,7 +59,14 @@ async def _collect_pages(list_func: Callable[..., Awaitable[Any]], result_attr: 
         page = await list_func(cursor=cursor)
         page_items = list(getattr(page, result_attr))
         items.extend(page_items)
-        names = [str(getattr(item, "uri")) if hasattr(item, "uri") else getattr(item, "name", "") for item in page_items]
+        names = [
+            str(getattr(item, "uriTemplate"))
+            if hasattr(item, "uriTemplate")
+            else str(getattr(item, "uri"))
+            if hasattr(item, "uri")
+            else str(getattr(item, "name", ""))
+            for item in page_items
+        ]
         pages.append(
             {
                 "count": len(page_items),
@@ -117,8 +131,10 @@ async def _run_fixture(spec: dict[str, Any]) -> dict[str, Any]:
                                 "method": method,
                                 "result": {
                                     "total_count": len(resources),
+                                    "page_count": len(pages),
                                     "first_page_count": pages[0]["count"],
                                     "first_page_names": pages[0]["names"],
+                                    "first_page_meta": pages[0]["meta"],
                                     "unsupported_fixture_params": sorted(set(params) - {"cursor"}),
                                 },
                             }
@@ -131,8 +147,10 @@ async def _run_fixture(spec: dict[str, Any]) -> dict[str, Any]:
                                 "method": method,
                                 "result": {
                                     "total_count": len(prompts),
+                                    "page_count": len(pages),
                                     "first_page_count": pages[0]["count"],
                                     "first_page_names": pages[0]["names"],
+                                    "first_page_meta": pages[0]["meta"],
                                     "unsupported_fixture_params": sorted(set(params) - {"cursor"}),
                                 },
                             }
@@ -145,8 +163,10 @@ async def _run_fixture(spec: dict[str, Any]) -> dict[str, Any]:
                                 "method": method,
                                 "result": {
                                     "total_count": len(templates),
+                                    "page_count": len(pages),
                                     "first_page_count": pages[0]["count"],
                                     "first_page_names": pages[0]["names"],
+                                    "first_page_meta": pages[0]["meta"],
                                     "unsupported_fixture_params": sorted(set(params) - {"cursor"}),
                                 },
                             }
@@ -170,7 +190,9 @@ def _assert_typed_payload(payload: dict[str, Any], spec: dict[str, Any]) -> None
     tools = responses["tools/list"]["result"]
     if tools["total_count"] < 30:
         raise AssertionError("SDK typed list_tools did not expose the full all-toolset inventory through pagination")
-    if tools["first_page_count"] > 8:
+    if tools["page_count"] < 2:
+        raise AssertionError("SDK typed list_tools should require pagination for the full inventory")
+    if tools["first_page_count"] > SDK_DEFAULT_TOOL_PAGE_SIZE:
         raise AssertionError("SDK typed list_tools first page is too large for Agent startup")
     if tools["first_page_names"][0] != "keepa.context_policy":
         raise AssertionError("SDK typed list_tools must start with keepa.context_policy")
@@ -179,12 +201,24 @@ def _assert_typed_payload(payload: dict[str, Any], spec: dict[str, Any]) -> None
     resources = responses["resources/list"]["result"]
     if resources["total_count"] < 2 or "keepa://context/policy" not in resources["first_page_names"]:
         raise AssertionError("SDK typed list_resources lost context policy resource")
+    if resources["page_count"] < 2 or resources["first_page_count"] > SDK_DEFAULT_RESOURCE_PAGE_SIZE:
+        raise AssertionError("SDK typed list_resources must expose a bounded first page with pagination")
+    if resources["first_page_names"][0] != "keepa://context/policy":
+        raise AssertionError("SDK typed list_resources must start with keepa://context/policy")
     prompts = responses["prompts/list"]["result"]
     if prompts["total_count"] < 2 or "keepa.product_research" not in prompts["first_page_names"]:
         raise AssertionError("SDK typed list_prompts lost product research prompt")
+    if prompts["page_count"] < 2 or prompts["first_page_count"] > SDK_DEFAULT_PROMPT_PAGE_SIZE:
+        raise AssertionError("SDK typed list_prompts must expose a bounded first page with pagination")
+    if prompts["first_page_names"][0] != "keepa.product_research":
+        raise AssertionError("SDK typed list_prompts must start with keepa.product_research")
     templates = responses["resources/templates/list"]["result"]
     if templates["total_count"] < 1:
         raise AssertionError("SDK typed list_resource_templates returned no templates")
+    if templates["page_count"] < 2 or templates["first_page_count"] > SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE:
+        raise AssertionError("SDK typed list_resource_templates must expose a bounded first page with pagination")
+    if templates["first_page_names"][0] != "keepa://toolsets/{toolset}":
+        raise AssertionError("SDK typed list_resource_templates must start with keepa://toolsets/{toolset}")
     tool_call = responses["tools/call"]["result"]
     if not tool_call.get("isError"):
         raise AssertionError("SDK typed invalid tools/call should return isError=true")

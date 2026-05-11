@@ -45,9 +45,5 @@ jobs:
         run: python -m pip install -e ".[mcp-sdk]"
       - name: Run SDK adapter unit tests
         run: python -m unittest tests.test_mcp_sdk_adapter tests.test_mcp_http_contract -v
-      - name: Compare SDK adapter fixture
-        run: python scripts/compare_mcp_sdk_adapter_fixture.py
-      - name: Smoke official SDK typed client
-        run: python scripts/smoke_mcp_sdk_adapter_client.py
-      - name: Check Inspector fixture through SDK typed client
-        run: python scripts/check_mcp_sdk_adapter_typed_fixture.py
+      - name: Run MCP quality gate
+        run: python scripts/check_mcp_quality_gate.py --require-sdk

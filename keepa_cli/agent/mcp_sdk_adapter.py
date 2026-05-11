@@ -30,6 +30,9 @@ ADAPTER_NAME = "keepa_mcp_sdk_adapter"
 PRODUCTION_ENTRYPOINT = "python -m keepa_cli --mcp"
 SDK_STDIO_ENTRYPOINT = "python -m keepa_cli.agent.mcp_sdk_adapter --stdio"
 SDK_DEFAULT_TOOL_PAGE_SIZE = 8
+SDK_DEFAULT_RESOURCE_PAGE_SIZE = 6
+SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE = 6
+SDK_DEFAULT_PROMPT_PAGE_SIZE = 4
 SDK_AGENT_START_TOOLS = (
     "keepa.context_policy",
     "keepa.docs_index",
@@ -45,6 +48,20 @@ SDK_AGENT_START_RESOURCES = (
     "keepa://tools/index",
     "keepa://toolsets/research",
     "keepa://guides/agent-profile",
+)
+SDK_AGENT_START_RESOURCE_TEMPLATES = (
+    "keepa://toolsets/{toolset}",
+    "keepa://tools/{name}",
+    "keepa://prompts/{name}",
+    "keepa://workflow/{encoded_params}/policy",
+    "keepa://research/{cache_key}",
+    "keepa://cache-key/{command}/{encoded_params}",
+)
+SDK_AGENT_START_PROMPTS = (
+    "keepa.product_research",
+    "keepa.category_research",
+    "keepa.deal_compare",
+    "keepa.project_onboarding",
 )
 SUPPORTED_SPIKE_METHODS = (
     "initialize",
@@ -84,8 +101,13 @@ def adapter_status() -> dict[str, Any]:
         "business_core": "AgentSession -> run_command",
         "supported_fixture_methods": list(SUPPORTED_SPIKE_METHODS),
         "sdk_default_tool_page_size": SDK_DEFAULT_TOOL_PAGE_SIZE,
+        "sdk_default_resource_page_size": SDK_DEFAULT_RESOURCE_PAGE_SIZE,
+        "sdk_default_resource_template_page_size": SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE,
+        "sdk_default_prompt_page_size": SDK_DEFAULT_PROMPT_PAGE_SIZE,
         "sdk_agent_start_tools": list(SDK_AGENT_START_TOOLS),
         "sdk_agent_start_resources": list(SDK_AGENT_START_RESOURCES),
+        "sdk_agent_start_resource_templates": list(SDK_AGENT_START_RESOURCE_TEMPLATES),
+        "sdk_agent_start_prompts": list(SDK_AGENT_START_PROMPTS),
         "streamable_http_rule": "streamable HTTP 只替换协议 adapter，继续复用 AgentSession/service/session cache。",
     }
 
@@ -222,54 +244,124 @@ def _current_mcp_result(
     return dict(result or {}) if isinstance(result, Mapping) else {}
 
 
-def _encode_sdk_cursor(offset: int) -> str:
-    raw = json.dumps({"sdk_offset": offset}, separators=(",", ":")).encode("utf-8")
+def _encode_sdk_cursor(offset: int, *, collection: str = "tools") -> str:
+    raw = json.dumps({"sdk_offset": offset, "sdk_collection": collection}, separators=(",", ":")).encode("utf-8")
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
-def _decode_sdk_cursor(cursor: Any) -> int:
+def _decode_sdk_cursor(cursor: Any, *, collection: str = "tools") -> int:
     if cursor in (None, ""):
         return 0
     if not isinstance(cursor, str):
-        raise ValueError("SDK tools/list cursor must be a string")
+        raise ValueError(f"SDK {collection} cursor must be a string")
     padded = cursor + "=" * (-len(cursor) % 4)
     try:
         payload = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
     except (binascii.Error, UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
-        raise ValueError("SDK tools/list cursor is not valid") from exc
+        raise ValueError(f"SDK {collection} cursor is not valid") from exc
     offset = payload.get("sdk_offset") if isinstance(payload, dict) else None
     if not isinstance(offset, int) or offset < 0:
-        raise ValueError("SDK tools/list cursor does not contain a valid offset")
+        raise ValueError(f"SDK {collection} cursor does not contain a valid offset")
+    cursor_collection = payload.get("sdk_collection")
+    if cursor_collection not in (None, collection):
+        raise ValueError(f"SDK cursor for {cursor_collection!r} cannot be used for {collection!r}")
     return offset
 
 
+def _sdk_ordered_items(
+    items: Sequence[Mapping[str, Any]],
+    priority_names: Sequence[str],
+    identity: Callable[[Mapping[str, Any]], str],
+) -> list[dict[str, Any]]:
+    priority = {name: index for index, name in enumerate(priority_names)}
+    indexed = [(index, dict(item)) for index, item in enumerate(items)]
+    indexed.sort(key=lambda item: (priority.get(identity(item[1]), len(priority) + item[0]), item[0]))
+    return [item for _index, item in indexed]
+
+
 def _sdk_ordered_tools(tools: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
-    priority = {name: index for index, name in enumerate(SDK_AGENT_START_TOOLS)}
-    indexed = [(index, dict(tool)) for index, tool in enumerate(tools)]
-    indexed.sort(key=lambda item: (priority.get(str(item[1].get("name")), len(priority) + item[0]), item[0]))
-    return [tool for _index, tool in indexed]
+    return _sdk_ordered_items(tools, SDK_AGENT_START_TOOLS, lambda tool: str(tool.get("name")))
 
 
-def _sdk_tools_meta(*, total_count: int, offset: int, count: int, has_more: bool) -> dict[str, Any]:
+def _sdk_page(
+    items: Sequence[Mapping[str, Any]],
+    *,
+    cursor: Any,
+    collection: str,
+    page_size: int,
+    priority_names: Sequence[str],
+    identity: Callable[[Mapping[str, Any]], str],
+) -> tuple[list[dict[str, Any]], str | None, dict[str, Any]]:
+    offset = _decode_sdk_cursor(cursor, collection=collection)
+    ordered = _sdk_ordered_items(items, priority_names, identity)
+    page = ordered[offset : offset + page_size]
+    next_offset = offset + len(page)
+    has_more = next_offset < len(ordered)
+    return (
+        page,
+        _encode_sdk_cursor(next_offset, collection=collection) if has_more else None,
+        _sdk_pagination_meta(
+            collection=collection,
+            total_count=len(ordered),
+            offset=offset,
+            count=len(page),
+            has_more=has_more,
+            limit=page_size,
+            first_page_priority=priority_names,
+        ),
+    )
+
+
+def _sdk_pagination_meta(
+    *,
+    collection: str,
+    total_count: int,
+    offset: int,
+    count: int,
+    has_more: bool,
+    limit: int,
+    first_page_priority: Sequence[str],
+) -> dict[str, Any]:
     return {
         "count": count,
         "total_count": total_count,
         "offset": offset,
-        "limit": SDK_DEFAULT_TOOL_PAGE_SIZE,
+        "limit": limit,
         "has_more": has_more,
-        "toolset": "all",
+        "collection": collection,
         "adapter_start_strategy": {
-            "default_page_size": SDK_DEFAULT_TOOL_PAGE_SIZE,
-            "first_page_priority": list(SDK_AGENT_START_TOOLS),
+            "default_page_size": limit,
+            "first_page_priority": list(first_page_priority),
+            "note": "官方 SDK typed list_* 只支持标准 cursor；adapter 默认提供压缩首页，Agent 可按 nextCursor 拉取全集。",
+        },
+    }
+
+
+def _sdk_tools_meta(*, total_count: int, offset: int, count: int, has_more: bool) -> dict[str, Any]:
+    meta = _sdk_pagination_meta(
+        collection="tools",
+        total_count=total_count,
+        offset=offset,
+        count=count,
+        has_more=has_more,
+        limit=SDK_DEFAULT_TOOL_PAGE_SIZE,
+        first_page_priority=SDK_AGENT_START_TOOLS,
+    )
+    meta["toolset"] = "all"
+    meta["adapter_start_strategy"].update(
+        {
             "recommended_first_calls": [
                 {"method": "tools/call", "name": "keepa.context_policy", "arguments": {}},
                 {"method": "resources/read", "uri": "keepa://tools/index"},
                 {"method": "resources/read", "uri": "keepa://toolsets/research"},
             ],
             "resource_first_uris": list(SDK_AGENT_START_RESOURCES),
+            "resource_template_first_uris": list(SDK_AGENT_START_RESOURCE_TEMPLATES),
+            "prompt_first_names": list(SDK_AGENT_START_PROMPTS),
             "note": "官方 SDK typed list_tools 只支持标准 cursor；adapter 默认分页展示 all toolset，Agent 应先读 policy/resource，再按 nextCursor 拉取更多 schema。",
-        },
-    }
+        }
+    )
+    return meta
 
 
 def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
@@ -306,7 +398,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
         return types.ServerResult(
             types.ListToolsResult(
                 tools=tools,
-                nextCursor=_encode_sdk_cursor(next_offset) if has_more else None,
+                nextCursor=_encode_sdk_cursor(next_offset, collection="tools") if has_more else None,
                 _meta=_sdk_tools_meta(total_count=len(ordered), offset=offset, count=len(page), has_more=has_more),
             )
         )
@@ -337,25 +429,41 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
         return _tool_result_to_sdk(types, response.get("result") or {})
 
     async def _list_resources(req: Any) -> Any:
-        params = {"cursor": req.params.cursor} if getattr(req, "params", None) and req.params.cursor else {}
-        result = _current_mcp_result("resources/list", params, session=session, env=env)
+        cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
+        result = _current_mcp_result("resources/list", {}, session=session, env=env)
+        page, next_cursor, meta = _sdk_page(
+            result.get("resources") or [],
+            cursor=cursor,
+            collection="resources",
+            page_size=SDK_DEFAULT_RESOURCE_PAGE_SIZE,
+            priority_names=SDK_AGENT_START_RESOURCES,
+            identity=lambda resource: str(resource.get("uri")),
+        )
         return types.ServerResult(
             types.ListResourcesResult(
-                resources=[_resource_to_sdk(types, resource) for resource in result.get("resources") or []],
-                nextCursor=result.get("nextCursor"),
-                _meta=result.get("_meta"),
+                resources=[_resource_to_sdk(types, resource) for resource in page],
+                nextCursor=next_cursor,
+                _meta=meta,
             )
         )
     server.request_handlers[types.ListResourcesRequest] = _list_resources
 
     async def _list_resource_templates(req: Any) -> Any:
-        params = {"cursor": req.params.cursor} if getattr(req, "params", None) and req.params.cursor else {}
-        result = _current_mcp_result("resources/templates/list", params, session=session, env=env)
+        cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
+        result = _current_mcp_result("resources/templates/list", {}, session=session, env=env)
+        page, next_cursor, meta = _sdk_page(
+            result.get("resourceTemplates") or [],
+            cursor=cursor,
+            collection="resource_templates",
+            page_size=SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE,
+            priority_names=SDK_AGENT_START_RESOURCE_TEMPLATES,
+            identity=lambda template: str(template.get("uriTemplate")),
+        )
         return types.ServerResult(
             types.ListResourceTemplatesResult(
-                resourceTemplates=[_resource_template_to_sdk(types, template) for template in result.get("resourceTemplates") or []],
-                nextCursor=result.get("nextCursor"),
-                _meta=result.get("_meta"),
+                resourceTemplates=[_resource_template_to_sdk(types, template) for template in page],
+                nextCursor=next_cursor,
+                _meta=meta,
             )
         )
     server.request_handlers[types.ListResourceTemplatesRequest] = _list_resource_templates
@@ -380,13 +488,21 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
     server.request_handlers[types.ReadResourceRequest] = _read_resource
 
     async def _list_prompts(req: Any) -> Any:
-        params = {"cursor": req.params.cursor} if getattr(req, "params", None) and req.params.cursor else {}
-        result = _current_mcp_result("prompts/list", params, session=session, env=env)
+        cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
+        result = _current_mcp_result("prompts/list", {}, session=session, env=env)
+        page, next_cursor, meta = _sdk_page(
+            result.get("prompts") or [],
+            cursor=cursor,
+            collection="prompts",
+            page_size=SDK_DEFAULT_PROMPT_PAGE_SIZE,
+            priority_names=SDK_AGENT_START_PROMPTS,
+            identity=lambda prompt: str(prompt.get("name")),
+        )
         return types.ServerResult(
             types.ListPromptsResult(
-                prompts=[_prompt_to_sdk(types, prompt) for prompt in result.get("prompts") or []],
-                nextCursor=result.get("nextCursor"),
-                _meta=result.get("_meta"),
+                prompts=[_prompt_to_sdk(types, prompt) for prompt in page],
+                nextCursor=next_cursor,
+                _meta=meta,
             )
         )
     server.request_handlers[types.ListPromptsRequest] = _list_prompts

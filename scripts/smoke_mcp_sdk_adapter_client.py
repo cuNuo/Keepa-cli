@@ -21,27 +21,42 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from keepa_cli.agent.mcp_sdk_adapter import (
+    SDK_DEFAULT_PROMPT_PAGE_SIZE,
+    SDK_DEFAULT_RESOURCE_PAGE_SIZE,
+    SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE,
+    SDK_DEFAULT_TOOL_PAGE_SIZE,
+)
 
-async def _collect_tool_pages(session: Any) -> tuple[list[Any], list[dict[str, Any]]]:
-    tools: list[Any] = []
+
+async def _collect_pages(list_func: Any, result_attr: str) -> tuple[list[Any], list[dict[str, Any]]]:
+    items: list[Any] = []
     pages: list[dict[str, Any]] = []
     cursor: str | None = None
     while True:
-        page = await session.list_tools(cursor=cursor)
-        page_tools = list(page.tools)
-        tools.extend(page_tools)
+        page = await list_func(cursor=cursor)
+        page_items = list(getattr(page, result_attr))
+        items.extend(page_items)
+        names = [
+            str(getattr(item, "uriTemplate"))
+            if hasattr(item, "uriTemplate")
+            else str(getattr(item, "uri"))
+            if hasattr(item, "uri")
+            else str(getattr(item, "name", ""))
+            for item in page_items
+        ]
         pages.append(
             {
-                "count": len(page_tools),
+                "count": len(page_items),
                 "next_cursor": page.nextCursor,
-                "tool_names": [tool.name for tool in page_tools],
+                "names": names,
                 "meta": page.meta,
             }
         )
         cursor = page.nextCursor
         if not cursor:
             break
-    return tools, pages
+    return items, pages
 
 
 async def _run_smoke() -> dict[str, Any]:
@@ -61,26 +76,40 @@ async def _run_smoke() -> dict[str, Any]:
         async with stdio_client(server) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 initialize = await session.initialize()
-                tool_list, tool_pages = await _collect_tool_pages(session)
+                tool_list, tool_pages = await _collect_pages(session.list_tools, "tools")
                 tool_names = [tool.name for tool in tool_list]
                 if "keepa.context_policy" not in tool_names:
                     raise AssertionError("SDK adapter did not expose keepa.context_policy")
-                if not tool_pages or tool_pages[0]["tool_names"][0] != "keepa.context_policy":
+                if not tool_pages or tool_pages[0]["names"][0] != "keepa.context_policy":
                     raise AssertionError("SDK adapter first tool page did not prioritize keepa.context_policy")
-                if len(tool_pages[0]["tool_names"]) > 8:
+                if len(tool_pages[0]["names"]) > SDK_DEFAULT_TOOL_PAGE_SIZE:
                     raise AssertionError("SDK adapter first tool page is too large for Agent startup")
                 tool_result = await session.call_tool("keepa.context_policy", {})
                 if tool_result.isError or not tool_result.structuredContent:
                     raise AssertionError("keepa.context_policy did not return structuredContent")
-                resources = await session.list_resources()
-                resource_uris = [str(resource.uri) for resource in resources.resources]
+                resources, resource_pages = await _collect_pages(session.list_resources, "resources")
+                resource_uris = [str(resource.uri) for resource in resources]
                 if "keepa://context/policy" not in resource_uris:
                     raise AssertionError("SDK adapter did not expose keepa://context/policy")
+                if len(resource_pages[0]["names"]) > SDK_DEFAULT_RESOURCE_PAGE_SIZE:
+                    raise AssertionError("SDK adapter first resource page is too large for Agent startup")
+                if resource_pages[0]["names"][0] != "keepa://context/policy":
+                    raise AssertionError("SDK adapter first resource page did not prioritize context policy")
                 resource = await session.read_resource(AnyUrl("keepa://context/policy"))
-                prompts = await session.list_prompts()
-                prompt_names = [prompt.name for prompt in prompts.prompts]
+                templates, template_pages = await _collect_pages(session.list_resource_templates, "resourceTemplates")
+                template_names = [str(template.uriTemplate) for template in templates]
+                if "keepa://toolsets/{toolset}" not in template_names:
+                    raise AssertionError("SDK adapter did not expose toolset resource template")
+                if len(template_pages[0]["names"]) > SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE:
+                    raise AssertionError("SDK adapter first template page is too large for Agent startup")
+                prompts, prompt_pages = await _collect_pages(session.list_prompts, "prompts")
+                prompt_names = [prompt.name for prompt in prompts]
                 if "keepa.product_research" not in prompt_names:
                     raise AssertionError("SDK adapter did not expose keepa.product_research")
+                if len(prompt_pages[0]["names"]) > SDK_DEFAULT_PROMPT_PAGE_SIZE:
+                    raise AssertionError("SDK adapter first prompt page is too large for Agent startup")
+                if prompt_pages[0]["names"][0] != "keepa.product_research":
+                    raise AssertionError("SDK adapter first prompt page did not prioritize product research")
 
     return {
         "ok": True,
@@ -91,16 +120,28 @@ async def _run_smoke() -> dict[str, Any]:
         "tools": {
             "count": len(tool_names),
             "page_count": len(tool_pages),
-            "first_page_names": tool_pages[0]["tool_names"],
+            "first_page_names": tool_pages[0]["names"],
             "first_page_meta": tool_pages[0]["meta"],
             "has_context_policy": "keepa.context_policy" in tool_names,
         },
         "resources": {
             "count": len(resource_uris),
+            "page_count": len(resource_pages),
+            "first_page_names": resource_pages[0]["names"],
+            "first_page_meta": resource_pages[0]["meta"],
             "context_policy_bytes": len(resource.contents[0].text),
+        },
+        "resource_templates": {
+            "count": len(template_names),
+            "page_count": len(template_pages),
+            "first_page_names": template_pages[0]["names"],
+            "first_page_meta": template_pages[0]["meta"],
         },
         "prompts": {
             "count": len(prompt_names),
+            "page_count": len(prompt_pages),
+            "first_page_names": prompt_pages[0]["names"],
+            "first_page_meta": prompt_pages[0]["meta"],
             "has_product_research": "keepa.product_research" in prompt_names,
         },
         "tool_call": {
@@ -129,7 +170,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     else:
-        print(f"mcp sdk adapter client smoke ok: {result['tools']['count']} tools, {result['resources']['count']} resources, {result['prompts']['count']} prompts")
+        print(
+            "mcp sdk adapter client smoke ok: "
+            f"{result['tools']['count']} tools, "
+            f"{result['resources']['count']} resources, "
+            f"{result['resource_templates']['count']} templates, "
+            f"{result['prompts']['count']} prompts"
+        )
     return 0
 
 
