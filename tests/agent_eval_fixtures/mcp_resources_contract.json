@@ -10,6 +10,7 @@
     {"path": "result.resources", "contains_item": {"uri": "keepa://fixtures/manifest"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://guides/cassette-promotion"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://evidence/recent"}},
+    {"path": "result.resources", "contains_item": {"uri": "keepa://schema/risk-taxonomy"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://schema/workflow-runtime-contract"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://context/policy"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://workflow/runtime-contract"}},

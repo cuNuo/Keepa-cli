@@ -956,6 +956,12 @@
             "mimeType": "str",
             "name": "str",
             "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
           }
         ],
         "server_name": "str",
@@ -8294,6 +8300,12 @@
     "jsonrpc": "str",
     "result": {
       "resources": [
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
         {
           "description": "str",
           "mimeType": "str",

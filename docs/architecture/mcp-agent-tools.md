@@ -179,6 +179,7 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 | Resource URI | 内容 | 用途 |
 | --- | --- | --- |
 | `keepa://schema/products-agent-view` | `docs/schema/products.agent-view.schema.json` | 外部 Agent 校验产品 Agent 视图形状 |
+| `keepa://schema/risk-taxonomy` | `docs/schema/risk-taxonomy.schema.json` | 外部 Agent 校验稳定风险枚举、severity 与 evidence path |
 | `keepa://schema/workflow-runtime-contract` | `docs/schema/workflow-runtime-contract.schema.json` | 外部 MCP client 校验 workflow runtime contract |
 | `keepa://fixtures/manifest` | `evidence/manifest.csv` | 查 fixture/evidence 是否已有离线样本 |
 | `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升与 parity 验证流程 |
@@ -192,7 +193,7 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 
 资源模板用于按规则寻址本地资产：
 
-- `keepa://schema/{name}`：按稳定名称读取 schema。
+- `keepa://schema/{name}`：按稳定名称读取 schema，支持 `products-agent-view`、`risk-taxonomy` 与 `workflow-runtime-contract`。
 - `keepa://fixtures/{name}`：按文件名读取双份 fixture 中的 JSON 样本。
 - `keepa://cache-key/{command}/{encoded_params}`：对 base64url JSON 参数预览 `AgentSession` cache key，不读取会话内存。
 - `keepa://workflow/{encoded_params}/policy`：对 base64url JSON `workflow.plan` 参数读取紧凑执行策略，返回 `workflow_policy`、`totals` 与 `step_summary`，避免资源优先客户端为了 profile 和确认策略加载完整 plan。
@@ -355,7 +356,7 @@ MCP 输出必须延续现有 Agent profile：
 - `evidence_index`
 - `provenance`
 
-`risk_taxonomy` 使用稳定枚举，当前已知 code 为 `data_missing`、`price_unstable`、`rank_declining`、`low_review_count`、`offer_competition_high`、`buybox_missing`、`category_mismatch`。每个 item 必须给出 `severity`、`reason`、`evidence_path`，可补充 `metric` 与 `follow_up`，让 Agent 能做确定性断言而不是解析自然语言。
+`risk_taxonomy` 使用稳定枚举，当前已知 code 为 `data_missing`、`price_unstable`、`rank_declining`、`low_review_count`、`offer_competition_high`、`buybox_missing`、`category_mismatch`。每个 item 必须给出 `severity`、`reason`、`evidence_path`，可补充 `metric` 与 `follow_up`，让 Agent 能做确定性断言而不是解析自然语言。MCP resource `keepa://schema/risk-taxonomy` 暴露同一契约，外部 Agent 可以按 schema 校验 compare rows、brief 和下游报告中的风险语义。
 
 `research_graph` 使用轻量实体关系结构：产品命令的 `nodes` 包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation` 等类型；category/finder/deals/seller/ranking 命令还会输出 `search_term`、`selection`、`deal_set`、`deal`、`seller_request`、`seller_ranking`。`products.compare` 会额外输出合并后的 `research_graph` 与 `risk_summary`；`categories.search/products`、`finder.query`、`deals.query`、`sellers.get`、`bestsellers.get`、`topsellers.list` 都提供同名字段，便于跨命令拼接实体记忆。
 

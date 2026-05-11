@@ -632,6 +632,7 @@ class McpProtocolTests(unittest.TestCase):
         uris = {item["uri"] for item in resources}
 
         self.assertIn("keepa://schema/products-agent-view", uris)
+        self.assertIn("keepa://schema/risk-taxonomy", uris)
         self.assertIn("keepa://schema/workflow-runtime-contract", uris)
         self.assertIn("keepa://fixtures/manifest", uris)
         self.assertIn("keepa://guides/cassette-promotion", uris)
@@ -690,6 +691,21 @@ class McpProtocolTests(unittest.TestCase):
         schema_payload = json.loads(runtime_schema["result"]["contents"][0]["text"])
         self.assertEqual(schema_payload["$id"], "keepa://schema/workflow-runtime-contract")
         self.assertIn("accepted_sources", schema_payload["required"])
+
+        risk_schema = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "risk-taxonomy-schema",
+                    "method": "resources/read",
+                    "params": {"uri": "keepa://schema/risk-taxonomy"},
+                }
+            ),
+            env={},
+        )
+        risk_payload = json.loads(risk_schema["result"]["contents"][0]["text"])
+        self.assertEqual(risk_payload["$id"], "keepa://schema/risk-taxonomy")
+        self.assertIn("category_mismatch", risk_payload["$defs"]["risk_code"]["enum"])
 
     def test_zread_resources_read_current_toc_pages_and_page(self):
         current = handle_mcp_message(

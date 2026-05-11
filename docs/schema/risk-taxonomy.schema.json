@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "keepa://schema/risk-taxonomy",
+  "title": "Keepa Agent risk taxonomy",
+  "description": "Machine-readable risk taxonomy emitted by product Agent views, product compare rows, research briefs, and downstream Agent summaries.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "known_codes",
+    "codes",
+    "risk_count",
+    "items"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Risk taxonomy schema version emitted by Keepa-cli."
+    },
+    "known_codes": {
+      "type": "array",
+      "description": "Stable enum values Agent clients should treat as machine-readable risk codes.",
+      "items": {
+        "$ref": "#/$defs/risk_code"
+      },
+      "uniqueItems": true,
+      "minItems": 7
+    },
+    "codes": {
+      "type": "array",
+      "description": "Risk codes present for this object.",
+      "items": {
+        "$ref": "#/$defs/risk_code"
+      },
+      "uniqueItems": true
+    },
+    "highest_severity": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/severity"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "risk_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "items": {
+      "type": "array",
+      "description": "Detailed risks with severity, evidence path, and optional follow-up hints.",
+      "items": {
+        "$ref": "#/$defs/risk_item"
+      }
+    }
+  },
+  "$defs": {
+    "risk_code": {
+      "type": "string",
+      "enum": [
+        "data_missing",
+        "price_unstable",
+        "rank_declining",
+        "low_review_count",
+        "offer_competition_high",
+        "buybox_missing",
+        "category_mismatch"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "risk_item": {
+      "type": "object",
+      "required": [
+        "code",
+        "severity",
+        "reason",
+        "evidence_path"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/risk_code"
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string"
+        },
+        "metric": {
+          "type": "object"
+        },
+        "evidence_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "follow_up": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

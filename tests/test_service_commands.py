@@ -20,10 +20,13 @@ class ServiceCommandTests(unittest.TestCase):
         index = run_command("docs.index", env={})
         self.assertTrue(index["ok"])
         self.assertEqual(index["data"]["stable_entrypoints"]["zread_current"], "keepa://zread/wiki/current")
+        self.assertEqual(index["data"]["stable_entrypoints"]["risk_taxonomy_schema"], "keepa://schema/risk-taxonomy")
         self.assertEqual(index["data"]["stable_entrypoints"]["workflow_runtime_schema"], "keepa://schema/workflow-runtime-contract")
+        self.assertIn("keepa://schema/risk-taxonomy", index["data"]["recommended_read_order"])
         self.assertIn("keepa://schema/workflow-runtime-contract", index["data"]["recommended_read_order"])
         resource_uris = {item["uri"] for item in index["data"]["resources"]}
         self.assertIn("keepa://context/policy", resource_uris)
+        self.assertIn("keepa://schema/risk-taxonomy", resource_uris)
         self.assertIn("keepa://schema/workflow-runtime-contract", resource_uris)
 
         current = run_command("docs.read", {"uri": "keepa://zread/wiki/current"}, env={})
@@ -33,6 +36,11 @@ class ServiceCommandTests(unittest.TestCase):
         runtime_schema = run_command("docs.read", {"uri": "keepa://schema/workflow-runtime-contract"}, env={})
         self.assertTrue(runtime_schema["ok"])
         self.assertEqual(runtime_schema["data"]["json"]["$id"], "keepa://schema/workflow-runtime-contract")
+
+        risk_schema = run_command("docs.read", {"uri": "keepa://schema/risk-taxonomy"}, env={})
+        self.assertTrue(risk_schema["ok"])
+        self.assertEqual(risk_schema["data"]["json"]["$id"], "keepa://schema/risk-taxonomy")
+        self.assertIn("price_unstable", risk_schema["data"]["json"]["$defs"]["risk_code"]["enum"])
 
         page = run_command("docs.read", {"page": "1-gai-lan"}, env={})
         self.assertTrue(page["ok"])
@@ -60,6 +68,10 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertTrue(workflow_context["ok"])
         self.assertIn("keepa://workflow/runtime-contract", workflow_context["data"]["recommended_read_order"])
         self.assertIn("keepa://schema/workflow-runtime-contract", workflow_context["data"]["recommended_read_order"])
+
+        risk_context = run_command("research.context.query", {"question": "risk taxonomy schema for agent"}, env={})
+        self.assertTrue(risk_context["ok"])
+        self.assertIn("keepa://schema/risk-taxonomy", risk_context["data"]["recommended_read_order"])
 
     def test_research_brief_export_summarizes_local_payloads(self):
         payload = run_command(

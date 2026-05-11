@@ -20,7 +20,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.10")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.11")
         self.assertIn("tui", payload["data"]["protocols"])
         self.assertIn("mcp", payload["data"]["protocols"])
         self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
@@ -31,6 +31,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertGreaterEqual(len(payload["data"]["mcp"]["resource_templates"]), 4)
         self.assertGreaterEqual(len(payload["data"]["mcp"]["prompts"]), 4)
         resource_uris = {item["uri"] for item in payload["data"]["mcp"]["resources"]}
+        self.assertIn("keepa://schema/risk-taxonomy", resource_uris)
         self.assertIn("keepa://schema/workflow-runtime-contract", resource_uris)
         self.assertIn("keepa://tools/index", resource_uris)
         self.assertIn("keepa://workflow/runtime-contract", resource_uris)
@@ -104,7 +105,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.10")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.11")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -112,7 +113,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-11.10")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-11.11")
 
 
 if __name__ == "__main__":

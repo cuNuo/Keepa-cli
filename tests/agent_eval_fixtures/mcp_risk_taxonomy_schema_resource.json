@@ -1,0 +1,35 @@
+{
+  "id": "mcp_risk_taxonomy_schema_resource",
+  "description": "MCP schema resource exposes the stable Agent risk taxonomy contract.",
+  "kind": "mcp",
+  "method": "resources/read",
+  "params": {
+    "uri": "keepa://schema/risk-taxonomy"
+  },
+  "assertions": [
+    {
+      "path": "result.contents.0.mimeType",
+      "equals": "application/json"
+    },
+    {
+      "path": "result.contents.0.text.$json.$id",
+      "equals": "keepa://schema/risk-taxonomy"
+    },
+    {
+      "path": "result.contents.0.text.$json.required",
+      "contains": "known_codes"
+    },
+    {
+      "path": "result.contents.0.text.$json.$defs.risk_code.enum",
+      "contains": "data_missing"
+    },
+    {
+      "path": "result.contents.0.text.$json.$defs.risk_code.enum",
+      "contains": "category_mismatch"
+    },
+    {
+      "path": "result.contents.0.text.$json.$defs.risk_item.required",
+      "contains": "evidence_path"
+    }
+  ]
+}

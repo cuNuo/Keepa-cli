@@ -43,6 +43,12 @@ STATIC_RESOURCES: tuple[dict[str, str], ...] = (
         "mimeType": "application/json",
     },
     {
+        "uri": "keepa://schema/risk-taxonomy",
+        "name": "risk-taxonomy.schema",
+        "description": "JSON schema for the stable Agent risk taxonomy enum and evidence-bearing risk items.",
+        "mimeType": "application/json",
+    },
+    {
         "uri": "keepa://fixtures/manifest",
         "name": "fixture-and-evidence-manifest",
         "description": "Current evidence manifest with fixture and task-log entries.",
@@ -109,7 +115,7 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
     {
         "uriTemplate": "keepa://schema/{name}",
         "name": "schema-by-name",
-        "description": "Read a generated schema by stable name. Supports products-agent-view and workflow-runtime-contract.",
+        "description": "Read a generated schema by stable name. Supports products-agent-view, workflow-runtime-contract, and risk-taxonomy.",
         "mimeType": "application/json",
     },
     {
@@ -224,6 +230,8 @@ def read_mcp_resource(
         return _read_text_resource(uri, repo_root / "docs/schema/products.agent-view.schema.json", "application/json")
     if uri == "keepa://schema/workflow-runtime-contract":
         return _read_text_resource(uri, repo_root / "docs/schema/workflow-runtime-contract.schema.json", "application/json")
+    if uri == "keepa://schema/risk-taxonomy":
+        return _read_text_resource(uri, repo_root / "docs/schema/risk-taxonomy.schema.json", "application/json")
     if uri == "keepa://fixtures/manifest":
         return _read_text_resource(uri, repo_root / "evidence/manifest.csv", "text/csv")
     if uri == "keepa://guides/cassette-promotion":
@@ -335,6 +343,8 @@ def _read_named_schema_resource(uri: str, *, repo_root: Path) -> dict[str, str]:
         return _read_text_resource(uri, repo_root / "docs/schema/products.agent-view.schema.json", "application/json")
     if name in {"workflow-runtime-contract", "workflow-runtime-contract.schema", "workflow-runtime-contract.schema.json"}:
         return _read_text_resource(uri, repo_root / "docs/schema/workflow-runtime-contract.schema.json", "application/json")
+    if name in {"risk-taxonomy", "risk-taxonomy.schema", "risk-taxonomy.schema.json"}:
+        return _read_text_resource(uri, repo_root / "docs/schema/risk-taxonomy.schema.json", "application/json")
     raise ValueError(f"unknown schema resource name: {name}")
 
 
