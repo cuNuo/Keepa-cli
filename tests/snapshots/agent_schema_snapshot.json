@@ -12935,6 +12935,34 @@
         ],
         "view": "str"
       },
+      "artifacts": {
+        "category_candidates": {
+          "kind": "str",
+          "produced_by": "str",
+          "resource_templates": [
+            "str"
+          ]
+        },
+        "category_products": {
+          "kind": "str",
+          "produced_by": "str",
+          "resource_templates": [
+            "str"
+          ]
+        },
+        "finder_selection": {
+          "kind": "str",
+          "path": "str",
+          "produced_by": "str"
+        },
+        "product_comparison": {
+          "kind": "str",
+          "produced_by": "str",
+          "resource_templates": [
+            "str"
+          ]
+        }
+      },
       "data_quality": {
         "confidence": "str",
         "missing": [],
@@ -12945,11 +12973,19 @@
           "str",
           "str",
           "str",
+          "str",
+          "str",
+          "str",
           "str"
         ]
       },
       "domain": "str",
       "evidence_index": {
+        "artifacts": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
         "fixture_replay": {
           "path": "str",
           "section": "str",
@@ -12960,12 +12996,22 @@
           "section": "str",
           "why": "str"
         },
+        "resource_templates": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
         "steps": {
           "path": "str",
           "section": "str",
           "why": "str"
         },
         "totals": {
+          "path": "str",
+          "section": "str",
+          "why": "str"
+        },
+        "workflow_inputs": {
           "path": "str",
           "section": "str",
           "why": "str"
@@ -13001,14 +13047,51 @@
         "params_hash": "str",
         "source": "str"
       },
+      "resource_templates": [
+        {
+          "name": "str",
+          "uri_template": "str",
+          "use": "str"
+        },
+        {
+          "name": "str",
+          "uri_template": "str",
+          "use": "str"
+        },
+        {
+          "name": "str",
+          "uri_template": "str",
+          "use": "str"
+        },
+        {
+          "name": "str",
+          "uri_template": "str",
+          "use": "str"
+        },
+        {
+          "name": "str",
+          "uri_template": "str",
+          "use": "str"
+        },
+        {
+          "name": "str",
+          "uri_template": "str",
+          "use": "str"
+        }
+      ],
       "selection_signals": {
+        "artifact_count": "int",
         "confirmation_step_count": "int",
         "inactive_tool_count": "int",
         "parallel_group_count": "int",
+        "resource_template_count": "int",
         "step_count": "int"
       },
       "steps": [
         {
+          "artifact_refs": [
+            "str"
+          ],
           "cli": "str",
           "command": "str",
           "depends_on": [],
@@ -13021,6 +13104,10 @@
           },
           "fixture_replay": "str",
           "id": "str",
+          "input_refs": [
+            "str",
+            "str"
+          ],
           "mcp": {
             "active_in_profile": "bool",
             "active_in_recommended_profile": "bool",
@@ -13050,6 +13137,9 @@
           "worst_case_tokens": "int"
         },
         {
+          "artifact_refs": [
+            "str"
+          ],
           "cli": "str",
           "command": "str",
           "depends_on": [
@@ -13064,6 +13154,9 @@
           },
           "fixture_replay": "null",
           "id": "str",
+          "input_refs": [
+            "str"
+          ],
           "mcp": {
             "active_in_profile": "bool",
             "active_in_recommended_profile": "bool",
@@ -13095,6 +13188,10 @@
           "worst_case_tokens": "int"
         },
         {
+          "artifact_refs": [
+            "str",
+            "str"
+          ],
           "cli": "str",
           "command": "str",
           "depends_on": [
@@ -13113,6 +13210,9 @@
           },
           "fixture_replay": "str",
           "id": "str",
+          "input_refs": [
+            "str"
+          ],
           "mcp": {
             "active_in_profile": "bool",
             "active_in_recommended_profile": "bool",
@@ -13146,6 +13246,10 @@
           "worst_case_tokens": "int"
         },
         {
+          "artifact_refs": [
+            "str",
+            "str"
+          ],
           "cli": "str",
           "command": "str",
           "depends_on": [
@@ -13160,6 +13264,9 @@
           },
           "fixture_replay": "str",
           "id": "str",
+          "input_refs": [
+            "str"
+          ],
           "mcp": {
             "active_in_profile": "bool",
             "active_in_recommended_profile": "bool",
@@ -13205,6 +13312,38 @@
         "worst_case_tokens": "int"
       },
       "view": "str",
+      "workflow_inputs": {
+        "domain": {
+          "description": "str",
+          "required": "bool",
+          "source": "str",
+          "value": "str"
+        },
+        "goal": {
+          "description": "str",
+          "required": "bool",
+          "source": "str",
+          "value": "str"
+        },
+        "hydrate_top": {
+          "description": "str",
+          "required": "bool",
+          "source": "str",
+          "value": "int"
+        },
+        "selected_category_id": {
+          "description": "str",
+          "required": "str",
+          "source": "str",
+          "value": "str"
+        },
+        "term": {
+          "description": "str",
+          "required": "bool",
+          "source": "str",
+          "value": "str"
+        }
+      },
       "workflow_policy": {
         "allowed_tools": [
           "str",
@@ -13277,6 +13416,38 @@
         ],
         "recommended_profile": "str",
         "recommended_toolset": "str",
+        "resource_templates": [
+          {
+            "name": "str",
+            "uri_template": "str",
+            "use": "str"
+          },
+          {
+            "name": "str",
+            "uri_template": "str",
+            "use": "str"
+          },
+          {
+            "name": "str",
+            "uri_template": "str",
+            "use": "str"
+          },
+          {
+            "name": "str",
+            "uri_template": "str",
+            "use": "str"
+          },
+          {
+            "name": "str",
+            "uri_template": "str",
+            "use": "str"
+          },
+          {
+            "name": "str",
+            "uri_template": "str",
+            "use": "str"
+          }
+        ],
         "tool_discovery": {
           "method": "str",
           "params": {

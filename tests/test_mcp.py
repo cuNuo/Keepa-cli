@@ -369,7 +369,11 @@ class McpProtocolTests(unittest.TestCase):
         report_data = report["result"]["structuredContent"]["data"]
         self.assertEqual(report_data["workflow_policy"]["recommended_toolset"], "reports")
         self.assertEqual(report_data["workflow_policy"]["recommended_profile"], "offline_fixture_only")
+        self.assertEqual(report_data["workflow_inputs"]["graph_inputs"]["source"], "paths or resource_templates.research_graph")
+        self.assertIn("merged_graph", report_data["artifacts"])
+        self.assertIn("resource_templates", report_data["workflow_policy"])
         self.assertEqual(report_data["steps"][0]["mcp"]["toolset"], "reports")
+        self.assertIn("workflow_inputs.graph_inputs", report_data["steps"][0]["input_refs"])
         self.assertEqual(report_data["totals"]["estimated_tokens"], 0)
 
         tracking = handle_mcp_message(
@@ -389,7 +393,10 @@ class McpProtocolTests(unittest.TestCase):
         tracking_data = tracking["result"]["structuredContent"]["data"]
         self.assertEqual(tracking_data["workflow_policy"]["recommended_toolset"], "tracking-readonly")
         self.assertEqual(tracking_data["workflow_policy"]["recommended_profile"], "tracking_readonly")
+        self.assertEqual(tracking_data["workflow_inputs"]["asin"]["value"], "B0D8W1YVBX")
+        self.assertIn("tracking_detail", tracking_data["artifacts"])
         self.assertEqual(tracking_data["steps"][0]["mcp"]["toolset"], "tracking-readonly")
+        self.assertIn("artifacts.tracking_list", tracking_data["steps"][2]["input_refs"])
         self.assertNotIn("tracking.add", {step["tool"] for step in tracking_data["steps"]})
 
     def test_tools_call_deals_query_returns_deal_research_graph(self):
@@ -682,9 +689,14 @@ class McpProtocolTests(unittest.TestCase):
         payload = json.loads(content["text"])
         self.assertEqual(content["mimeType"], "application/json")
         self.assertEqual(payload["view"], "workflow_policy_resource")
+        self.assertEqual(payload["workflow_inputs"]["term"]["value"], "home kitchen")
+        self.assertIn("category_products", payload["artifacts"])
+        self.assertEqual(payload["resource_templates"][0]["uri_template"], "keepa://workflow/{encoded_params}/policy")
         self.assertEqual(payload["workflow_policy"]["recommended_profile"], "dry_run_default")
         self.assertEqual(payload["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
         self.assertEqual(payload["step_summary"][0]["mcp_tool"], "keepa.categories_search")
+        self.assertIn("workflow_inputs.term", payload["step_summary"][0]["input_refs"])
+        self.assertIn("artifacts.category_candidates", payload["step_summary"][0]["artifact_refs"])
 
         tracking_token = base64.urlsafe_b64encode(
             json.dumps(
@@ -705,6 +717,8 @@ class McpProtocolTests(unittest.TestCase):
         )
         tracking_payload = json.loads(tracking["result"]["contents"][0]["text"])
         self.assertEqual(tracking_payload["workflow_policy"]["recommended_toolset"], "tracking-readonly")
+        self.assertEqual(tracking_payload["workflow_inputs"]["asin"]["value"], "B0D8W1YVBX")
+        self.assertIn("tracking_detail", tracking_payload["artifacts"])
         self.assertEqual(tracking_payload["step_summary"][0]["mcp_tool"], "keepa.tracking_list")
 
     def test_tool_and_prompt_resources_support_schema_first_agent_discovery(self):

@@ -375,6 +375,9 @@ def _read_workflow_policy_resource(uri: str) -> dict[str, str]:
         "view": "workflow_policy_resource",
         "command": "workflow.plan",
         "params": dict(params),
+        "workflow_inputs": data.get("workflow_inputs") or {},
+        "artifacts": data.get("artifacts") or {},
+        "resource_templates": data.get("resource_templates") or [],
         "workflow_policy": data.get("workflow_policy") or {},
         "totals": data.get("totals") or {},
         "step_summary": [
@@ -385,11 +388,13 @@ def _read_workflow_policy_resource(uri: str) -> dict[str, str]:
                 "profile": (step.get("mcp") or {}).get("profile") if isinstance(step.get("mcp"), Mapping) else None,
                 "requires_confirmation": step.get("requires_confirmation"),
                 "estimated_tokens": step.get("estimated_tokens"),
+                "input_refs": step.get("input_refs") or [],
+                "artifact_refs": step.get("artifact_refs") or [],
             }
             for step in steps
             if isinstance(step, Mapping)
         ],
-        "recommended_read_order": ["workflow_policy", "step_summary", "totals"],
+        "recommended_read_order": ["workflow_inputs", "artifacts", "resource_templates", "workflow_policy", "step_summary", "totals"],
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
 

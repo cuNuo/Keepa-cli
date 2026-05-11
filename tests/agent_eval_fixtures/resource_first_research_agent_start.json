@@ -1,0 +1,77 @@
+{
+  "id": "resource_first_research_agent_start",
+  "description": "资源优先调研 Agent 起手链路：context policy -> resolve target -> workflow policy resource -> filtered tools/list -> fixture execute。",
+  "kind": "mcp_session",
+  "steps": [
+    {
+      "id": "context-policy",
+      "method": "resources/read",
+      "params": {"uri": "keepa://context/policy"}
+    },
+    {
+      "id": "resolve-target",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.resolve_research_target",
+        "arguments": {"query": "home kitchen", "domain": "US"}
+      }
+    },
+    {
+      "id": "workflow-policy-resource",
+      "method": "resources/read",
+      "params": {
+        "uri": "keepa://workflow/eyJuYW1lIjoiY2F0ZWdvcnktcmVzZWFyY2giLCJ0ZXJtIjoiaG9tZSBraXRjaGVuIiwiZG9tYWluIjoiVVMiLCJoeWRyYXRlX3RvcCI6MX0/policy"
+      }
+    },
+    {
+      "id": "filtered-tools",
+      "method": "tools/list",
+      "params": {
+        "toolset": "research",
+        "profile": "dry_run_default",
+        "allow_tools": [
+          "keepa.categories_search",
+          "keepa.categories_finder_selection",
+          "keepa.categories_products",
+          "keepa.products_compare"
+        ]
+      }
+    },
+    {
+      "id": "execute-first-step",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.categories_search",
+        "arguments": {
+          "term": "home kitchen",
+          "domain": "US",
+          "fixture": "category_search_home.json",
+          "profile": "dry_run_default"
+        }
+      }
+    }
+  ],
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "responses", "length": 5},
+    {"path": "responses.0.result.contents.0.text.$json.view", "equals": "context_policy"},
+    {"path": "responses.0.result.contents.0.text.$json.live_keepa.allowed_by_default", "equals": false},
+    {"path": "responses.1.result.structuredContent.data.primary.type", "equals": "keyword"},
+    {"path": "responses.2.result.contents.0.text.$json.view", "equals": "workflow_policy_resource"},
+    {"path": "responses.2.result.contents.0.text.$json.workflow_inputs.term.value", "equals": "home kitchen"},
+    {"path": "responses.2.result.contents.0.text.$json.artifacts.category_products.kind", "equals": "asin_candidates"},
+    {"path": "responses.2.result.contents.0.text.$json.resource_templates.0.uri_template", "equals": "keepa://workflow/{encoded_params}/policy"},
+    {"path": "responses.2.result.contents.0.text.$json.workflow_policy.recommended_profile", "equals": "dry_run_default"},
+    {"path": "responses.2.result.contents.0.text.$json.workflow_policy.tool_discovery.params.allow_tools", "contains": "keepa.categories_search"},
+    {"path": "responses.2.result.contents.0.text.$json.step_summary.0.input_refs", "contains": "workflow_inputs.term"},
+    {"path": "responses.2.result.contents.0.text.$json.step_summary.0.artifact_refs", "contains": "artifacts.category_candidates"},
+    {"path": "responses.3.result.toolset", "equals": "research"},
+    {"path": "responses.3.result.profile", "equals": "dry_run_default"},
+    {"path": "responses.3.result.tools", "length": 4},
+    {"path": "responses.4.result.structuredContent.ok", "equals": true},
+    {"path": "responses.4.result.structuredContent.command", "equals": "categories.search"},
+    {"path": "responses.4.result.structuredContent.data.offline", "equals": true},
+    {"path": "budget_ledger.session_estimated", "min": 1},
+    {"path": "budget_ledger.session_consumed", "min": 1}
+  ]
+}

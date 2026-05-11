@@ -451,6 +451,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 17. 将 session profile 与 `workflow.plan` 联动，输出 recommended profile、inactive tools、profile switch points、确认策略和 budget ledger seed。（已完成）
 18. 落地 `keepa://workflow/{encoded_params}/policy`，让资源优先客户端用 base64url JSON 计划参数读取紧凑 `workflow_policy` 与步骤摘要。（已完成）
 19. 扩展 `workflow.plan` 到 `report-research` 与 `tracking-audit`，让本地报告链路和 tracking-readonly 审计链路也输出 profile/toolset/ledger 策略。（已完成）
+20. 扩展 `workflow.plan` 的结构化输入/产物契约：新增 `workflow_inputs`、`artifacts`、`resource_templates`、step `input_refs` 与 `artifact_refs`，并用 resource-first Agent eval 固化 `context policy -> resolve target -> workflow policy resource -> tools/list filtered -> execute` 起手链路。（已完成）
 
 ## 迁移风险
 
@@ -470,6 +471,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 4. session profile 已与 `workflow.plan` 联动：`workflow_policy` 输出 recommended profile、allowed/inactive tools、profile switch points、确认策略、cache policy 和 budget ledger seed。
 5. workflow policy resource template 已完成，资源优先客户端可不加载完整 plan 先读取执行策略。
 6. `workflow.plan` 覆盖四类内置计划：`category-research`、`product-research`、`report-research`、`tracking-audit`；其中 report 计划固定走 `reports` + `offline_fixture_only`，tracking 计划固定走 `tracking-readonly` + `tracking_readonly`。
-7. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
+7. `workflow.plan` 已输出 `workflow_inputs`、`artifacts` 与 step 输入/产物引用，Agent 不需要再解析 CLI 字符串来连接图谱、brief、报告和 tracking 只读产物。
+8. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。
 
 这样协议层、证据沉淀和语义图谱已经分层稳定，后续扩展不会继续推高 `service.py` 和 MCP registry 的耦合。

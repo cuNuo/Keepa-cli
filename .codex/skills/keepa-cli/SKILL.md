@@ -57,7 +57,7 @@ MCP `resources/list` exposes `keepa://context/policy`, `keepa://schema/products-
 
 For general research Agents, read `keepa://context/policy`, call `keepa.resolve_research_target`, then call `keepa.query_research_context` before running live-capable product/category tools. `tools/list` accepts `allow_tools`, `exclude_tools`, and `profile` filters for small per-workflow schemas; use `profile=offline_fixture_only` when the Agent must not execute live-capable tools.
 
-`workflow.plan` returns `workflow_policy` for MCP execution control. It supports `category-research`, `product-research`, `report-research`, and `tracking-audit`. Read it before running steps: apply `tool_discovery.params` to `tools/list`, follow `profile_switch_points`, treat `inactive_tools` as deliberate stage gates, and only add `yes=true` after explicit confirmation for the listed `confirmation_policy.step_ids`. `report-research` is local-only through the `reports` toolset; `tracking-audit` is read-only through `tracking-readonly`.
+`workflow.plan` returns `workflow_inputs`, `artifacts`, `resource_templates`, and `workflow_policy` for MCP execution control. It supports `category-research`, `product-research`, `report-research`, and `tracking-audit`. Read it before running steps: apply `tool_discovery.params` to `tools/list`, follow `profile_switch_points`, treat `inactive_tools` as deliberate stage gates, connect steps with `input_refs` / `artifact_refs`, and only add `yes=true` after explicit confirmation for the listed `confirmation_policy.step_ids`. `report-research` is local-only through the `reports` toolset; `tracking-audit` is read-only through `tracking-readonly`.
 
 For local workflows:
 

@@ -272,6 +272,68 @@ def _execution_mode(*, estimated_tokens: int, requires_confirmation: bool, fixtu
     return "live_read_or_fixture"
 
 
+def _step_io_metadata(step_id: str) -> dict[str, Any]:
+    metadata: dict[str, dict[str, Any]] = {
+        "search-categories": {
+            "input_refs": ["workflow_inputs.term", "workflow_inputs.domain"],
+            "artifact_refs": ["artifacts.category_candidates"],
+        },
+        "scaffold-finder": {
+            "input_refs": ["artifacts.category_candidates.selected_category_id"],
+            "artifact_refs": ["artifacts.finder_selection"],
+        },
+        "fetch-category-products": {
+            "input_refs": ["artifacts.category_candidates.selected_category_id"],
+            "artifact_refs": ["artifacts.category_products", "artifacts.category_products.cache_key"],
+        },
+        "compare-candidates": {
+            "input_refs": ["artifacts.category_products.asins"],
+            "artifact_refs": ["artifacts.product_comparison", "artifacts.product_comparison.cache_key"],
+        },
+        "get-product-summary": {
+            "input_refs": ["workflow_inputs.asin", "workflow_inputs.domain", "workflow_inputs.goal"],
+            "artifact_refs": ["artifacts.product_summary", "artifacts.product_summary.cache_key"],
+        },
+        "optional-offers": {
+            "input_refs": ["artifacts.product_summary.data_quality", "workflow_inputs.asin"],
+            "artifact_refs": ["artifacts.offer_detail", "artifacts.offer_detail.cache_key"],
+        },
+        "merge-research-graph": {
+            "input_refs": ["workflow_inputs.graph_inputs", "resource_templates.research_cache", "resource_templates.graph_root"],
+            "artifact_refs": ["artifacts.merged_graph", "artifacts.merged_graph.path"],
+        },
+        "build-graph-report": {
+            "input_refs": ["artifacts.merged_graph.path"],
+            "artifact_refs": ["artifacts.markdown_report"],
+        },
+        "export-agent-brief": {
+            "input_refs": ["artifacts.merged_graph.path"],
+            "artifact_refs": ["artifacts.agent_brief"],
+        },
+        "build-browse-snapshot": {
+            "input_refs": ["artifacts.merged_graph.path"],
+            "artifact_refs": ["artifacts.browse_snapshot"],
+        },
+        "list-tracking": {
+            "input_refs": ["workflow_inputs.domain"],
+            "artifact_refs": ["artifacts.tracking_list"],
+        },
+        "read-notifications": {
+            "input_refs": ["artifacts.tracking_list"],
+            "artifact_refs": ["artifacts.tracking_notifications"],
+        },
+        "get-tracking-detail": {
+            "input_refs": ["workflow_inputs.asin", "artifacts.tracking_list"],
+            "artifact_refs": ["artifacts.tracking_detail"],
+        },
+        "audit-tracking-cost": {
+            "input_refs": ["workflow_inputs.asin", "workflow_inputs.domain"],
+            "artifact_refs": ["artifacts.tracking_cost_estimate"],
+        },
+    }
+    return metadata.get(step_id, {"input_refs": [], "artifact_refs": []})
+
+
 def _plan_step(
     *,
     step_id: str,
@@ -297,6 +359,7 @@ def _plan_step(
     if action["requires_confirmation"]:
         execution["confirmation_params"] = {"yes": True}
         execution["confirmation_reason"] = "requires explicit user approval before a live call"
+    io_metadata = _step_io_metadata(step_id)
     return {
         "id": step_id,
         "title": title,
@@ -312,6 +375,8 @@ def _plan_step(
         "worst_case_tokens": budget["worst_case_tokens"],
         "requires_confirmation": action["requires_confirmation"],
         "fixture_replay": fixture_replay,
+        "input_refs": io_metadata["input_refs"],
+        "artifact_refs": io_metadata["artifact_refs"],
         "mcp": {
             "tool": mcp_tool,
             "toolset": "research",
@@ -517,6 +582,133 @@ def _tracking_audit_plan(*, asin: str | None, domain: str) -> list[dict[str, Any
     ]
 
 
+def _workflow_resource_templates(name: str) -> list[dict[str, str]]:
+    templates = [
+        {
+            "name": "workflow_policy",
+            "uri_template": "keepa://workflow/{encoded_params}/policy",
+            "use": "reload compact execution policy for the same workflow params",
+        },
+        {
+            "name": "fixture",
+            "uri_template": "keepa://fixtures/{name}",
+            "use": "load offline replay fixture referenced by a step",
+        },
+    ]
+    if name in {"category-research", "product-research", "report-research"}:
+        templates.extend(
+            [
+                {
+                    "name": "research_cache",
+                    "uri_template": "keepa://research/{cache_key}",
+                    "use": "audit a same-session cached research result before repeating a call",
+                },
+                {
+                    "name": "research_graph",
+                    "uri_template": "keepa://research/{cache_key}/graph",
+                    "use": "load only the cached research graph chunk for graph merge inputs",
+                },
+                {
+                    "name": "research_brief",
+                    "uri_template": "keepa://research/{cache_key}/brief",
+                    "use": "load a compact handoff generated from a cached research payload",
+                },
+                {
+                    "name": "graph_root",
+                    "uri_template": "keepa://graphs/{root}",
+                    "use": "audit a merged research graph and its sources by logical root",
+                },
+            ]
+        )
+    if name == "report-research":
+        templates.append(
+            {
+                "name": "output",
+                "uri_template": "keepa://output/{encoded_path}",
+                "use": "read generated report, brief, or browse output by encoded local path",
+            }
+        )
+    return templates
+
+
+def _workflow_inputs(*, name: str, term: str | None, asin: str | None, domain: str, goal: str, hydrate_top: int) -> dict[str, Any]:
+    common = {
+        "domain": {"required": True, "value": domain, "source": "params.domain", "description": "Keepa domain code, id, or host suffix."},
+        "goal": {"required": False, "value": goal, "source": "params.goal", "description": "Agent research goal used to pick views and labels."},
+    }
+    if name == "category-research":
+        common.update(
+            {
+                "term": {"required": True, "value": term or "", "source": "params.term", "description": "Keyword used to discover candidate categories."},
+                "hydrate_top": {
+                    "required": False,
+                    "value": hydrate_top,
+                    "source": "params.hydrate_top",
+                    "description": "Optional explicit hydration count for category products.",
+                },
+                "selected_category_id": {
+                    "required": "after_step:search-categories",
+                    "value": "<CATEGORY_ID>",
+                    "source": "artifacts.category_candidates",
+                    "description": "Chosen category id from category candidate output.",
+                },
+            }
+        )
+    elif name == "product-research":
+        common["asin"] = {"required": True, "value": asin or "", "source": "params.asin", "description": "Primary ASIN to research."}
+    elif name == "report-research":
+        common["graph_inputs"] = {
+            "required": True,
+            "value": ["<CATEGORY_JSON>", "<COMPARE_JSON>", "<SELLER_JSON>"],
+            "source": "paths or resource_templates.research_graph",
+            "description": "Prior graph-bearing envelopes or graph resources to merge into one report graph.",
+        }
+    elif name == "tracking-audit":
+        common["asin"] = {
+            "required": False,
+            "value": asin or "<ASIN>",
+            "source": "params.asin or artifacts.tracking_list",
+            "description": "Tracked ASIN to inspect; can be chosen after list-tracking.",
+        }
+    return common
+
+
+def _workflow_artifacts(name: str) -> dict[str, dict[str, Any]]:
+    artifacts: dict[str, dict[str, Any]] = {}
+    if name == "category-research":
+        artifacts = {
+            "category_candidates": {"kind": "category_candidates", "produced_by": "search-categories", "resource_templates": ["keepa://fixtures/{name}"]},
+            "finder_selection": {"kind": "finder_selection", "produced_by": "scaffold-finder", "path": "finder-category-<CATEGORY_ID>.json"},
+            "category_products": {"kind": "asin_candidates", "produced_by": "fetch-category-products", "resource_templates": ["keepa://research/{cache_key}"]},
+            "product_comparison": {"kind": "product_compare", "produced_by": "compare-candidates", "resource_templates": ["keepa://research/{cache_key}"]},
+        }
+    elif name == "product-research":
+        artifacts = {
+            "product_summary": {"kind": "product_agent_view", "produced_by": "get-product-summary", "resource_templates": ["keepa://research/{cache_key}"]},
+            "offer_detail": {"kind": "product_offer_detail", "produced_by": "optional-offers", "resource_templates": ["keepa://research/{cache_key}"]},
+        }
+    elif name == "report-research":
+        artifacts = {
+            "merged_graph": {
+                "kind": "research_graph",
+                "produced_by": "merge-research-graph",
+                "path": "<MERGED_GRAPH_JSON>",
+                "resource_templates": ["keepa://graphs/{root}", "keepa://research/{cache_key}/graph"],
+            },
+            "markdown_report": {"kind": "markdown_report", "produced_by": "build-graph-report", "path": "<REPORT_MARKDOWN>", "resource_templates": ["keepa://output/{encoded_path}"]},
+            "agent_brief": {"kind": "agent_research_brief", "produced_by": "export-agent-brief", "resource_templates": ["keepa://output/{encoded_path}"]},
+            "browse_snapshot": {"kind": "local_html_snapshot", "produced_by": "build-browse-snapshot", "path": "<BROWSE_DIR>", "resource_templates": ["keepa://output/{encoded_path}"]},
+        }
+    elif name == "tracking-audit":
+        artifacts = {
+            "tracking_list": {"kind": "tracking_list", "produced_by": "list-tracking", "resource_templates": ["keepa://fixtures/{name}"]},
+            "tracking_notifications": {"kind": "tracking_notifications", "produced_by": "read-notifications"},
+            "tracking_detail": {"kind": "tracking_detail", "produced_by": "get-tracking-detail"},
+            "tracking_cost_estimate": {"kind": "budget_estimate", "produced_by": "audit-tracking-cost"},
+        }
+    return artifacts
+
+
 def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str, Any]) -> dict[str, Any]:
     if name == "category-research":
         recommended_toolset = "research"
@@ -618,6 +810,7 @@ def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str
             "reuse": "prefer from_cache with a prior cache_key before repeating a step",
             "audit_resource": "keepa://research/{cache_key}",
         },
+        "resource_templates": _workflow_resource_templates(name),
     }
 
 
@@ -643,11 +836,16 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
         "requires_confirmation": any(bool(step["requires_confirmation"]) for step in steps),
     }
     workflow_policy = _workflow_policy(name, steps, totals)
+    workflow_inputs = _workflow_inputs(name=name, term=term, asin=asin, domain=domain, goal=goal, hydrate_top=hydrate_top)
+    artifacts = _workflow_artifacts(name)
     return {
         "view": "workflow_plan",
         "name": name,
         "domain": domain,
         "goal": goal,
+        "workflow_inputs": workflow_inputs,
+        "artifacts": artifacts,
+        "resource_templates": workflow_policy["resource_templates"],
         "steps": steps,
         "totals": totals,
         "parallel_groups": sorted({str(step["parallel_group"]) for step in steps if step.get("parallel_group")}),
@@ -659,7 +857,7 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
             "read_order": ["agent_brief", "workflow_policy", "steps", "totals", "evidence_index"],
         },
         "data_quality": {
-            "present": ["steps", "totals", "workflow_policy", "next_actions"],
+            "present": ["workflow_inputs", "artifacts", "resource_templates", "steps", "totals", "workflow_policy", "next_actions"],
             "missing": [],
             "confidence": "high",
             "notes": ["workflow plan is local-only and does not consume Keepa tokens"],
@@ -669,6 +867,8 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
             "parallel_group_count": len({step["parallel_group"] for step in steps if step.get("parallel_group")}),
             "confirmation_step_count": len(workflow_policy["confirmation_policy"]["step_ids"]),
             "inactive_tool_count": len(workflow_policy["inactive_tools"]),
+            "artifact_count": len(artifacts),
+            "resource_template_count": len(workflow_policy["resource_templates"]),
         },
         "next_actions": [
             build_action(
@@ -685,6 +885,9 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
         "evidence_index": build_evidence_index(
             {
                 "steps": ("steps", "summary", "Ordered execution graph with dependencies and budgets."),
+                "workflow_inputs": ("workflow_inputs", "summary", "Explicit input contract and late-bound values for workflow execution."),
+                "artifacts": ("artifacts", "summary", "Named intermediate and final artifacts produced by the workflow."),
+                "resource_templates": ("resource_templates", "summary", "MCP resource templates that can satisfy inputs or reload outputs."),
                 "totals": ("totals", "summary", "Total estimated and worst-case token budget."),
                 "workflow_policy": ("workflow_policy", "summary", "MCP profile, toolset, confirmation, cache, and budget policy for the plan."),
                 "next_actions": ("next_actions", "summary", "Root actions safe for an Agent to start from."),

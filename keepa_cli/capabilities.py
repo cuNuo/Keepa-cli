@@ -15,7 +15,7 @@ from keepa_cli.agent.tools import list_mcp_tools, profile_names, toolset_names
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-11.6"
+SCHEMA_VERSION = "2026-05-11.7"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
