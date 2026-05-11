@@ -7,8 +7,10 @@ keepa_cli/agent/mcp.py
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from keepa_cli import __version__
@@ -31,7 +33,9 @@ from keepa_cli.envelope import error_envelope
 
 
 JSONRPC_VERSION = "2.0"
-MCP_PROTOCOL_VERSION = "2025-06-18"
+MCP_PROTOCOL_VERSION = "2025-11-25"
+DEFAULT_PAGED_LIST_LIMIT = 50
+MAX_PAGED_LIST_LIMIT = 100
 
 
 def _jsonrpc_result(message_id: Any, result: Mapping[str, Any]) -> dict[str, Any]:
@@ -47,6 +51,63 @@ def _jsonrpc_error(message_id: Any, code: int, message: str, data: Mapping[str, 
 
 def _json_text(payload: Mapping[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str)
+
+
+def _encode_cursor(offset: int) -> str:
+    raw = json.dumps({"offset": offset}, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _decode_cursor(cursor: Any) -> int:
+    if cursor in (None, ""):
+        return 0
+    if not isinstance(cursor, str):
+        raise ValueError("cursor must be a string")
+    padded = cursor + "=" * (-len(cursor) % 4)
+    try:
+        payload = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+    except (binascii.Error, UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("cursor is not a valid Keepa MCP pagination cursor") from exc
+    offset = payload.get("offset") if isinstance(payload, dict) else None
+    if not isinstance(offset, int) or offset < 0:
+        raise ValueError("cursor does not contain a valid offset")
+    return offset
+
+
+def _list_limit(params: Mapping[str, Any]) -> int | None:
+    value = params.get("limit")
+    if value in (None, ""):
+        return DEFAULT_PAGED_LIST_LIMIT if params.get("cursor") else None
+    if isinstance(value, bool):
+        raise ValueError("limit must be an integer between 1 and 100")
+    try:
+        limit = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("limit must be an integer between 1 and 100") from exc
+    if limit < 1 or limit > MAX_PAGED_LIST_LIMIT:
+        raise ValueError("limit must be an integer between 1 and 100")
+    return limit
+
+
+def _paginated_result(items: Sequence[dict[str, Any]], *, result_key: str, params: Mapping[str, Any]) -> dict[str, Any]:
+    offset = _decode_cursor(params.get("cursor"))
+    limit = _list_limit(params)
+    page_limit = len(items) if limit is None else limit
+    page = [dict(item) for item in items[offset : offset + page_limit]]
+    next_offset = offset + len(page)
+    result: dict[str, Any] = {
+        result_key: page,
+        "_meta": {
+            "count": len(page),
+            "total_count": len(items),
+            "offset": offset,
+            "limit": page_limit,
+            "has_more": next_offset < len(items),
+        },
+    }
+    if next_offset < len(items):
+        result["nextCursor"] = _encode_cursor(next_offset)
+    return result
 
 
 def _tool_name_filter(value: Any) -> list[str] | None:
@@ -70,10 +131,18 @@ def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _tool_error_result(*, tool: Any, kind: str, message: str, details: Mapping[str, Any], session: AgentSession) -> dict[str, Any]:
+    payload = error_envelope(command=tool.command, kind=kind, message=message, details=dict(details))
+    payload["cache_key"] = ""
+    payload["cache_hit"] = False
+    payload["budget_ledger"] = session.ledger.to_dict()
+    return _tool_result(payload)
+
+
 def _initialize_result() -> dict[str, Any]:
     return {
         "protocolVersion": MCP_PROTOCOL_VERSION,
-        "serverInfo": {"name": "keepa", "version": __version__},
+        "serverInfo": {"name": "keepa_mcp", "title": "Keepa CLI MCP", "version": __version__},
         "capabilities": {
             "tools": {"listChanged": False},
             "resources": {"listChanged": False, "templatesChanged": False},
@@ -108,6 +177,8 @@ def handle_mcp_message(
 
     if method == "initialize":
         return _jsonrpc_result(message_id, _initialize_result())
+    if method == "ping":
+        return _jsonrpc_result(message_id, {})
     if method == "notifications/initialized":
         return None
     if method == "tools/list":
@@ -140,10 +211,12 @@ def handle_mcp_message(
             )
         except ValueError as exc:
             return _jsonrpc_error(message_id, -32602, "Invalid profile", {"message": str(exc), "available_profiles": profile_names()})
-        return _jsonrpc_result(
-            message_id,
+        try:
+            result = _paginated_result(tools, result_key="tools", params=params)
+        except ValueError as exc:
+            return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
+        result.update(
             {
-                "tools": tools,
                 "toolset": toolset or (toolsets if toolsets is not None else DEFAULT_TOOLSET),
                 "available_toolsets": toolset_names(),
                 "available_profiles": profile_names(),
@@ -154,12 +227,19 @@ def handle_mcp_message(
                 },
             },
         )
+        return _jsonrpc_result(message_id, result)
     if method == "tools/call":
         return _handle_tools_call(message_id, params, env=env, session=session)
     if method == "resources/list":
-        return _jsonrpc_result(message_id, {"resources": list_mcp_resources()})
+        try:
+            return _jsonrpc_result(message_id, _paginated_result(list_mcp_resources(), result_key="resources", params=params))
+        except ValueError as exc:
+            return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
     if method == "resources/templates/list":
-        return _jsonrpc_result(message_id, {"resourceTemplates": list_mcp_resource_templates()})
+        try:
+            return _jsonrpc_result(message_id, _paginated_result(list_mcp_resource_templates(), result_key="resourceTemplates", params=params))
+        except ValueError as exc:
+            return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
     if method == "resources/read":
         uri = str(params.get("uri", ""))
         try:
@@ -169,7 +249,10 @@ def handle_mcp_message(
             return _jsonrpc_error(message_id, -32602, "Unknown resource", {"uri": uri, "message": str(exc)})
         return _jsonrpc_result(message_id, {"contents": [content]})
     if method == "prompts/list":
-        return _jsonrpc_result(message_id, {"prompts": list_mcp_prompts()})
+        try:
+            return _jsonrpc_result(message_id, _paginated_result(list_mcp_prompts(), result_key="prompts", params=params))
+        except ValueError as exc:
+            return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
     if method == "prompts/get":
         name = str(params.get("name", ""))
         arguments = params.get("arguments") or {}
@@ -206,8 +289,8 @@ def _handle_tools_call(
     validation_errors = validate_tool_arguments(tool, arguments)
     missing_inputs = workflow_resolution.get("missing_inputs") if isinstance(workflow_resolution, Mapping) else None
     if missing_inputs:
-        payload = error_envelope(
-            command=tool.command,
+        return _jsonrpc_result(message_id, _tool_error_result(
+            tool=tool,
             kind="missing_inputs",
             message=f"tool {tool.name} is missing workflow inputs",
             details={
@@ -215,26 +298,30 @@ def _handle_tools_call(
                 "missing_inputs": missing_inputs,
                 "workflow_resolution": workflow_resolution,
             },
-        )
-        payload["cache_key"] = ""
-        payload["cache_hit"] = False
-        payload["budget_ledger"] = active_session.ledger.to_dict()
-        return _jsonrpc_result(message_id, _tool_result(payload))
+            session=active_session,
+        ))
     if validation_errors:
-        return _jsonrpc_error(message_id, -32602, "Invalid tool arguments", {"tool": name, "errors": validation_errors})
+        return _jsonrpc_result(message_id, _tool_error_result(
+            tool=tool,
+            kind="invalid_arguments",
+            message=f"tool {tool.name} arguments did not pass validation",
+            details={
+                "tool": name,
+                "errors": validation_errors,
+                "next_action": "Call tools/list for this tool and retry with arguments that match inputSchema.",
+            },
+            session=active_session,
+        ))
 
     profile = str(arguments.get("profile") or "").strip()
     if profile and not is_tool_active_for_profile(tool.name, profile):
-        payload = error_envelope(
-            command=tool.command,
+        return _jsonrpc_result(message_id, _tool_error_result(
+            tool=tool,
             kind="inactive_tool",
             message=f"tool {tool.name} is inactive for profile {profile}",
             details={"tool": tool.name, "profile": profile, "available_profiles": profile_names()},
-        )
-        payload["cache_key"] = ""
-        payload["cache_hit"] = False
-        payload["budget_ledger"] = active_session.ledger.to_dict()
-        return _jsonrpc_result(message_id, _tool_result(payload))
+            session=active_session,
+        ))
 
     command_params = tool_params_to_command_params(tool, arguments)
     payload = active_session.execute(tool.command, command_params, tool=tool.name)

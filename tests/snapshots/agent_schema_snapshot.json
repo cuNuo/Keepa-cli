@@ -792,7 +792,8 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [
@@ -813,7 +814,8 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [
@@ -829,12 +831,14 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [
@@ -855,7 +859,8 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [
@@ -871,7 +876,8 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [
@@ -887,7 +893,8 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           },
           {
             "arguments": [
@@ -903,7 +910,8 @@
               }
             ],
             "description": "str",
-            "name": "str"
+            "name": "str",
+            "title": "str"
           }
         ],
         "resource_templates": [
@@ -911,108 +919,126 @@
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uriTemplate": "str"
           }
         ],
@@ -1021,96 +1047,112 @@
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           },
           {
             "description": "str",
             "mimeType": "str",
             "name": "str",
+            "title": "str",
             "uri": "str"
           }
         ],
@@ -1121,9 +1163,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -1375,6 +1421,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -1399,9 +1446,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -1605,6 +1656,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -1630,9 +1682,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -1739,6 +1795,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -1754,9 +1811,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -1935,6 +1996,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -1959,9 +2021,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -2109,6 +2175,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2134,9 +2201,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "anyOf": [
@@ -2267,6 +2338,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2282,9 +2354,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "anyOf": [
@@ -2413,6 +2489,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2428,9 +2505,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -2560,6 +2641,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2575,9 +2657,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -2693,6 +2779,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2709,9 +2796,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -2824,6 +2915,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2840,9 +2932,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -2968,6 +3064,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -2983,9 +3080,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -3141,6 +3242,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -3165,9 +3267,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -3323,6 +3429,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -3347,9 +3454,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -3505,6 +3616,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -3529,9 +3641,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -3625,6 +3741,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -3641,9 +3758,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "anyOf": [
@@ -3815,6 +3936,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -3840,9 +3962,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "anyOf": [
@@ -4028,6 +4154,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4053,9 +4180,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4141,6 +4272,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4156,9 +4288,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4252,6 +4388,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4267,9 +4404,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4355,6 +4496,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4370,9 +4512,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4483,6 +4629,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4497,9 +4644,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4614,6 +4765,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4629,9 +4781,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4772,6 +4928,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4796,9 +4953,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -4896,6 +5057,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -4911,9 +5073,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5040,6 +5206,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5055,9 +5222,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5194,6 +5365,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5209,9 +5381,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5375,6 +5551,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5398,9 +5575,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5531,6 +5712,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5554,9 +5736,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5698,6 +5884,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5721,9 +5908,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5832,6 +6023,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5846,9 +6038,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -5957,6 +6153,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -5971,9 +6168,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -6108,6 +6309,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -6131,9 +6333,13 @@
               "destructiveHint": "bool",
               "idempotentHint": "bool",
               "openWorldHint": "bool",
-              "readOnlyHint": "bool"
+              "readOnlyHint": "bool",
+              "title": "str"
             },
             "description": "str",
+            "execution": {
+              "taskSupport": "str"
+            },
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
@@ -6250,6 +6456,7 @@
               ],
               "type": "str"
             },
+            "title": "str",
             "x-keepa": {
               "active": "bool",
               "groups": [
@@ -9374,101 +9581,124 @@
     "id": "str",
     "jsonrpc": "str",
     "result": {
+      "_meta": {
+        "count": "int",
+        "has_more": "bool",
+        "limit": "int",
+        "offset": "int",
+        "total_count": "int"
+      },
       "resources": [
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         },
         {
           "description": "str",
           "mimeType": "str",
           "name": "str",
+          "title": "str",
           "uri": "str"
         }
       ]

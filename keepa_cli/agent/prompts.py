@@ -22,6 +22,7 @@ class PromptDefinition:
     def to_mcp_prompt(self) -> dict[str, Any]:
         return {
             "name": self.name,
+            "title": self.name.replace(".", " ").replace("_", " ").title(),
             "description": self.description,
             "arguments": list(self.arguments),
         }

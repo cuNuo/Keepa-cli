@@ -21,7 +21,9 @@ class McpProtocolTests(unittest.TestCase):
         response = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}), env={})
 
         self.assertEqual(response["id"], 1)
-        self.assertEqual(response["result"]["serverInfo"]["name"], "keepa")
+        self.assertEqual(response["result"]["protocolVersion"], "2025-11-25")
+        self.assertEqual(response["result"]["serverInfo"]["name"], "keepa_mcp")
+        self.assertEqual(response["result"]["serverInfo"]["title"], "Keepa CLI MCP")
         self.assertIn("tools", response["result"]["capabilities"])
         self.assertIn("resources", response["result"]["capabilities"])
         self.assertIn("prompts", response["result"]["capabilities"])
@@ -47,6 +49,10 @@ class McpProtocolTests(unittest.TestCase):
         products = next(item for item in response["result"]["tools"] if item["name"] == "keepa.products_get")
         self.assertIn("inputSchema", products)
         self.assertIn("outputSchema", products)
+        self.assertEqual(products["title"], "Keepa Products Get")
+        self.assertEqual(products["execution"]["taskSupport"], "forbidden")
+        self.assertTrue(products["annotations"]["openWorldHint"])
+        self.assertTrue(products["annotations"]["readOnlyHint"])
         self.assertEqual(products["x-keepa"]["service_command"], "products.get")
         compare = next(item for item in response["result"]["tools"] if item["name"] == "keepa.products_compare")
         self.assertEqual(compare["x-keepa"]["service_command"], "products.compare")
@@ -62,6 +68,9 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa.cassettes_promote", audit_names)
         self.assertIn("keepa.cassettes_promote_and_verify", audit_names)
         self.assertNotIn("keepa.products_get", audit_names)
+        promote = next(item for item in audit["result"]["tools"] if item["name"] == "keepa.cassettes_promote")
+        self.assertFalse(promote["annotations"]["readOnlyHint"])
+        self.assertTrue(promote["annotations"]["destructiveHint"])
 
         reports = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "reports", "method": "tools/list", "params": {"toolset": "reports"}}),
@@ -111,6 +120,54 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         self.assertEqual(set(tool_names()), {item["name"] for item in all_tools["result"]["tools"]})
+
+    def test_list_methods_support_mcp_cursor_pagination(self):
+        first_tools = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "tools-page-1", "method": "tools/list", "params": {"toolset": "all", "limit": 3}}),
+            env={},
+        )
+        self.assertEqual(len(first_tools["result"]["tools"]), 3)
+        self.assertIn("nextCursor", first_tools["result"])
+        self.assertEqual(first_tools["result"]["_meta"]["total_count"], len(tool_names()))
+
+        second_tools = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "tools-page-2",
+                    "method": "tools/list",
+                    "params": {"toolset": "all", "limit": 3, "cursor": first_tools["result"]["nextCursor"]},
+                }
+            ),
+            env={},
+        )
+        first_names = {item["name"] for item in first_tools["result"]["tools"]}
+        second_names = {item["name"] for item in second_tools["result"]["tools"]}
+        self.assertFalse(first_names.intersection(second_names))
+        self.assertEqual(second_tools["result"]["_meta"]["offset"], 3)
+
+        resources = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "resources-page", "method": "resources/list", "params": {"limit": 2}}),
+            env={},
+        )
+        self.assertEqual(len(resources["result"]["resources"]), 2)
+        self.assertIn("nextCursor", resources["result"])
+        self.assertIn("title", resources["result"]["resources"][0])
+
+        prompts = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "prompts-page", "method": "prompts/list", "params": {"limit": 2}}),
+            env={},
+        )
+        self.assertEqual(len(prompts["result"]["prompts"]), 2)
+        self.assertIn("nextCursor", prompts["result"])
+        self.assertIn("title", prompts["result"]["prompts"][0])
+
+        templates = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "templates-page", "method": "resources/templates/list", "params": {"limit": 1}}),
+            env={},
+        )
+        self.assertEqual(len(templates["result"]["resourceTemplates"]), 1)
+        self.assertIn("nextCursor", templates["result"])
 
     def test_tools_list_supports_allow_and_exclude_filters(self):
         response = handle_mcp_message(
@@ -162,8 +219,9 @@ class McpProtocolTests(unittest.TestCase):
             ),
             env={},
         )
-        self.assertEqual(invalid["error"]["code"], -32602)
-        self.assertIn("unsupported argument: resource_uri", invalid["error"]["data"]["errors"])
+        self.assertTrue(invalid["result"]["isError"])
+        self.assertEqual(invalid["result"]["structuredContent"]["error"]["kind"], "invalid_arguments")
+        self.assertIn("unsupported argument: resource_uri", invalid["result"]["structuredContent"]["error"]["details"]["errors"])
 
     def test_tools_list_marks_inactive_tools_for_profile(self):
         response = handle_mcp_message(
@@ -562,7 +620,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(response["error"]["message"], "Invalid toolset")
         self.assertIn("research", response["error"]["data"]["available_toolsets"])
 
-    def test_invalid_tool_arguments_return_json_rpc_error(self):
+    def test_invalid_tool_arguments_return_structured_tool_error(self):
         response = handle_mcp_message(
             json.dumps(
                 {
@@ -575,9 +633,12 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
 
-        self.assertEqual(response["error"]["code"], -32602)
-        self.assertIn("missing required argument: term", response["error"]["data"]["errors"])
-        self.assertIn("unsupported argument: extra", response["error"]["data"]["errors"])
+        result = response["result"]
+        self.assertTrue(result["isError"])
+        self.assertEqual(result["structuredContent"]["error"]["kind"], "invalid_arguments")
+        self.assertIn("missing required argument: term", result["structuredContent"]["error"]["details"]["errors"])
+        self.assertIn("unsupported argument: extra", result["structuredContent"]["error"]["details"]["errors"])
+        self.assertIn("Call tools/list", result["structuredContent"]["error"]["details"]["next_action"])
 
     def test_tools_call_missing_workflow_input_returns_structured_error(self):
         response = handle_mcp_message(

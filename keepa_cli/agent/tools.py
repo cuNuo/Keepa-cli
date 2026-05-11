@@ -124,12 +124,16 @@ class ToolDefinition:
     description: str
     input_schema: JsonSchema
     output_schema: JsonSchema
+    title: str | None = None
     groups: tuple[str, ...] = ("research",)
     read_only: bool = True
     destructive: bool = False
+    idempotent: bool = True
+    open_world: bool = False
     workflow_runtime: bool = False
 
     def to_mcp_tool(self) -> dict[str, Any]:
+        title = self.title or self.name.replace(".", " ").replace("_", " ").title()
         keepa_meta: dict[str, Any] = {
             "service_command": self.command,
             "groups": list(self.groups),
@@ -139,14 +143,17 @@ class ToolDefinition:
             keepa_meta["workflow_runtime_args"] = sorted(workflow_runtime_argument_names())
         return {
             "name": self.name,
+            "title": title,
             "description": self.description,
             "inputSchema": _schema_with_common_properties(self.input_schema, workflow_runtime=self.workflow_runtime),
+            "execution": {"taskSupport": "forbidden"},
             "outputSchema": self.output_schema,
             "annotations": {
+                "title": title,
                 "readOnlyHint": self.read_only,
                 "destructiveHint": self.destructive,
-                "idempotentHint": True,
-                "openWorldHint": False,
+                "idempotentHint": self.idempotent,
+                "openWorldHint": self.open_world,
             },
             "x-keepa": keepa_meta,
         }
@@ -798,6 +805,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=PRODUCTS_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        open_world=True,
         groups=("research", "product"),
     ),
     ToolDefinition(
@@ -807,6 +815,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=PRODUCTS_COMPARE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        open_world=True,
         groups=("research", "product", "compare"),
     ),
     ToolDefinition(
@@ -815,6 +824,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Search Keepa categories by term and return Agent-friendly category candidates.",
         input_schema=CATEGORIES_SEARCH_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("research", "category"),
     ),
     ToolDefinition(
@@ -824,6 +834,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=CATEGORIES_PRODUCTS_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        open_world=True,
         groups=("research", "category"),
     ),
     ToolDefinition(
@@ -841,6 +852,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Run a Product Finder selection query; prefer dry_run or fixture before live calls.",
         input_schema=FINDER_QUERY_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("research", "finder"),
     ),
     ToolDefinition(
@@ -849,6 +861,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Run a Deals selection query and return Agent profile plus deal/product research graph when available.",
         input_schema=DEALS_QUERY_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("research", "deals"),
     ),
     ToolDefinition(
@@ -857,6 +870,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Fetch seller information and storefront ASINs with Agent profile and seller/product research graph.",
         input_schema=SELLERS_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("research", "seller"),
     ),
     ToolDefinition(
@@ -865,6 +879,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Fetch Keepa Best Sellers for a category; live calls require explicit confirmation.",
         input_schema=BESTSELLERS_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("research", "category", "rankings"),
     ),
     ToolDefinition(
@@ -873,6 +888,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Fetch Keepa Top Sellers; live calls require explicit confirmation.",
         input_schema=TOPSELLERS_LIST_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("research", "seller", "rankings"),
     ),
     ToolDefinition(
@@ -925,6 +941,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=RESEARCH_GRAPH_MERGE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        read_only=False,
         groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
@@ -934,6 +951,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=RESEARCH_BRIEF_EXPORT_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        read_only=False,
         groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
@@ -991,6 +1009,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Redact secrets from a raw Keepa cassette JSON file.",
         input_schema=CASSETTES_SANITIZE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        read_only=False,
         groups=("audit", "cassette"),
     ),
     ToolDefinition(
@@ -999,6 +1018,8 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Sanitize a cassette, write synchronized test/package fixtures, and update evidence manifest.",
         input_schema=CASSETTES_PROMOTE_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        read_only=False,
+        destructive=True,
         groups=("audit", "cassette"),
     ),
     ToolDefinition(
@@ -1007,6 +1028,8 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Promote a cassette, verify fixture parity, and optionally run Agent eval fixtures.",
         input_schema=CASSETTES_PROMOTE_AND_VERIFY_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        read_only=False,
+        destructive=True,
         groups=("audit", "cassette"),
     ),
     ToolDefinition(
@@ -1016,6 +1039,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=REPORTS_BUILD_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        read_only=False,
         groups=("reports",),
     ),
     ToolDefinition(
@@ -1025,6 +1049,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=BROWSE_SNAPSHOT_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        read_only=False,
         groups=("reports",),
     ),
     ToolDefinition(
@@ -1034,6 +1059,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=FIGURES_RESEARCH_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        read_only=False,
         groups=("reports",),
     ),
     ToolDefinition(
@@ -1042,6 +1068,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Read Keepa tracking list state. This toolset exposes read-only tracking operations only.",
         input_schema=TRACKING_LIST_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
@@ -1050,6 +1077,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Read Keepa tracking ASIN names only.",
         input_schema=TRACKING_LIST_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
@@ -1059,6 +1087,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=TRACKING_GET_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        open_world=True,
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
@@ -1067,6 +1096,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         description="Read tracking notifications without exposing tracking write tools.",
         input_schema=TRACKING_NOTIFICATIONS_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        open_world=True,
         groups=("tracking-readonly",),
     ),
 )

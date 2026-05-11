@@ -244,11 +244,17 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
 
 
 def list_mcp_resources() -> list[dict[str, str]]:
-    return [dict(resource) for resource in STATIC_RESOURCES]
+    return [_resource_with_title(resource) for resource in STATIC_RESOURCES]
 
 
 def list_mcp_resource_templates() -> list[dict[str, str]]:
-    return [dict(template) for template in RESOURCE_TEMPLATES]
+    return [_resource_with_title(template) for template in RESOURCE_TEMPLATES]
+
+
+def _resource_with_title(item: Mapping[str, str]) -> dict[str, str]:
+    result = dict(item)
+    result.setdefault("title", str(result.get("name") or result.get("uri") or result.get("uriTemplate") or "").replace("-", " ").replace(".", " ").title())
+    return result
 
 
 def read_mcp_resource(
