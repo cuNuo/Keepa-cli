@@ -11,6 +11,7 @@ __pycache__/
 .mypy_cache/
 .coverage
 .coverage-*.json
+coverage-groups.txt
 .venv/
 dist/
 build/

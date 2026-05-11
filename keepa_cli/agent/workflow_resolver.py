@@ -55,8 +55,6 @@ def resolve_workflow_arguments(
     for index, reference in enumerate(references):
         ref_payload, ref_info = _resolve_reference(reference, session_cache=session_cache, index=index)
         resolved_refs.append(ref_info)
-        if ref_info.get("temp_path"):
-            temp_paths.append(str(ref_info["temp_path"]))
         if ref_info.get("path"):
             paths.append(str(ref_info["path"]))
         if ref_payload is not None:

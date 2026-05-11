@@ -40,9 +40,11 @@ class SequenceOpener:
     def __init__(self, responses: list[object]) -> None:
         self.responses = responses
         self.calls = 0
+        self.requests: list[object] = []
 
     def __call__(self, request: object, timeout: float) -> FakeResponse:
         self.calls += 1
+        self.requests.append(request)
         response = self.responses.pop(0)
         if isinstance(response, Exception):
             raise response
@@ -323,6 +325,222 @@ class KeepaClientTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(opener.calls, 2)
+
+    def test_live_request_without_api_key_fails_before_network_call(self):
+        opener = SequenceOpener([FakeResponse(b"{}")])
+        client = KeepaClient(opener=opener)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC"},
+            env={},
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["kind"], "auth_missing")
+        self.assertEqual(opener.calls, 0)
+        self.assertEqual(payload["token_bucket"]["estimated"]["estimated_tokens"], 1)
+
+    def test_binary_request_requires_output_path_before_network_call(self):
+        opener = SequenceOpener([FakeResponse(b"PNG")])
+        client = KeepaClient(opener=opener)
+
+        payload = client.request(
+            command="graphs.image",
+            method="GET",
+            path="/graphimage",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            binary=True,
+            env={},
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["kind"], "binary_output_path_required")
+        self.assertEqual(opener.calls, 0)
+
+    def test_fixture_errors_are_structured_and_do_not_call_network(self):
+        live_opener = SequenceOpener([FakeResponse(b"{}")])
+        no_fixture_dir = KeepaClient(opener=live_opener)
+
+        unavailable = no_fixture_dir.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC"},
+            fixture="missing.json",
+        )
+
+        with TemporaryDirectory() as temp_dir:
+            missing_fixture = KeepaClient(fixture_dir=Path(temp_dir), opener=live_opener).request(
+                command="products.get",
+                method="GET",
+                path="/product",
+                params={"domain": "1", "asin": "B001GZ6QEC"},
+                fixture="missing.json",
+            )
+
+        self.assertFalse(unavailable["ok"])
+        self.assertEqual(unavailable["error"]["kind"], "fixture_unavailable")
+        self.assertFalse(missing_fixture["ok"])
+        self.assertEqual(missing_fixture["error"]["kind"], "fixture_not_found")
+        self.assertEqual(live_opener.calls, 0)
+
+    def test_live_post_json_body_is_sent_without_sqlite_cache(self):
+        opener = SequenceOpener([FakeResponse(b'{"tokensLeft":8,"tokensConsumed":1,"ok":true}')])
+        client = KeepaClient(opener=opener)
+
+        payload = client.request(
+            command="tracking.add",
+            method="POST",
+            path="/tracking",
+            params={"type": "add", "key": "SECRET123"},
+            json_body=[{"asin": "B001GZ6QEC", "threshold": 1200}],
+            env={},
+        )
+
+        request = opener.requests[0]
+        self.assertTrue(payload["ok"])
+        self.assertEqual(opener.calls, 1)
+        self.assertEqual(request.get_method(), "POST")
+        self.assertEqual(request.get_header("Content-type"), "application/json")
+        self.assertIn(b'"asin": "B001GZ6QEC"', request.data)
+        self.assertNotIn("cache_key", payload["data"]["cache_provenance"])
+
+    def test_network_error_retries_once_then_returns_safe_error(self):
+        error = urllib.error.URLError("temporary DNS failure")
+        opener = SequenceOpener([error, error])
+        waits: list[float] = []
+        client = KeepaClient(opener=opener, sleeper=waits.append)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
+        )
+
+        encoded = json.dumps(payload)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(opener.calls, 2)
+        self.assertEqual(waits, [2.0])
+        self.assertEqual(payload["error"]["kind"], "network_or_parse_error")
+        self.assertNotIn("SECRET123", encoded)
+
+    def test_invalid_json_live_response_maps_to_safe_error(self):
+        opener = SequenceOpener([FakeResponse(b"not-json")])
+        client = KeepaClient(opener=opener)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error"]["kind"], "network_or_parse_error")
+
+    def test_token_retry_wait_handles_non_429_invalid_and_zero_refill(self):
+        server_error = urllib.error.HTTPError(url="https://api.keepa.com/product", code=500, msg="server", hdrs={}, fp=None)
+        invalid_refill = urllib.error.HTTPError(
+            url="https://api.keepa.com/product",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={},
+            fp=io.BytesIO(b'{"refillIn":"abc"}'),
+        )
+        zero_refill = urllib.error.HTTPError(
+            url="https://api.keepa.com/product",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={},
+            fp=io.BytesIO(b'{"refillIn":0}'),
+        )
+
+        self.assertIsNone(KeepaClient._token_retry_wait_ms(server_error))
+        self.assertIsNone(KeepaClient._token_retry_wait_ms(invalid_refill))
+        self.assertEqual(KeepaClient._token_retry_wait_ms(zero_refill), 0)
+
+    def test_binary_live_response_writes_file_and_supports_post_body(self):
+        opener = SequenceOpener([FakeResponse(b"\x89PNG\r\n", headers={"Content-Type": "image/png"})])
+        client = KeepaClient(opener=opener)
+
+        with TemporaryDirectory() as temp_dir:
+            out_path = Path(temp_dir) / "graph.png"
+            payload = client.request(
+                command="graphs.image",
+                method="POST",
+                path="/graphimage",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                json_body={"range": 90},
+                binary=True,
+                out=str(out_path),
+                env={},
+            )
+
+            request = opener.requests[0]
+            self.assertTrue(payload["ok"])
+            self.assertEqual(out_path.read_bytes(), b"\x89PNG\r\n")
+            self.assertEqual(payload["data"]["bytes_written"], 6)
+            self.assertEqual(payload["data"]["content_type"], "image/png")
+            self.assertEqual(request.get_method(), "POST")
+            self.assertEqual(request.get_header("Content-type"), "application/json")
+
+    def test_binary_live_response_maps_http_and_network_errors(self):
+        http_error = urllib.error.HTTPError(
+            url="https://api.keepa.com/graphimage?key=SECRET123",
+            code=402,
+            msg="Payment Required",
+            hdrs={},
+            fp=io.BytesIO(b'{"error":{"message":"paid plan required"}}'),
+        )
+        network_error = urllib.error.URLError("socket closed")
+
+        with TemporaryDirectory() as temp_dir:
+            http_payload = KeepaClient(opener=SequenceOpener([http_error])).request(
+                command="graphs.image",
+                method="GET",
+                path="/graphimage",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                binary=True,
+                out=str(Path(temp_dir) / "http.png"),
+                env={},
+            )
+            network_payload = KeepaClient(opener=SequenceOpener([network_error])).request(
+                command="graphs.image",
+                method="GET",
+                path="/graphimage",
+                params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+                binary=True,
+                out=str(Path(temp_dir) / "network.png"),
+                env={},
+            )
+
+        encoded = json.dumps({"http": http_payload, "network": network_payload})
+        self.assertFalse(http_payload["ok"])
+        self.assertEqual(http_payload["error"]["kind"], "payment_required")
+        self.assertFalse(network_payload["ok"])
+        self.assertEqual(network_payload["error"]["kind"], "network_or_parse_error")
+        self.assertNotIn("SECRET123", encoded)
+
+    def test_http_error_body_reader_handles_empty_none_and_invalid_body(self):
+        no_fp = urllib.error.HTTPError(url="https://api.keepa.com/product", code=400, msg="bad", hdrs={}, fp=None)
+        empty = urllib.error.HTTPError(url="https://api.keepa.com/product", code=400, msg="bad", hdrs={}, fp=io.BytesIO(b""))
+        invalid = urllib.error.HTTPError(url="https://api.keepa.com/product", code=400, msg="bad", hdrs={}, fp=io.BytesIO(b"not-json"))
+
+        self.assertEqual(KeepaClient._read_http_error_body(no_fp), {})
+        self.assertEqual(KeepaClient._read_http_error_body(empty), {})
+        self.assertEqual(KeepaClient._read_http_error_body(invalid), {})
+
+    def test_http_error_message_falls_back_to_exception_text(self):
+        error = urllib.error.HTTPError(url="https://api.keepa.com/product", code=418, msg="teapot", hdrs={}, fp=io.BytesIO(b"{}"))
+
+        self.assertEqual(KeepaClient._http_error_kind(418), "api_error")
+        self.assertIn("HTTP Error 418", KeepaClient._http_error_message(error, {}))
 
 
 if __name__ == "__main__":
