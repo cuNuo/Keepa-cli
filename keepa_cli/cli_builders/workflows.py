@@ -49,6 +49,7 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     reports_build.add_argument("--title", default="Keepa Report", help="报告标题。")
     reports_build.add_argument("--figure", help="嵌入已有 SVG/图片路径；未提供时 markdown/json 报告会本地生成 SVG。")
     reports_build.add_argument("--figures-dir", help="自动生成 SVG 的输出目录。")
+    reports_build.add_argument("--figure-set", choices=("all", "history", "compare", "audit"), default="all", help="自动生成图表组：all、history、compare 或 audit。")
     reports_build.add_argument("--no-figures", action="store_true", help="不自动生成或嵌入图表。")
 
     figures = subparsers.add_parser("figures", help="生成 Agent 报告可插入的本地 SVG 图。")
@@ -57,6 +58,7 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     figures_research.add_argument("--input", required=True, help="输入 JSON 文件。")
     figures_research.add_argument("--out-dir", default="keepa-figures", help="输出目录。")
     figures_research.add_argument("--title", default="Keepa Agent Research Figures", help="图标题。")
+    figures_research.add_argument("--figure-set", choices=("all", "history", "compare", "audit"), default="all", help="只生成指定图表组，减少 Agent resource 噪声。")
 
     audit = subparsers.add_parser("audit", help="本地成本审计命令。")
     audit_subparsers = audit.add_subparsers(dest="audit_command")
@@ -123,6 +125,7 @@ def maybe_run_workflow_command(
                 "title": args.title,
                 "figure": args.figure,
                 "figures_dir": args.figures_dir,
+                "figure_set": args.figure_set,
                 "no_figures": bool(args.no_figures),
             },
         )
@@ -131,7 +134,7 @@ def maybe_run_workflow_command(
     if args.command == "figures" and args.figures_command == "research":
         payload = run_command(
             "figures.research",
-            {"input": args.input, "out_dir": args.out_dir, "title": args.title},
+            {"input": args.input, "out_dir": args.out_dir, "title": args.title, "figure_set": args.figure_set},
         )
         return 0 if payload["ok"] else 1, payload
 

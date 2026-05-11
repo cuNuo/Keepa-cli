@@ -756,6 +756,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa://research/{cache_key}/brief", uri_templates)
         self.assertIn("keepa://research/{cache_key}/graph", uri_templates)
         self.assertIn("keepa://research/{cache_key}/figures", uri_templates)
+        self.assertIn("keepa://research/{cache_key}/figures/{figure_set}", uri_templates)
         self.assertIn("keepa://toolsets/{toolset}", uri_templates)
         self.assertIn("keepa://tools/{name}", uri_templates)
         self.assertIn("keepa://prompts/{name}", uri_templates)
@@ -1537,6 +1538,71 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("Multi-ASIN history small multiples", content["text"])
         self.assertIn("B0F7XPYCSJ", content["text"])
         self.assertIn("宋体", content["text"])
+
+    def test_research_cache_figures_resource_supports_scoped_sets(self):
+        session = AgentSession(env={})
+        compared = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "compare",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_compare",
+                        "arguments": {
+                            "asin": ["B0D8W1YVBX", "B0F7XPYCSJ"],
+                            "domain": "US",
+                            "fixture": "products_multi_asin_full_history_sanitized.json",
+                            "view": "deal",
+                            "full": True,
+                            "history_limit": 80,
+                            "keep_history_points": True,
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+        cache_key = compared["cache_key"]
+
+        figures = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "research-figures-history",
+                    "method": "resources/read",
+                    "params": {"uri": f"keepa://research/{cache_key}/figures/history"},
+                }
+            ),
+            env={},
+            session=session,
+        )
+
+        payload = json.loads(figures["result"]["contents"][0]["text"])
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["figure_result"]["figure_set"], "history")
+        self.assertEqual({item["name"] for item in payload["figure_result"]["figures"]}, {"history-lines", "window-change-heatmap"})
+        self.assertEqual({item["name"] for item in payload["svg_resources"]}, {"history-lines", "window-change-heatmap"})
+
+    def test_figures_research_tool_schema_exposes_figure_set(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "tools",
+                    "method": "tools/list",
+                    "params": {"toolset": "reports", "allow_tools": ["keepa.figures_research", "keepa.reports_build"]},
+                }
+            ),
+            env={},
+        )
+
+        tools = {item["name"]: item for item in response["result"]["tools"]}
+        figures_schema = tools["keepa.figures_research"]["inputSchema"]["properties"]["figure_set"]
+        reports_schema = tools["keepa.reports_build"]["inputSchema"]["properties"]["figure_set"]
+        self.assertEqual(figures_schema["enum"], ["all", "history", "compare", "audit"])
+        self.assertEqual(reports_schema["default"], "all")
 
     def test_report_markdown_svg_resource_links_are_readable(self):
         session = AgentSession(env={})

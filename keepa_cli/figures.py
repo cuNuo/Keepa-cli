@@ -23,6 +23,13 @@ FIGURE_SCHEMA_VERSION = "2026-05-11.4"
 
 FONT_FAMILY = "'Times New Roman', 'SimSun', '宋体', serif"
 
+FIGURE_SET_CHOICES = ("all", "history", "compare", "audit")
+FIGURE_SET_FIGURES = {
+    "history": {"history-lines", "window-change-heatmap"},
+    "compare": {"product-metric-comparison", "small-multiples"},
+    "audit": {"risk-graph-summary"},
+}
+
 HISTORY_SERIES_LIMIT = 36
 HISTORY_METRICS = ("new", "buy_box_shipping", "sales_rank", "review_count")
 
@@ -72,9 +79,9 @@ ASIN_COLORS = (
 )
 
 
-def build_research_figures(*, input_path: str, out_dir: str, title: str) -> dict[str, Any]:
+def build_research_figures(*, input_path: str, out_dir: str, title: str, figure_set: str = "all") -> dict[str, Any]:
     payload = _load_json_file(input_path)
-    return build_research_figures_from_payload(payload, out_dir=out_dir, title=title, source_label=input_path)
+    return build_research_figures_from_payload(payload, out_dir=out_dir, title=title, source_label=input_path, figure_set=figure_set)
 
 
 def build_research_figures_from_payload(
@@ -83,7 +90,9 @@ def build_research_figures_from_payload(
     out_dir: str,
     title: str,
     source_label: str,
+    figure_set: str = "all",
 ) -> dict[str, Any]:
+    selected_figure_set = _normalize_figure_set(figure_set)
     figure_data = _figure_data(payload)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -91,29 +100,30 @@ def build_research_figures_from_payload(
     _write_text(source_path, json.dumps({"schema_version": FIGURE_SCHEMA_VERSION, **figure_data}, ensure_ascii=False, indent=2) + "\n")
 
     figure_items: list[dict[str, Any]] = []
-    svg_path = out / "agent-research-summary.svg"
-    svg_text = _summary_svg(figure_data, title=title)
-    _write_text(svg_path, svg_text)
-    figure_items.append(
-        {
-            "name": "agent-research-summary",
-            "kind": "multi_panel_svg",
-            "path": str(svg_path),
-            "format": "svg",
-            "size_bytes": svg_path.stat().st_size,
-            "source_data_path": str(source_path),
-            "source_data_bytes": source_path.stat().st_size,
-            "panels": [
-                "product_metric_comparison",
-                "price_rank_history",
-                "window_change_heatmap",
-                "multi_asin_small_multiples",
-                "risk_and_graph_summary",
-            ],
-            "caption": "Overview page combining all Agent research figure panels for backward-compatible reports.",
-        }
-    )
-    for spec in _single_figure_specs(figure_data, title=title):
+    if selected_figure_set == "all":
+        svg_path = out / "agent-research-summary.svg"
+        svg_text = _summary_svg(figure_data, title=title)
+        _write_text(svg_path, svg_text)
+        figure_items.append(
+            {
+                "name": "agent-research-summary",
+                "kind": "multi_panel_svg",
+                "path": str(svg_path),
+                "format": "svg",
+                "size_bytes": svg_path.stat().st_size,
+                "source_data_path": str(source_path),
+                "source_data_bytes": source_path.stat().st_size,
+                "panels": [
+                    "product_metric_comparison",
+                    "price_rank_history",
+                    "window_change_heatmap",
+                    "multi_asin_small_multiples",
+                    "risk_and_graph_summary",
+                ],
+                "caption": "Overview page combining all Agent research figure panels for backward-compatible reports.",
+            }
+        )
+    for spec in _filter_figure_specs(_single_figure_specs(figure_data, title=title), selected_figure_set):
         path = out / f"{spec['name']}.svg"
         _write_text(path, str(spec["svg"]))
         figure_items.append(
@@ -135,6 +145,8 @@ def build_research_figures_from_payload(
         "schema_version": FIGURE_SCHEMA_VERSION,
         "title": title,
         "format": "svg",
+        "figure_set": selected_figure_set,
+        "available_figure_sets": list(FIGURE_SET_CHOICES),
         "figures": figure_items,
         "data_summary": {
             "product_count": len(figure_data["products"]),
@@ -152,6 +164,21 @@ def build_research_figures_from_payload(
             "generated_at": utc_now_iso(),
         },
     }
+
+
+def _normalize_figure_set(value: str | None) -> str:
+    figure_set = str(value or "all").strip().lower()
+    if figure_set not in FIGURE_SET_CHOICES:
+        choices = ", ".join(FIGURE_SET_CHOICES)
+        raise ValueError(f"figure_set must be one of: {choices}")
+    return figure_set
+
+
+def _filter_figure_specs(specs: list[dict[str, Any]], figure_set: str) -> list[dict[str, Any]]:
+    if figure_set == "all":
+        return specs
+    names = FIGURE_SET_FIGURES[figure_set]
+    return [spec for spec in specs if str(spec.get("name") or "") in names]
 
 
 def _figure_data(payload: Any) -> dict[str, Any]:
@@ -892,6 +919,10 @@ def _panel_window_heatmap(cells: list[Mapping[str, Any]], *, x: int, y: int, w: 
         series = sorted({str(cell.get("series") or "") for cell in cells if cell.get("series")})[:6]
     windows = windows[:6]
     series = series[:6]
+    if not windows or not series:
+        return _panel_frame(x, y, w, h, "C  Window change heatmap", "Percent change by official Keepa history windows") + _empty_panel_text(
+            x, y, "No temporal windows found; run with --agent-view --view research"
+        ) + "</g>"
     cell_w = min(76, max(38, int((w - 170) / max(len(windows), 1))))
     cell_h = min(30, max(20, int((h - 120) / max(len(series), 1))))
     start_x = x + 140

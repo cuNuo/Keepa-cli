@@ -1059,6 +1059,7 @@ def _report_figure_info(
     title: str,
     figure: str | None,
     figures_dir: str | None,
+    figure_set: str,
     enabled: bool,
 ) -> dict[str, Any] | None:
     if not enabled:
@@ -1083,7 +1084,7 @@ def _report_figure_info(
         }
 
     target_dir = Path(figures_dir) if figures_dir else _default_report_figures_dir(input_path=input_path, out=out)
-    built = build_research_figures(input_path=input_path, out_dir=str(target_dir), title=f"{title} Figures")
+    built = build_research_figures(input_path=input_path, out_dir=str(target_dir), title=f"{title} Figures", figure_set=figure_set)
     figures = []
     for item in built.get("figures", []):
         if not isinstance(item, Mapping):
@@ -1095,6 +1096,8 @@ def _report_figure_info(
     return {
         "mode": "generated",
         "schema_version": built.get("schema_version"),
+        "figure_set": built.get("figure_set"),
+        "available_figure_sets": built.get("available_figure_sets"),
         "data_summary": built.get("data_summary"),
         "provenance": built.get("provenance"),
         "figures": figures,
@@ -1141,6 +1144,7 @@ def build_report(
     title: str,
     figure: str | None = None,
     figures_dir: str | None = None,
+    figure_set: str = "all",
     embed_figures: bool = True,
 ) -> dict[str, Any]:
     payload = load_json_file(input_path)
@@ -1153,6 +1157,7 @@ def build_report(
         title=title,
         figure=figure,
         figures_dir=figures_dir,
+        figure_set=figure_set,
         enabled=embed_figures and fmt in {"markdown", "json"},
     )
     if fmt == "markdown":

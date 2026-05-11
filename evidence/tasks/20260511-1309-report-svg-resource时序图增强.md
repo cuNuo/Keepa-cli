@@ -146,3 +146,54 @@
 - 当前 SVG 是静态科学图表，不做交互；MCP resource 已返回 `image/svg+xml`，但简易本地 HTTP 预览需要正确 MIME 才能用 `<img>` 直接显示。
 - 真实 full history fixture 目前覆盖 2 个 ASIN；后续如果需要更接近选品场景，可在用户批准真实请求后再补 3-5 个不同类目的 sanitized full history fixture。
 - 下一步最适合完善：为 `figures.research` 增加 `figure_set` / `--figure-set`，让 Agent 只请求 `history`、`compare` 或 `audit` 图组，减少报告噪声和 resource manifest 大小。
+
+## 2026-05-11 figure_set 图表组收口
+
+### 前置说明
+
+- 本轮目标是把上一节后续建议落地为 Agent/MCP 可执行契约：让报告、CLI 与 MCP resource 都能按图表组返回，减少上下文噪声。
+- 未访问真实 Keepa API，未消耗 token；验证输入使用固定 fixture `tests/fixtures/agent_eval_products_compare_real_full_history_output.json` 与 `products_multi_asin_full_history_sanitized.json`。
+- 按 `nature-figure` 的图表契约继续保持白底、坐标轴、标题、刻度、图注和 source JSON；未新增绘图库依赖。
+
+### 已落地
+
+1. `figures.research` 图表组
+   - 新增 `figure_set=all|history|compare|audit`。
+   - `all` 保持兼容：输出 `agent-research-summary.svg` 与全部独立 SVG。
+   - `history` 只输出 `history-lines.svg` 与 `window-change-heatmap.svg`。
+   - `compare` 只输出 `product-metric-comparison.svg` 与 `small-multiples.svg`。
+   - `audit` 只输出 `risk-graph-summary.svg`。
+   - 返回体新增 `figure_set` 与 `available_figure_sets`，便于 Agent 在 report pipeline 中审计实际输出范围。
+
+2. CLI / report / MCP 同步
+   - `figures research` 新增 `--figure-set`。
+   - `reports build` 新增 `--figure-set`，自动嵌图可按图表组收窄。
+   - MCP tools `keepa.figures_research` 与 `keepa.reports_build` schema 暴露同一 enum。
+   - MCP resource template 新增 `keepa://research/{cache_key}/figures/{figure_set}`；旧的 `keepa://research/{cache_key}/figures` 继续等价于 `all`。
+
+3. Agent 文档与 skill
+   - 更新 README、`docs/agent-contract.md`、`docs/architecture/mcp-agent-tools.md`。
+   - 更新 `.codex/skills/keepa-cli` 与 `.codex/skills/keepa-agent-research`，要求 Agent 优先读取 scoped figure resource，而不是一次加载所有图。
+   - `tests/test_mcp.py` 断言 `resources/templates/list` 暴露 scoped template，并验证 `keepa://research/{cache_key}/figures/history` 只返回 history 图组。
+
+### 预览产物
+
+- 本地 scoped 预览目录：`evidence/runtime/figures-figure-set-check/`。
+- 生成结果：`history-lines.svg`、`window-change-heatmap.svg`、`agent-research-summary.source.json`。
+- 该目录仅用于本地 QA，不纳入提交。
+
+### 已执行验证
+
+- `.\.venv\Scripts\python.exe -m unittest tests.test_phase10_workflows tests.test_mcp -v`：58 tests OK。
+- `.\.venv\Scripts\python.exe -m compileall -q keepa_cli scripts`：OK。
+- `.\.venv\Scripts\python.exe scripts\check_fixture_sync.py`：OK。
+- `.\.venv\Scripts\python.exe scripts\check_agent_eval_fixtures.py`：29 specs OK。
+- `git diff --check`：OK。
+- `.\.venv\Scripts\python.exe hooks\run_relevant_hooks.py --changed-only`：OK。
+- `.\.venv\Scripts\python.exe -m keepa_cli --json doctor`：OK。
+
+### 风险与后续
+
+- 旧客户端继续使用 `all` 不破坏兼容；新 Agent 应按报告段落选择 `history`、`compare` 或 `audit`，避免 resource manifest 膨胀。
+- scoped set 当前仍复用同一个 source JSON，便于审计；如果后续 source JSON 过大，可进一步按 figure_set 分片为 `source.history.json` 等。
+- 下一步最适合完善：把 SVG 视觉 smoke 做成独立脚本，检查每个 figure set 至少有标题、轴标签、图注和非空数据几何或明确空态，并将 report Markdown 中的 scoped SVG resource 纳入 Agent eval。

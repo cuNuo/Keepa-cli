@@ -510,6 +510,12 @@ REPORTS_BUILD_SCHEMA: JsonSchema = {
         "title": _string_schema("Report title.", default="Keepa Report"),
         "figure": _string_schema("Optional existing SVG/image path to embed in markdown/json reports."),
         "figures_dir": _string_schema("Optional directory for automatically generated report SVG assets."),
+        "figure_set": {
+            "type": "string",
+            "enum": ["all", "history", "compare", "audit"],
+            "default": "all",
+            "description": "Generated figure group. Use history, compare, or audit to reduce Agent resource noise.",
+        },
         "no_figures": _boolean_schema("Disable automatic local SVG generation and embedding.", default=False),
         "from_cache": _string_schema("Session cache key to reuse."),
     },
@@ -537,6 +543,12 @@ FIGURES_RESEARCH_SCHEMA: JsonSchema = {
         "input": _string_schema("Input JSON path from products.compare, research_graph.merge, or Agent view output."),
         "out_dir": _string_schema("Directory for generated SVG and source JSON.", default="keepa-figures"),
         "title": _string_schema("Figure title.", default="Keepa Agent Research Figures"),
+        "figure_set": {
+            "type": "string",
+            "enum": ["all", "history", "compare", "audit"],
+            "default": "all",
+            "description": "Figure group to generate. Use history for time-series, compare for product comparison, or audit for risk/graph summary.",
+        },
         "from_cache": _string_schema("Session cache key to reuse."),
     },
 }

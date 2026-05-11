@@ -78,6 +78,7 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
             title=str(_param(params, "title", default="Keepa Report")),
             figure=_param(params, "figure"),
             figures_dir=_param(params, "figures_dir", "figures-dir"),
+            figure_set=str(_param(params, "figure_set", "figure-set", default="all")),
             embed_figures=not _bool_option(params, "no_figures", "no-figures"),
         )
     elif command == "audit.cost":
@@ -95,6 +96,7 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
             input_path=str(_param(params, "input", "input_path", default="")),
             out_dir=str(_param(params, "out_dir", "out-dir", default="keepa-figures")),
             title=str(_param(params, "title", default="Keepa Agent Research Figures")),
+            figure_set=str(_param(params, "figure_set", "figure-set", default="all")),
         )
     elif command == "workflow.plan":
         data = build_workflow_plan(

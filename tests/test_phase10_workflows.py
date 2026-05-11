@@ -254,6 +254,49 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertEqual({row["asin"] for row in source["small_multiples"]}, {"B0D8W1YVBX", "B0F7XPYCSJ"})
             self.assertEqual(source["small_multiples"][0]["data_basis"], "bounded_history_points")
 
+    def test_figures_research_supports_agent_scoped_figure_sets(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            history = run_command(
+                "figures.research",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_real_full_history_output.json",
+                    "out_dir": str(Path(temp_dir) / "history"),
+                    "title": "History Only",
+                    "figure_set": "history",
+                },
+                env={},
+            )
+            compare = run_command(
+                "figures.research",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_real_full_history_output.json",
+                    "out_dir": str(Path(temp_dir) / "compare"),
+                    "title": "Compare Only",
+                    "figure_set": "compare",
+                },
+                env={},
+            )
+            audit = run_command(
+                "figures.research",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_real_full_history_output.json",
+                    "out_dir": str(Path(temp_dir) / "audit"),
+                    "title": "Audit Only",
+                    "figure_set": "audit",
+                },
+                env={},
+            )
+
+            self.assertTrue(history["ok"])
+            self.assertTrue(compare["ok"])
+            self.assertTrue(audit["ok"])
+            self.assertEqual(history["data"]["figure_set"], "history")
+            self.assertEqual({item["name"] for item in history["data"]["figures"]}, {"history-lines", "window-change-heatmap"})
+            self.assertEqual({item["name"] for item in compare["data"]["figures"]}, {"product-metric-comparison", "small-multiples"})
+            self.assertEqual({item["name"] for item in audit["data"]["figures"]}, {"risk-graph-summary"})
+            self.assertIn("history", history["data"]["available_figure_sets"])
+            self.assertFalse((Path(temp_dir) / "history" / "agent-research-summary.svg").exists())
+
     def test_workflow_plan_category_research_is_local_agent_graph(self):
         payload = run_command(
             "workflow.plan",
@@ -392,6 +435,32 @@ class Phase10WorkflowTests(unittest.TestCase):
             stats_payload = json.loads(stats_result.stdout)
             self.assertTrue(stats_payload["ok"])
             self.assertEqual(stats_payload["command"], "cache.stats")
+
+            figure_dir = Path(temp_dir) / "figures"
+            figures_result = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "keepa_cli",
+                    "--json",
+                    "figures",
+                    "research",
+                    "--input",
+                    "tests/fixtures/agent_eval_products_compare_real_full_history_output.json",
+                    "--out-dir",
+                    str(figure_dir),
+                    "--figure-set",
+                    "history",
+                ],
+                text=True,
+                encoding="utf-8",
+                capture_output=True,
+                check=True,
+            )
+            figures_payload = json.loads(figures_result.stdout)
+            self.assertTrue(figures_payload["ok"])
+            self.assertEqual(figures_payload["data"]["figure_set"], "history")
+            self.assertEqual({item["name"] for item in figures_payload["data"]["figures"]}, {"history-lines", "window-change-heatmap"})
 
 
 if __name__ == "__main__":

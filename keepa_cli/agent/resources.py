@@ -162,6 +162,12 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "mimeType": "application/json",
     },
     {
+        "uriTemplate": "keepa://research/{cache_key}/figures/{figure_set}",
+        "name": "session-research-figure-set-by-cache-key",
+        "description": "Generate only one SVG figure group for a cached AgentSession result. figure_set is all, history, compare, or audit.",
+        "mimeType": "application/json",
+    },
+    {
         "uriTemplate": "keepa://graphs/{root}",
         "name": "research-graph-by-root",
         "description": "Find research_graph payloads by root id in the live AgentSession cache and local fixtures.",
@@ -450,9 +456,14 @@ def _read_research_cache_resource(
         cached = session_cache.get(cache_key) if session_cache is not None else None
         payload = brief_graph_resource_payload(cache_key, cached)
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+    if "/figures/" in token:
+        cache_token, figure_set = token.rsplit("/figures/", 1)
+        cache_key = _decode_resource_identifier(cache_token)
+        payload = _research_figures_resource_payload(cache_key, figure_set=figure_set, session_cache=session_cache)
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
     if token.endswith("/figures"):
         cache_key = _decode_resource_identifier(token.removesuffix("/figures"))
-        payload = _research_figures_resource_payload(cache_key, session_cache=session_cache)
+        payload = _research_figures_resource_payload(cache_key, figure_set="all", session_cache=session_cache)
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
     cache_key = _decode_resource_identifier(token)
     payload = _research_cache_payload(cache_key, session_cache=session_cache)
@@ -498,6 +509,7 @@ def _research_cache_payload(
 def _research_figures_resource_payload(
     cache_key: str,
     *,
+    figure_set: str,
     session_cache: Mapping[str, Mapping[str, Any]] | None,
 ) -> dict[str, Any]:
     cached = session_cache.get(cache_key) if session_cache is not None else None
@@ -518,6 +530,7 @@ def _research_figures_resource_payload(
         out_dir=str(output_dir),
         title=f"Keepa Research {cache_key.split(':', 1)[0]}",
         source_label=f"agent-session-cache:{cache_key}",
+        figure_set=figure_set,
     )
     manifest = build_resource_manifest({"data": figure_result}) or {"resources": []}
     payload.update(
@@ -1010,7 +1023,7 @@ def _read_zread_page_resource(uri: str, *, repo_root: Path) -> dict[str, str]:
     name = uri.removeprefix("keepa://zread/wiki/page/").strip()
     if not name:
         raise ValueError("zread page resource requires a slug or markdown file name")
-    decoded = _base64url_decode(name) if name.startswith("b64:") else name
+    decoded = _base64url_decode(name.removeprefix("b64:")) if name.startswith("b64:") else name
     toc = _zread_toc(repo_root)
     pages = toc.get("pages") if isinstance(toc.get("pages"), list) else []
     target: Mapping[str, Any] | None = None
