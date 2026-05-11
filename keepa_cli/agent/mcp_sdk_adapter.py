@@ -1,25 +1,32 @@
 """
 keepa_cli/agent/mcp_sdk_adapter.py
-文件说明：官方 Python MCP SDK adapter 的隔离 spike。
-主要职责：提供可审计的 adapter 边界和 fixture 等价对比，不替换生产 --mcp stdio 入口。
-依赖边界：默认不依赖 mcp 包；可选 SDK 只作为后续 FastMCP/streamable HTTP spike 的探针。
+文件说明：官方 Python MCP SDK adapter 的隔离实现。
+主要职责：提供可运行的 low-level SDK server、adapter 边界和 fixture 等价对比，不替换生产 --mcp stdio 入口。
+依赖边界：业务逻辑仍复用 AgentSession/run_command；mcp 包只存在于 SDK adapter 与测试 smoke。
 """
 
 from __future__ import annotations
 
+import argparse
+import asyncio
 import importlib.util
+import importlib.metadata
 import json
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
+from keepa_cli import __version__
 from keepa_cli.agent.mcp import handle_mcp_message
+from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
+from keepa_cli.agent.resources import list_mcp_resource_templates, list_mcp_resources, read_mcp_resource
 from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.tools import get_tool_definition, tool_params_to_command_params
 
 
 SDK_PACKAGE = "mcp"
-ADAPTER_NAME = "keepa_mcp_sdk_spike"
+ADAPTER_NAME = "keepa_mcp_sdk_adapter"
 PRODUCTION_ENTRYPOINT = "python -m keepa_cli --mcp"
+SDK_STDIO_ENTRYPOINT = "python -m keepa_cli.agent.mcp_sdk_adapter --stdio"
 SUPPORTED_SPIKE_METHODS = (
     "initialize",
     "tools/list",
@@ -37,13 +44,22 @@ def sdk_dependency_available() -> bool:
     return importlib.util.find_spec(SDK_PACKAGE) is not None
 
 
+def sdk_dependency_version() -> str | None:
+    try:
+        return importlib.metadata.version(SDK_PACKAGE)
+    except importlib.metadata.PackageNotFoundError:
+        return None
+
+
 def adapter_status() -> dict[str, Any]:
     return {
         "adapter": ADAPTER_NAME,
         "sdk_package": SDK_PACKAGE,
         "sdk_available": sdk_dependency_available(),
+        "sdk_version": sdk_dependency_version(),
         "server_info_name": "keepa_mcp",
         "production_entrypoint": PRODUCTION_ENTRYPOINT,
+        "sdk_stdio_entrypoint": SDK_STDIO_ENTRYPOINT,
         "production_entrypoint_replaced": False,
         "boundary": "protocol_adapter_only",
         "business_core": "AgentSession -> run_command",
@@ -73,6 +89,262 @@ def _execute_local_tool(session: AgentSession, tool_name: str, arguments: Mappin
         raise ValueError(f"unknown MCP tool: {tool_name}")
     command_params = tool_params_to_command_params(tool, dict(arguments))
     return session.execute(tool.command, command_params, tool=tool.name)
+
+
+def _require_sdk() -> Any:
+    try:
+        import mcp.types as types
+        from mcp.server.lowlevel import NotificationOptions, Server
+        import mcp.server.stdio
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("官方 Python MCP SDK 未安装；请先在项目 .venv 中安装 keepa-cli[mcp-sdk] 或 mcp>=1,<2。") from exc
+    return types, NotificationOptions, Server, mcp.server.stdio
+
+
+def _content_to_sdk(types: Any, content: Mapping[str, Any]) -> Any:
+    content_type = content.get("type")
+    if content_type == "text":
+        return types.TextContent(type="text", text=str(content.get("text", "")))
+    if content_type == "image":  # pragma: no cover - 当前 Keepa MCP 只返回 text/resource。
+        return types.ImageContent(type="image", data=str(content.get("data", "")), mimeType=str(content.get("mimeType") or "image/png"))
+    if content_type == "resource":  # pragma: no cover - 预留给后续 embedded resource。
+        return types.EmbeddedResource(type="resource", resource=content["resource"])
+    return types.TextContent(type="text", text=json.dumps(content, ensure_ascii=False, sort_keys=True))
+
+
+def _tool_to_sdk(types: Any, payload: Mapping[str, Any]) -> Any:
+    annotations = payload.get("annotations") or {}
+    execution = payload.get("execution") or {}
+    extra = {"x-keepa": payload["x-keepa"]} if "x-keepa" in payload else {}
+    return types.Tool(
+        name=str(payload["name"]),
+        title=payload.get("title"),
+        description=payload.get("description"),
+        inputSchema=dict(payload.get("inputSchema") or {"type": "object", "properties": {}}),
+        outputSchema=payload.get("outputSchema"),
+        annotations=types.ToolAnnotations(**annotations) if annotations else None,
+        execution=types.ToolExecution(**execution) if execution else None,
+        **extra,
+    )
+
+
+def _resource_to_sdk(types: Any, payload: Mapping[str, Any]) -> Any:
+    return types.Resource(
+        uri=payload["uri"],
+        name=str(payload["name"]),
+        title=payload.get("title"),
+        description=payload.get("description"),
+        mimeType=payload.get("mimeType"),
+    )
+
+
+def _resource_template_to_sdk(types: Any, payload: Mapping[str, Any]) -> Any:
+    return types.ResourceTemplate(
+        uriTemplate=str(payload["uriTemplate"]),
+        name=str(payload["name"]),
+        title=payload.get("title"),
+        description=payload.get("description"),
+        mimeType=payload.get("mimeType"),
+    )
+
+
+def _prompt_to_sdk(types: Any, payload: Mapping[str, Any]) -> Any:
+    arguments = [
+        types.PromptArgument(
+            name=str(argument["name"]),
+            description=argument.get("description"),
+            required=argument.get("required"),
+        )
+        for argument in payload.get("arguments") or []
+        if isinstance(argument, Mapping) and "name" in argument
+    ]
+    return types.Prompt(
+        name=str(payload["name"]),
+        title=payload.get("title"),
+        description=payload.get("description"),
+        arguments=arguments or None,
+    )
+
+
+def _prompt_message_to_sdk(types: Any, payload: Mapping[str, Any]) -> Any:
+    return types.PromptMessage(role=str(payload["role"]), content=_content_to_sdk(types, payload.get("content") or {"type": "text", "text": ""}))
+
+
+def _tool_result_to_sdk(types: Any, result: Mapping[str, Any]) -> Any:
+    content = [_content_to_sdk(types, item) for item in result.get("content") or [] if isinstance(item, Mapping)]
+    return types.CallToolResult(
+        content=content or [types.TextContent(type="text", text=json.dumps(result, ensure_ascii=False, sort_keys=True))],
+        structuredContent=result.get("structuredContent"),
+        isError=bool(result.get("isError")),
+        _meta=result.get("_meta"),
+    )
+
+
+def _current_mcp_result(
+    method: str,
+    params: Mapping[str, Any] | None,
+    *,
+    session: AgentSession,
+    env: Mapping[str, str] | None,
+) -> dict[str, Any]:
+    response = handle_mcp_message(
+        json.dumps({"jsonrpc": "2.0", "id": "sdk-adapter", "method": method, "params": dict(params or {})}),
+        env=env,
+        session=session,
+    )
+    if response is None:
+        return {}
+    if "error" in response:
+        raise ValueError(json.dumps(response["error"], ensure_ascii=False, sort_keys=True))
+    result = response.get("result")
+    return dict(result or {}) if isinstance(result, Mapping) else {}
+
+
+def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
+    """创建官方 Python SDK low-level Server。
+
+    SDK server 只负责协议适配；工具、资源、提示词和预算账本继续复用现有
+    registry 与 `AgentSession -> run_command`。
+    """
+
+    types, NotificationOptions, Server, _stdio = _require_sdk()
+    server = Server(
+        "keepa_mcp",
+        version=__version__,
+        instructions=(
+            "Use Keepa MCP tools with structured params. Prefer fixture or dry_run before live calls. "
+            "High-cost requests return confirmation_required unless yes=true is supplied."
+        ),
+    )
+    session = AgentSession(env=env)
+
+    async def _list_tools(req: Any) -> Any:
+        params = {"toolset": "all"}
+        if getattr(req, "params", None) and req.params.cursor:
+            params["cursor"] = req.params.cursor
+        result = _current_mcp_result("tools/list", params, session=session, env=env)
+        tools = [_tool_to_sdk(types, tool) for tool in result.get("tools") or []]
+        server._tool_cache.clear()
+        for tool in tools:
+            server._tool_cache[tool.name] = tool
+        return types.ServerResult(
+            types.ListToolsResult(
+                tools=tools,
+                nextCursor=result.get("nextCursor"),
+                _meta=result.get("_meta"),
+            )
+        )
+    server.request_handlers[types.ListToolsRequest] = _list_tools
+
+    @server.call_tool(validate_input=False)
+    async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "sdk-call",
+                    "method": "tools/call",
+                    "params": {"name": name, "arguments": arguments or {}},
+                },
+            ),
+            env=env,
+            session=session,
+        )
+        if response is None:
+            return types.CallToolResult(content=[], isError=False)
+        if "error" in response:
+            return types.CallToolResult(
+                content=[types.TextContent(type="text", text=json.dumps(response["error"], ensure_ascii=False, sort_keys=True))],
+                structuredContent={"error": response["error"]},
+                isError=True,
+            )
+        return _tool_result_to_sdk(types, response.get("result") or {})
+
+    async def _list_resources(req: Any) -> Any:
+        params = {"cursor": req.params.cursor} if getattr(req, "params", None) and req.params.cursor else {}
+        result = _current_mcp_result("resources/list", params, session=session, env=env)
+        return types.ServerResult(
+            types.ListResourcesResult(
+                resources=[_resource_to_sdk(types, resource) for resource in result.get("resources") or []],
+                nextCursor=result.get("nextCursor"),
+                _meta=result.get("_meta"),
+            )
+        )
+    server.request_handlers[types.ListResourcesRequest] = _list_resources
+
+    async def _list_resource_templates(req: Any) -> Any:
+        params = {"cursor": req.params.cursor} if getattr(req, "params", None) and req.params.cursor else {}
+        result = _current_mcp_result("resources/templates/list", params, session=session, env=env)
+        return types.ServerResult(
+            types.ListResourceTemplatesResult(
+                resourceTemplates=[_resource_template_to_sdk(types, template) for template in result.get("resourceTemplates") or []],
+                nextCursor=result.get("nextCursor"),
+                _meta=result.get("_meta"),
+            )
+        )
+    server.request_handlers[types.ListResourceTemplatesRequest] = _list_resource_templates
+
+    async def _read_resource(req: Any) -> Any:
+        content = read_mcp_resource(str(req.params.uri), session_cache=session.cache)
+        if "text" in content:
+            resource_content = types.TextResourceContents(
+                uri=content["uri"],
+                text=str(content["text"]),
+                mimeType=content.get("mimeType"),
+                _meta=content.get("_meta"),
+            )
+        else:
+            resource_content = types.BlobResourceContents(  # pragma: no cover - 当前资源均为 text。
+                uri=content["uri"],
+                blob=str(content.get("blob", "")),
+                mimeType=content.get("mimeType"),
+                _meta=content.get("_meta"),
+            )
+        return types.ServerResult(types.ReadResourceResult(contents=[resource_content]))
+    server.request_handlers[types.ReadResourceRequest] = _read_resource
+
+    async def _list_prompts(req: Any) -> Any:
+        params = {"cursor": req.params.cursor} if getattr(req, "params", None) and req.params.cursor else {}
+        result = _current_mcp_result("prompts/list", params, session=session, env=env)
+        return types.ServerResult(
+            types.ListPromptsResult(
+                prompts=[_prompt_to_sdk(types, prompt) for prompt in result.get("prompts") or []],
+                nextCursor=result.get("nextCursor"),
+                _meta=result.get("_meta"),
+            )
+        )
+    server.request_handlers[types.ListPromptsRequest] = _list_prompts
+
+    @server.get_prompt()
+    async def _get_prompt(name: str, arguments: dict[str, str] | None) -> Any:
+        try:
+            prompt = get_mcp_prompt(name, dict(arguments or {}))
+        except ValueError as exc:
+            raise ValueError(json.dumps({"prompt": name, "message": str(exc), "available_prompts": prompt_names()}, ensure_ascii=False)) from exc
+        return types.GetPromptResult(
+            description=prompt.get("description"),
+            messages=[_prompt_message_to_sdk(types, message) for message in prompt.get("messages") or []],
+            _meta=prompt.get("_meta"),
+        )
+
+    # Touch registries early so startup failures surface before clients initialize.
+    list_mcp_resources()
+    list_mcp_prompts()
+    server._keepa_notification_options = NotificationOptions()  # type: ignore[attr-defined]
+    return server
+
+
+async def run_sdk_stdio(*, env: Mapping[str, str] | None = None) -> None:
+    types, NotificationOptions, _Server, stdio = _require_sdk()
+    del types
+    server = create_lowlevel_sdk_server(env=env)
+    async with stdio.stdio_server() as (read_stream, write_stream):
+        await server.run(
+            read_stream,
+            write_stream,
+            server.create_initialization_options(notification_options=NotificationOptions()),
+            raise_exceptions=False,
+        )
 
 
 def create_fastmcp_readonly_spike(*, env: Mapping[str, str] | None = None) -> Any:
@@ -184,3 +456,20 @@ def compare_fixture_outputs(spec: Mapping[str, Any], *, env: Mapping[str, str] |
         "current": current if diff else None,
         "adapter": adapter if diff else None,
     }
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Run or inspect the isolated official MCP SDK adapter.")
+    parser.add_argument("--stdio", action="store_true", help="Run the official SDK low-level server over stdio.")
+    parser.add_argument("--status", action="store_true", help="Print adapter status as JSON.")
+    args = parser.parse_args(list(argv) if argv is not None else None)
+
+    if args.status or not args.stdio:
+        print(json.dumps(adapter_status(), ensure_ascii=False, indent=2, sort_keys=True))
+        return 0
+    asyncio.run(run_sdk_stdio(env=None))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

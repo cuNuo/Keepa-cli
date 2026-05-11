@@ -22,7 +22,7 @@ INSPECTOR_FIXTURE = Path("tests/agent_eval_fixtures/mcp_inspector_protocol_fixtu
 class McpSdkAdapterSpikeTests(unittest.TestCase):
     def test_adapter_status_keeps_production_stdio_entrypoint(self):
         status = adapter_status()
-        self.assertEqual(status["adapter"], "keepa_mcp_sdk_spike")
+        self.assertEqual(status["adapter"], "keepa_mcp_sdk_adapter")
         self.assertEqual(status["server_info_name"], "keepa_mcp")
         self.assertEqual(status["production_entrypoint"], "python -m keepa_cli --mcp")
         self.assertFalse(status["production_entrypoint_replaced"])
@@ -47,6 +47,22 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
             capture_output=True,
         )
         self.assertIn("mcp sdk adapter fixture equivalence ok", completed.stdout)
+
+    @unittest.skipUnless(adapter_status()["sdk_available"], "official mcp package is optional")
+    def test_official_sdk_client_smoke(self):
+        completed = subprocess.run(
+            [sys.executable, "scripts/smoke_mcp_sdk_adapter_client.py", "--json"],
+            check=True,
+            cwd=Path.cwd(),
+            text=True,
+            capture_output=True,
+        )
+        payload = json.loads(completed.stdout)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["server_info"]["name"], "keepa_mcp")
+        self.assertTrue(payload["tools"]["has_context_policy"])
+        self.assertTrue(payload["resources"]["context_policy_bytes"] > 100)
+        self.assertTrue(payload["prompts"]["has_product_research"])
 
     def test_fastmcp_spike_is_optional(self):
         if adapter_status()["sdk_available"]:
