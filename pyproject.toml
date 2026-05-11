@@ -60,3 +60,16 @@ include = ["keepa_cli*"]
 
 [tool.setuptools.package-data]
 keepa_cli = ["fixtures/*.json"]
+
+[tool.coverage.run]
+source = ["keepa_cli"]
+omit = [
+    "keepa_cli/ui/*",
+    "keepa_cli/cli.py",
+    "keepa_cli/cli_builders/*",
+    "keepa_cli/__main__.py",
+]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
