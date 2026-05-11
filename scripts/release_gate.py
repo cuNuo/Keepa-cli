@@ -48,6 +48,7 @@ def main() -> int:
         _run([python, "scripts/check_live_cache_options.py"], root)
         _run([python, "scripts/check_fixture_sync.py"], root)
         _run([python, "scripts/check_agent_eval_fixtures.py"], root)
+        _run([python, "scripts/compare_mcp_sdk_adapter_fixture.py"], root)
         install_verify = [python, "scripts/install_verify.py"]
         if args.skip_npm_pack:
             install_verify.append("--skip-npm-pack")

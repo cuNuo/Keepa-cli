@@ -58,8 +58,25 @@ adapter 原则：
 
 如果 SDK adapter 无法稳定表达动态 toolset/profile/pagination/resource templates，保持当前手写 stdio transport。该方案不是技术债本身：它已经足够薄，只负责 MCP JSON-RPC 协议边界，业务逻辑仍在统一 service/session 层。
 
+## 2026-05-12 隔离 spike 状态
+
+- 已新增 `keepa_cli/agent/mcp_sdk_adapter.py`，作为官方 Python MCP SDK adapter 的隔离边界；生产入口仍是 `python -m keepa_cli --mcp`。
+- `adapter_status()` 会报告 `sdk_available`、`server_info_name=keepa_mcp`、生产入口未替换、业务核心仍为 `AgentSession -> run_command`。
+- `create_fastmcp_readonly_spike()` 只在安装可选依赖 `keepa-cli[mcp-sdk]` 后创建 FastMCP 只读样例，证明 SDK 层可复用 session/service；它不是生产 server，不承诺 `keepa.*` tool 名或完整分页/resource templates 等价。
+- `scripts/compare_mcp_sdk_adapter_fixture.py` 使用 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json` 对比当前 `--mcp` handler 与隔离 adapter 输出；release gate 已纳入该检查。
+- 当前 fixture 对比覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、非法 `tools/call` 与 `ping`，要求响应 JSON 完全等价。
+
+## Streamable HTTP 边界
+
+如果后续增加 Streamable HTTP，只允许新增协议 adapter：
+
+- 保持 `AgentSession`、`run_command`、tool registry、resource registry、prompt registry、workflow resolver 与 budget ledger 不复制。
+- HTTP adapter 只处理请求解码、session id、Origin/localhost 防护、响应编码、错误码映射和 SDK/ASGI 生命周期。
+- 任何 HTTP 输出都必须先通过当前 Inspector fixture 或等价 fixture；不能为了适配 HTTP 改动 `keepa.*` tool schema 或 service command 参数。
+- 本地桌面 Agent 和 CLI 文档默认仍推荐 stdio；HTTP 只作为远程或浏览器型 MCP client 的可选入口。
+
 ## 后续动作
 
-- P1：创建 `mcp_sdk_adapter.py` 实验分支，先只注册 `keepa.context_policy`、`keepa.docs_index`、`keepa.docs_read` 三个本地只读工具。
-- P1：用 MCP Inspector 对比当前 `--mcp` 与 SDK adapter 的 `initialize`、`tools/list`、`tools/call`、`resources/list` 输出差异。
-- P2：若差异可控，再评估 streamable HTTP adapter；本地桌面和 Agent client 默认仍使用 stdio。
+- P1：用真实 SDK/Inspector 手工连接 `create_fastmcp_readonly_spike()`，记录 FastMCP 默认 tool 命名、structured output 和资源/提示词能力差异。
+- P1：把 SDK adapter 从只读样例扩展到完整 protocol adapter 前，先让 `scripts/compare_mcp_sdk_adapter_fixture.py` 对新增 fixture 保持通过。
+- P2：若差异可控，再评估 Streamable HTTP adapter；本地桌面和 Agent client 默认仍使用 stdio。
