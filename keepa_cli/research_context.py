@@ -252,6 +252,9 @@ def _context_resources_for_question(question: str, *, root: Path) -> list[dict[s
     resources: list[dict[str, Any]] = []
     if "schema" in lowered or "agent" in lowered:
         resources.append({"uri": "keepa://schema/products-agent-view", "kind": "schema"})
+    if "workflow" in lowered or "runtime" in lowered:
+        resources.append({"uri": "keepa://workflow/runtime-contract", "kind": "workflow_runtime_contract"})
+        resources.append({"uri": "keepa://schema/workflow-runtime-contract", "kind": "schema"})
     if "tool" in lowered or "mcp" in lowered:
         resources.append({"uri": "keepa://tools/index", "kind": "tools_index"})
     if "prompt" in lowered:

@@ -950,6 +950,12 @@
             "mimeType": "str",
             "name": "str",
             "uri": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uri": "str"
           }
         ],
         "server_name": "str",
@@ -5289,6 +5295,11 @@
             {
               "argument": "str",
               "sources": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
                 "str"
               ]
             }
@@ -5302,7 +5313,71 @@
             "str"
           ],
           "failure_kind": "str",
+          "schema_resource_uri": "str",
           "schema_version": "str",
+          "source_shapes": {
+            "artifact": [
+              {
+                "payload": {
+                  "data": {
+                    "research_graph": "str"
+                  },
+                  "ok": "bool"
+                }
+              },
+              {
+                "graph": {
+                  "edges": [],
+                  "nodes": []
+                }
+              },
+              {
+                "output": {
+                  "path": "str"
+                }
+              },
+              {
+                "data": {
+                  "output": {
+                    "path": "str"
+                  }
+                }
+              },
+              {
+                "resource_uri": "str"
+              },
+              {
+                "cache_key": "str"
+              }
+            ],
+            "workflow_context": {
+              "artifact": "str",
+              "artifacts": [
+                "str"
+              ],
+              "outputs": {
+                "step_id": "str"
+              },
+              "previous_outputs": [
+                "str"
+              ],
+              "resource_uri": "str",
+              "resource_uris": [
+                "str"
+              ],
+              "results": [
+                "str"
+              ],
+              "step_outputs": {
+                "step_id": "str"
+              },
+              "steps": {
+                "step_id": {
+                  "artifact": "str"
+                }
+              }
+            }
+          },
           "success_field": "str",
           "tool_count": "int",
           "tools": [
@@ -8219,6 +8294,12 @@
     "jsonrpc": "str",
     "result": {
       "resources": [
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "uri": "str"
+        },
         {
           "description": "str",
           "mimeType": "str",

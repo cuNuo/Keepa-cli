@@ -7,9 +7,10 @@
   "assertions": [
     {"path": "result.resources", "length_min": 10},
     {"path": "result.resources.0.uri", "equals": "keepa://schema/products-agent-view"},
-    {"path": "result.resources.1.uri", "equals": "keepa://fixtures/manifest"},
-    {"path": "result.resources.2.uri", "equals": "keepa://guides/cassette-promotion"},
-    {"path": "result.resources.3.uri", "equals": "keepa://evidence/recent"},
+    {"path": "result.resources", "contains_item": {"uri": "keepa://fixtures/manifest"}},
+    {"path": "result.resources", "contains_item": {"uri": "keepa://guides/cassette-promotion"}},
+    {"path": "result.resources", "contains_item": {"uri": "keepa://evidence/recent"}},
+    {"path": "result.resources", "contains_item": {"uri": "keepa://schema/workflow-runtime-contract"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://context/policy"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://workflow/runtime-contract"}},
     {"path": "result.resources", "contains_item": {"uri": "keepa://zread/wiki/current"}}

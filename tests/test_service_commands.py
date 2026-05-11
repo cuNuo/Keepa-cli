@@ -20,12 +20,19 @@ class ServiceCommandTests(unittest.TestCase):
         index = run_command("docs.index", env={})
         self.assertTrue(index["ok"])
         self.assertEqual(index["data"]["stable_entrypoints"]["zread_current"], "keepa://zread/wiki/current")
+        self.assertEqual(index["data"]["stable_entrypoints"]["workflow_runtime_schema"], "keepa://schema/workflow-runtime-contract")
+        self.assertIn("keepa://schema/workflow-runtime-contract", index["data"]["recommended_read_order"])
         resource_uris = {item["uri"] for item in index["data"]["resources"]}
         self.assertIn("keepa://context/policy", resource_uris)
+        self.assertIn("keepa://schema/workflow-runtime-contract", resource_uris)
 
         current = run_command("docs.read", {"uri": "keepa://zread/wiki/current"}, env={})
         self.assertTrue(current["ok"])
         self.assertEqual(current["data"]["json"]["version"], "2026-05-10-215740")
+
+        runtime_schema = run_command("docs.read", {"uri": "keepa://schema/workflow-runtime-contract"}, env={})
+        self.assertTrue(runtime_schema["ok"])
+        self.assertEqual(runtime_schema["data"]["json"]["$id"], "keepa://schema/workflow-runtime-contract")
 
         page = run_command("docs.read", {"page": "1-gai-lan"}, env={})
         self.assertTrue(page["ok"])
@@ -48,6 +55,11 @@ class ServiceCommandTests(unittest.TestCase):
         context = run_command("research.context.query", {"target_type": "asin", "target_id": "B001GZ6QEC"}, env={})
         self.assertTrue(context["ok"])
         self.assertIn("keepa://asin/B001GZ6QEC/fixture", context["data"]["recommended_read_order"])
+
+        workflow_context = run_command("research.context.query", {"question": "mcp workflow runtime schema"}, env={})
+        self.assertTrue(workflow_context["ok"])
+        self.assertIn("keepa://workflow/runtime-contract", workflow_context["data"]["recommended_read_order"])
+        self.assertIn("keepa://schema/workflow-runtime-contract", workflow_context["data"]["recommended_read_order"])
 
     def test_research_brief_export_summarizes_local_payloads(self):
         payload = run_command(

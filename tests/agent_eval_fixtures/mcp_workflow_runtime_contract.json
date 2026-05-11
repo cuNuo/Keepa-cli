@@ -28,6 +28,18 @@
       "equals": "data.workflow_resolution"
     },
     {
+      "path": "result.contents.0.text.$json.schema_resource_uri",
+      "equals": "keepa://schema/workflow-runtime-contract"
+    },
+    {
+      "path": "result.contents.0.text.$json.source_shapes.workflow_context.steps.step_id.artifact",
+      "equals": "<artifact shape>"
+    },
+    {
+      "path": "result.contents.0.text.$json.accepted_sources.5.sources",
+      "contains": "workflow_context.steps"
+    },
+    {
       "path": "result.contents.0.text.$json.tools",
       "contains_item": {
         "name": "keepa.products_compare"

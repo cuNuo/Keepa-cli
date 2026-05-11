@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "keepa://schema/workflow-runtime-contract",
+  "title": "Keepa MCP workflow runtime contract",
+  "description": "Schema for keepa://workflow/runtime-contract. It describes which MCP tools accept workflow runtime arguments and how dependency resolution reports success or missing inputs.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "schema_resource_uri",
+    "argument_names",
+    "tool_count",
+    "tools",
+    "source_shapes",
+    "accepted_sources",
+    "failure_kind",
+    "success_field"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "schema_resource_uri": {
+      "const": "keepa://schema/workflow-runtime-contract"
+    },
+    "argument_names": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "artifact",
+          "artifacts",
+          "resource_uri",
+          "resource_uris",
+          "workflow_context",
+          "workflow_inputs"
+        ]
+      },
+      "uniqueItems": true,
+      "minItems": 6
+    },
+    "tool_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "service_command",
+          "groups",
+          "resource_uri",
+          "runtime_args"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^keepa\\.[a-z0-9_]+$"
+          },
+          "service_command": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "resource_uri": {
+            "type": "string",
+            "pattern": "^keepa://tools/keepa\\.[a-z0-9_]+$"
+          },
+          "runtime_args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "contains": {
+              "const": "resource_uri"
+            },
+            "minItems": 6
+          }
+        }
+      }
+    },
+    "source_shapes": {
+      "type": "object",
+      "required": [
+        "artifact",
+        "workflow_context"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "artifact": {
+          "type": "array",
+          "minItems": 1
+        },
+        "workflow_context": {
+          "type": "object"
+        }
+      }
+    },
+    "accepted_sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "argument",
+          "sources"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "argument": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "failure_kind": {
+      "const": "missing_inputs"
+    },
+    "success_field": {
+      "const": "data.workflow_resolution"
+    }
+  }
+}

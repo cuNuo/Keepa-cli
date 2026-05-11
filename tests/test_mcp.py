@@ -632,6 +632,7 @@ class McpProtocolTests(unittest.TestCase):
         uris = {item["uri"] for item in resources}
 
         self.assertIn("keepa://schema/products-agent-view", uris)
+        self.assertIn("keepa://schema/workflow-runtime-contract", uris)
         self.assertIn("keepa://fixtures/manifest", uris)
         self.assertIn("keepa://guides/cassette-promotion", uris)
         self.assertIn("keepa://evidence/recent", uris)
@@ -670,9 +671,25 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         runtime_payload = json.loads(runtime["result"]["contents"][0]["text"])
+        self.assertEqual(runtime_payload["schema_resource_uri"], "keepa://schema/workflow-runtime-contract")
         self.assertIn("resource_uri", runtime_payload["argument_names"])
         self.assertEqual(runtime_payload["failure_kind"], "missing_inputs")
         self.assertTrue(any(item["name"] == "keepa.products_compare" for item in runtime_payload["tools"]))
+
+        runtime_schema = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "runtime-contract-schema",
+                    "method": "resources/read",
+                    "params": {"uri": runtime_payload["schema_resource_uri"]},
+                }
+            ),
+            env={},
+        )
+        schema_payload = json.loads(runtime_schema["result"]["contents"][0]["text"])
+        self.assertEqual(schema_payload["$id"], "keepa://schema/workflow-runtime-contract")
+        self.assertIn("accepted_sources", schema_payload["required"])
 
     def test_zread_resources_read_current_toc_pages_and_page(self):
         current = handle_mcp_message(
@@ -1223,6 +1240,80 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(report["ok"])
         self.assertEqual(brief["data"]["workflow_resolution"]["resolved"][0]["kind"], "path")
         self.assertEqual(brief["data"]["workflow_resolution"]["resolved"][0]["path"], graph_path)
+        self.assertEqual(report["data"]["workflow_resolution"]["resolved"][0]["kind"], "path")
+        self.assertEqual(report["data"]["workflow_resolution"]["resolved"][0]["path"], graph_path)
+        self.assertEqual(report["data"]["research_graph"]["entity_counts"]["research_graph"], 1)
+
+    def test_workflow_context_nested_outputs_resolve_report_chain(self):
+        session = AgentSession(env={})
+        with tempfile.TemporaryDirectory() as temp_dir:
+            graph_path = str(Path(temp_dir) / "nested-graph.json")
+            product = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "nested-context-product",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.products_get",
+                            "arguments": {
+                                "asin": "B0D8W1YVBX",
+                                "domain": "US",
+                                "fixture": "product_B0D8W1YVBX_agent_eval.json",
+                                "agent_view": True,
+                                "view": "summary",
+                            },
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+            merged = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "nested-context-merge",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.research_graph_merge",
+                            "arguments": {
+                                "resource_uri": f"keepa://research/{product['cache_key']}/graph",
+                                "root": "nested-context-chain",
+                                "out": graph_path,
+                            },
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+            report = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "nested-context-report",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.reports_build",
+                            "arguments": {
+                                "workflow_context": {
+                                    "steps": {"merge": {"artifact": merged}},
+                                    "results": [{"artifact": {"data": {"output": {"path": graph_path}}}}],
+                                },
+                                "format": "json",
+                                "title": "Nested Context Report",
+                            },
+                        },
+                    }
+                ),
+                env={},
+                session=session,
+            )["result"]["structuredContent"]
+
+        self.assertTrue(report["ok"])
         self.assertEqual(report["data"]["workflow_resolution"]["resolved"][0]["kind"], "path")
         self.assertEqual(report["data"]["workflow_resolution"]["resolved"][0]["path"], graph_path)
         self.assertEqual(report["data"]["research_graph"]["entity_counts"]["research_graph"], 1)

@@ -1096,10 +1096,32 @@ def workflow_runtime_contract() -> dict[str, Any]:
         if tool.workflow_runtime
     ]
     return {
-        "schema_version": "2026-05-11.1",
+        "schema_version": "2026-05-11.2",
+        "schema_resource_uri": "keepa://schema/workflow-runtime-contract",
         "argument_names": args,
         "tool_count": len(tools),
         "tools": tools,
+        "source_shapes": {
+            "artifact": [
+                {"payload": {"ok": True, "data": {"research_graph": "<graph>"}}},
+                {"graph": {"nodes": [], "edges": []}},
+                {"output": {"path": "graph-or-report.json"}},
+                {"data": {"output": {"path": "graph-or-report.json"}}},
+                {"resource_uri": "keepa://research/{cache_key}"},
+                {"cache_key": "products.compare:..."},
+            ],
+            "workflow_context": {
+                "artifact": "<single artifact shape>",
+                "artifacts": ["<artifact shape>"],
+                "resource_uri": "keepa://research/{cache_key}",
+                "resource_uris": ["keepa://research/{cache_key}/graph"],
+                "steps": {"step_id": {"artifact": "<artifact shape>"}},
+                "outputs": {"step_id": "<artifact shape>"},
+                "results": ["<artifact shape>"],
+                "step_outputs": {"step_id": "<artifact shape>"},
+                "previous_outputs": ["<artifact shape>"],
+            },
+        },
         "accepted_sources": [
             {
                 "argument": "resource_uri",
@@ -1129,7 +1151,14 @@ def workflow_runtime_contract() -> dict[str, Any]:
             },
             {
                 "argument": "workflow_context",
-                "sources": ["client-managed workflow state object"],
+                "sources": [
+                    "client-managed workflow state object",
+                    "workflow_context.steps",
+                    "workflow_context.outputs",
+                    "workflow_context.results",
+                    "workflow_context.step_outputs",
+                    "workflow_context.previous_outputs",
+                ],
             },
         ],
         "failure_kind": "missing_inputs",

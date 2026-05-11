@@ -1,0 +1,31 @@
+{
+  "id": "mcp_workflow_runtime_schema_resource",
+  "description": "MCP schema resource exposes the workflow runtime contract JSON schema.",
+  "kind": "mcp",
+  "method": "resources/read",
+  "params": {
+    "uri": "keepa://schema/workflow-runtime-contract"
+  },
+  "assertions": [
+    {
+      "path": "result.contents.0.mimeType",
+      "equals": "application/json"
+    },
+    {
+      "path": "result.contents.0.text.$json.$id",
+      "equals": "keepa://schema/workflow-runtime-contract"
+    },
+    {
+      "path": "result.contents.0.text.$json.required",
+      "contains": "accepted_sources"
+    },
+    {
+      "path": "result.contents.0.text.$json.properties.failure_kind.const",
+      "equals": "missing_inputs"
+    },
+    {
+      "path": "result.contents.0.text.$json.properties.success_field.const",
+      "equals": "data.workflow_resolution"
+    }
+  ]
+}

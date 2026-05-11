@@ -1,0 +1,56 @@
+{
+  "id": "workflow_context_nested_outputs_mcp",
+  "description": "MCP workflow resolver 可从 workflow_context.steps / outputs 续接上游本地 path 产物。",
+  "kind": "mcp_session",
+  "steps": [
+    {
+      "id": "report-from-context-steps",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.reports_build",
+        "arguments": {
+          "workflow_context": {
+            "steps": {
+              "merge": {
+                "artifact": {"output": {"path": "tests/fixtures/agent_eval_products_compare_output.json"}}
+              }
+            },
+            "outputs": {
+              "compare": {"data": {"output": {"path": "tests/fixtures/agent_eval_products_compare_output.json"}}}
+            }
+          },
+          "format": "json",
+          "title": "Nested Workflow Context Report"
+        }
+      }
+    },
+    {
+      "id": "brief-from-context-results",
+      "method": "tools/call",
+      "params": {
+        "name": "keepa.research_brief_export",
+        "arguments": {
+          "workflow_context": {
+            "results": [
+              {"artifact": {"data": {"output": {"path": "tests/fixtures/agent_eval_products_compare_output.json"}}}}
+            ]
+          },
+          "title": "Nested Workflow Context Brief"
+        }
+      }
+    }
+  ],
+  "assertions": [
+    {"path": "ok", "equals": true},
+    {"path": "responses", "length": 2},
+    {"path": "responses.0.result.structuredContent.ok", "equals": true},
+    {"path": "responses.0.result.structuredContent.command", "equals": "reports.build"},
+    {"path": "responses.0.result.structuredContent.data.workflow_resolution.resolved.0.kind", "equals": "path"},
+    {"path": "responses.0.result.structuredContent.data.workflow_resolution.resolved.0.path", "contains": "agent_eval_products_compare_output.json"},
+    {"path": "responses.0.result.structuredContent.data.research_graph.entity_counts.product", "min": 3},
+    {"path": "responses.1.result.structuredContent.ok", "equals": true},
+    {"path": "responses.1.result.structuredContent.command", "equals": "research_brief.export"},
+    {"path": "responses.1.result.structuredContent.data.workflow_resolution.resolved.0.kind", "equals": "path"},
+    {"path": "responses.1.result.structuredContent.data.brief.input_summary.research_graph_count", "min": 1}
+  ]
+}

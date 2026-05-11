@@ -27,6 +27,14 @@ WORKFLOW_RUNTIME_KEYS = {
     "workflow_inputs",
 }
 
+WORKFLOW_CONTEXT_CONTAINER_KEYS = {
+    "outputs",
+    "previous_outputs",
+    "results",
+    "step_outputs",
+    "steps",
+}
+
 
 def resolve_workflow_arguments(
     tool_name: str,
@@ -99,14 +107,38 @@ def _collect_references(arguments: Mapping[str, Any]) -> list[Any]:
 
     workflow_context = arguments.get("workflow_context")
     if isinstance(workflow_context, Mapping):
+        references.extend(_collect_workflow_context_references(workflow_context))
+    return references
+
+
+def _collect_workflow_context_references(value: Any) -> list[Any]:
+    references: list[Any] = []
+    if isinstance(value, Mapping):
+        if "payload" in value or "graph" in value or _artifact_path(value):
+            references.append(value)
         for key in ("artifact", "resource_uri"):
-            value = workflow_context.get(key)
-            if value:
-                references.append(value)
+            item = value.get(key)
+            if item:
+                references.append(item)
         for key in ("artifacts", "resource_uris"):
-            value = workflow_context.get(key)
-            if isinstance(value, list):
-                references.extend(value)
+            item = value.get(key)
+            if isinstance(item, list):
+                references.extend(item)
+            elif item:
+                references.append(item)
+        for key in WORKFLOW_CONTEXT_CONTAINER_KEYS:
+            nested = value.get(key)
+            if isinstance(nested, Mapping):
+                for item in nested.values():
+                    references.extend(_collect_workflow_context_references(item))
+            elif isinstance(nested, list):
+                for item in nested:
+                    references.extend(_collect_workflow_context_references(item))
+    elif isinstance(value, list):
+        for item in value:
+            references.extend(_collect_workflow_context_references(item))
+    elif _looks_like_reference(value):
+        references.append(value)
     return references
 
 
