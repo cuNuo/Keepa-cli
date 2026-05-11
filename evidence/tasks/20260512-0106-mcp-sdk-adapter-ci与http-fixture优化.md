@@ -3,9 +3,9 @@
 ## 任务时间
 
 - 开始时间：2026-05-12 00:50
-- 最近更新时间：2026-05-12 01:22
-- 完成时间：待补充远端 CI
-- 当前状态：本地验证通过，等待远端 CI
+- 最近更新时间：2026-05-12 01:17
+- 完成时间：2026-05-12 01:17
+- 当前状态：已完成
 
 ## 任务目标
 
@@ -75,10 +75,11 @@
 - 首次远端 CI：新增 `mcp-sdk-adapter` job 通过；Windows 普通 matrix 在 `test_manual_live_product_read_defaults_to_dry_run` 失败。根因是新脚本输出中文 JSON 时，Windows runner/父进程默认编码不稳定。
 - 修复：`scripts/manual_live_product_read.py` 启动时显式重配 stdout/stderr 为 UTF-8，`tests/test_manual_live_product_read.py` 的 subprocess capture 显式使用 `encoding="utf-8"`。
 - 修复后局部验证：`.\\.venv\\Scripts\\python.exe -m unittest tests.test_manual_live_product_read -v`、py_compile、`git diff --check`、相关 Hook 均通过。
+- 修复后远端 CI：`https://github.com/cuNuo/Keepa-cli/actions/runs/25685574269` 通过；包含 ubuntu/macos/windows Python 3.11/3.12 matrix 与新增 `mcp-sdk-adapter` job。
 
 ## 待完成验证
 
-- 提交、推送并检查远端 CI。
+- 无。
 
 ## 风险与后续
 
