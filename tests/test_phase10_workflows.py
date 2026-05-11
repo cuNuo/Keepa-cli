@@ -111,7 +111,8 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertEqual(markdown["data"]["research_graph"]["root"], "agent_selection_research")
             report_text = report_path.read_text(encoding="utf-8")
             self.assertIn("## Figures", report_text)
-            self.assertIn("![agent-research-summary]", report_text)
+            self.assertNotIn("![agent-research-summary]", report_text)
+            self.assertIn("![history-lines]", report_text)
             self.assertIn("## Research Graph", report_text)
             self.assertIn("### Relationships", report_text)
             figures = markdown["data"]["figures"]["figures"]
@@ -174,6 +175,9 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertTrue(source_path.is_file())
             svg_text = svg_path.read_text(encoding="utf-8")
             self.assertIn("<svg", svg_text)
+            self.assertIn("Times New Roman", svg_text)
+            self.assertIn("SimSun", svg_text)
+            self.assertIn("宋体", svg_text)
             self.assertIn("A  Product comparison", svg_text)
             self.assertIn("B  Price / rank history", svg_text)
             self.assertIn("C  Window change heatmap", svg_text)
@@ -192,6 +196,63 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertIn("history_series", source)
             self.assertIn("window_heatmap", source)
             self.assertGreaterEqual(len(source["small_multiples"]), 3)
+
+    def test_figures_research_uses_bounded_history_small_multiples(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            figures = run_command(
+                "figures.research",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_history_output.json",
+                    "out_dir": temp_dir,
+                    "title": "Agent History Figure Test 中文",
+                },
+                env={},
+            )
+
+            self.assertTrue(figures["ok"])
+            multiples_path = Path(next(item["path"] for item in figures["data"]["figures"] if item["name"] == "small-multiples"))
+            multiples_svg = multiples_path.read_text(encoding="utf-8")
+            self.assertIn("Times New Roman", multiples_svg)
+            self.assertIn("SimSun", multiples_svg)
+            self.assertIn("宋体", multiples_svg)
+            self.assertIn("Multi-ASIN history small multiples", multiples_svg)
+            self.assertIn("B0D8W1YVBX", multiples_svg)
+            self.assertIn("B0EVALCMP2", multiples_svg)
+            self.assertIn("New price", multiples_svg)
+            source = json.loads(Path(figures["data"]["figures"][0]["source_data_path"]).read_text(encoding="utf-8"))
+            self.assertEqual(source["small_multiples"][0]["data_basis"], "bounded_history_points")
+            self.assertEqual(len(source["small_multiples"]), 3)
+            self.assertIn("normalized_points", source["small_multiples"][0]["series"][0])
+
+    def test_figures_research_uses_sanitized_real_full_history_fixture(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            figures = run_command(
+                "figures.research",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_real_full_history_output.json",
+                    "out_dir": temp_dir,
+                    "title": "Real Full History 对比",
+                },
+                env={},
+            )
+
+            self.assertTrue(figures["ok"])
+            self.assertEqual(figures["data"]["schema_version"], "2026-05-11.4")
+            self.assertEqual(figures["data"]["data_summary"]["small_multiple_count"], 2)
+            self.assertGreaterEqual(figures["data"]["data_summary"]["history_series_count"], 8)
+            multiples_path = Path(next(item["path"] for item in figures["data"]["figures"] if item["name"] == "small-multiples"))
+            history_path = Path(next(item["path"] for item in figures["data"]["figures"] if item["name"] == "history-lines"))
+            multiples_svg = multiples_path.read_text(encoding="utf-8")
+            history_svg = history_path.read_text(encoding="utf-8")
+            self.assertIn("Real Full History 对比", multiples_svg)
+            self.assertIn("B0D8W1YVBX", multiples_svg)
+            self.assertIn("B0F7XPYCSJ", multiples_svg)
+            self.assertIn("宋体", multiples_svg)
+            self.assertIn("One row per metric", history_svg)
+            self.assertIn("Sales rank is inverted", history_svg)
+            source = json.loads(Path(figures["data"]["figures"][0]["source_data_path"]).read_text(encoding="utf-8"))
+            self.assertEqual({row["asin"] for row in source["small_multiples"]}, {"B0D8W1YVBX", "B0F7XPYCSJ"})
+            self.assertEqual(source["small_multiples"][0]["data_basis"], "bounded_history_points")
 
     def test_workflow_plan_category_research_is_local_agent_graph(self):
         payload = run_command(

@@ -330,6 +330,31 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertIn("bounded_history_points", row)
         self.assertLessEqual(len(row["bounded_history_points"]["series"]["new"]["last_points"]), 2)
 
+    def test_products_compare_real_full_history_fixture_retains_multiple_asin_points(self):
+        payload = run_command(
+            "products.compare",
+            {
+                "asin": ["B0D8W1YVBX", "B0F7XPYCSJ"],
+                "domain": "US",
+                "fixture": "products_multi_asin_full_history_sanitized.json",
+                "full": True,
+                "history_limit": 80,
+                "keep_history_points": True,
+            },
+            fixture_dir=FIXTURES,
+            env={},
+        )
+
+        self.assertTrue(payload["ok"])
+        rows = payload["data"]["rows"]
+        self.assertEqual([row["asin"] for row in rows], ["B0D8W1YVBX", "B0F7XPYCSJ"])
+        for row in rows:
+            bounded = row["bounded_history_points"]["series"]
+            self.assertIn("new", bounded)
+            self.assertIn("sales_rank", bounded)
+            self.assertGreaterEqual(len(bounded["new"]["last_points"]), 2)
+        self.assertTrue(payload["data"]["source_view"]["history_points_retained"])
+
     def test_categories_get_uses_category_endpoint_and_parents_flag(self):
         payload = run_command(
             "categories.get",

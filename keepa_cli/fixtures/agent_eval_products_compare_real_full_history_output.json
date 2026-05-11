@@ -1,0 +1,4446 @@
+{
+  "command": "products.compare",
+  "data": {
+    "product_count": 2,
+    "research_graph": {
+      "edge_count": 15,
+      "edges": [
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:11060451",
+          "target": "category:11060711",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:11060711",
+          "target": "category:11062031",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:11062031",
+          "target": "category:7792528011",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:16310091",
+          "target": "category:317970011",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:317970011",
+          "target": "category:318049011",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:318049011",
+          "target": "category:318094011",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:318094011",
+          "target": "category:393384011",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "category:3760911",
+          "target": "category:11060451",
+          "type": "parent_of"
+        },
+        {
+          "evidence_path": "pricing.buy_box.seller_id",
+          "source": "product:B0D8W1YVBX",
+          "target": "seller:AFZNN5H6MIT2Z",
+          "type": "buybox_sold_by"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "product:B0D8W1YVBX",
+          "target": "category:7792528011",
+          "type": "in_category"
+        },
+        {
+          "evidence_path": "identity.brand",
+          "source": "product:B0D8W1YVBX",
+          "target": "brand:eqqualberry",
+          "type": "made_by"
+        },
+        {
+          "evidence_path": "identity.manufacturer",
+          "source": "product:B0D8W1YVBX",
+          "target": "manufacturer:boosters",
+          "type": "manufactured_by"
+        },
+        {
+          "evidence_path": "category.category_tree",
+          "source": "product:B0F7XPYCSJ",
+          "target": "category:393384011",
+          "type": "in_category"
+        },
+        {
+          "evidence_path": "identity.brand",
+          "source": "product:B0F7XPYCSJ",
+          "target": "brand:powthx",
+          "type": "made_by"
+        },
+        {
+          "evidence_path": "identity.manufacturer",
+          "source": "product:B0F7XPYCSJ",
+          "target": "manufacturer:powthx250508",
+          "type": "manufactured_by"
+        }
+      ],
+      "entity_counts": {
+        "brand": 2,
+        "category": 10,
+        "manufacturer": 2,
+        "product": 2,
+        "seller": 1
+      },
+      "node_count": 17,
+      "nodes": [
+        {
+          "attributes": {
+            "manufacturer": "boosters"
+          },
+          "id": "brand:eqqualberry",
+          "label": "EQQUALBERRY",
+          "type": "brand"
+        },
+        {
+          "attributes": {
+            "manufacturer": "POWTHX250508"
+          },
+          "id": "brand:powthx",
+          "label": "POWTHX",
+          "type": "brand"
+        },
+        {
+          "attributes": {
+            "category_id": 11060451
+          },
+          "id": "category:11060451",
+          "label": "Skin Care",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 11060711
+          },
+          "id": "category:11060711",
+          "label": "Face",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 11062031
+          },
+          "id": "category:11062031",
+          "label": "Treatments & Masks",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 16310091
+          },
+          "id": "category:16310091",
+          "label": "Industrial & Scientific",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 317970011
+          },
+          "id": "category:317970011",
+          "label": "Lab & Scientific Products",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 318049011
+          },
+          "id": "category:318049011",
+          "label": "Glassware & Labware",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 318094011
+          },
+          "id": "category:318094011",
+          "label": "Lab Tubes",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 3760911
+          },
+          "id": "category:3760911",
+          "label": "Beauty & Personal Care",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 393384011
+          },
+          "id": "category:393384011",
+          "label": "Test Tubes",
+          "type": "category"
+        },
+        {
+          "attributes": {
+            "category_id": 7792528011
+          },
+          "id": "category:7792528011",
+          "label": "Serums",
+          "type": "category"
+        },
+        {
+          "id": "manufacturer:boosters",
+          "label": "boosters",
+          "type": "manufacturer"
+        },
+        {
+          "id": "manufacturer:powthx250508",
+          "label": "POWTHX250508",
+          "type": "manufacturer"
+        },
+        {
+          "attributes": {
+            "asin": "B0D8W1YVBX",
+            "brand": "EQQUALBERRY",
+            "item_type_keyword": "facial-serums"
+          },
+          "id": "product:B0D8W1YVBX",
+          "label": "EQQUALBERRY Vitamin Illuminating Serum | Niacinamide 4% + Brightening Vitamin C Face Serum with Hyaluronic Acid & Vit...",
+          "type": "product"
+        },
+        {
+          "attributes": {
+            "asin": "B0F7XPYCSJ",
+            "brand": "POWTHX",
+            "item_type_keyword": "science-lab-test-tubes"
+          },
+          "id": "product:B0F7XPYCSJ",
+          "label": "10 pcs Lab-Grade Borosilicate Glass 14mm Threaded Adapter with 4pcs Funnels and Glass Tubes, 2pcs Cleaning Brushes, E...",
+          "type": "product"
+        },
+        {
+          "attributes": {
+            "is_amazon": false,
+            "is_fba": true,
+            "is_prime_eligible": true,
+            "seller_id": "AFZNN5H6MIT2Z"
+          },
+          "id": "seller:AFZNN5H6MIT2Z",
+          "label": "AFZNN5H6MIT2Z",
+          "type": "seller"
+        }
+      ],
+      "schema_version": "2026-05-10.1"
+    },
+    "risk_summary": {
+      "by_code": {
+        "buybox_missing": 1,
+        "data_missing": 2,
+        "price_unstable": 1
+      },
+      "by_severity": {
+        "medium": 4
+      },
+      "highest_severity": "medium",
+      "known_codes": [
+        "data_missing",
+        "price_unstable",
+        "rank_declining",
+        "low_review_count",
+        "offer_competition_high",
+        "buybox_missing",
+        "category_mismatch"
+      ],
+      "product_count": 2,
+      "schema_version": "2026-05-10.1"
+    },
+    "rows": [
+      {
+        "aplus_available": true,
+        "asin": "B0D8W1YVBX",
+        "bounded_history_points": {
+          "data_basis": "agent_view.history_summary.series.*.last_points",
+          "series": {
+            "buy_box_shipping": {
+              "last_points": [
+                {
+                  "keepa_minute": 8052050,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-23T16:50:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052124,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-23T18:04:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8052272,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-23T20:32:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052340,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-23T21:40:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8052464,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-23T23:44:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052548,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T01:08:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052550,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T01:10:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8052672,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T03:12:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052756,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T04:36:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8052768,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T04:48:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052866,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T06:26:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8052900,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T07:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8052972,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T08:12:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8052976,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T08:16:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053032,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T09:12:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053108,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T10:28:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053200,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T12:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053252,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T12:52:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053300,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T13:40:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053372,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T14:52:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053422,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T15:42:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053468,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T16:28:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053512,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T17:12:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053564,
+                  "raw_shipping": 0,
+                  "raw_value": 1799,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T18:04:00Z",
+                  "value": 17.99
+                },
+                {
+                  "keepa_minute": 8053634,
+                  "raw_shipping": 0,
+                  "raw_value": 1699,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T19:14:00Z",
+                  "value": 16.99
+                },
+                {
+                  "keepa_minute": 8053680,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T20:00:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8053796,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T21:56:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053800,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T22:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053804,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T22:04:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8053860,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T23:00:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053912,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-24T23:52:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8054000,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T01:20:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054040,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T02:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054150,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T03:50:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054220,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T05:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054342,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T07:02:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054344,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T07:04:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054392,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T07:52:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054488,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T09:28:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054506,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T09:46:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054614,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T11:34:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054720,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T13:20:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054740,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T13:40:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8054752,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T13:52:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054876,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T15:56:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054886,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T16:06:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8054968,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T17:28:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8055252,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T22:12:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8055314,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T23:14:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8055324,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-25T23:24:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8055464,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T01:44:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8055532,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T02:52:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8055592,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T03:52:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8055658,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T04:58:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8055680,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T05:20:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8055780,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T07:00:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8055808,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T07:28:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8055932,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T09:32:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8055936,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T09:36:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056020,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T11:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056084,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T12:04:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056156,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T13:16:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056180,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T13:40:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056256,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T14:56:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056264,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T15:04:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056332,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T16:12:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056360,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T16:40:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8056508,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T19:08:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056528,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T19:28:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056596,
+                  "raw_shipping": 0,
+                  "raw_value": 1599,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T20:36:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8056616,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T20:56:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056678,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-26T21:58:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056804,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T00:04:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056832,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T00:32:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8056896,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T01:36:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056920,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T02:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8057004,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T03:24:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8057072,
+                  "raw_shipping": 0,
+                  "raw_value": 1950,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T04:32:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8057142,
+                  "raw_shipping": 0,
+                  "raw_value": 1999,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T05:42:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8057266,
+                  "raw_shipping": 0,
+                  "raw_value": 1499,
+                  "shipping": 0.0,
+                  "timestamp": "2026-04-27T07:46:00Z",
+                  "value": 14.99
+                }
+              ],
+              "omitted_points": 169,
+              "point_count": 249,
+              "unit": "currency"
+            },
+            "new": {
+              "last_points": [
+                {
+                  "keepa_minute": 7982054,
+                  "raw_value": 1990,
+                  "timestamp": "2026-03-06T02:14:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 7982512,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-06T09:52:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 7986296,
+                  "raw_value": 1990,
+                  "timestamp": "2026-03-09T00:56:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 7986402,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-09T02:42:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 7987016,
+                  "raw_value": 1990,
+                  "timestamp": "2026-03-09T12:56:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 7987140,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-09T15:00:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 7987658,
+                  "raw_value": 1990,
+                  "timestamp": "2026-03-09T23:38:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 7988350,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-10T11:10:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 7988412,
+                  "raw_value": 1900,
+                  "timestamp": "2026-03-10T12:12:00Z",
+                  "value": 19.0
+                },
+                {
+                  "keepa_minute": 7988420,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-10T12:20:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 7988510,
+                  "raw_value": 1850,
+                  "timestamp": "2026-03-10T13:50:00Z",
+                  "value": 18.5
+                },
+                {
+                  "keepa_minute": 7988752,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-10T17:52:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 7991146,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-12T09:46:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 7991390,
+                  "raw_value": 1650,
+                  "timestamp": "2026-03-12T13:50:00Z",
+                  "value": 16.5
+                },
+                {
+                  "keepa_minute": 7991436,
+                  "raw_value": 1720,
+                  "timestamp": "2026-03-12T14:36:00Z",
+                  "value": 17.2
+                },
+                {
+                  "keepa_minute": 7991654,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-12T18:14:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 7992032,
+                  "raw_value": 1720,
+                  "timestamp": "2026-03-13T00:32:00Z",
+                  "value": 17.2
+                },
+                {
+                  "keepa_minute": 7992098,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-13T01:38:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 7992860,
+                  "raw_value": 1720,
+                  "timestamp": "2026-03-13T14:20:00Z",
+                  "value": 17.2
+                },
+                {
+                  "keepa_minute": 7993020,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-13T17:00:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 7994424,
+                  "raw_value": 1720,
+                  "timestamp": "2026-03-14T16:24:00Z",
+                  "value": 17.2
+                },
+                {
+                  "keepa_minute": 7994594,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-14T19:14:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 8001728,
+                  "raw_value": 1720,
+                  "timestamp": "2026-03-19T18:08:00Z",
+                  "value": 17.2
+                },
+                {
+                  "keepa_minute": 8001822,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-19T19:42:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 8002236,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-20T02:36:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8002660,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-20T09:40:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 8002894,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-20T13:34:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8003408,
+                  "raw_value": 1995,
+                  "timestamp": "2026-03-20T22:08:00Z",
+                  "value": 19.95
+                },
+                {
+                  "keepa_minute": 8003486,
+                  "raw_value": 1999,
+                  "timestamp": "2026-03-20T23:26:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8009716,
+                  "raw_value": 1499,
+                  "timestamp": "2026-03-25T07:16:00Z",
+                  "value": 14.99
+                },
+                {
+                  "keepa_minute": 8019816,
+                  "raw_value": 1999,
+                  "timestamp": "2026-04-01T07:36:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8021236,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-02T07:16:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8028454,
+                  "raw_value": 1899,
+                  "timestamp": "2026-04-07T07:34:00Z",
+                  "value": 18.99
+                },
+                {
+                  "keepa_minute": 8029132,
+                  "raw_value": 1998,
+                  "timestamp": "2026-04-07T18:52:00Z",
+                  "value": 19.98
+                },
+                {
+                  "keepa_minute": 8035686,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-12T08:06:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8037716,
+                  "raw_value": 1899,
+                  "timestamp": "2026-04-13T17:56:00Z",
+                  "value": 18.99
+                },
+                {
+                  "keepa_minute": 8042758,
+                  "raw_value": 1999,
+                  "timestamp": "2026-04-17T05:58:00Z",
+                  "value": 19.99
+                },
+                {
+                  "keepa_minute": 8047076,
+                  "raw_value": 1990,
+                  "timestamp": "2026-04-20T05:56:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 8047784,
+                  "raw_value": 1720,
+                  "timestamp": "2026-04-20T17:44:00Z",
+                  "value": 17.2
+                },
+                {
+                  "keepa_minute": 8047872,
+                  "raw_value": 1699,
+                  "timestamp": "2026-04-20T19:12:00Z",
+                  "value": 16.99
+                },
+                {
+                  "keepa_minute": 8047990,
+                  "raw_value": 1990,
+                  "timestamp": "2026-04-20T21:10:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 8048112,
+                  "raw_value": 1699,
+                  "timestamp": "2026-04-20T23:12:00Z",
+                  "value": 16.99
+                },
+                {
+                  "keepa_minute": 8048230,
+                  "raw_value": 1990,
+                  "timestamp": "2026-04-21T01:10:00Z",
+                  "value": 19.9
+                },
+                {
+                  "keepa_minute": 8048432,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-21T04:32:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8049136,
+                  "raw_value": 1699,
+                  "timestamp": "2026-04-21T16:16:00Z",
+                  "value": 16.99
+                },
+                {
+                  "keepa_minute": 8049308,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-21T19:08:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8050496,
+                  "raw_value": 1550,
+                  "timestamp": "2026-04-22T14:56:00Z",
+                  "value": 15.5
+                },
+                {
+                  "keepa_minute": 8050620,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-22T17:00:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8050916,
+                  "raw_value": 1550,
+                  "timestamp": "2026-04-22T21:56:00Z",
+                  "value": 15.5
+                },
+                {
+                  "keepa_minute": 8050964,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-22T22:44:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8051112,
+                  "raw_value": 1550,
+                  "timestamp": "2026-04-23T01:12:00Z",
+                  "value": 15.5
+                },
+                {
+                  "keepa_minute": 8051160,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-23T02:00:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8051520,
+                  "raw_value": 1550,
+                  "timestamp": "2026-04-23T08:00:00Z",
+                  "value": 15.5
+                },
+                {
+                  "keepa_minute": 8051644,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-23T10:04:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8051880,
+                  "raw_value": 1550,
+                  "timestamp": "2026-04-23T14:00:00Z",
+                  "value": 15.5
+                },
+                {
+                  "keepa_minute": 8052050,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-23T16:50:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8052124,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-23T18:04:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8052272,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-23T20:32:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8052342,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-23T21:42:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8052464,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-23T23:44:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053512,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-24T17:12:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8053564,
+                  "raw_value": 1799,
+                  "timestamp": "2026-04-24T18:04:00Z",
+                  "value": 17.99
+                },
+                {
+                  "keepa_minute": 8053634,
+                  "raw_value": 1699,
+                  "timestamp": "2026-04-24T19:14:00Z",
+                  "value": 16.99
+                },
+                {
+                  "keepa_minute": 8053680,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-24T20:00:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8053796,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-24T21:56:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8053912,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-24T23:52:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8054000,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-25T01:20:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054736,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-25T13:36:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8054752,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-25T13:52:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8054968,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-25T17:28:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8055252,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-25T22:12:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8055532,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-26T02:52:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8055592,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-26T03:52:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056360,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-26T16:40:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8056508,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-26T19:08:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056596,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-26T20:36:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8056678,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-26T21:58:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8056804,
+                  "raw_value": 1599,
+                  "timestamp": "2026-04-27T00:04:00Z",
+                  "value": 15.99
+                },
+                {
+                  "keepa_minute": 8056832,
+                  "raw_value": 1950,
+                  "timestamp": "2026-04-27T00:32:00Z",
+                  "value": 19.5
+                },
+                {
+                  "keepa_minute": 8057266,
+                  "raw_value": 1499,
+                  "timestamp": "2026-04-27T07:46:00Z",
+                  "value": 14.99
+                }
+              ],
+              "omitted_points": 49,
+              "point_count": 129,
+              "unit": "currency"
+            },
+            "new_offer_count": {
+              "last_points": [
+                {
+                  "keepa_minute": 7988510,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-10T13:50:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7988752,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-10T17:52:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 7988844,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-10T19:24:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7989324,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-11T03:24:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 7991390,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-12T13:50:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7991654,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-12T18:14:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 7991714,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-12T19:14:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7991924,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-12T22:44:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 7992032,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-13T00:32:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7992098,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-13T01:38:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 7992860,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-13T14:20:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7993020,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-13T17:00:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 7993632,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-14T03:12:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7994424,
+                  "raw_value": 5,
+                  "timestamp": "2026-03-14T16:24:00Z",
+                  "value": 5
+                },
+                {
+                  "keepa_minute": 7994594,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-14T19:14:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 7995918,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-15T17:18:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8001728,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-19T18:08:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8001822,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-19T19:42:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8002236,
+                  "raw_value": 2,
+                  "timestamp": "2026-03-20T02:36:00Z",
+                  "value": 2
+                },
+                {
+                  "keepa_minute": 8002660,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-20T09:40:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8002894,
+                  "raw_value": 2,
+                  "timestamp": "2026-03-20T13:34:00Z",
+                  "value": 2
+                },
+                {
+                  "keepa_minute": 8003424,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-20T22:24:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8003486,
+                  "raw_value": 2,
+                  "timestamp": "2026-03-20T23:26:00Z",
+                  "value": 2
+                },
+                {
+                  "keepa_minute": 8007752,
+                  "raw_value": 1,
+                  "timestamp": "2026-03-23T22:32:00Z",
+                  "value": 1
+                },
+                {
+                  "keepa_minute": 8007812,
+                  "raw_value": 2,
+                  "timestamp": "2026-03-23T23:32:00Z",
+                  "value": 2
+                },
+                {
+                  "keepa_minute": 8008988,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-24T19:08:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8012038,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-26T21:58:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8012196,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-27T00:36:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8013248,
+                  "raw_value": 4,
+                  "timestamp": "2026-03-27T18:08:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8015472,
+                  "raw_value": 3,
+                  "timestamp": "2026-03-29T07:12:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8023544,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-03T21:44:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8037586,
+                  "raw_value": 5,
+                  "timestamp": "2026-04-13T15:46:00Z",
+                  "value": 5
+                },
+                {
+                  "keepa_minute": 8037852,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-13T20:12:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8040474,
+                  "raw_value": 5,
+                  "timestamp": "2026-04-15T15:54:00Z",
+                  "value": 5
+                },
+                {
+                  "keepa_minute": 8042176,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-16T20:16:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8047094,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-20T06:14:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8047784,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-20T17:44:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8047990,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-20T21:10:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8048112,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-20T23:12:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8048230,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-21T01:10:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8049136,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-21T16:16:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8049308,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-21T19:08:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8050496,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-22T14:56:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8050620,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-22T17:00:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8050916,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-22T21:56:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8050964,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-22T22:44:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8051112,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-23T01:12:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8051160,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-23T02:00:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8051520,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-23T08:00:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8051644,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-23T10:04:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8051880,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-23T14:00:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8052050,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-23T16:50:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8052124,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-23T18:04:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8052272,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-23T20:32:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8052342,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-23T21:42:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8052464,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-23T23:44:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8053512,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-24T17:12:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8053796,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-24T21:56:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8053912,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-24T23:52:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8054000,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-25T01:20:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8054736,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-25T13:36:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8054752,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-25T13:52:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8054968,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-25T17:28:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8055252,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-25T22:12:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8055532,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-26T02:52:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8056508,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-26T19:08:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8056596,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-26T20:36:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8056678,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-26T21:58:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8056804,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-27T00:04:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8056832,
+                  "raw_value": 3,
+                  "timestamp": "2026-04-27T00:32:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8059470,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-28T20:30:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8059992,
+                  "raw_value": 5,
+                  "timestamp": "2026-04-29T05:12:00Z",
+                  "value": 5
+                },
+                {
+                  "keepa_minute": 8060368,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-29T11:28:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8061420,
+                  "raw_value": 5,
+                  "timestamp": "2026-04-30T05:00:00Z",
+                  "value": 5
+                },
+                {
+                  "keepa_minute": 8062058,
+                  "raw_value": 4,
+                  "timestamp": "2026-04-30T15:38:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8063404,
+                  "raw_value": 5,
+                  "timestamp": "2026-05-01T14:04:00Z",
+                  "value": 5
+                },
+                {
+                  "keepa_minute": 8065220,
+                  "raw_value": 4,
+                  "timestamp": "2026-05-02T20:20:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8066930,
+                  "raw_value": 3,
+                  "timestamp": "2026-05-04T00:50:00Z",
+                  "value": 3
+                },
+                {
+                  "keepa_minute": 8072348,
+                  "raw_value": 4,
+                  "timestamp": "2026-05-07T19:08:00Z",
+                  "value": 4
+                },
+                {
+                  "keepa_minute": 8075762,
+                  "raw_value": 5,
+                  "timestamp": "2026-05-10T04:02:00Z",
+                  "value": 5
+                }
+              ],
+              "omitted_points": 115,
+              "point_count": 195,
+              "unit": "count"
+            },
+            "rating": {
+              "last_points": [
+                {
+                  "keepa_minute": 7424916,
+                  "raw_value": 43,
+                  "timestamp": "2025-02-12T04:36:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7425208,
+                  "raw_value": 44,
+                  "timestamp": "2025-02-12T09:28:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7431240,
+                  "raw_value": 43,
+                  "timestamp": "2025-02-16T14:00:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7457120,
+                  "raw_value": 42,
+                  "timestamp": "2025-03-06T13:20:00Z",
+                  "value": 4.2
+                },
+                {
+                  "keepa_minute": 7468720,
+                  "raw_value": 43,
+                  "timestamp": "2025-03-14T14:40:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7471610,
+                  "raw_value": 42,
+                  "timestamp": "2025-03-16T14:50:00Z",
+                  "value": 4.2
+                },
+                {
+                  "keepa_minute": 7473042,
+                  "raw_value": 43,
+                  "timestamp": "2025-03-17T14:42:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7503154,
+                  "raw_value": 42,
+                  "timestamp": "2025-04-07T12:34:00Z",
+                  "value": 4.2
+                },
+                {
+                  "keepa_minute": 7537814,
+                  "raw_value": 43,
+                  "timestamp": "2025-05-01T14:14:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7539100,
+                  "raw_value": 42,
+                  "timestamp": "2025-05-02T11:40:00Z",
+                  "value": 4.2
+                },
+                {
+                  "keepa_minute": 7539240,
+                  "raw_value": 43,
+                  "timestamp": "2025-05-02T14:00:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7539496,
+                  "raw_value": 42,
+                  "timestamp": "2025-05-02T18:16:00Z",
+                  "value": 4.2
+                },
+                {
+                  "keepa_minute": 7552336,
+                  "raw_value": 43,
+                  "timestamp": "2025-05-11T16:16:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7553228,
+                  "raw_value": 42,
+                  "timestamp": "2025-05-12T07:08:00Z",
+                  "value": 4.2
+                },
+                {
+                  "keepa_minute": 7556456,
+                  "raw_value": 43,
+                  "timestamp": "2025-05-14T12:56:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7587916,
+                  "raw_value": 44,
+                  "timestamp": "2025-06-05T09:16:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7611444,
+                  "raw_value": 43,
+                  "timestamp": "2025-06-21T17:24:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7612104,
+                  "raw_value": 44,
+                  "timestamp": "2025-06-22T04:24:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7614180,
+                  "raw_value": 43,
+                  "timestamp": "2025-06-23T15:00:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7624208,
+                  "raw_value": 44,
+                  "timestamp": "2025-06-30T14:08:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7664038,
+                  "raw_value": 43,
+                  "timestamp": "2025-07-28T05:58:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7664680,
+                  "raw_value": 44,
+                  "timestamp": "2025-07-28T16:40:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7668228,
+                  "raw_value": 43,
+                  "timestamp": "2025-07-31T03:48:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7673930,
+                  "raw_value": 44,
+                  "timestamp": "2025-08-04T02:50:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7674666,
+                  "raw_value": 43,
+                  "timestamp": "2025-08-04T15:06:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7677382,
+                  "raw_value": 44,
+                  "timestamp": "2025-08-06T12:22:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7677568,
+                  "raw_value": 43,
+                  "timestamp": "2025-08-06T15:28:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7757444,
+                  "raw_value": 44,
+                  "timestamp": "2025-10-01T02:44:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7757514,
+                  "raw_value": -1,
+                  "timestamp": "2025-10-01T03:54:00Z",
+                  "value": null
+                },
+                {
+                  "keepa_minute": 7757598,
+                  "raw_value": 43,
+                  "timestamp": "2025-10-01T05:18:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 7775570,
+                  "raw_value": 44,
+                  "timestamp": "2025-10-13T16:50:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7783780,
+                  "raw_value": 45,
+                  "timestamp": "2025-10-19T09:40:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7785648,
+                  "raw_value": 44,
+                  "timestamp": "2025-10-20T16:48:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7785808,
+                  "raw_value": 45,
+                  "timestamp": "2025-10-20T19:28:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7786988,
+                  "raw_value": 44,
+                  "timestamp": "2025-10-21T15:08:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7787098,
+                  "raw_value": 45,
+                  "timestamp": "2025-10-21T16:58:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7787152,
+                  "raw_value": 44,
+                  "timestamp": "2025-10-21T17:52:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7790796,
+                  "raw_value": 45,
+                  "timestamp": "2025-10-24T06:36:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7790894,
+                  "raw_value": 44,
+                  "timestamp": "2025-10-24T08:14:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7812952,
+                  "raw_value": 45,
+                  "timestamp": "2025-11-08T15:52:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7812976,
+                  "raw_value": 44,
+                  "timestamp": "2025-11-08T16:16:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7813024,
+                  "raw_value": 45,
+                  "timestamp": "2025-11-08T17:04:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7813136,
+                  "raw_value": 44,
+                  "timestamp": "2025-11-08T18:56:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7813268,
+                  "raw_value": 45,
+                  "timestamp": "2025-11-08T21:08:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7914872,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-18T10:32:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7915048,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-18T13:28:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7919538,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-21T16:18:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7919938,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-21T22:58:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7920020,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-22T00:20:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7920880,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-22T14:40:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7921118,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-22T18:38:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7921782,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-23T05:42:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7922092,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-23T10:52:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7925352,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-25T17:12:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7925398,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-25T17:58:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7925504,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-25T19:44:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7925644,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-25T22:04:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7925728,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-25T23:28:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7925948,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-26T03:08:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7927568,
+                  "raw_value": 45,
+                  "timestamp": "2026-01-27T06:08:00Z",
+                  "value": 4.5
+                },
+                {
+                  "keepa_minute": 7928036,
+                  "raw_value": 44,
+                  "timestamp": "2026-01-27T13:56:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7967772,
+                  "raw_value": -1,
+                  "timestamp": "2026-02-24T04:12:00Z",
+                  "value": null
+                },
+                {
+                  "keepa_minute": 7967824,
+                  "raw_value": 44,
+                  "timestamp": "2026-02-24T05:04:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 7969770,
+                  "raw_value": -1,
+                  "timestamp": "2026-02-25T13:30:00Z",
+                  "value": null
+                },
+                {
+                  "keepa_minute": 7969800,
+                  "raw_value": 44,
+                  "timestamp": "2026-02-25T14:00:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8032664,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-10T05:44:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8033476,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-10T19:16:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8033504,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-10T19:44:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8033668,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-10T22:28:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8033700,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-10T23:00:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8033790,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-11T00:30:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8033840,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-11T01:20:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8034532,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-11T12:52:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8034556,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-11T13:16:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8034560,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-11T13:20:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8034582,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-11T13:42:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8034736,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-11T16:16:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8034838,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-11T17:58:00Z",
+                  "value": 4.3
+                },
+                {
+                  "keepa_minute": 8035100,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-11T22:20:00Z",
+                  "value": 4.4
+                },
+                {
+                  "keepa_minute": 8035176,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-11T23:36:00Z",
+                  "value": 4.3
+                }
+              ],
+              "omitted_points": 29,
+              "point_count": 109,
+              "unit": "rating"
+            },
+            "review_count": {
+              "last_points": [
+                {
+                  "keepa_minute": 8066048,
+                  "raw_value": 11199,
+                  "timestamp": "2026-05-03T10:08:00Z",
+                  "value": 11199
+                },
+                {
+                  "keepa_minute": 8066164,
+                  "raw_value": 11201,
+                  "timestamp": "2026-05-03T12:04:00Z",
+                  "value": 11201
+                },
+                {
+                  "keepa_minute": 8066216,
+                  "raw_value": 11242,
+                  "timestamp": "2026-05-03T12:56:00Z",
+                  "value": 11242
+                },
+                {
+                  "keepa_minute": 8066252,
+                  "raw_value": 11055,
+                  "timestamp": "2026-05-03T13:32:00Z",
+                  "value": 11055
+                },
+                {
+                  "keepa_minute": 8066296,
+                  "raw_value": 11249,
+                  "timestamp": "2026-05-03T14:16:00Z",
+                  "value": 11249
+                },
+                {
+                  "keepa_minute": 8066370,
+                  "raw_value": 11250,
+                  "timestamp": "2026-05-03T15:30:00Z",
+                  "value": 11250
+                },
+                {
+                  "keepa_minute": 8066504,
+                  "raw_value": 11252,
+                  "timestamp": "2026-05-03T17:44:00Z",
+                  "value": 11252
+                },
+                {
+                  "keepa_minute": 8066728,
+                  "raw_value": 11253,
+                  "timestamp": "2026-05-03T21:28:00Z",
+                  "value": 11253
+                },
+                {
+                  "keepa_minute": 8066806,
+                  "raw_value": 11242,
+                  "timestamp": "2026-05-03T22:46:00Z",
+                  "value": 11242
+                },
+                {
+                  "keepa_minute": 8066810,
+                  "raw_value": 11256,
+                  "timestamp": "2026-05-03T22:50:00Z",
+                  "value": 11256
+                },
+                {
+                  "keepa_minute": 8067156,
+                  "raw_value": 11257,
+                  "timestamp": "2026-05-04T04:36:00Z",
+                  "value": 11257
+                },
+                {
+                  "keepa_minute": 8067356,
+                  "raw_value": 11258,
+                  "timestamp": "2026-05-04T07:56:00Z",
+                  "value": 11258
+                },
+                {
+                  "keepa_minute": 8067490,
+                  "raw_value": 11259,
+                  "timestamp": "2026-05-04T10:10:00Z",
+                  "value": 11259
+                },
+                {
+                  "keepa_minute": 8067660,
+                  "raw_value": 11295,
+                  "timestamp": "2026-05-04T13:00:00Z",
+                  "value": 11295
+                },
+                {
+                  "keepa_minute": 8067692,
+                  "raw_value": 11300,
+                  "timestamp": "2026-05-04T13:32:00Z",
+                  "value": 11300
+                },
+                {
+                  "keepa_minute": 8067824,
+                  "raw_value": 11301,
+                  "timestamp": "2026-05-04T15:44:00Z",
+                  "value": 11301
+                },
+                {
+                  "keepa_minute": 8067912,
+                  "raw_value": 11303,
+                  "timestamp": "2026-05-04T17:12:00Z",
+                  "value": 11303
+                },
+                {
+                  "keepa_minute": 8067960,
+                  "raw_value": 11305,
+                  "timestamp": "2026-05-04T18:00:00Z",
+                  "value": 11305
+                },
+                {
+                  "keepa_minute": 8068116,
+                  "raw_value": 10938,
+                  "timestamp": "2026-05-04T20:36:00Z",
+                  "value": 10938
+                },
+                {
+                  "keepa_minute": 8068120,
+                  "raw_value": 11305,
+                  "timestamp": "2026-05-04T20:40:00Z",
+                  "value": 11305
+                },
+                {
+                  "keepa_minute": 8068228,
+                  "raw_value": 11306,
+                  "timestamp": "2026-05-04T22:28:00Z",
+                  "value": 11306
+                },
+                {
+                  "keepa_minute": 8068364,
+                  "raw_value": 11308,
+                  "timestamp": "2026-05-05T00:44:00Z",
+                  "value": 11308
+                },
+                {
+                  "keepa_minute": 8068492,
+                  "raw_value": 11309,
+                  "timestamp": "2026-05-05T02:52:00Z",
+                  "value": 11309
+                },
+                {
+                  "keepa_minute": 8068728,
+                  "raw_value": 11310,
+                  "timestamp": "2026-05-05T06:48:00Z",
+                  "value": 11310
+                },
+                {
+                  "keepa_minute": 8068816,
+                  "raw_value": 11309,
+                  "timestamp": "2026-05-05T08:16:00Z",
+                  "value": 11309
+                },
+                {
+                  "keepa_minute": 8068868,
+                  "raw_value": 11310,
+                  "timestamp": "2026-05-05T09:08:00Z",
+                  "value": 11310
+                },
+                {
+                  "keepa_minute": 8068940,
+                  "raw_value": 11311,
+                  "timestamp": "2026-05-05T10:20:00Z",
+                  "value": 11311
+                },
+                {
+                  "keepa_minute": 8069076,
+                  "raw_value": 11312,
+                  "timestamp": "2026-05-05T12:36:00Z",
+                  "value": 11312
+                },
+                {
+                  "keepa_minute": 8069134,
+                  "raw_value": 11313,
+                  "timestamp": "2026-05-05T13:34:00Z",
+                  "value": 11313
+                },
+                {
+                  "keepa_minute": 8069242,
+                  "raw_value": 11366,
+                  "timestamp": "2026-05-05T15:22:00Z",
+                  "value": 11366
+                },
+                {
+                  "keepa_minute": 8069262,
+                  "raw_value": 11368,
+                  "timestamp": "2026-05-05T15:42:00Z",
+                  "value": 11368
+                },
+                {
+                  "keepa_minute": 8069328,
+                  "raw_value": 11369,
+                  "timestamp": "2026-05-05T16:48:00Z",
+                  "value": 11369
+                },
+                {
+                  "keepa_minute": 8069368,
+                  "raw_value": 11370,
+                  "timestamp": "2026-05-05T17:28:00Z",
+                  "value": 11370
+                },
+                {
+                  "keepa_minute": 8069450,
+                  "raw_value": 10938,
+                  "timestamp": "2026-05-05T18:50:00Z",
+                  "value": 10938
+                },
+                {
+                  "keepa_minute": 8069468,
+                  "raw_value": 11372,
+                  "timestamp": "2026-05-05T19:08:00Z",
+                  "value": 11372
+                },
+                {
+                  "keepa_minute": 8069490,
+                  "raw_value": 11373,
+                  "timestamp": "2026-05-05T19:30:00Z",
+                  "value": 11373
+                },
+                {
+                  "keepa_minute": 8069828,
+                  "raw_value": 11374,
+                  "timestamp": "2026-05-06T01:08:00Z",
+                  "value": 11374
+                },
+                {
+                  "keepa_minute": 8069852,
+                  "raw_value": 11375,
+                  "timestamp": "2026-05-06T01:32:00Z",
+                  "value": 11375
+                },
+                {
+                  "keepa_minute": 8070000,
+                  "raw_value": 11376,
+                  "timestamp": "2026-05-06T04:00:00Z",
+                  "value": 11376
+                },
+                {
+                  "keepa_minute": 8070052,
+                  "raw_value": 11377,
+                  "timestamp": "2026-05-06T04:52:00Z",
+                  "value": 11377
+                },
+                {
+                  "keepa_minute": 8070134,
+                  "raw_value": 11378,
+                  "timestamp": "2026-05-06T06:14:00Z",
+                  "value": 11378
+                },
+                {
+                  "keepa_minute": 8070258,
+                  "raw_value": 11377,
+                  "timestamp": "2026-05-06T08:18:00Z",
+                  "value": 11377
+                },
+                {
+                  "keepa_minute": 8070324,
+                  "raw_value": 11378,
+                  "timestamp": "2026-05-06T09:24:00Z",
+                  "value": 11378
+                },
+                {
+                  "keepa_minute": 8070344,
+                  "raw_value": 11380,
+                  "timestamp": "2026-05-06T09:44:00Z",
+                  "value": 11380
+                },
+                {
+                  "keepa_minute": 8070628,
+                  "raw_value": 11434,
+                  "timestamp": "2026-05-06T14:28:00Z",
+                  "value": 11434
+                },
+                {
+                  "keepa_minute": 8070696,
+                  "raw_value": 11372,
+                  "timestamp": "2026-05-06T15:36:00Z",
+                  "value": 11372
+                },
+                {
+                  "keepa_minute": 8070704,
+                  "raw_value": 11434,
+                  "timestamp": "2026-05-06T15:44:00Z",
+                  "value": 11434
+                },
+                {
+                  "keepa_minute": 8070780,
+                  "raw_value": 11437,
+                  "timestamp": "2026-05-06T17:00:00Z",
+                  "value": 11437
+                },
+                {
+                  "keepa_minute": 8070998,
+                  "raw_value": 11440,
+                  "timestamp": "2026-05-06T20:38:00Z",
+                  "value": 11440
+                },
+                {
+                  "keepa_minute": 8071516,
+                  "raw_value": 11442,
+                  "timestamp": "2026-05-07T05:16:00Z",
+                  "value": 11442
+                },
+                {
+                  "keepa_minute": 8071542,
+                  "raw_value": 11443,
+                  "timestamp": "2026-05-07T05:42:00Z",
+                  "value": 11443
+                },
+                {
+                  "keepa_minute": 8071638,
+                  "raw_value": 11444,
+                  "timestamp": "2026-05-07T07:18:00Z",
+                  "value": 11444
+                },
+                {
+                  "keepa_minute": 8071776,
+                  "raw_value": 11446,
+                  "timestamp": "2026-05-07T09:36:00Z",
+                  "value": 11446
+                },
+                {
+                  "keepa_minute": 8071812,
+                  "raw_value": 11440,
+                  "timestamp": "2026-05-07T10:12:00Z",
+                  "value": 11440
+                },
+                {
+                  "keepa_minute": 8071898,
+                  "raw_value": 11447,
+                  "timestamp": "2026-05-07T11:38:00Z",
+                  "value": 11447
+                },
+                {
+                  "keepa_minute": 8072016,
+                  "raw_value": 11494,
+                  "timestamp": "2026-05-07T13:36:00Z",
+                  "value": 11494
+                },
+                {
+                  "keepa_minute": 8072144,
+                  "raw_value": 11495,
+                  "timestamp": "2026-05-07T15:44:00Z",
+                  "value": 11495
+                },
+                {
+                  "keepa_minute": 8072220,
+                  "raw_value": 11496,
+                  "timestamp": "2026-05-07T17:00:00Z",
+                  "value": 11496
+                },
+                {
+                  "keepa_minute": 8072262,
+                  "raw_value": 11497,
+                  "timestamp": "2026-05-07T17:42:00Z",
+                  "value": 11497
+                },
+                {
+                  "keepa_minute": 8072308,
+                  "raw_value": 11440,
+                  "timestamp": "2026-05-07T18:28:00Z",
+                  "value": 11440
+                },
+                {
+                  "keepa_minute": 8072348,
+                  "raw_value": 11498,
+                  "timestamp": "2026-05-07T19:08:00Z",
+                  "value": 11498
+                },
+                {
+                  "keepa_minute": 8072572,
+                  "raw_value": 11497,
+                  "timestamp": "2026-05-07T22:52:00Z",
+                  "value": 11497
+                },
+                {
+                  "keepa_minute": 8072852,
+                  "raw_value": 11500,
+                  "timestamp": "2026-05-08T03:32:00Z",
+                  "value": 11500
+                },
+                {
+                  "keepa_minute": 8072920,
+                  "raw_value": 11501,
+                  "timestamp": "2026-05-08T04:40:00Z",
+                  "value": 11501
+                },
+                {
+                  "keepa_minute": 8073144,
+                  "raw_value": 11502,
+                  "timestamp": "2026-05-08T08:24:00Z",
+                  "value": 11502
+                },
+                {
+                  "keepa_minute": 8073336,
+                  "raw_value": 11503,
+                  "timestamp": "2026-05-08T11:36:00Z",
+                  "value": 11503
+                },
+                {
+                  "keepa_minute": 8073406,
+                  "raw_value": 11528,
+                  "timestamp": "2026-05-08T12:46:00Z",
+                  "value": 11528
+                },
+                {
+                  "keepa_minute": 8073454,
+                  "raw_value": 11543,
+                  "timestamp": "2026-05-08T13:34:00Z",
+                  "value": 11543
+                },
+                {
+                  "keepa_minute": 8073644,
+                  "raw_value": 11544,
+                  "timestamp": "2026-05-08T16:44:00Z",
+                  "value": 11544
+                },
+                {
+                  "keepa_minute": 8074402,
+                  "raw_value": 11546,
+                  "timestamp": "2026-05-09T05:22:00Z",
+                  "value": 11546
+                },
+                {
+                  "keepa_minute": 8074524,
+                  "raw_value": 11549,
+                  "timestamp": "2026-05-09T07:24:00Z",
+                  "value": 11549
+                },
+                {
+                  "keepa_minute": 8074682,
+                  "raw_value": 11551,
+                  "timestamp": "2026-05-09T10:02:00Z",
+                  "value": 11551
+                },
+                {
+                  "keepa_minute": 8074710,
+                  "raw_value": 11544,
+                  "timestamp": "2026-05-09T10:30:00Z",
+                  "value": 11544
+                },
+                {
+                  "keepa_minute": 8074764,
+                  "raw_value": 11552,
+                  "timestamp": "2026-05-09T11:24:00Z",
+                  "value": 11552
+                },
+                {
+                  "keepa_minute": 8074892,
+                  "raw_value": 11590,
+                  "timestamp": "2026-05-09T13:32:00Z",
+                  "value": 11590
+                },
+                {
+                  "keepa_minute": 8075060,
+                  "raw_value": 11593,
+                  "timestamp": "2026-05-09T16:20:00Z",
+                  "value": 11593
+                },
+                {
+                  "keepa_minute": 8075160,
+                  "raw_value": 11594,
+                  "timestamp": "2026-05-09T18:00:00Z",
+                  "value": 11594
+                },
+                {
+                  "keepa_minute": 8075244,
+                  "raw_value": 11595,
+                  "timestamp": "2026-05-09T19:24:00Z",
+                  "value": 11595
+                },
+                {
+                  "keepa_minute": 8075492,
+                  "raw_value": 11597,
+                  "timestamp": "2026-05-09T23:32:00Z",
+                  "value": 11597
+                },
+                {
+                  "keepa_minute": 8075684,
+                  "raw_value": 11598,
+                  "timestamp": "2026-05-10T02:44:00Z",
+                  "value": 11598
+                }
+              ],
+              "omitted_points": 2876,
+              "point_count": 2956,
+              "unit": "count"
+            },
+            "sales_rank": {
+              "last_points": [
+                {
+                  "keepa_minute": 8024178,
+                  "raw_value": 22,
+                  "timestamp": "2026-04-04T08:18:00Z",
+                  "value": 22
+                },
+                {
+                  "keepa_minute": 8024600,
+                  "raw_value": 21,
+                  "timestamp": "2026-04-04T15:20:00Z",
+                  "value": 21
+                },
+                {
+                  "keepa_minute": 8025270,
+                  "raw_value": 23,
+                  "timestamp": "2026-04-05T02:30:00Z",
+                  "value": 23
+                },
+                {
+                  "keepa_minute": 8026698,
+                  "raw_value": 25,
+                  "timestamp": "2026-04-06T02:18:00Z",
+                  "value": 25
+                },
+                {
+                  "keepa_minute": 8027416,
+                  "raw_value": 24,
+                  "timestamp": "2026-04-06T14:16:00Z",
+                  "value": 24
+                },
+                {
+                  "keepa_minute": 8028246,
+                  "raw_value": 23,
+                  "timestamp": "2026-04-07T04:06:00Z",
+                  "value": 23
+                },
+                {
+                  "keepa_minute": 8028574,
+                  "raw_value": 25,
+                  "timestamp": "2026-04-07T09:34:00Z",
+                  "value": 25
+                },
+                {
+                  "keepa_minute": 8029712,
+                  "raw_value": 30,
+                  "timestamp": "2026-04-08T04:32:00Z",
+                  "value": 30
+                },
+                {
+                  "keepa_minute": 8031010,
+                  "raw_value": 25,
+                  "timestamp": "2026-04-09T02:10:00Z",
+                  "value": 25
+                },
+                {
+                  "keepa_minute": 8031436,
+                  "raw_value": 26,
+                  "timestamp": "2026-04-09T09:16:00Z",
+                  "value": 26
+                },
+                {
+                  "keepa_minute": 8031684,
+                  "raw_value": 25,
+                  "timestamp": "2026-04-09T13:24:00Z",
+                  "value": 25
+                },
+                {
+                  "keepa_minute": 8032192,
+                  "raw_value": 37,
+                  "timestamp": "2026-04-09T21:52:00Z",
+                  "value": 37
+                },
+                {
+                  "keepa_minute": 8032462,
+                  "raw_value": 38,
+                  "timestamp": "2026-04-10T02:22:00Z",
+                  "value": 38
+                },
+                {
+                  "keepa_minute": 8032872,
+                  "raw_value": 37,
+                  "timestamp": "2026-04-10T09:12:00Z",
+                  "value": 37
+                },
+                {
+                  "keepa_minute": 8033242,
+                  "raw_value": 36,
+                  "timestamp": "2026-04-10T15:22:00Z",
+                  "value": 36
+                },
+                {
+                  "keepa_minute": 8033908,
+                  "raw_value": 42,
+                  "timestamp": "2026-04-11T02:28:00Z",
+                  "value": 42
+                },
+                {
+                  "keepa_minute": 8034362,
+                  "raw_value": 41,
+                  "timestamp": "2026-04-11T10:02:00Z",
+                  "value": 41
+                },
+                {
+                  "keepa_minute": 8034676,
+                  "raw_value": 40,
+                  "timestamp": "2026-04-11T15:16:00Z",
+                  "value": 40
+                },
+                {
+                  "keepa_minute": 8034972,
+                  "raw_value": 44,
+                  "timestamp": "2026-04-11T20:12:00Z",
+                  "value": 44
+                },
+                {
+                  "keepa_minute": 8035754,
+                  "raw_value": 43,
+                  "timestamp": "2026-04-12T09:14:00Z",
+                  "value": 43
+                },
+                {
+                  "keepa_minute": 8036498,
+                  "raw_value": 49,
+                  "timestamp": "2026-04-12T21:38:00Z",
+                  "value": 49
+                },
+                {
+                  "keepa_minute": 8037186,
+                  "raw_value": 46,
+                  "timestamp": "2026-04-13T09:06:00Z",
+                  "value": 46
+                },
+                {
+                  "keepa_minute": 8037570,
+                  "raw_value": 45,
+                  "timestamp": "2026-04-13T15:30:00Z",
+                  "value": 45
+                },
+                {
+                  "keepa_minute": 8038444,
+                  "raw_value": 53,
+                  "timestamp": "2026-04-14T06:04:00Z",
+                  "value": 53
+                },
+                {
+                  "keepa_minute": 8038700,
+                  "raw_value": 50,
+                  "timestamp": "2026-04-14T10:20:00Z",
+                  "value": 50
+                },
+                {
+                  "keepa_minute": 8038804,
+                  "raw_value": 51,
+                  "timestamp": "2026-04-14T12:04:00Z",
+                  "value": 51
+                },
+                {
+                  "keepa_minute": 8039656,
+                  "raw_value": 52,
+                  "timestamp": "2026-04-15T02:16:00Z",
+                  "value": 52
+                },
+                {
+                  "keepa_minute": 8039868,
+                  "raw_value": 51,
+                  "timestamp": "2026-04-15T05:48:00Z",
+                  "value": 51
+                },
+                {
+                  "keepa_minute": 8039946,
+                  "raw_value": 52,
+                  "timestamp": "2026-04-15T07:06:00Z",
+                  "value": 52
+                },
+                {
+                  "keepa_minute": 8040084,
+                  "raw_value": 53,
+                  "timestamp": "2026-04-15T09:24:00Z",
+                  "value": 53
+                },
+                {
+                  "keepa_minute": 8040418,
+                  "raw_value": 52,
+                  "timestamp": "2026-04-15T14:58:00Z",
+                  "value": 52
+                },
+                {
+                  "keepa_minute": 8040552,
+                  "raw_value": 51,
+                  "timestamp": "2026-04-15T17:12:00Z",
+                  "value": 51
+                },
+                {
+                  "keepa_minute": 8041268,
+                  "raw_value": 53,
+                  "timestamp": "2026-04-16T05:08:00Z",
+                  "value": 53
+                },
+                {
+                  "keepa_minute": 8041628,
+                  "raw_value": 49,
+                  "timestamp": "2026-04-16T11:08:00Z",
+                  "value": 49
+                },
+                {
+                  "keepa_minute": 8042048,
+                  "raw_value": 50,
+                  "timestamp": "2026-04-16T18:08:00Z",
+                  "value": 50
+                },
+                {
+                  "keepa_minute": 8042326,
+                  "raw_value": 37,
+                  "timestamp": "2026-04-16T22:46:00Z",
+                  "value": 37
+                },
+                {
+                  "keepa_minute": 8042758,
+                  "raw_value": 38,
+                  "timestamp": "2026-04-17T05:58:00Z",
+                  "value": 38
+                },
+                {
+                  "keepa_minute": 8043828,
+                  "raw_value": 42,
+                  "timestamp": "2026-04-17T23:48:00Z",
+                  "value": 42
+                },
+                {
+                  "keepa_minute": 8044476,
+                  "raw_value": 41,
+                  "timestamp": "2026-04-18T10:36:00Z",
+                  "value": 41
+                },
+                {
+                  "keepa_minute": 8045192,
+                  "raw_value": 46,
+                  "timestamp": "2026-04-18T22:32:00Z",
+                  "value": 46
+                },
+                {
+                  "keepa_minute": 8045618,
+                  "raw_value": 47,
+                  "timestamp": "2026-04-19T05:38:00Z",
+                  "value": 47
+                },
+                {
+                  "keepa_minute": 8046624,
+                  "raw_value": 48,
+                  "timestamp": "2026-04-19T22:24:00Z",
+                  "value": 48
+                },
+                {
+                  "keepa_minute": 8046952,
+                  "raw_value": 49,
+                  "timestamp": "2026-04-20T03:52:00Z",
+                  "value": 49
+                },
+                {
+                  "keepa_minute": 8047338,
+                  "raw_value": 47,
+                  "timestamp": "2026-04-20T10:18:00Z",
+                  "value": 47
+                },
+                {
+                  "keepa_minute": 8047736,
+                  "raw_value": 55,
+                  "timestamp": "2026-04-20T16:56:00Z",
+                  "value": 55
+                },
+                {
+                  "keepa_minute": 8048824,
+                  "raw_value": 54,
+                  "timestamp": "2026-04-21T11:04:00Z",
+                  "value": 54
+                },
+                {
+                  "keepa_minute": 8049244,
+                  "raw_value": 57,
+                  "timestamp": "2026-04-21T18:04:00Z",
+                  "value": 57
+                },
+                {
+                  "keepa_minute": 8049504,
+                  "raw_value": 58,
+                  "timestamp": "2026-04-21T22:24:00Z",
+                  "value": 58
+                },
+                {
+                  "keepa_minute": 8050944,
+                  "raw_value": 67,
+                  "timestamp": "2026-04-22T22:24:00Z",
+                  "value": 67
+                },
+                {
+                  "keepa_minute": 8051320,
+                  "raw_value": 66,
+                  "timestamp": "2026-04-23T04:40:00Z",
+                  "value": 66
+                },
+                {
+                  "keepa_minute": 8052128,
+                  "raw_value": 67,
+                  "timestamp": "2026-04-23T18:08:00Z",
+                  "value": 67
+                },
+                {
+                  "keepa_minute": 8053204,
+                  "raw_value": 65,
+                  "timestamp": "2026-04-24T12:04:00Z",
+                  "value": 65
+                },
+                {
+                  "keepa_minute": 8053800,
+                  "raw_value": 70,
+                  "timestamp": "2026-04-24T22:00:00Z",
+                  "value": 70
+                },
+                {
+                  "keepa_minute": 8054288,
+                  "raw_value": 69,
+                  "timestamp": "2026-04-25T06:08:00Z",
+                  "value": 69
+                },
+                {
+                  "keepa_minute": 8054648,
+                  "raw_value": 68,
+                  "timestamp": "2026-04-25T12:08:00Z",
+                  "value": 68
+                },
+                {
+                  "keepa_minute": 8055978,
+                  "raw_value": 66,
+                  "timestamp": "2026-04-26T10:18:00Z",
+                  "value": 66
+                },
+                {
+                  "keepa_minute": 8056360,
+                  "raw_value": 64,
+                  "timestamp": "2026-04-26T16:40:00Z",
+                  "value": 64
+                },
+                {
+                  "keepa_minute": 8057436,
+                  "raw_value": 63,
+                  "timestamp": "2026-04-27T10:36:00Z",
+                  "value": 63
+                },
+                {
+                  "keepa_minute": 8057888,
+                  "raw_value": 68,
+                  "timestamp": "2026-04-27T18:08:00Z",
+                  "value": 68
+                },
+                {
+                  "keepa_minute": 8058508,
+                  "raw_value": 67,
+                  "timestamp": "2026-04-28T04:28:00Z",
+                  "value": 67
+                },
+                {
+                  "keepa_minute": 8058864,
+                  "raw_value": 65,
+                  "timestamp": "2026-04-28T10:24:00Z",
+                  "value": 65
+                },
+                {
+                  "keepa_minute": 8059688,
+                  "raw_value": 35,
+                  "timestamp": "2026-04-29T00:08:00Z",
+                  "value": 35
+                },
+                {
+                  "keepa_minute": 8059984,
+                  "raw_value": 36,
+                  "timestamp": "2026-04-29T05:04:00Z",
+                  "value": 36
+                },
+                {
+                  "keepa_minute": 8061108,
+                  "raw_value": 27,
+                  "timestamp": "2026-04-29T23:48:00Z",
+                  "value": 27
+                },
+                {
+                  "keepa_minute": 8062476,
+                  "raw_value": 26,
+                  "timestamp": "2026-04-30T22:36:00Z",
+                  "value": 26
+                },
+                {
+                  "keepa_minute": 8062928,
+                  "raw_value": 28,
+                  "timestamp": "2026-05-01T06:08:00Z",
+                  "value": 28
+                },
+                {
+                  "keepa_minute": 8063562,
+                  "raw_value": 24,
+                  "timestamp": "2026-05-01T16:42:00Z",
+                  "value": 24
+                },
+                {
+                  "keepa_minute": 8065448,
+                  "raw_value": 22,
+                  "timestamp": "2026-05-03T00:08:00Z",
+                  "value": 22
+                },
+                {
+                  "keepa_minute": 8065776,
+                  "raw_value": 23,
+                  "timestamp": "2026-05-03T05:36:00Z",
+                  "value": 23
+                },
+                {
+                  "keepa_minute": 8066868,
+                  "raw_value": 22,
+                  "timestamp": "2026-05-03T23:48:00Z",
+                  "value": 22
+                },
+                {
+                  "keepa_minute": 8067140,
+                  "raw_value": 23,
+                  "timestamp": "2026-05-04T04:20:00Z",
+                  "value": 23
+                },
+                {
+                  "keepa_minute": 8068496,
+                  "raw_value": 24,
+                  "timestamp": "2026-05-05T02:56:00Z",
+                  "value": 24
+                },
+                {
+                  "keepa_minute": 8068684,
+                  "raw_value": 26,
+                  "timestamp": "2026-05-05T06:04:00Z",
+                  "value": 26
+                },
+                {
+                  "keepa_minute": 8070100,
+                  "raw_value": 28,
+                  "timestamp": "2026-05-06T05:40:00Z",
+                  "value": 28
+                },
+                {
+                  "keepa_minute": 8071208,
+                  "raw_value": 25,
+                  "timestamp": "2026-05-07T00:08:00Z",
+                  "value": 25
+                },
+                {
+                  "keepa_minute": 8071568,
+                  "raw_value": 26,
+                  "timestamp": "2026-05-07T06:08:00Z",
+                  "value": 26
+                },
+                {
+                  "keepa_minute": 8072572,
+                  "raw_value": 24,
+                  "timestamp": "2026-05-07T22:52:00Z",
+                  "value": 24
+                },
+                {
+                  "keepa_minute": 8073004,
+                  "raw_value": 26,
+                  "timestamp": "2026-05-08T06:04:00Z",
+                  "value": 26
+                },
+                {
+                  "keepa_minute": 8073304,
+                  "raw_value": 25,
+                  "timestamp": "2026-05-08T11:04:00Z",
+                  "value": 25
+                },
+                {
+                  "keepa_minute": 8075600,
+                  "raw_value": 23,
+                  "timestamp": "2026-05-10T01:20:00Z",
+                  "value": 23
+                }
+              ],
+              "omitted_points": 2660,
+              "point_count": 2740,
+              "unit": "rank"
+            }
+          }
+        },
+        "brand": "EQQUALBERRY",
+        "buy_box_price": 14.99,
+        "data_quality": {
+          "confidence": "medium",
+          "missing": [
+            "liveOffersOrder",
+            "offers",
+            "offers.offers",
+            "variations"
+          ],
+          "notes": [
+            "some agent-relevant fields are absent or not requested",
+            "offer detail usually requires an explicit --offers request"
+          ],
+          "present": [
+            "aPlus",
+            "buyBoxSellerIdHistory",
+            "couponHistory",
+            "csv",
+            "images",
+            "monthlySoldHistory",
+            "reviews",
+            "stats",
+            "videos"
+          ]
+        },
+        "monthly_sold": 100000,
+        "new_price": 14.99,
+        "rating": 4.3,
+        "research_graph": {
+          "edge_count": 8,
+          "edges": [
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060451",
+              "target": "category:11060711",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11060711",
+              "target": "category:11062031",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:11062031",
+              "target": "category:7792528011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:3760911",
+              "target": "category:11060451",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "pricing.buy_box.seller_id",
+              "source": "product:B0D8W1YVBX",
+              "target": "seller:AFZNN5H6MIT2Z",
+              "type": "buybox_sold_by"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "product:B0D8W1YVBX",
+              "target": "category:7792528011",
+              "type": "in_category"
+            },
+            {
+              "evidence_path": "identity.brand",
+              "source": "product:B0D8W1YVBX",
+              "target": "brand:eqqualberry",
+              "type": "made_by"
+            },
+            {
+              "evidence_path": "identity.manufacturer",
+              "source": "product:B0D8W1YVBX",
+              "target": "manufacturer:boosters",
+              "type": "manufactured_by"
+            }
+          ],
+          "entity_counts": {
+            "brand": 1,
+            "category": 5,
+            "manufacturer": 1,
+            "product": 1,
+            "seller": 1
+          },
+          "node_count": 9,
+          "nodes": [
+            {
+              "attributes": {
+                "manufacturer": "boosters"
+              },
+              "id": "brand:eqqualberry",
+              "label": "EQQUALBERRY",
+              "type": "brand"
+            },
+            {
+              "attributes": {
+                "category_id": 11060451
+              },
+              "id": "category:11060451",
+              "label": "Skin Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11060711
+              },
+              "id": "category:11060711",
+              "label": "Face",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 11062031
+              },
+              "id": "category:11062031",
+              "label": "Treatments & Masks",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 3760911
+              },
+              "id": "category:3760911",
+              "label": "Beauty & Personal Care",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 7792528011
+              },
+              "id": "category:7792528011",
+              "label": "Serums",
+              "type": "category"
+            },
+            {
+              "id": "manufacturer:boosters",
+              "label": "boosters",
+              "type": "manufacturer"
+            },
+            {
+              "attributes": {
+                "asin": "B0D8W1YVBX",
+                "brand": "EQQUALBERRY",
+                "item_type_keyword": "facial-serums"
+              },
+              "id": "product:B0D8W1YVBX",
+              "label": "EQQUALBERRY Vitamin Illuminating Serum | Niacinamide 4% + Brightening Vitamin C Face Serum with Hyaluronic Acid & Vit...",
+              "type": "product"
+            },
+            {
+              "attributes": {
+                "is_amazon": false,
+                "is_fba": true,
+                "is_prime_eligible": true,
+                "seller_id": "AFZNN5H6MIT2Z"
+              },
+              "id": "seller:AFZNN5H6MIT2Z",
+              "label": "AFZNN5H6MIT2Z",
+              "type": "seller"
+            }
+          ],
+          "root": "product:B0D8W1YVBX",
+          "schema_version": "2026-05-10.1"
+        },
+        "review_count": 11598,
+        "risk_taxonomy": {
+          "codes": [
+            "data_missing",
+            "price_unstable"
+          ],
+          "highest_severity": "medium",
+          "items": [
+            {
+              "code": "data_missing",
+              "evidence_path": "data_quality.missing",
+              "field": "offers.offers",
+              "follow_up": "Use structured next_actions to fill only missing high-value data.",
+              "reason": "Some expected Agent research fields are absent; inspect data_quality.missing before final decisions.",
+              "severity": "medium"
+            },
+            {
+              "code": "price_unstable",
+              "evidence_path": "temporal_features.series.new",
+              "follow_up": "Compare recent windows and buy box history before deal decisions.",
+              "metric": {
+                "range_pct_of_mean": 53.6449,
+                "volatility_cv": 0.1149
+              },
+              "reason": "New price history shows meaningful volatility or a wide range relative to mean.",
+              "severity": "medium"
+            }
+          ],
+          "known_codes": [
+            "data_missing",
+            "price_unstable",
+            "rank_declining",
+            "low_review_count",
+            "offer_competition_high",
+            "buybox_missing",
+            "category_mismatch"
+          ],
+          "risk_count": 2,
+          "schema_version": "2026-05-10.1"
+        },
+        "sales_rank": 23,
+        "selection_signals": {
+          "competition": {
+            "total_offer_count": 5
+          },
+          "content_quality": {
+            "aplus_available": true,
+            "aplus_module_count": 7,
+            "image_count": 9,
+            "video_count": 11
+          },
+          "demand": {
+            "monthly_sold": 100000,
+            "sales_rank": 23,
+            "sales_rank_drops": {
+              "180": 165,
+              "30": 35,
+              "365": 424,
+              "90": 75
+            }
+          },
+          "price_stability": {
+            "current_buy_box": 14.99,
+            "current_new": 14.99,
+            "history_series": 15,
+            "new_price_change_pct": -40.016,
+            "new_price_trend": "down",
+            "new_price_volatility_cv": 0.1149,
+            "sales_rank_change_pct": -99.9916,
+            "sales_rank_trend": "down"
+          },
+          "risk_codes": [
+            "data_missing",
+            "price_unstable"
+          ],
+          "risk_flags": [],
+          "risk_taxonomy": {
+            "codes": [
+              "data_missing",
+              "price_unstable"
+            ],
+            "highest_severity": "medium"
+          }
+        },
+        "title": "EQQUALBERRY Vitamin Illuminating Serum | Niacinamide 4% + Brightening Vitamin C Face Serum with Hyaluronic Acid & Vitamin E | Dark Spot, Uneven Tone Care | Korean Skincare, 1.01 fl.oz",
+        "total_offer_count": 5,
+        "video_count": 11
+      },
+      {
+        "aplus_available": false,
+        "asin": "B0F7XPYCSJ",
+        "bounded_history_points": {
+          "data_basis": "agent_view.history_summary.series.*.last_points",
+          "series": {
+            "new": {
+              "last_points": [
+                {
+                  "keepa_minute": 7554276,
+                  "raw_value": 2599,
+                  "timestamp": "2025-05-13T00:36:00Z",
+                  "value": 25.99
+                },
+                {
+                  "keepa_minute": 7930604,
+                  "raw_value": -1,
+                  "timestamp": "2026-01-29T08:44:00Z",
+                  "value": null
+                },
+                {
+                  "keepa_minute": 7933390,
+                  "raw_value": 2599,
+                  "timestamp": "2026-01-31T07:10:00Z",
+                  "value": 25.99
+                }
+              ],
+              "omitted_points": 0,
+              "point_count": 3,
+              "unit": "currency"
+            },
+            "new_offer_count": {
+              "last_points": [
+                {
+                  "keepa_minute": 7554276,
+                  "raw_value": 1,
+                  "timestamp": "2025-05-13T00:36:00Z",
+                  "value": 1
+                },
+                {
+                  "keepa_minute": 7930604,
+                  "raw_value": -1,
+                  "timestamp": "2026-01-29T08:44:00Z",
+                  "value": null
+                },
+                {
+                  "keepa_minute": 7933390,
+                  "raw_value": 1,
+                  "timestamp": "2026-01-31T07:10:00Z",
+                  "value": 1
+                }
+              ],
+              "omitted_points": 0,
+              "point_count": 3,
+              "unit": "count"
+            },
+            "sales_rank": {
+              "last_points": [
+                {
+                  "keepa_minute": 8025738,
+                  "raw_value": 10013,
+                  "timestamp": "2026-04-05T10:18:00Z",
+                  "value": 10013
+                },
+                {
+                  "keepa_minute": 8026150,
+                  "raw_value": 10050,
+                  "timestamp": "2026-04-05T17:10:00Z",
+                  "value": 10050
+                },
+                {
+                  "keepa_minute": 8026980,
+                  "raw_value": 9828,
+                  "timestamp": "2026-04-06T07:00:00Z",
+                  "value": 9828
+                },
+                {
+                  "keepa_minute": 8027114,
+                  "raw_value": 10123,
+                  "timestamp": "2026-04-06T09:14:00Z",
+                  "value": 10123
+                },
+                {
+                  "keepa_minute": 8027620,
+                  "raw_value": 10124,
+                  "timestamp": "2026-04-06T17:40:00Z",
+                  "value": 10124
+                },
+                {
+                  "keepa_minute": 8028022,
+                  "raw_value": 10125,
+                  "timestamp": "2026-04-07T00:22:00Z",
+                  "value": 10125
+                },
+                {
+                  "keepa_minute": 8028140,
+                  "raw_value": 10128,
+                  "timestamp": "2026-04-07T02:20:00Z",
+                  "value": 10128
+                },
+                {
+                  "keepa_minute": 8029034,
+                  "raw_value": 8912,
+                  "timestamp": "2026-04-07T17:14:00Z",
+                  "value": 8912
+                },
+                {
+                  "keepa_minute": 8029622,
+                  "raw_value": 9319,
+                  "timestamp": "2026-04-08T03:02:00Z",
+                  "value": 9319
+                },
+                {
+                  "keepa_minute": 8029814,
+                  "raw_value": 9318,
+                  "timestamp": "2026-04-08T06:14:00Z",
+                  "value": 9318
+                },
+                {
+                  "keepa_minute": 8029896,
+                  "raw_value": 9619,
+                  "timestamp": "2026-04-08T07:36:00Z",
+                  "value": 9619
+                },
+                {
+                  "keepa_minute": 8030280,
+                  "raw_value": 9528,
+                  "timestamp": "2026-04-08T14:00:00Z",
+                  "value": 9528
+                },
+                {
+                  "keepa_minute": 8031168,
+                  "raw_value": 8912,
+                  "timestamp": "2026-04-09T04:48:00Z",
+                  "value": 8912
+                },
+                {
+                  "keepa_minute": 8031656,
+                  "raw_value": 9198,
+                  "timestamp": "2026-04-09T12:56:00Z",
+                  "value": 9198
+                },
+                {
+                  "keepa_minute": 8032136,
+                  "raw_value": 10602,
+                  "timestamp": "2026-04-09T20:56:00Z",
+                  "value": 10602
+                },
+                {
+                  "keepa_minute": 8032202,
+                  "raw_value": 10601,
+                  "timestamp": "2026-04-09T22:02:00Z",
+                  "value": 10601
+                },
+                {
+                  "keepa_minute": 8032332,
+                  "raw_value": 10598,
+                  "timestamp": "2026-04-10T00:12:00Z",
+                  "value": 10598
+                },
+                {
+                  "keepa_minute": 8032764,
+                  "raw_value": 10600,
+                  "timestamp": "2026-04-10T07:24:00Z",
+                  "value": 10600
+                },
+                {
+                  "keepa_minute": 8033004,
+                  "raw_value": 10776,
+                  "timestamp": "2026-04-10T11:24:00Z",
+                  "value": 10776
+                },
+                {
+                  "keepa_minute": 8033116,
+                  "raw_value": 10772,
+                  "timestamp": "2026-04-10T13:16:00Z",
+                  "value": 10772
+                },
+                {
+                  "keepa_minute": 8033220,
+                  "raw_value": 10409,
+                  "timestamp": "2026-04-10T15:00:00Z",
+                  "value": 10409
+                },
+                {
+                  "keepa_minute": 8033548,
+                  "raw_value": 10406,
+                  "timestamp": "2026-04-10T20:28:00Z",
+                  "value": 10406
+                },
+                {
+                  "keepa_minute": 8033780,
+                  "raw_value": 10411,
+                  "timestamp": "2026-04-11T00:20:00Z",
+                  "value": 10411
+                },
+                {
+                  "keepa_minute": 8034044,
+                  "raw_value": 10320,
+                  "timestamp": "2026-04-11T04:44:00Z",
+                  "value": 10320
+                },
+                {
+                  "keepa_minute": 8034272,
+                  "raw_value": 10321,
+                  "timestamp": "2026-04-11T08:32:00Z",
+                  "value": 10321
+                },
+                {
+                  "keepa_minute": 8034680,
+                  "raw_value": 10539,
+                  "timestamp": "2026-04-11T15:20:00Z",
+                  "value": 10539
+                },
+                {
+                  "keepa_minute": 8034968,
+                  "raw_value": 8321,
+                  "timestamp": "2026-04-11T20:08:00Z",
+                  "value": 8321
+                },
+                {
+                  "keepa_minute": 8035192,
+                  "raw_value": 8316,
+                  "timestamp": "2026-04-11T23:52:00Z",
+                  "value": 8316
+                },
+                {
+                  "keepa_minute": 8035634,
+                  "raw_value": 8313,
+                  "timestamp": "2026-04-12T07:14:00Z",
+                  "value": 8313
+                },
+                {
+                  "keepa_minute": 8035750,
+                  "raw_value": 8626,
+                  "timestamp": "2026-04-12T09:10:00Z",
+                  "value": 8626
+                },
+                {
+                  "keepa_minute": 8035966,
+                  "raw_value": 8624,
+                  "timestamp": "2026-04-12T12:46:00Z",
+                  "value": 8624
+                },
+                {
+                  "keepa_minute": 8036292,
+                  "raw_value": 8634,
+                  "timestamp": "2026-04-12T18:12:00Z",
+                  "value": 8634
+                },
+                {
+                  "keepa_minute": 8036752,
+                  "raw_value": 9117,
+                  "timestamp": "2026-04-13T01:52:00Z",
+                  "value": 9117
+                },
+                {
+                  "keepa_minute": 8037092,
+                  "raw_value": 9363,
+                  "timestamp": "2026-04-13T07:32:00Z",
+                  "value": 9363
+                },
+                {
+                  "keepa_minute": 8037190,
+                  "raw_value": 9361,
+                  "timestamp": "2026-04-13T09:10:00Z",
+                  "value": 9361
+                },
+                {
+                  "keepa_minute": 8037628,
+                  "raw_value": 9369,
+                  "timestamp": "2026-04-13T16:28:00Z",
+                  "value": 9369
+                },
+                {
+                  "keepa_minute": 8038168,
+                  "raw_value": 9370,
+                  "timestamp": "2026-04-14T01:28:00Z",
+                  "value": 9370
+                },
+                {
+                  "keepa_minute": 8038616,
+                  "raw_value": 9285,
+                  "timestamp": "2026-04-14T08:56:00Z",
+                  "value": 9285
+                },
+                {
+                  "keepa_minute": 8038800,
+                  "raw_value": 9283,
+                  "timestamp": "2026-04-14T12:00:00Z",
+                  "value": 9283
+                },
+                {
+                  "keepa_minute": 8039216,
+                  "raw_value": 9202,
+                  "timestamp": "2026-04-14T18:56:00Z",
+                  "value": 9202
+                },
+                {
+                  "keepa_minute": 8039368,
+                  "raw_value": 9204,
+                  "timestamp": "2026-04-14T21:28:00Z",
+                  "value": 9204
+                },
+                {
+                  "keepa_minute": 8039584,
+                  "raw_value": 9844,
+                  "timestamp": "2026-04-15T01:04:00Z",
+                  "value": 9844
+                },
+                {
+                  "keepa_minute": 8039738,
+                  "raw_value": 9847,
+                  "timestamp": "2026-04-15T03:38:00Z",
+                  "value": 9847
+                },
+                {
+                  "keepa_minute": 8039984,
+                  "raw_value": 9846,
+                  "timestamp": "2026-04-15T07:44:00Z",
+                  "value": 9846
+                },
+                {
+                  "keepa_minute": 8040084,
+                  "raw_value": 10047,
+                  "timestamp": "2026-04-15T09:24:00Z",
+                  "value": 10047
+                },
+                {
+                  "keepa_minute": 8040232,
+                  "raw_value": 10043,
+                  "timestamp": "2026-04-15T11:52:00Z",
+                  "value": 10043
+                },
+                {
+                  "keepa_minute": 8040518,
+                  "raw_value": 10255,
+                  "timestamp": "2026-04-15T16:38:00Z",
+                  "value": 10255
+                },
+                {
+                  "keepa_minute": 8041092,
+                  "raw_value": 12426,
+                  "timestamp": "2026-04-16T02:12:00Z",
+                  "value": 12426
+                },
+                {
+                  "keepa_minute": 8041200,
+                  "raw_value": 12428,
+                  "timestamp": "2026-04-16T04:00:00Z",
+                  "value": 12428
+                },
+                {
+                  "keepa_minute": 8041424,
+                  "raw_value": 12416,
+                  "timestamp": "2026-04-16T07:44:00Z",
+                  "value": 12416
+                },
+                {
+                  "keepa_minute": 8041548,
+                  "raw_value": 12417,
+                  "timestamp": "2026-04-16T09:48:00Z",
+                  "value": 12417
+                },
+                {
+                  "keepa_minute": 8042460,
+                  "raw_value": 14162,
+                  "timestamp": "2026-04-17T01:00:00Z",
+                  "value": 14162
+                },
+                {
+                  "keepa_minute": 8042876,
+                  "raw_value": 13942,
+                  "timestamp": "2026-04-17T07:56:00Z",
+                  "value": 13942
+                },
+                {
+                  "keepa_minute": 8043036,
+                  "raw_value": 13975,
+                  "timestamp": "2026-04-17T10:36:00Z",
+                  "value": 13975
+                },
+                {
+                  "keepa_minute": 8043272,
+                  "raw_value": 13978,
+                  "timestamp": "2026-04-17T14:32:00Z",
+                  "value": 13978
+                },
+                {
+                  "keepa_minute": 8043846,
+                  "raw_value": 10688,
+                  "timestamp": "2026-04-18T00:06:00Z",
+                  "value": 10688
+                },
+                {
+                  "keepa_minute": 8044000,
+                  "raw_value": 10687,
+                  "timestamp": "2026-04-18T02:40:00Z",
+                  "value": 10687
+                },
+                {
+                  "keepa_minute": 8044276,
+                  "raw_value": 10856,
+                  "timestamp": "2026-04-18T07:16:00Z",
+                  "value": 10856
+                },
+                {
+                  "keepa_minute": 8044754,
+                  "raw_value": 10877,
+                  "timestamp": "2026-04-18T15:14:00Z",
+                  "value": 10877
+                },
+                {
+                  "keepa_minute": 8045250,
+                  "raw_value": 10046,
+                  "timestamp": "2026-04-18T23:30:00Z",
+                  "value": 10046
+                },
+                {
+                  "keepa_minute": 8045328,
+                  "raw_value": 10045,
+                  "timestamp": "2026-04-19T00:48:00Z",
+                  "value": 10045
+                },
+                {
+                  "keepa_minute": 8045770,
+                  "raw_value": 10270,
+                  "timestamp": "2026-04-19T08:10:00Z",
+                  "value": 10270
+                },
+                {
+                  "keepa_minute": 8045980,
+                  "raw_value": 10279,
+                  "timestamp": "2026-04-19T11:40:00Z",
+                  "value": 10279
+                },
+                {
+                  "keepa_minute": 8046560,
+                  "raw_value": 10274,
+                  "timestamp": "2026-04-19T21:20:00Z",
+                  "value": 10274
+                },
+                {
+                  "keepa_minute": 8046770,
+                  "raw_value": 12010,
+                  "timestamp": "2026-04-20T00:50:00Z",
+                  "value": 12010
+                },
+                {
+                  "keepa_minute": 8046936,
+                  "raw_value": 12057,
+                  "timestamp": "2026-04-20T03:36:00Z",
+                  "value": 12057
+                },
+                {
+                  "keepa_minute": 8047322,
+                  "raw_value": 12154,
+                  "timestamp": "2026-04-20T10:02:00Z",
+                  "value": 12154
+                },
+                {
+                  "keepa_minute": 8047688,
+                  "raw_value": 11050,
+                  "timestamp": "2026-04-20T16:08:00Z",
+                  "value": 11050
+                },
+                {
+                  "keepa_minute": 8048210,
+                  "raw_value": 11062,
+                  "timestamp": "2026-04-21T00:50:00Z",
+                  "value": 11062
+                },
+                {
+                  "keepa_minute": 8048342,
+                  "raw_value": 11055,
+                  "timestamp": "2026-04-21T03:02:00Z",
+                  "value": 11055
+                },
+                {
+                  "keepa_minute": 8048676,
+                  "raw_value": 11240,
+                  "timestamp": "2026-04-21T08:36:00Z",
+                  "value": 11240
+                },
+                {
+                  "keepa_minute": 8048872,
+                  "raw_value": 11261,
+                  "timestamp": "2026-04-21T11:52:00Z",
+                  "value": 11261
+                },
+                {
+                  "keepa_minute": 8049544,
+                  "raw_value": 12607,
+                  "timestamp": "2026-04-21T23:04:00Z",
+                  "value": 12607
+                },
+                {
+                  "keepa_minute": 8050060,
+                  "raw_value": 12644,
+                  "timestamp": "2026-04-22T07:40:00Z",
+                  "value": 12644
+                },
+                {
+                  "keepa_minute": 8051108,
+                  "raw_value": 14496,
+                  "timestamp": "2026-04-23T01:08:00Z",
+                  "value": 14496
+                },
+                {
+                  "keepa_minute": 8051520,
+                  "raw_value": 14346,
+                  "timestamp": "2026-04-23T08:00:00Z",
+                  "value": 14346
+                },
+                {
+                  "keepa_minute": 8051934,
+                  "raw_value": 13965,
+                  "timestamp": "2026-04-23T14:54:00Z",
+                  "value": 13965
+                },
+                {
+                  "keepa_minute": 8052206,
+                  "raw_value": 16884,
+                  "timestamp": "2026-04-23T19:26:00Z",
+                  "value": 16884
+                },
+                {
+                  "keepa_minute": 8052532,
+                  "raw_value": 16873,
+                  "timestamp": "2026-04-24T00:52:00Z",
+                  "value": 16873
+                },
+                {
+                  "keepa_minute": 8052940,
+                  "raw_value": -1,
+                  "timestamp": "2026-04-24T07:40:00Z",
+                  "value": null
+                }
+              ],
+              "omitted_points": 278,
+              "point_count": 358,
+              "unit": "rank"
+            }
+          }
+        },
+        "brand": "POWTHX",
+        "data_quality": {
+          "confidence": "medium",
+          "missing": [
+            "aPlus",
+            "aplus",
+            "buyBoxSellerIdHistory",
+            "couponHistory",
+            "liveOffersOrder",
+            "offers",
+            "offers.offers",
+            "rating.rating",
+            "reviews",
+            "variations",
+            "videos"
+          ],
+          "notes": [
+            "some agent-relevant fields are absent or not requested",
+            "offer detail usually requires an explicit --offers request"
+          ],
+          "present": [
+            "csv",
+            "images",
+            "monthlySoldHistory",
+            "stats"
+          ]
+        },
+        "monthly_sold": 300,
+        "new_price": 25.99,
+        "research_graph": {
+          "edge_count": 7,
+          "edges": [
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:16310091",
+              "target": "category:317970011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:317970011",
+              "target": "category:318049011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:318049011",
+              "target": "category:318094011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "category:318094011",
+              "target": "category:393384011",
+              "type": "parent_of"
+            },
+            {
+              "evidence_path": "category.category_tree",
+              "source": "product:B0F7XPYCSJ",
+              "target": "category:393384011",
+              "type": "in_category"
+            },
+            {
+              "evidence_path": "identity.brand",
+              "source": "product:B0F7XPYCSJ",
+              "target": "brand:powthx",
+              "type": "made_by"
+            },
+            {
+              "evidence_path": "identity.manufacturer",
+              "source": "product:B0F7XPYCSJ",
+              "target": "manufacturer:powthx250508",
+              "type": "manufactured_by"
+            }
+          ],
+          "entity_counts": {
+            "brand": 1,
+            "category": 5,
+            "manufacturer": 1,
+            "product": 1
+          },
+          "node_count": 8,
+          "nodes": [
+            {
+              "attributes": {
+                "manufacturer": "POWTHX250508"
+              },
+              "id": "brand:powthx",
+              "label": "POWTHX",
+              "type": "brand"
+            },
+            {
+              "attributes": {
+                "category_id": 16310091
+              },
+              "id": "category:16310091",
+              "label": "Industrial & Scientific",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 317970011
+              },
+              "id": "category:317970011",
+              "label": "Lab & Scientific Products",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 318049011
+              },
+              "id": "category:318049011",
+              "label": "Glassware & Labware",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 318094011
+              },
+              "id": "category:318094011",
+              "label": "Lab Tubes",
+              "type": "category"
+            },
+            {
+              "attributes": {
+                "category_id": 393384011
+              },
+              "id": "category:393384011",
+              "label": "Test Tubes",
+              "type": "category"
+            },
+            {
+              "id": "manufacturer:powthx250508",
+              "label": "POWTHX250508",
+              "type": "manufacturer"
+            },
+            {
+              "attributes": {
+                "asin": "B0F7XPYCSJ",
+                "brand": "POWTHX",
+                "item_type_keyword": "science-lab-test-tubes"
+              },
+              "id": "product:B0F7XPYCSJ",
+              "label": "10 pcs Lab-Grade Borosilicate Glass 14mm Threaded Adapter with 4pcs Funnels and Glass Tubes, 2pcs Cleaning Brushes, E...",
+              "type": "product"
+            }
+          ],
+          "root": "product:B0F7XPYCSJ",
+          "schema_version": "2026-05-10.1"
+        },
+        "risk_flags": [
+          "missing_rating",
+          "missing_review_count",
+          "missing_aplus",
+          "missing_video"
+        ],
+        "risk_taxonomy": {
+          "codes": [
+            "buybox_missing",
+            "data_missing"
+          ],
+          "highest_severity": "medium",
+          "items": [
+            {
+              "code": "data_missing",
+              "evidence_path": "data_quality.missing",
+              "field": "offers.offers,rating.rating",
+              "follow_up": "Use structured next_actions to fill only missing high-value data.",
+              "reason": "Some expected Agent research fields are absent; inspect data_quality.missing before final decisions.",
+              "severity": "medium"
+            },
+            {
+              "code": "buybox_missing",
+              "evidence_path": "pricing.buy_box",
+              "follow_up": "Use buybox=1 or inspect live page when Buy Box ownership is central.",
+              "reason": "Buy Box seller and price are absent from stats.",
+              "severity": "medium"
+            }
+          ],
+          "known_codes": [
+            "data_missing",
+            "price_unstable",
+            "rank_declining",
+            "low_review_count",
+            "offer_competition_high",
+            "buybox_missing",
+            "category_mismatch"
+          ],
+          "risk_count": 2,
+          "schema_version": "2026-05-10.1"
+        },
+        "selection_signals": {
+          "competition": {
+            "total_offer_count": 1
+          },
+          "content_quality": {
+            "aplus_available": false,
+            "image_count": 5
+          },
+          "demand": {
+            "monthly_sold": 300,
+            "sales_rank_drops": {
+              "180": 84,
+              "30": 13,
+              "365": 99,
+              "90": 35
+            }
+          },
+          "price_stability": {
+            "current_new": 25.99,
+            "history_series": 7,
+            "new_price_change_pct": 0.0,
+            "new_price_trend": "flat",
+            "new_price_volatility_cv": 0.0,
+            "sales_rank_change_pct": -88.8613,
+            "sales_rank_trend": "down"
+          },
+          "risk_codes": [
+            "buybox_missing",
+            "data_missing"
+          ],
+          "risk_flags": [
+            "missing_rating",
+            "missing_review_count",
+            "missing_aplus",
+            "missing_video"
+          ],
+          "risk_taxonomy": {
+            "codes": [
+              "buybox_missing",
+              "data_missing"
+            ],
+            "highest_severity": "medium"
+          }
+        },
+        "title": "10 pcs Lab-Grade Borosilicate Glass 14mm Threaded Adapter with 4pcs Funnels and Glass Tubes, 2pcs Cleaning Brushes, Essential for Scientific Experiments in Labs, Homes and Kitchens, Includes Diffuser",
+        "total_offer_count": 1
+      }
+    ],
+    "schema_version": "2026-05-10.7",
+    "source_view": {
+      "chunks": null,
+      "history_points_retained": true,
+      "profile": "deal",
+      "raw": {
+        "body_omitted": true,
+        "fixture": "products_multi_asin_full_history_sanitized.json",
+        "offline": true
+      }
+    },
+    "view": "products_compare"
+  },
+  "ok": true,
+  "request": {
+    "dry_run": false,
+    "endpoint": "/product",
+    "method": "GET",
+    "params_redacted": {
+      "aplus": "1",
+      "asin": "B0D8W1YVBX,B0F7XPYCSJ",
+      "domain": "1",
+      "history": "1",
+      "stats": "0",
+      "videos": "1"
+    }
+  },
+  "token_bucket": {
+    "estimated": {
+      "components": [
+        {
+          "estimated_tokens": 2,
+          "name": "base_product",
+          "reason": "Keepa Product Request base cost is 1 token per returned product.",
+          "worst_case_tokens": 2
+        }
+      ],
+      "estimated_tokens": 2,
+      "notes": [
+        "stats, history, days, videos, and aplus change payload shape but are not budgeted as extra token cost."
+      ],
+      "requires_confirmation": false,
+      "worst_case_tokens": 2
+    }
+  }
+}

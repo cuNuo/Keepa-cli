@@ -1117,7 +1117,8 @@ def _figures_markdown(figure_info: Mapping[str, Any]) -> str:
     if not figures:
         lines.append("_No report figures available._")
         return "\n".join(lines)
-    for item in figures:
+    display_figures = [item for item in figures if item.get("name") != "agent-research-summary"] or figures
+    for item in display_figures:
         image = item.get("markdown") or item.get("path")
         title = item.get("name") or "Keepa research figure"
         lines.append(f"![{title}]({image})")

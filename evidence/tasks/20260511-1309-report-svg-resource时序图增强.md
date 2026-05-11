@@ -101,3 +101,48 @@
 - 针对真实多 ASIN full response 沉淀一个离线 sanitized fixture，用于验证多 ASIN 真实历史 small multiples，而不只验证当前指标标准化。
 - 为 `figures.research` 增加可选 `--figure-set history|compare|audit|all`，让 Agent 控制返回图数量，进一步降低上下文和报告噪声。
 - 增加 SVG 视觉快照 smoke：检查每张图存在标题、轴标签、至少一个数据几何元素或明确空态，防止后续图形回退。
+
+## 2026-05-11 视觉与真实 full history fixture 收口
+
+### 前置说明
+
+- 本轮继续按 `nature-figure` 的图表契约处理，但仍保持核心包零新增绘图库依赖；SVG 由标准库生成，重点修正可读性、布局与 Agent 报告插图稳定性。
+- 未访问真实 Keepa API，未消耗 token；真实 full history 回归资产来自本地已有 runtime full 响应，并经过脱敏与 token/account 运行字段清理后写入固定 fixture。
+- 视觉检查使用浏览器内联 SVG 渲染；`evidence/runtime/` 下预览和截图仅用于本地 QA，不提交仓库。
+
+### 已落地
+
+1. SVG 视觉与字体
+   - `figures.research` schema 升至 `2026-05-11.4`。
+   - SVG 统一字体族为 `'Times New Roman', 'SimSun', '宋体', serif`，英文优先 Times New Roman，中文可走宋体/SimSun。
+   - `history-lines.svg` 从单 ASIN 多线图升级为“每个指标一行、不同 ASIN 颜色对比”的 normalized history layout，rank 反向处理后向上代表更好。
+   - `small-multiples.svg` 改为共享 metric 图例、每个 ASIN 单独卡片、卡片高度自适应且设上限，避免底部截断和大片空白。
+  - 总览图高度从 1120 调整到 1260，并拉开 history / small multiples / audit 面板间距；总览内 history 面板使用紧凑模式，独立图保留完整 x 轴说明，避免报告预览互相挤压。
+
+2. 多 ASIN 真实 full history fixture
+   - 新增脱敏 raw full history fixture：`tests/fixtures/products_multi_asin_full_history_sanitized.json` 与 `keepa_cli/fixtures/products_multi_asin_full_history_sanitized.json`。
+   - 来源为本地 runtime full 响应 `B0D8W1YVBX` 与 `B0F7XPYCSJ`，保留 `products[].csv`、stats 和产品字段；清理 `refillIn/refillRate/tokenFlowReduction/tokensConsumed/tokensLeft/timestamp` 等账户/运行字段。
+   - 新增 Agent-safe compare fixture：`tests/fixtures/agent_eval_products_compare_real_full_history_output.json` 与 `keepa_cli/fixtures/agent_eval_products_compare_real_full_history_output.json`，由 `products.compare --keep-history-points --history-limit 80` 从上述 raw fixture 生成。
+   - 保留三 ASIN `agent_eval_products_compare_history_output.json`，用于 Agent deal compare 与多 ASIN compare 输出回归；真实 full history 曲线回归使用新增 raw full fixture 链路。
+
+3. 测试与 MCP resource
+   - `tests/test_phase10_workflows.py` 新增真实 full history figure 回归，断言中文标题、宋体、真实 ASIN、history series 与 bounded history small multiples。
+   - `tests/test_service_commands.py` 新增 `products.compare` 从真实 full history fixture 保留多 ASIN bounded history points 的断言。
+   - `tests/test_mcp.py` 的 `keepa://research/{cache_key}/figures` resource 测试切到真实 full history fixture，并断言 small-multiples SVG resource、`image/svg+xml`、真实 ASIN 与中文字体。
+
+### 视觉 QA
+
+- 最终预览目录：`evidence/runtime/figures-visual-check-20260511-final/`
+- 关键 SVG：`small-multiples.svg`、`history-lines.svg`、`agent-research-summary.svg`。
+- 浏览器内联 SVG 检查结果：三张图均可渲染；`small-multiples.svg` 与 `history-lines.svg` 尺寸均为 1160 x 760；总览图按比例渲染；文本几何检查 `outsideCount=0`。
+- Playwright 截图：`evidence/runtime/figures-visual-check-20260511-final/keepa-svg-visual-check-final.png`（本地 QA 产物，不纳入提交）。
+
+### 已执行验证
+
+- `.\.venv\Scripts\python.exe -m unittest tests.test_phase10_workflows tests.test_service_commands tests.test_mcp -v`：75 tests OK。
+
+### 风险与后续
+
+- 当前 SVG 是静态科学图表，不做交互；MCP resource 已返回 `image/svg+xml`，但简易本地 HTTP 预览需要正确 MIME 才能用 `<img>` 直接显示。
+- 真实 full history fixture 目前覆盖 2 个 ASIN；后续如果需要更接近选品场景，可在用户批准真实请求后再补 3-5 个不同类目的 sanitized full history fixture。
+- 下一步最适合完善：为 `figures.research` 增加 `figure_set` / `--figure-set`，让 Agent 只请求 `history`、`compare` 或 `audit` 图组，减少报告噪声和 resource manifest 大小。

@@ -1490,11 +1490,13 @@ class McpProtocolTests(unittest.TestCase):
                     "params": {
                         "name": "keepa.products_compare",
                         "arguments": {
-                            "asin": ["B0D8W1YVBX", "B0EVALCMP1", "B0EVALCMP2"],
+                            "asin": ["B0D8W1YVBX", "B0F7XPYCSJ"],
                             "domain": "US",
-                            "fixture": "products_compare_agent_eval.json",
+                            "fixture": "products_multi_asin_full_history_sanitized.json",
                             "view": "deal",
                             "full": True,
+                            "history_limit": 80,
+                            "keep_history_points": True,
                         },
                     },
                 }
@@ -1519,11 +1521,12 @@ class McpProtocolTests(unittest.TestCase):
         payload = json.loads(figures["result"]["contents"][0]["text"])
         self.assertTrue(payload["found"])
         self.assertTrue(payload["ok"])
-        self.assertGreaterEqual(payload["figure_result"]["data_summary"]["small_multiple_count"], 3)
+        self.assertGreaterEqual(payload["figure_result"]["data_summary"]["small_multiple_count"], 2)
+        self.assertGreaterEqual(payload["figure_result"]["data_summary"]["history_series_count"], 8)
         figure_names = {item["name"] for item in payload["figure_result"]["figures"]}
         self.assertIn("history-lines", figure_names)
         self.assertIn("window-change-heatmap", figure_names)
-        svg_resource = payload["svg_resources"][0]
+        svg_resource = next(item for item in payload["svg_resources"] if item.get("name") == "small-multiples")
         svg = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "research-svg", "method": "resources/read", "params": {"uri": svg_resource["uri"]}}),
             env={},
@@ -1531,7 +1534,9 @@ class McpProtocolTests(unittest.TestCase):
         )
         content = svg["result"]["contents"][0]
         self.assertEqual(content["mimeType"], "image/svg+xml")
-        self.assertIn("Multi-ASIN small multiples", content["text"])
+        self.assertIn("Multi-ASIN history small multiples", content["text"])
+        self.assertIn("B0F7XPYCSJ", content["text"])
+        self.assertIn("宋体", content["text"])
 
     def test_report_markdown_svg_resource_links_are_readable(self):
         session = AgentSession(env={})
