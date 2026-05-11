@@ -249,7 +249,7 @@ class BackendTransformCoverageTests(unittest.TestCase):
                 },
                 session_cache=cache,
             )
-            self.assertEqual(report_params["input"], str(path))
+            self.assertEqual(Path(report_params["input"]).resolve(), path.resolve())
             self.assertGreaterEqual(report_resolution["payload_count"], 2)
 
         missing, missing_resolution = resolve_workflow_arguments("keepa.tracking_get", {}, session_cache={})

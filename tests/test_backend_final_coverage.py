@@ -337,14 +337,15 @@ class BackendFinalCoverageTests(unittest.TestCase):
     def test_single_line_defensive_edges(self) -> None:
         with self.assertRaises(ValueError):
             get_mcp_prompt("keepa.product_research", {})
-        events = handle_stdio_message(json.dumps({"id": 1, "method": "doctor", "params": []}))
+        events = handle_stdio_message(json.dumps({"id": 1, "method": "doctor", "params": 1}))
         self.assertEqual(events[0]["event"], "started")
         with self.assertRaises(AssertionError):
-            _assert_next_actions_executable([{"tool": "keepa.doctor", "params": []}], "actions")
+            _assert_next_actions_executable([{"tool": "keepa.doctor", "params": 1}], "actions")
 
-        self.assertTrue(handle_cache_command("cache.clear", {}, env={})["ok"])
+        self.assertTrue(handle_cache_command("cache.clear", {})["ok"])
         self.assertFalse(handle_history_command("history.trend", {"asin": ["B1", "B2"]}, fixture_dir=FIXTURES)["ok"])
         self.assertFalse(handle_tracking_command("tracking.remove", {"asin": " "}, fixture_dir=FIXTURES)["ok"])
+        self.assertTrue(handle_tracking_command("tracking.remove", {"asin": "B1", "dry_run": True}, fixture_dir=FIXTURES)["ok"])
         self.assertEqual(redact_value(("secret",), secret_values=["secret"]), ["[REDACTED]"])
         self.assertEqual(build_agent_schema_snapshot({"x": object()})["x"], "object")
         self.assertEqual(estimate_request_budget("products.get", {"asin": object()}).estimated_tokens, 1)
@@ -364,7 +365,11 @@ class BackendFinalCoverageTests(unittest.TestCase):
             (root / "docs/schema/workflow-runtime-contract.schema.json").write_text("{}", encoding="utf-8")
             (root / "docs/schema/risk-taxonomy.schema.json").write_text("{}", encoding="utf-8")
             (root / "evidence/tasks").mkdir(parents=True)
-            (root / "evidence/manifest.csv").write_text("logical_path,title,status,updated_at,summary\n", encoding="utf-8")
+            (root / "evidence/manifest.csv").write_text(
+                "logical_path,title,status,updated_at,summary\n"
+                "evidence/tasks/task.md,Task,done,2026-05-11,summary\n",
+                encoding="utf-8",
+            )
             (root / "evidence/tasks/task.md").write_text("# task\n", encoding="utf-8")
             (root / "keepa_cli/fixtures").mkdir(parents=True)
             (root / "tests/fixtures").mkdir(parents=True)
@@ -373,14 +378,14 @@ class BackendFinalCoverageTests(unittest.TestCase):
             (root / ".zread/wiki/current").write_text("versions/v1", encoding="utf-8")
             (root / ".zread/wiki/versions/v1/wiki.json").write_text(json.dumps({"id": "v1", "pages": [{"file": "../bad.md", "slug": "bad"}]}), encoding="utf-8")
 
-            self.assertEqual(read_mcp_resource("keepa://fixtures/manifest", root=root)["mimeType"], "text/csv")
+            self.assertEqual(read_mcp_resource("keepa://fixtures/", root=root)["mimeType"], "text/csv")
             self.assertEqual(read_mcp_resource("keepa://fixtures/local.json", root=root)["mimeType"], "application/json")
             with self.assertRaises(ValueError):
                 read_mcp_resource("keepa://cache-key/", root=root)
             with mock.patch("keepa_cli.agent.resources.run_command" if False else "keepa_cli.service.run_command", return_value={"ok": True, "data": "bad"}):
                 with self.assertRaises(ValueError):
                     read_mcp_resource("keepa://workflow/" + text_to_resource_token(json.dumps({"name": "category-research"})) + "/policy", root=root)
-            self.assertEqual(json.loads(read_mcp_resource("keepa://evidence/recent", root=root)["text"])["items"], [])
+            self.assertEqual(json.loads(read_mcp_resource("keepa://evidence/recent", root=root)["text"])["items"][0]["logical_path"], "evidence/tasks/task.md")
             with mock.patch("keepa_cli.agent.resources._is_relative_to", return_value=False):
                 with self.assertRaises(ValueError):
                     read_mcp_resource("keepa://evidence/" + text_to_resource_token("evidence/tasks/task.md"), root=root)
@@ -397,6 +402,7 @@ class BackendFinalCoverageTests(unittest.TestCase):
         with mock.patch("keepa_cli.agent.resources.Path.exists", return_value=False):
             payload = json.loads(read_mcp_resource("keepa://graphs/root")["text"])
             self.assertEqual(payload["sources_scanned"]["fixture_files"], 0)
+        self.assertEqual(json.loads(read_mcp_resource("keepa://evidence/recent", root=Path(tempfile.mkdtemp()))["text"])["items"], [])
         with mock.patch("keepa_cli.agent.resources.Path.exists", return_value=False):
             self.assertEqual(json.loads(read_mcp_resource("keepa://asin/B1/fixture")["text"])["match_count"], 0)
         with self.assertRaises(ValueError):
@@ -408,14 +414,17 @@ class BackendFinalCoverageTests(unittest.TestCase):
         self.assertIn("error", resolution["resolved"][0])
         params, resolution = resolve_workflow_arguments("keepa.products_get", {"workflow_context": {"outputs": [["keepa://missing"]]}}, session_cache={})
         self.assertIn("error", resolution["resolved"][0])
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uris": ["keepa://graphs/missing"]}, session_cache={})
-        self.assertEqual(resolution["resolved"][0]["match_count"], 0)
+        with mock.patch("keepa_cli.agent.resources.read_mcp_resource", side_effect=ValueError("boom")):
+            params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uris": ["keepa://graphs/missing"]}, session_cache={})
+            self.assertIn("boom", resolution["resolved"][0]["error"])
         params, resolution = resolve_workflow_arguments("keepa.products_get", {"workflow_context": {"artifacts": ["keepa://missing"]}}, session_cache={})
         self.assertIn("error", resolution["resolved"][0])
         params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://research/missing"}, session_cache={})
         self.assertEqual(resolution["resolved"][0]["found"], False)
         params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"rows": [{"asin": "B9"}]}}})
         self.assertEqual(params["asin"], "B9")
+        params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"asin": "B8"}}})
+        self.assertEqual(params["asin"], "B8")
         self.assertEqual(resolve_workflow_arguments("keepa.tracking_get", {})[1]["missing_inputs"][0]["field"], "asin")
         self.assertEqual(resolve_workflow_arguments("keepa.research_graph_merge", {})[1]["missing_inputs"][0]["field"], "graph")
         self.assertEqual(resolve_workflow_arguments("keepa.research_brief_export", {})[1]["missing_inputs"][0]["field"], "payload")
@@ -424,13 +433,19 @@ class BackendFinalCoverageTests(unittest.TestCase):
 
         self.assertEqual(_product_rows_for_figures({"data": {"body": {"products": ["skip", {"asin": "B2"}]}}})[0]["asin"], "B2")
         self.assertEqual(_product_metric_row({"asin": "B3"})["asin"], "B3")
+        self.assertEqual(_product_rows_for_figures({"products": ["skip", {"asin": "B4"}]})[0]["asin"], "B4")
         self.assertEqual(_raw_temporal_windows({"csv": ["skip"]}), {})
+        self.assertEqual(_raw_temporal_windows({"temporal_features": {"series": {"new": "skip", "rank": {"windows": {"x": "skip"}}}}}), {})
         self.assertEqual(_raw_temporal_windows({"csv": [["skip"]]}) or {}, {})
         self.assertEqual(_raw_temporal_windows(_csv_product())["recent_7d"]["series"]["new"]["change_pct"], -20.0)
         self.assertEqual(_window_heatmap_for_figures({"temporal_features": {"series": {"new": {"windows": {"recent_7d": {"change_pct": "bad"}}}}}}), [])
         self.assertIn("No temporal windows", _panel_window_heatmap([{"series": "new"}], x=0, y=0, w=300, h=200))
+        self.assertIn("Price / rank history", _panel_history_lines([{"asin": "B1", "name": "new", "points": [{"value": 1}]}], x=0, y=0, w=650, h=300))
+        self.assertIn("Small multiples", _panel_history_small_multiples([{"asin": "B1", "series": [{"metric": "new", "normalized_points": [{"x": 0, "y": 0}]}]}], x=0, y=0, w=650, h=300))
         self.assertIsNone(_num({"bad": True}))
         self.assertEqual(extract_history_rows({"asin": "B1", "csv": [[]]}, "amazon"), [])
+        self.assertEqual(extract_history_rows({"asin": "B1", "csv": [[1, -1]]}, "amazon", include_missing=True)[0]["value"], None)
+        self.assertEqual(extract_history_rows({"asin": "B1", "csv": []}, "amazon"), [])
         self.assertEqual(extract_history_rows({"asin": "B1", "csv": [[1, -1]]}, "amazon"), [])
         self.assertTrue(handle_category_command("categories.products", {"category": "172282", "fixture": "bestsellers_home.json"}, fixture_dir=FIXTURES)["ok"])
         with mock.patch("keepa_cli.commands.categories.client") as client_factory:
@@ -449,6 +464,8 @@ class BackendFinalCoverageTests(unittest.TestCase):
         self.assertFalse(selection_query("finder.query", "/query", {"selection": {}, "domain": "US"}, fixture_dir=FIXTURES)["ok"])
         self.assertIn("category", resolve_research_target({"query": "category 172282", "hint_type": "category"})["next_actions"][0]["params"])
         self.assertTrue(_merge_research_graphs([{"research_graph": {"nodes": [{"id": "a"}], "edges": [{"source": "a", "target": "b", "type": "rel"}]}}])["edges"])
+        self.assertTrue(_merge_research_graphs([{"research_graph": {"nodes": [{"id": "a"}], "edges": ["skip"]}}])["nodes"])
+        self.assertIs(build_research_brief({"payload": {}, "graph": {"root": "g"}})["entity_graph_summary"]["root"], "g")
 
 
 if __name__ == "__main__":

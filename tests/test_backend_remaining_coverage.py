@@ -204,7 +204,7 @@ class BackendRemainingCoverageTests(unittest.TestCase):
                 {"resource_uris": [path_to_resource_uri(path_a, kind="output"), path_to_resource_uri(path_b, kind="output")]},
                 session_cache={},
             )
-            self.assertEqual(params["input"], [str(path_a), str(path_b)])
+            self.assertEqual([Path(item).resolve() for item in params["input"]], [path_a.resolve(), path_b.resolve()])
             self.assertEqual(len(resolution["resolved"]), 2)
 
         cache = {"graph:key": {"data": {"research_graph": _graph("graph-root")}}}
