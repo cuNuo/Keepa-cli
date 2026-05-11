@@ -3,7 +3,7 @@
 ## 任务时间
 
 - 开始时间：2026-05-12 00:50
-- 最近更新时间：2026-05-12 01:15
+- 最近更新时间：2026-05-12 01:22
 - 完成时间：待补充远端 CI
 - 当前状态：本地验证通过，等待远端 CI
 
@@ -72,6 +72,9 @@
 - `.\\.venv\\Scripts\\python.exe D:\\.codex\\hooks\\run_relevant_hooks.py --changed-only`：通过。
 - `.\\.venv\\Scripts\\python.exe -m keepa_cli --json doctor`、`node .\\bin\\keepa-cli.js --json doctor`、`node .\\bin\\kc.js --json doctor`：通过。
 - `npm pack --dry-run --json`：通过；prepack release gate 同步跑过 compileall、324 项 unittest、live cache option lint、fixture sync、31 specs、SDK fixture 等价、SDK smoke、typed fixture、install_verify 与 doctor。
+- 首次远端 CI：新增 `mcp-sdk-adapter` job 通过；Windows 普通 matrix 在 `test_manual_live_product_read_defaults_to_dry_run` 失败。根因是新脚本输出中文 JSON 时，Windows runner/父进程默认编码不稳定。
+- 修复：`scripts/manual_live_product_read.py` 启动时显式重配 stdout/stderr 为 UTF-8，`tests/test_manual_live_product_read.py` 的 subprocess capture 显式使用 `encoding="utf-8"`。
+- 修复后局部验证：`.\\.venv\\Scripts\\python.exe -m unittest tests.test_manual_live_product_read -v`、py_compile、`git diff --check`、相关 Hook 均通过。
 
 ## 待完成验证
 

@@ -26,7 +26,7 @@ class ManualLiveProductReadTests(unittest.TestCase):
             ],
             check=True,
             cwd=Path.cwd(),
-            text=True,
+            encoding="utf-8",
             capture_output=True,
         )
         payload = json.loads(completed.stdout)

@@ -21,6 +21,12 @@ if str(REPO_ROOT) not in sys.path:
 from keepa_cli.service import run_command
 
 
+def _configure_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def _estimated_tokens(payload: dict[str, Any]) -> int:
     estimated = (payload.get("token_bucket") or {}).get("estimated") or {}
     value = estimated.get("worst_case_tokens", estimated.get("estimated_tokens", 0))
@@ -64,6 +70,7 @@ def _payload_summary(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio()
     parser = argparse.ArgumentParser(description="手动执行低成本 Keepa product live read，并输出脱敏审计摘要。")
     parser.add_argument("--asin", required=True, help="单个 ASIN；脚本不会接受批量 ASIN。")
     parser.add_argument("--domain", default="US", help="Keepa domain code，默认 US。")
