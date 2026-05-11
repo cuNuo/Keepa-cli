@@ -3,9 +3,9 @@
 ## 任务时间
 
 - 开始时间：2026-05-12 01:49
-- 最近更新时间：2026-05-12 01:53
-- 完成时间：待远端 CI
-- 当前状态：本地验证完成，待提交推送与远端 CI
+- 最近更新时间：2026-05-12 01:55
+- 完成时间：2026-05-12 01:55
+- 当前状态：已完成
 
 ## 任务目标
 
@@ -41,10 +41,13 @@
 - `.\\.venv\\Scripts\\python.exe D:\\.codex\\hooks\\run_relevant_hooks.py --changed-only`：通过。
 - `.\\.venv\\Scripts\\python.exe -m keepa_cli --json doctor`、`node .\\bin\\keepa-cli.js --json doctor`、`node .\\bin\\kc.js --json doctor`：通过。
 - `npm pack --dry-run --json`：通过；prepack release gate 同步跑过 compileall、328 项 unittest、live cache option lint、fixture sync、MCP quality gate、install_verify 与 doctor。
+- 已提交并推送 `c052f2b mcp: stabilize quality gate json failures` 到 `origin/main`。
+- 远端 CI：`https://github.com/cuNuo/Keepa-cli/actions/runs/25687526327` 通过；包含 ubuntu/macos/windows Python 3.11/3.12 matrix 与 `mcp-sdk-adapter` job。
+- Pages：`https://github.com/cuNuo/Keepa-cli/actions/runs/25687526410` 通过。
 
 ## 待完成验证
 
-- 提交、推送并检查远端 CI。
+- 无。
 
 ## 风险与后续
 
