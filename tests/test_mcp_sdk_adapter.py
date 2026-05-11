@@ -8,9 +8,12 @@ tests/test_mcp_sdk_adapter.py
 from __future__ import annotations
 
 import json
+import contextlib
+import io
 import subprocess
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from keepa_cli.agent.mcp_sdk_adapter import (
@@ -23,6 +26,7 @@ from keepa_cli.agent.mcp_sdk_adapter import (
     compare_fixture_outputs,
     create_fastmcp_readonly_spike,
 )
+from scripts.check_mcp_quality_gate import QualityGateStepError, _run_step, main as quality_gate_main
 
 
 INSPECTOR_FIXTURE = Path("tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json")
@@ -147,6 +151,47 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         labels = [step["label"] for step in payload["steps"]]
         self.assertIn("sdk inspector snapshot", labels)
+
+    def test_mcp_quality_gate_json_failure_stays_machine_readable(self):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        command = [
+            sys.executable,
+            "-c",
+            "import sys; print('child stdout marker'); print('child stderr marker', file=sys.stderr); raise SystemExit(7)",
+        ]
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            with self.assertRaises(QualityGateStepError) as raised:
+                _run_step("forced failure", command, json_mode=True)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "")
+        result = raised.exception.result
+        self.assertEqual(result["returncode"], 7)
+        self.assertIn("child stdout marker", result["stdout_tail"])
+        self.assertIn("child stderr marker", result["stderr_tail"])
+
+    def test_mcp_quality_gate_main_json_failure_payload_includes_failed_step(self):
+        failed_step = {
+            "label": "forced failure",
+            "command": [sys.executable, "-c", "raise SystemExit(7)"],
+            "returncode": 7,
+            "stdout_tail": "child stdout marker",
+            "stderr_tail": "child stderr marker",
+        }
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with (
+            mock.patch("scripts.check_mcp_quality_gate.adapter_status", return_value={"sdk_available": True}),
+            mock.patch("scripts.check_mcp_quality_gate._run_step", side_effect=QualityGateStepError("forced failure", failed_step)),
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+        ):
+            exit_code = quality_gate_main(["--json"])
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 1)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["steps"], [failed_step])
+        self.assertEqual(stderr.getvalue(), "")
 
     def test_fastmcp_spike_is_optional(self):
         if adapter_status()["sdk_available"]:

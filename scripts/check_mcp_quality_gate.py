@@ -21,6 +21,12 @@ if str(REPO_ROOT) not in sys.path:
 from keepa_cli.agent.mcp_sdk_adapter import adapter_status
 
 
+class QualityGateStepError(RuntimeError):
+    def __init__(self, label: str, result: dict[str, Any]) -> None:
+        super().__init__(f"MCP quality gate step failed: {label}")
+        self.result = result
+
+
 def _tail(text: str, *, lines: int = 8) -> str:
     parts = text.splitlines()
     return "\n".join(parts[-lines:])
@@ -43,11 +49,11 @@ def _run_step(label: str, command: list[str], *, json_mode: bool) -> dict[str, A
         "stderr_tail": _tail(completed.stderr),
     }
     if completed.returncode != 0:
-        if completed.stdout:
+        if completed.stdout and not json_mode:
             print(completed.stdout, end="")
-        if completed.stderr:
+        if completed.stderr and not json_mode:
             print(completed.stderr, end="", file=sys.stderr)
-        raise RuntimeError(f"MCP quality gate step failed: {label}")
+        raise QualityGateStepError(label, result)
     if completed.stdout and not json_mode:
         print(_tail(completed.stdout, lines=3))
     return result
@@ -79,10 +85,12 @@ def main(argv: list[str] | None = None) -> int:
     try:
         for label, command in steps:
             results.append(_run_step(label, command, json_mode=args.json))
-    except RuntimeError as exc:
-        payload = {"ok": False, "adapter_status": status, "steps": results, "error": str(exc)}
+    except QualityGateStepError as exc:
+        payload = {"ok": False, "adapter_status": status, "steps": [*results, exc.result], "error": str(exc)}
         if args.json:
             print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
+        else:
+            print(str(exc), file=sys.stderr)
         return 1
 
     payload = {"ok": True, "adapter_status": status, "steps": results}

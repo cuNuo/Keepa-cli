@@ -68,7 +68,7 @@ adapter 原则：
 - `scripts/smoke_mcp_sdk_adapter_client.py` 使用官方 `ClientSession` 连接 SDK stdio adapter，验证 `initialize`、分页 `list_tools`、`list_resources`、`list_resource_templates`、`list_prompts`、`call_tool keepa.context_policy` 与 `read_resource keepa://context/policy`。
 - `scripts/check_mcp_sdk_adapter_typed_fixture.py` 把 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json` 的每个 step 映射成官方 SDK typed client 调用；SDK 不支持的 Keepa 扩展 `toolset/limit` 会记录为 mapping limitation，并继续验证完整分页、错误结构与 `ping`。
 - `scripts/export_mcp_inspector_snapshot.py --check` 会通过官方 typed client 导出并校验可复现 Inspector snapshot，覆盖 serverInfo、list_* 首页、分页、错误映射和 ping。
-- `scripts/check_mcp_quality_gate.py --require-sdk` 聚合 Agent eval fixture、adapter fixture 等价、SDK typed smoke、typed Inspector fixture 与 snapshot 校验；远端 `mcp-sdk-adapter` job 安装 `.[mcp-sdk]` 后运行该门禁。
+- `scripts/check_mcp_quality_gate.py --require-sdk` 聚合 Agent eval fixture、adapter fixture 等价、SDK typed smoke、typed Inspector fixture 与 snapshot 校验；远端 `mcp-sdk-adapter` job 安装 `.[mcp-sdk]` 后运行该门禁。该脚本的 `--json` 成功与失败输出都保持单一 JSON payload，失败步骤的 stdout/stderr 只进入 `steps[].*_tail`，便于 Agent 和 CI 解析。
 - 当前 fixture 对比覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、非法 `tools/call` 与 `ping`，要求兼容 handler 响应 JSON 完全等价。官方 `ClientSession` 的 `list_*` 只支持标准 cursor 参数，不支持 Keepa 扩展的 `toolset/limit` 参数；因此 SDK adapter 以 `toolset=all` 作为完整工具全集，同时默认压缩 tools/resources/resource templates/prompts 首页，分别以 `keepa.context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `keepa.product_research` 起手，避免一次性读取全部 schema。
 
 ## Streamable HTTP 边界
