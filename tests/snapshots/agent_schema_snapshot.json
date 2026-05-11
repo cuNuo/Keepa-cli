@@ -897,6 +897,12 @@
             "mimeType": "str",
             "name": "str",
             "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
           }
         ],
         "resources": [
@@ -4432,6 +4438,17 @@
                   "description": "str",
                   "type": "str"
                 },
+                "figure_set": {
+                  "default": "str",
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
                 "figures_dir": {
                   "description": "str",
                   "type": "str"
@@ -4760,6 +4777,17 @@
                 "artifacts": {
                   "description": "str",
                   "items": {},
+                  "type": "str"
+                },
+                "figure_set": {
+                  "default": "str",
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
                   "type": "str"
                 },
                 "from_cache": {
