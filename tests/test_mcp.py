@@ -755,6 +755,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa://workflow/{encoded_params}/policy", uri_templates)
         self.assertIn("keepa://research/{cache_key}/brief", uri_templates)
         self.assertIn("keepa://research/{cache_key}/graph", uri_templates)
+        self.assertIn("keepa://research/{cache_key}/figures", uri_templates)
         self.assertIn("keepa://toolsets/{toolset}", uri_templates)
         self.assertIn("keepa://tools/{name}", uri_templates)
         self.assertIn("keepa://prompts/{name}", uri_templates)
@@ -1477,6 +1478,57 @@ class McpProtocolTests(unittest.TestCase):
             content = svg["result"]["contents"][0]
             self.assertEqual(content["mimeType"], "image/svg+xml")
             self.assertIn("<svg", content["text"])
+
+    def test_research_cache_figures_resource_generates_svg_manifest(self):
+        session = AgentSession(env={})
+        compared = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "compare",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.products_compare",
+                        "arguments": {
+                            "asin": ["B0D8W1YVBX", "B0EVALCMP1", "B0EVALCMP2"],
+                            "domain": "US",
+                            "fixture": "products_compare_agent_eval.json",
+                            "view": "deal",
+                            "full": True,
+                        },
+                    },
+                }
+            ),
+            env={},
+            session=session,
+        )["result"]["structuredContent"]
+        cache_key = compared["cache_key"]
+
+        figures = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "research-figures",
+                    "method": "resources/read",
+                    "params": {"uri": f"keepa://research/{cache_key}/figures"},
+                }
+            ),
+            env={},
+            session=session,
+        )
+        payload = json.loads(figures["result"]["contents"][0]["text"])
+        self.assertTrue(payload["found"])
+        self.assertTrue(payload["ok"])
+        self.assertGreaterEqual(payload["figure_result"]["data_summary"]["small_multiple_count"], 3)
+        svg_resource = payload["svg_resources"][0]
+        svg = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "research-svg", "method": "resources/read", "params": {"uri": svg_resource["uri"]}}),
+            env={},
+            session=session,
+        )
+        content = svg["result"]["contents"][0]
+        self.assertEqual(content["mimeType"], "image/svg+xml")
+        self.assertIn("Multi-ASIN small multiples", content["text"])
 
     def test_research_graph_merge_reports_duplicate_label_conflicts(self):
         graph_a = {

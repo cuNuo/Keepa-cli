@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import html
 import json
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -17,6 +18,7 @@ from typing import Any, Mapping
 from keepa_cli.agent_contract import build_action, build_evidence_index
 from keepa_cli.agent.tools import is_tool_active_for_profile, profile_allowed_tools, profile_names
 from keepa_cli.cache import SQLiteResponseCache, build_cache_provenance, default_cache_path, explain_response_cache_key
+from keepa_cli.figures import build_research_figures
 from keepa_cli.research_graph import extract_research_graphs, graph_summary
 from keepa_cli.token_budget import estimate_request_budget
 
@@ -1049,13 +1051,106 @@ def _research_graph_markdown(report: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def build_report(*, input_path: str, output_format: str, out: str | None, title: str) -> dict[str, Any]:
+def _report_figure_info(
+    *,
+    input_path: str,
+    out: str | None,
+    title: str,
+    figure: str | None,
+    figures_dir: str | None,
+    enabled: bool,
+) -> dict[str, Any] | None:
+    if not enabled:
+        return None
+    if figure:
+        path = Path(figure)
+        if not path.is_file():
+            raise ValueError(f"figure path does not exist: {figure}")
+        return {
+            "mode": "provided",
+            "figures": [
+                {
+                    "name": path.stem,
+                    "kind": "markdown_image",
+                    "path": str(path),
+                    "format": path.suffix.lower().lstrip(".") or "file",
+                    "size_bytes": path.stat().st_size,
+                    "markdown": _markdown_image_path(path),
+                }
+            ],
+        }
+
+    target_dir = Path(figures_dir) if figures_dir else _default_report_figures_dir(input_path=input_path, out=out)
+    built = build_research_figures(input_path=input_path, out_dir=str(target_dir), title=f"{title} Figures")
+    figures = []
+    for item in built.get("figures", []):
+        if not isinstance(item, Mapping):
+            continue
+        entry = dict(item)
+        entry["markdown"] = _markdown_image_path(Path(str(item.get("path") or "")))
+        figures.append(entry)
+    return {
+        "mode": "generated",
+        "schema_version": built.get("schema_version"),
+        "data_summary": built.get("data_summary"),
+        "provenance": built.get("provenance"),
+        "figures": figures,
+    }
+
+
+def _default_report_figures_dir(*, input_path: str, out: str | None) -> Path:
+    if out:
+        return Path(out).with_suffix("").parent / f"{Path(out).stem}-figures"
+    return Path(tempfile.gettempdir()) / "keepa-report-figures" / Path(input_path).with_suffix("").name
+
+
+def _markdown_image_path(path: Path) -> str:
+    return path.resolve().as_posix()
+
+
+def _figures_markdown(figure_info: Mapping[str, Any]) -> str:
+    lines = ["", "## Figures", ""]
+    figures = [item for item in figure_info.get("figures", []) if isinstance(item, Mapping)]
+    if not figures:
+        lines.append("_No report figures available._")
+        return "\n".join(lines)
+    for item in figures:
+        image = item.get("markdown") or item.get("path")
+        title = item.get("name") or "Keepa research figure"
+        lines.append(f"![{title}]({image})")
+        source = item.get("source_data_path")
+        if source:
+            lines.append("")
+            lines.append(f"- Source data: `{source}`")
+    return "\n".join(lines)
+
+
+def build_report(
+    *,
+    input_path: str,
+    output_format: str,
+    out: str | None,
+    title: str,
+    figure: str | None = None,
+    figures_dir: str | None = None,
+    embed_figures: bool = True,
+) -> dict[str, Any]:
     payload = load_json_file(input_path)
     rows = _report_rows_from_input(payload)
     graph_report = _research_graph_report_from_payload(payload)
     fmt = output_format.lower()
+    figure_info = _report_figure_info(
+        input_path=input_path,
+        out=out,
+        title=title,
+        figure=figure,
+        figures_dir=figures_dir,
+        enabled=embed_figures and fmt in {"markdown", "json"},
+    )
     if fmt == "markdown":
         content: Any = _report_markdown(title, rows, input_path)
+        if figure_info is not None:
+            content = str(content).rstrip() + "\n" + _figures_markdown(figure_info) + "\n"
         if graph_report is not None:
             content = str(content).rstrip() + "\n" + _research_graph_markdown(graph_report) + "\n"
     elif fmt == "csv":
@@ -1064,6 +1159,8 @@ def build_report(*, input_path: str, output_format: str, out: str | None, title:
         content = {"title": title, "source": input_path, "generated_at": utc_now_iso(), "rows": rows}
         if graph_report is not None:
             content["research_graph_report"] = graph_report
+        if figure_info is not None:
+            content["figures"] = figure_info
     else:
         raise ValueError("reports.build format must be markdown, json, or csv")
 
@@ -1080,6 +1177,8 @@ def build_report(*, input_path: str, output_format: str, out: str | None, title:
             out=out,
         ),
     }
+    if figure_info is not None:
+        data["figures"] = figure_info
     if out:
         if fmt == "json":
             data["output"] = write_json(out, content)

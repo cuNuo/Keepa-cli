@@ -110,8 +110,13 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertTrue(markdown["ok"])
             self.assertEqual(markdown["data"]["research_graph"]["root"], "agent_selection_research")
             report_text = report_path.read_text(encoding="utf-8")
+            self.assertIn("## Figures", report_text)
+            self.assertIn("![agent-research-summary]", report_text)
             self.assertIn("## Research Graph", report_text)
             self.assertIn("### Relationships", report_text)
+            figures = markdown["data"]["figures"]["figures"]
+            self.assertTrue(Path(figures[0]["path"]).is_file())
+            self.assertTrue(Path(figures[0]["source_data_path"]).is_file())
 
             json_payload = run_command(
                 "reports.build",
@@ -121,6 +126,7 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertTrue(json_payload["ok"])
             report_json = json.loads(json_report_path.read_text(encoding="utf-8"))
             self.assertIn("research_graph_report", report_json)
+            self.assertIn("figures", report_json)
             self.assertGreaterEqual(report_json["research_graph_report"]["node_count"], 1)
 
     def test_browse_snapshot_uses_research_graph_product_nodes(self):
@@ -169,9 +175,14 @@ class Phase10WorkflowTests(unittest.TestCase):
             svg_text = svg_path.read_text(encoding="utf-8")
             self.assertIn("<svg", svg_text)
             self.assertIn("A  Product comparison", svg_text)
-            self.assertIn("D  Temporal signals", svg_text)
+            self.assertIn("B  Price / rank history", svg_text)
+            self.assertIn("C  Window change heatmap", svg_text)
+            self.assertIn("D  Multi-ASIN small multiples", svg_text)
             source = json.loads(source_path.read_text(encoding="utf-8"))
             self.assertGreaterEqual(len(source["products"]), 3)
+            self.assertIn("history_series", source)
+            self.assertIn("window_heatmap", source)
+            self.assertGreaterEqual(len(source["small_multiples"]), 3)
 
     def test_workflow_plan_category_research_is_local_agent_graph(self):
         payload = run_command(

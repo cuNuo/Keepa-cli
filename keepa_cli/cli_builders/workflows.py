@@ -47,6 +47,9 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     reports_build.add_argument("--format", choices=("markdown", "json", "csv"), default="markdown", help="报告格式。")
     reports_build.add_argument("--out", help="写入报告文件。")
     reports_build.add_argument("--title", default="Keepa Report", help="报告标题。")
+    reports_build.add_argument("--figure", help="嵌入已有 SVG/图片路径；未提供时 markdown/json 报告会本地生成 SVG。")
+    reports_build.add_argument("--figures-dir", help="自动生成 SVG 的输出目录。")
+    reports_build.add_argument("--no-figures", action="store_true", help="不自动生成或嵌入图表。")
 
     figures = subparsers.add_parser("figures", help="生成 Agent 报告可插入的本地 SVG 图。")
     figures_subparsers = figures.add_subparsers(dest="figures_command")
@@ -113,7 +116,15 @@ def maybe_run_workflow_command(
     if args.command == "reports" and args.reports_command == "build":
         payload = run_command(
             "reports.build",
-            {"input": args.input, "format": args.format, "out": args.out, "title": args.title},
+            {
+                "input": args.input,
+                "format": args.format,
+                "out": args.out,
+                "title": args.title,
+                "figure": args.figure,
+                "figures_dir": args.figures_dir,
+                "no_figures": bool(args.no_figures),
+            },
         )
         return 0 if payload["ok"] else 1, payload
 

@@ -37,6 +37,16 @@ PALETTE = {
 
 def build_research_figures(*, input_path: str, out_dir: str, title: str) -> dict[str, Any]:
     payload = _load_json_file(input_path)
+    return build_research_figures_from_payload(payload, out_dir=out_dir, title=title, source_label=input_path)
+
+
+def build_research_figures_from_payload(
+    payload: Any,
+    *,
+    out_dir: str,
+    title: str,
+    source_label: str,
+) -> dict[str, Any]:
     figure_data = _figure_data(payload)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -58,7 +68,13 @@ def build_research_figures(*, input_path: str, out_dir: str, title: str) -> dict
                 "size_bytes": svg_path.stat().st_size,
                 "source_data_path": str(source_path),
                 "source_data_bytes": source_path.stat().st_size,
-                "panels": ["product_metric_comparison", "risk_code_summary", "research_graph_entities", "temporal_signal_summary"],
+                "panels": [
+                    "product_metric_comparison",
+                    "price_rank_history",
+                    "window_change_heatmap",
+                    "multi_asin_small_multiples",
+                    "risk_and_graph_summary",
+                ],
             }
         ],
         "data_summary": {
@@ -66,11 +82,14 @@ def build_research_figures(*, input_path: str, out_dir: str, title: str) -> dict
             "risk_code_count": len(figure_data["risk_codes"]),
             "graph_entity_types": len(figure_data["entity_counts"]),
             "temporal_signal_count": len(figure_data["temporal_signals"]),
+            "history_series_count": len(figure_data["history_series"]),
+            "window_heatmap_cell_count": len(figure_data["window_heatmap"]),
+            "small_multiple_count": len(figure_data["small_multiples"]),
         },
         "provenance": {
             "source": "local",
             "endpoint": "local://figures.research",
-            "input": input_path,
+            "input": source_label,
             "generated_at": utc_now_iso(),
         },
     }
@@ -91,6 +110,9 @@ def _figure_data(payload: Any) -> dict[str, Any]:
         "risk_codes": [{"code": key, "count": value} for key, value in sorted(risk_codes.items())],
         "entity_counts": [{"type": key, "count": value} for key, value in sorted(entity_counter.items())],
         "temporal_signals": temporal,
+        "history_series": _history_series_for_figures(payload),
+        "window_heatmap": _window_heatmap_for_figures(payload),
+        "small_multiples": _small_multiples_for_figures(products),
     }
 
 
@@ -190,6 +212,201 @@ def _temporal_signals(value: Any) -> list[dict[str, Any]]:
     return signals[:16]
 
 
+def _history_series_for_figures(value: Any) -> list[dict[str, Any]]:
+    series: list[dict[str, Any]] = []
+    preferred = ("new", "buy_box_shipping", "sales_rank", "review_count")
+
+    def visit(item: Any, path: str, asin: str | None) -> None:
+        if isinstance(item, Mapping):
+            identity = item.get("identity") if isinstance(item.get("identity"), Mapping) else {}
+            current_asin = str(item.get("asin") or identity.get("asin") or asin or "")
+            history = item.get("history_summary") if isinstance(item.get("history_summary"), Mapping) else {}
+            history_series = history.get("series") if isinstance(history.get("series"), Mapping) else {}
+            for name in preferred:
+                entry = history_series.get(name) if isinstance(history_series.get(name), Mapping) else {}
+                points = _history_points(entry.get("last_points"))
+                if len(points) >= 2:
+                    series.append(
+                        {
+                            "asin": current_asin,
+                            "name": name,
+                            "unit": entry.get("unit"),
+                            "path": f"{path}.history_summary.series.{name}.last_points",
+                            "point_count": entry.get("point_count"),
+                            "shown_points": len(points),
+                            "data_basis": "history_summary.last_points",
+                            "points": points[-60:],
+                        }
+                    )
+            for key, child in item.items():
+                visit(child, f"{path}.{key}", current_asin)
+        elif isinstance(item, list):
+            for index, child in enumerate(item):
+                visit(child, f"{path}[{index}]", asin)
+
+    visit(value, "$", None)
+    return _dedupe_history_series(series)[:12]
+
+
+def _history_points(value: Any) -> list[dict[str, Any]]:
+    points: list[dict[str, Any]] = []
+    if not isinstance(value, list):
+        return points
+    for index, item in enumerate(value):
+        if not isinstance(item, Mapping):
+            continue
+        number = _num(item.get("value"))
+        if number is None:
+            continue
+        points.append(
+            {
+                "x": index,
+                "timestamp": item.get("timestamp"),
+                "keepa_minute": item.get("keepa_minute"),
+                "value": number,
+            }
+        )
+    return points
+
+
+def _dedupe_history_series(series: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[tuple[str, str, str]] = set()
+    result: list[dict[str, Any]] = []
+    for item in series:
+        key = (str(item.get("asin") or ""), str(item.get("name") or ""), str(item.get("path") or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+    return result
+
+
+def _window_heatmap_for_figures(value: Any) -> list[dict[str, Any]]:
+    cells: list[dict[str, Any]] = []
+
+    def collect_from_windows(windows: Mapping[str, Any], *, path: str, asin: str | None) -> None:
+        for window_name, bucket in windows.items():
+            if not isinstance(bucket, Mapping):
+                continue
+            series_map = bucket.get("series") if isinstance(bucket.get("series"), Mapping) else bucket
+            for series_name, series in series_map.items():
+                if not isinstance(series, Mapping):
+                    continue
+                change = _num(series.get("change_pct"))
+                if change is None:
+                    continue
+                cells.append(
+                    {
+                        "asin": asin,
+                        "window": str(window_name),
+                        "series": str(series_name),
+                        "change_pct": change,
+                        "direction": series.get("direction"),
+                        "observed_days": series.get("observed_days"),
+                        "path": f"{path}.{window_name}.series.{series_name}",
+                    }
+                )
+
+    def visit(item: Any, path: str, asin: str | None) -> None:
+        if isinstance(item, Mapping):
+            identity = item.get("identity") if isinstance(item.get("identity"), Mapping) else {}
+            current_asin = str(item.get("asin") or identity.get("asin") or asin or "")
+            direct = item.get("temporal_by_window")
+            if isinstance(direct, Mapping):
+                collect_from_windows(direct, path=f"{path}.temporal_by_window", asin=current_asin)
+            brief = item.get("agent_brief") if isinstance(item.get("agent_brief"), Mapping) else {}
+            brief_windows = brief.get("temporal_by_window") if isinstance(brief.get("temporal_by_window"), Mapping) else {}
+            if brief_windows:
+                collect_from_windows(brief_windows, path=f"{path}.agent_brief.temporal_by_window", asin=current_asin)
+            temporal = item.get("temporal_features") if isinstance(item.get("temporal_features"), Mapping) else {}
+            series_map = temporal.get("series") if isinstance(temporal.get("series"), Mapping) else {}
+            for series_name, series in series_map.items():
+                windows = series.get("windows") if isinstance(series, Mapping) and isinstance(series.get("windows"), Mapping) else {}
+                for window_name, window in windows.items():
+                    if not isinstance(window, Mapping):
+                        continue
+                    change = _num(window.get("change_pct"))
+                    if change is None:
+                        continue
+                    cells.append(
+                        {
+                            "asin": current_asin,
+                            "window": str(window_name),
+                            "series": str(series_name),
+                            "change_pct": change,
+                            "direction": window.get("trend_direction"),
+                            "observed_days": window.get("observed_days"),
+                            "path": f"{path}.temporal_features.series.{series_name}.windows.{window_name}",
+                        }
+                    )
+            for key, child in item.items():
+                visit(child, f"{path}.{key}", current_asin)
+        elif isinstance(item, list):
+            for index, child in enumerate(item):
+                visit(child, f"{path}[{index}]", asin)
+
+    visit(value, "$", None)
+    return _dedupe_heatmap_cells(cells)[:80]
+
+
+def _dedupe_heatmap_cells(cells: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[tuple[str, str, str]] = set()
+    result: list[dict[str, Any]] = []
+    for cell in cells:
+        key = (str(cell.get("asin") or ""), str(cell.get("window") or ""), str(cell.get("series") or ""))
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(cell)
+    return result
+
+
+def _small_multiples_for_figures(products: list[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    metrics = [
+        ("price", "Price", False),
+        ("rank", "Rank", True),
+        ("monthly_sold", "Sold", False),
+        ("review_count", "Reviews", False),
+    ]
+    rows: list[dict[str, Any]] = []
+    for product in products[:8]:
+        points: list[dict[str, Any]] = []
+        for key, label, lower_is_better in metrics:
+            value = _num(product.get(key))
+            if value is None:
+                continue
+            points.append({"metric": key, "label": label, "value": value, "lower_is_better": lower_is_better})
+        if points:
+            rows.append(
+                {
+                    "asin": product.get("asin"),
+                    "label": product.get("asin") or product.get("title"),
+                    "points": points,
+                    "data_basis": "normalized_current_metrics",
+                }
+            )
+    return _normalize_small_multiples(rows, metrics)
+
+
+def _normalize_small_multiples(rows: list[dict[str, Any]], metrics: list[tuple[str, str, bool]]) -> list[dict[str, Any]]:
+    ranges: dict[str, tuple[float, float]] = {}
+    for key, _, _ in metrics:
+        values = [_num(point.get("value")) for row in rows for point in row.get("points", []) if point.get("metric") == key]
+        numeric = [value for value in values if value is not None]
+        if numeric:
+            ranges[key] = (min(numeric), max(numeric))
+    for row in rows:
+        for point in row.get("points", []):
+            key = str(point.get("metric") or "")
+            value = _num(point.get("value")) or 0
+            low, high = ranges.get(key, (0, 1))
+            score = 0.5 if high == low else (value - low) / (high - low)
+            if point.get("lower_is_better"):
+                score = 1 - score
+            point["normalized_score"] = round(max(0.0, min(1.0, score)), 4)
+    return rows
+
+
 def _collect_temporal_mapping(value: Mapping[str, Any], signals: list[dict[str, Any]], *, path: str) -> None:
     for key, item in value.items():
         if isinstance(item, Mapping):
@@ -203,17 +420,26 @@ def _collect_temporal_mapping(value: Mapping[str, Any], signals: list[dict[str, 
 
 def _summary_svg(data: Mapping[str, Any], *, title: str) -> str:
     width = 1280
-    height = 900
+    height = 1120
     panels = [
-        _panel_product_comparison(data.get("products") or [], x=44, y=92, w=590, h=330),
-        _panel_risks(data.get("risk_codes") or [], x=680, y=92, w=556, h=330),
-        _panel_entities(data.get("entity_counts") or [], x=44, y=480, w=590, h=320),
-        _panel_temporal(data.get("temporal_signals") or [], x=680, y=480, w=556, h=320),
+        _panel_product_comparison(data.get("products") or [], x=44, y=92, w=372, h=300),
+        _panel_history_lines(data.get("history_series") or [], x=454, y=92, w=782, h=300),
+        _panel_window_heatmap(data.get("window_heatmap") or [], x=44, y=430, w=590, h=300),
+        _panel_small_multiples(data.get("small_multiples") or [], x=680, y=430, w=556, h=300),
+        _panel_risk_graph_summary(
+            data.get("risk_codes") or [],
+            data.get("entity_counts") or [],
+            data.get("temporal_signals") or [],
+            x=44,
+            y=768,
+            w=1192,
+            h=260,
+        ),
     ]
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="{_esc(title)}">
   <rect width="{width}" height="{height}" fill="#f7f8fb"/>
   <text x="44" y="46" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="{PALETTE['ink']}">{_esc(title)}</text>
-  <text x="44" y="70" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="{PALETTE['muted']}">Agent-ready SVG generated from local Keepa evidence; panels summarize comparison, risk, graph entities, and temporal signals.</text>
+  <text x="44" y="70" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="{PALETTE['muted']}">Agent-ready SVG generated from local Keepa evidence; history, windows, comparison metrics, risk, and graph entities stay linked to source JSON.</text>
   {''.join(panels)}
 </svg>
 """
@@ -225,80 +451,230 @@ def _panel_product_comparison(products: list[Mapping[str, Any]], *, x: int, y: i
     max_value = max(values, default=1) or 1
     rows = []
     for index, product in enumerate(products[:6]):
-        row_y = y + 72 + index * 38
+        row_y = y + 70 + index * 34
         value = _num(product.get(metric)) or 0
-        bar_w = int((w - 230) * value / max_value)
+        bar_w = int((w - 190) * value / max_value)
         label = product.get("asin") or product.get("title")
         rows.append(
             f'<text x="{x + 20}" y="{row_y + 14}" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="{PALETTE["ink"]}">{_esc(label)}</text>'
-            f'<rect x="{x + 150}" y="{row_y}" width="{max(bar_w, 2)}" height="18" rx="3" fill="{PALETTE["blue"]}"/>'
-            f'<text x="{x + 160 + bar_w}" y="{row_y + 14}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">{_fmt(value)}</text>'
+            f'<rect x="{x + 118}" y="{row_y}" width="{max(bar_w, 2)}" height="18" rx="3" fill="{PALETTE["blue"]}"/>'
+            f'<text x="{x + 128 + bar_w}" y="{row_y + 14}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">{_fmt(value)}</text>'
         )
     if not rows:
         rows.append(_empty_panel_text(x, y, "No product metric rows found"))
     return _panel_frame(x, y, w, h, "A  Product comparison", f"Primary metric: {metric.replace('_', ' ')}") + "".join(rows) + "</g>"
 
 
-def _panel_risks(risks: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
+def _panel_history_lines(series: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
+    selected = _select_history_series(series)
+    plot_x = x + 58
+    plot_y = y + 74
+    plot_w = w - 96
+    plot_h = h - 124
+    elements = [
+        f'<line x1="{plot_x}" y1="{plot_y + plot_h}" x2="{plot_x + plot_w}" y2="{plot_y + plot_h}" stroke="{PALETTE["grid"]}" stroke-width="1"/>',
+        f'<line x1="{plot_x}" y1="{plot_y}" x2="{plot_x}" y2="{plot_y + plot_h}" stroke="{PALETTE["grid"]}" stroke-width="1"/>',
+    ]
+    colors = [PALETTE["teal"], PALETTE["blue"], PALETTE["yellow"], PALETTE["purple"]]
+    for index, item in enumerate(selected):
+        points = item.get("points") if isinstance(item.get("points"), list) else []
+        numeric = [_num(point.get("value")) for point in points if isinstance(point, Mapping)]
+        values = [value for value in numeric if value is not None]
+        if len(values) < 2:
+            continue
+        low = min(values)
+        high = max(values)
+        span = high - low or 1
+        coords = []
+        count = len(values)
+        for point_index, value in enumerate(values):
+            px = plot_x + (plot_w * point_index / max(count - 1, 1))
+            py = plot_y + plot_h - ((value - low) / span * plot_h)
+            coords.append(f"{px:.1f},{py:.1f}")
+        color = colors[index % len(colors)]
+        label = f'{item.get("asin") or "product"} {item.get("name")}'
+        elements.append(f'<polyline points="{" ".join(coords)}" fill="none" stroke="{color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>')
+        elements.append(f'<circle cx="{coords[-1].split(",")[0]}" cy="{coords[-1].split(",")[1]}" r="3.2" fill="{color}"/>')
+        elements.append(
+            f'<text x="{plot_x + index * 176}" y="{y + h - 28}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{color}">{_esc(str(label)[:28])}</text>'
+        )
+        elements.append(
+            f'<text x="{plot_x + index * 176}" y="{y + h - 15}" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["muted"]}">{_fmt(values[0])} -> {_fmt(values[-1])}</text>'
+        )
+    if len(elements) <= 2:
+        elements.append(_empty_panel_text(x, y, "No history_summary.last_points with numeric values found"))
+    return _panel_frame(x, y, w, h, "B  Price / rank history", "Real recent Keepa points when full Agent history is present") + "".join(elements) + "</g>"
+
+
+def _select_history_series(series: list[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
+    priority = {"new": 0, "buy_box_shipping": 1, "sales_rank": 2, "review_count": 3}
+    return sorted(
+        [item for item in series if isinstance(item, Mapping)],
+        key=lambda item: (str(item.get("asin") or ""), priority.get(str(item.get("name") or ""), 99)),
+    )[:4]
+
+
+def _panel_window_heatmap(cells: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
+    wanted_series = ["new", "buy_box_shipping", "sales_rank", "review_count", "rating", "new_offer_count"]
+    windows = sorted({str(cell.get("window") or "") for cell in cells if cell.get("window")}, key=_window_sort_key)
+    series = [name for name in wanted_series if any(cell.get("series") == name for cell in cells)]
+    if not series:
+        series = sorted({str(cell.get("series") or "") for cell in cells if cell.get("series")})[:6]
+    windows = windows[:6]
+    series = series[:6]
+    cell_w = min(76, max(38, int((w - 170) / max(len(windows), 1))))
+    cell_h = min(30, max(20, int((h - 120) / max(len(series), 1))))
+    start_x = x + 140
+    start_y = y + 78
+    lookup = {(str(cell.get("window")), str(cell.get("series"))): cell for cell in cells}
+    elements = []
+    for col, window in enumerate(windows):
+        elements.append(
+            f'<text x="{start_x + col * cell_w + cell_w / 2:.1f}" y="{start_y - 12}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["muted"]}">{_esc(window.replace("recent_", ""))}</text>'
+        )
+    for row, name in enumerate(series):
+        y0 = start_y + row * cell_h
+        elements.append(f'<text x="{x + 20}" y="{y0 + 18}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["ink"]}">{_esc(name[:18])}</text>')
+        for col, window in enumerate(windows):
+            cell = lookup.get((window, name))
+            change = _num(cell.get("change_pct")) if isinstance(cell, Mapping) else None
+            color = _heat_color(change)
+            label = "" if change is None else _fmt(change)
+            x0 = start_x + col * cell_w
+            elements.append(f'<rect x="{x0}" y="{y0}" width="{cell_w - 4}" height="{cell_h - 4}" rx="4" fill="{color}" stroke="#ffffff" stroke-width="1"/>')
+            if label:
+                elements.append(
+                    f'<text x="{x0 + (cell_w - 4) / 2:.1f}" y="{y0 + 17}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["ink"]}">{_esc(label)}%</text>'
+                )
+    if not elements:
+        elements.append(_empty_panel_text(x, y, "No temporal windows found; run with --agent-view --view research"))
+    return _panel_frame(x, y, w, h, "C  Window change heatmap", "Percent change by official Keepa history windows") + "".join(elements) + "</g>"
+
+
+def _heat_color(value: float | None) -> str:
+    if value is None:
+        return "#edf1f7"
+    if value < -20:
+        return "#b7e4d8"
+    if value < -5:
+        return "#d9f1e9"
+    if value > 20:
+        return "#f3b6b1"
+    if value > 5:
+        return "#f8d8ca"
+    return "#eef2f7"
+
+
+def _panel_small_multiples(rows: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
+    elements = []
+    card_w = int((w - 58) / 2)
+    card_h = 70
+    for index, row in enumerate(rows[:6]):
+        col = index % 2
+        line = index // 2
+        left = x + 20 + col * (card_w + 18)
+        top = y + 68 + line * (card_h + 12)
+        points = [point for point in row.get("points", []) if isinstance(point, Mapping)]
+        coords = []
+        point_elements = []
+        elements.append(f'<rect x="{left}" y="{top}" width="{card_w}" height="{card_h}" rx="6" fill="#fbfcff" stroke="{PALETTE["grid"]}" stroke-width="1"/>')
+        elements.append(f'<text x="{left + 10}" y="{top + 16}" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700" fill="{PALETTE["ink"]}">{_esc(str(row.get("label") or "")[:24])}</text>')
+        for point_index, point in enumerate(points[:4]):
+            score = _num(point.get("normalized_score")) or 0
+            px = left + 14 + point_index * ((card_w - 28) / max(min(len(points), 4) - 1, 1))
+            py = top + 48 - score * 34
+            coords.append(f"{px:.1f},{py:.1f}")
+            point_elements.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="3.2" fill="{PALETTE["blue"]}"/>')
+            point_elements.append(
+                f'<text x="{px:.1f}" y="{top + 63}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="7" fill="{PALETTE["muted"]}">{_esc(point.get("label"))}</text>'
+            )
+        if len(coords) >= 2:
+            elements.append(f'<polyline points="{" ".join(coords)}" fill="none" stroke="{PALETTE["blue"]}" stroke-width="1.8"/>')
+        elements.extend(point_elements)
+    if not elements:
+        elements.append(_empty_panel_text(x, y, "No comparable product metrics found"))
+    return _panel_frame(x, y, w, h, "D  Multi-ASIN small multiples", "Normalized current metrics; rank is inverted so higher is better") + "".join(elements) + "</g>"
+
+
+def _panel_risk_graph_summary(
+    risks: list[Mapping[str, Any]],
+    entities: list[Mapping[str, Any]],
+    signals: list[Mapping[str, Any]],
+    *,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+) -> str:
+    return (
+        _panel_frame(x, y, w, h, "E  Risk, graph, and fallback temporal signals", "Compact audit summary for Agent reports")
+        + _risk_bars(risks, x=x + 12, y=y + 54, w=360, h=h - 70)
+        + _entity_bars(entities, x=x + 410, y=y + 54, w=350, h=h - 70)
+        + _temporal_signal_bars(signals, x=x + 800, y=y + 54, w=360, h=h - 70)
+        + "</g>"
+    )
+
+
+def _risk_bars(risks: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
     values = [(str(item.get("code") or ""), int(item.get("count") or 0)) for item in risks if item.get("code")]
     max_value = max((value for _, value in values), default=1) or 1
     rows = []
-    for index, (code, value) in enumerate(values[:7]):
-        row_y = y + 72 + index * 32
+    for index, (code, value) in enumerate(values[:5]):
+        row_y = y + index * 27
         color = PALETTE["yellow"] if code == "data_missing" else PALETTE["red"] if "unstable" in code or "declining" in code else PALETTE["teal"]
-        bar_w = int((w - 240) * value / max_value)
+        bar_w = int((w - 190) * value / max_value)
         rows.append(
-            f'<text x="{x + 20}" y="{row_y + 13}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["ink"]}">{_esc(code)}</text>'
-            f'<rect x="{x + 210}" y="{row_y}" width="{max(bar_w, 2)}" height="16" rx="3" fill="{color}"/>'
-            f'<text x="{x + 220 + bar_w}" y="{row_y + 13}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">{value}</text>'
+            f'<text x="{x}" y="{row_y + 13}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["ink"]}">{_esc(code[:22])}</text>'
+            f'<rect x="{x + 160}" y="{row_y}" width="{max(bar_w, 2)}" height="15" rx="3" fill="{color}"/>'
+            f'<text x="{x + 166 + bar_w}" y="{row_y + 12}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["muted"]}">{value}</text>'
         )
     if not rows:
-        rows.append(_empty_panel_text(x, y, "No risk taxonomy codes found"))
-    return _panel_frame(x, y, w, h, "B  Risk taxonomy", "Machine-readable risk code frequency") + "".join(rows) + "</g>"
+        rows.append(f'<text x="{x}" y="{y + 18}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">No risk codes</text>')
+    return "".join(rows)
 
 
-def _panel_entities(entities: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
+def _entity_bars(entities: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
     values = [(str(item.get("type") or ""), int(item.get("count") or 0)) for item in entities if item.get("type")]
     max_value = max((value for _, value in values), default=1) or 1
     bars = []
-    bar_w = max(24, int((w - 90) / max(len(values), 1)) - 10)
-    for index, (kind, value) in enumerate(values[:10]):
-        left = x + 42 + index * (bar_w + 10)
-        bar_h = int((h - 120) * value / max_value)
-        top = y + h - 55 - bar_h
+    bar_w = max(20, int((w - 28) / max(len(values), 1)) - 8)
+    for index, (kind, value) in enumerate(values[:8]):
+        left = x + index * (bar_w + 8)
+        bar_h = int((h - 44) * value / max_value)
+        top = y + h - 26 - bar_h
         bars.append(
             f'<rect x="{left}" y="{top}" width="{bar_w}" height="{bar_h}" rx="3" fill="{PALETTE["teal"]}"/>'
             f'<text x="{left + bar_w / 2:.1f}" y="{top - 6}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">{value}</text>'
-            f'<text x="{left + bar_w / 2:.1f}" y="{y + h - 28}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["ink"]}">{_esc(kind[:10])}</text>'
+            f'<text x="{left + bar_w / 2:.1f}" y="{y + h - 6}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="{PALETTE["ink"]}">{_esc(kind[:9])}</text>'
         )
     if not bars:
-        bars.append(_empty_panel_text(x, y, "No research graph entities found"))
-    return _panel_frame(x, y, w, h, "C  Research graph", "Entity counts across merged evidence") + "".join(bars) + "</g>"
+        bars.append(f'<text x="{x}" y="{y + 18}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">No graph entities</text>')
+    return "".join(bars)
 
 
-def _panel_temporal(signals: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
+def _temporal_signal_bars(signals: list[Mapping[str, Any]], *, x: int, y: int, w: int, h: int) -> str:
     values = []
-    for item in signals[:8]:
+    for item in signals[:5]:
         value = _num(item.get("value"))
         if value is not None:
             values.append((str(item.get("name") or item.get("metric") or "signal"), value))
     max_abs = max((abs(value) for _, value in values), default=1) or 1
     rows = []
-    mid = x + 260
+    mid = x + 190
     for index, (name, value) in enumerate(values):
-        row_y = y + 70 + index * 28
-        bar_w = int((w - 320) * abs(value) / max_abs)
+        row_y = y + index * 27
+        bar_w = int((w - 240) * abs(value) / max_abs)
         color = PALETTE["green"] if value >= 0 else PALETTE["red"]
         bx = mid if value >= 0 else mid - bar_w
         rows.append(
-            f'<text x="{x + 20}" y="{row_y + 12}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["ink"]}">{_esc(name[:34])}</text>'
+            f'<text x="{x}" y="{row_y + 12}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["ink"]}">{_esc(name[:28])}</text>'
             f'<line x1="{mid}" y1="{row_y - 3}" x2="{mid}" y2="{row_y + 17}" stroke="{PALETTE["grid"]}" stroke-width="1"/>'
             f'<rect x="{bx}" y="{row_y}" width="{max(bar_w, 2)}" height="14" rx="3" fill="{color}"/>'
             f'<text x="{mid + (bar_w + 8 if value >= 0 else -bar_w - 8)}" y="{row_y + 11}" text-anchor="{"start" if value >= 0 else "end"}" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="{PALETTE["muted"]}">{_fmt(value)}</text>'
         )
     if not rows:
-        rows.append(_empty_panel_text(x, y, "No temporal features found in this payload"))
-    return _panel_frame(x, y, w, h, "D  Temporal signals", "Windowed or trend features when available") + "".join(rows) + "</g>"
+        rows.append(f'<text x="{x}" y="{y + 18}" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="{PALETTE["muted"]}">No fallback signals</text>')
+    return "".join(rows)
 
 
 def _panel_frame(x: int, y: int, w: int, h: int, title: str, subtitle: str) -> str:
@@ -341,6 +717,16 @@ def _fmt(value: float) -> str:
     if value == int(value):
         return str(int(value))
     return f"{value:.2f}"
+
+
+def _window_sort_key(name: str) -> int:
+    text = str(name)
+    if text.startswith("recent_") and text.endswith("d"):
+        number = text[len("recent_") : -1]
+        if number.isdigit():
+            return int(number)
+    digits = "".join(ch for ch in text if ch.isdigit())
+    return int(digits) if digits else 10**9
 
 
 def _dedupe_products(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -20,6 +20,7 @@ from keepa_cli import __version__
 from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
 from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names, workflow_runtime_contract
+from keepa_cli.figures import build_research_figures_from_payload
 from keepa_cli.research_brief import brief_graph_resource_payload, brief_resource_payload
 from keepa_cli.research_context import build_context_policy
 from keepa_cli.research_graph import extract_research_graphs, graph_summary
@@ -152,6 +153,12 @@ RESOURCE_TEMPLATES: tuple[dict[str, str], ...] = (
         "uriTemplate": "keepa://research/{cache_key}/graph",
         "name": "session-research-brief-graph-by-cache-key",
         "description": "Read graph summary from a cached research_brief.export result by cache key.",
+        "mimeType": "application/json",
+    },
+    {
+        "uriTemplate": "keepa://research/{cache_key}/figures",
+        "name": "session-research-figures-by-cache-key",
+        "description": "Generate or read local SVG figure resources for a cached AgentSession result by cache key.",
         "mimeType": "application/json",
     },
     {
@@ -443,6 +450,10 @@ def _read_research_cache_resource(
         cached = session_cache.get(cache_key) if session_cache is not None else None
         payload = brief_graph_resource_payload(cache_key, cached)
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
+    if token.endswith("/figures"):
+        cache_key = _decode_resource_identifier(token.removesuffix("/figures"))
+        payload = _research_figures_resource_payload(cache_key, session_cache=session_cache)
+        return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
     cache_key = _decode_resource_identifier(token)
     payload = _research_cache_payload(cache_key, session_cache=session_cache)
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}
@@ -482,6 +493,57 @@ def _research_cache_payload(
         }
     )
     return payload
+
+
+def _research_figures_resource_payload(
+    cache_key: str,
+    *,
+    session_cache: Mapping[str, Mapping[str, Any]] | None,
+) -> dict[str, Any]:
+    cached = session_cache.get(cache_key) if session_cache is not None else None
+    payload: dict[str, Any] = {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "cache_key": cache_key,
+        "found": isinstance(cached, Mapping),
+        "source": "agent_session",
+        "note": "Figure resources are generated locally from the same-session cached structured result; no Keepa request is made.",
+    }
+    if not isinstance(cached, Mapping):
+        payload["available_cache_keys"] = sorted(session_cache.keys()) if session_cache is not None else []
+        return payload
+
+    output_dir = Path(tempfile.gettempdir()) / "keepa-mcp-figures" / _safe_cache_dir_name(cache_key)
+    figure_result = build_research_figures_from_payload(
+        cached,
+        out_dir=str(output_dir),
+        title=f"Keepa Research {cache_key.split(':', 1)[0]}",
+        source_label=f"agent-session-cache:{cache_key}",
+    )
+    manifest = build_resource_manifest({"data": figure_result}) or {"resources": []}
+    payload.update(
+        {
+            "ok": True,
+            "command": cached.get("command"),
+            "figure_result": figure_result,
+            "mcp_resource_manifest": manifest,
+            "svg_resources": [
+                resource
+                for resource in manifest.get("resources", [])
+                if isinstance(resource, Mapping) and resource.get("mimeType") == "image/svg+xml"
+            ],
+            "source_data_resources": [
+                resource
+                for resource in manifest.get("resources", [])
+                if isinstance(resource, Mapping) and str(resource.get("path") or "").endswith(".source.json")
+            ],
+        }
+    )
+    return payload
+
+
+def _safe_cache_dir_name(cache_key: str) -> str:
+    token = _base64url_encode(cache_key)
+    return token[:96]
 
 
 def _read_graph_root_resource(

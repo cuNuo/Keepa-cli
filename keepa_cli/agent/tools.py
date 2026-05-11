@@ -507,6 +507,9 @@ REPORTS_BUILD_SCHEMA: JsonSchema = {
         },
         "out": _string_schema("Optional report output file path."),
         "title": _string_schema("Report title.", default="Keepa Report"),
+        "figure": _string_schema("Optional existing SVG/image path to embed in markdown/json reports."),
+        "figures_dir": _string_schema("Optional directory for automatically generated report SVG assets."),
+        "no_figures": _boolean_schema("Disable automatic local SVG generation and embedding.", default=False),
         "from_cache": _string_schema("Session cache key to reuse."),
     },
 }

@@ -891,6 +891,12 @@
             "mimeType": "str",
             "name": "str",
             "uriTemplate": "str"
+          },
+          {
+            "description": "str",
+            "mimeType": "str",
+            "name": "str",
+            "uriTemplate": "str"
           }
         ],
         "resources": [
@@ -4417,6 +4423,14 @@
                   "items": {},
                   "type": "str"
                 },
+                "figure": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "figures_dir": {
+                  "description": "str",
+                  "type": "str"
+                },
                 "format": {
                   "default": "str",
                   "description": "str",
@@ -4432,6 +4446,11 @@
                   "type": "str"
                 },
                 "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "no_figures": {
+                  "default": "bool",
                   "description": "str",
                   "type": "str"
                 },

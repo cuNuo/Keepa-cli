@@ -76,6 +76,9 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
             output_format=str(_param(params, "format", default="markdown")),
             out=_param(params, "out", "output"),
             title=str(_param(params, "title", default="Keepa Report")),
+            figure=_param(params, "figure"),
+            figures_dir=_param(params, "figures_dir", "figures-dir"),
+            embed_figures=not _bool_option(params, "no_figures", "no-figures"),
         )
     elif command == "audit.cost":
         specs = params.get("commands")

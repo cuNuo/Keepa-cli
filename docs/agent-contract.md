@@ -395,7 +395,9 @@ MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uri
 - `data.figures[].source_data_path`：图表源数据 JSON，便于审计。
 - `mcp_resource_manifest.resources[]`：MCP text fallback 中的 `keepa://output/...` 资源；SVG MIME 为 `image/svg+xml`。
 
-当前 SVG 是单文件多面板：产品指标对比、风险枚举频率、research graph 实体计数、时序信号摘要。Agent 报告应优先引用 SVG resource，再按需读取 source JSON 审计数据。
+当前 SVG 是单文件多面板：产品指标对比、真实 price/rank/review history 折线、窗口变化热图、多 ASIN 标准化 small multiples、风险与 research graph 审计摘要。若输入只有 compare 摘要而没有 full Agent history，图表会降级到当前指标与窗口/风险摘要，并在 source JSON 中保留 `data_basis`。
+
+`reports.build` 对 markdown/json 输出会默认在本地生成并嵌入同一 SVG；可用 `--figure` 复用已有 SVG，或用 `--no-figures` 关闭自动嵌图。MCP Agent 也可读取 `keepa://research/{cache_key}/figures`，从同一 session cache 生成 figure manifest，再按其中 `image/svg+xml` 的 `keepa://output/...` resource 插入报告。
 - `tracking-audit`：tracking list -> notifications / tracking detail / cost audit；推荐 `tracking-readonly` toolset 与 `tracking_readonly` profile，不暴露 tracking 写操作。
 
 ### history export/trend

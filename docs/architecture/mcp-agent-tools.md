@@ -364,7 +364,7 @@ MCP 输出必须延续现有 Agent profile：
 
 `research_brief.export` / `keepa.research_brief_export` 直接消费 merged graph JSON、多个 Agent payload 文件或 inline payload。它输出 `view=research_brief_export`，核心字段包括 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 和 `recommended_read_order`。MCP tool 调用成功后会进入同一 `AgentSession` cache，调研 Agent 可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 只回读图谱摘要，避免把所有原始 payload 再塞进上下文。
 
-`reports.build` 直接消费 merged graph JSON：Markdown 输出追加实体和关系表，JSON 输出增加 `research_graph_report`。这让 Agent 可以先用 `research_graph.merge` 固化实体图，再用 `research_brief.export` 固化机器可读 handoff，最后按需要用报告工具生成面向人类或下游系统的证据摘要；审计时通过 `keepa://graphs/{root}` 查图谱来源，通过 `keepa://research/{cache_key}` 查同一 MCP session 的缓存结果和 budget ledger。
+`reports.build` 直接消费 merged graph JSON：Markdown 输出追加 SVG figure、实体和关系表，JSON 输出增加 `figures` 与 `research_graph_report`。这让 Agent 可以先用 `research_graph.merge` 固化实体图，再用 `research_brief.export` 固化机器可读 handoff，最后按需要用报告工具生成面向人类或下游系统的证据摘要；审计时通过 `keepa://graphs/{root}` 查图谱来源，通过 `keepa://research/{cache_key}` 查同一 MCP session 的缓存结果和 budget ledger。`keepa://research/{cache_key}/figures` 会从 session cache 生成 SVG manifest，SVG 本体继续以 `keepa://output/...` 暴露，避免把大图直接塞进 tools/list 或普通文本 content。
 
 新增 MCP 层 provenance：
 
