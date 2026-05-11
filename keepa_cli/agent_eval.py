@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from keepa_cli.agent.mcp_http_contract import evaluate_streamable_http_contract
 from keepa_cli.agent.mcp import handle_mcp_message
 from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.tools import get_tool_definition, tool_params_to_command_params, validate_tool_arguments
@@ -153,6 +154,8 @@ def _payload_for_prepared_spec(spec: dict[str, Any], fixture_dir: Path) -> dict[
             if response is not None:
                 responses.append(response)
         return {"ok": True, "kind": "mcp_session", "responses": responses, "budget_ledger": session.ledger.to_dict()}
+    if kind == "mcp_streamable_http_contract":
+        return evaluate_streamable_http_contract(spec)
     raise AssertionError(f"unsupported agent eval spec kind: {kind}")
 
 

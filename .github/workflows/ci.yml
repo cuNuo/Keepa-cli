@@ -33,3 +33,21 @@ jobs:
         run: node bin/kc.js --json capabilities
         env:
           KEEPA_CLI_PYTHON: python
+
+  mcp-sdk-adapter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install package with official MCP SDK extra
+        run: python -m pip install -e ".[mcp-sdk]"
+      - name: Run SDK adapter unit tests
+        run: python -m unittest tests.test_mcp_sdk_adapter tests.test_mcp_http_contract -v
+      - name: Compare SDK adapter fixture
+        run: python scripts/compare_mcp_sdk_adapter_fixture.py
+      - name: Smoke official SDK typed client
+        run: python scripts/smoke_mcp_sdk_adapter_client.py
+      - name: Check Inspector fixture through SDK typed client
+        run: python scripts/check_mcp_sdk_adapter_typed_fixture.py

@@ -22,6 +22,28 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
+async def _collect_tool_pages(session: Any) -> tuple[list[Any], list[dict[str, Any]]]:
+    tools: list[Any] = []
+    pages: list[dict[str, Any]] = []
+    cursor: str | None = None
+    while True:
+        page = await session.list_tools(cursor=cursor)
+        page_tools = list(page.tools)
+        tools.extend(page_tools)
+        pages.append(
+            {
+                "count": len(page_tools),
+                "next_cursor": page.nextCursor,
+                "tool_names": [tool.name for tool in page_tools],
+                "meta": page.meta,
+            }
+        )
+        cursor = page.nextCursor
+        if not cursor:
+            break
+    return tools, pages
+
+
 async def _run_smoke() -> dict[str, Any]:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
@@ -39,10 +61,14 @@ async def _run_smoke() -> dict[str, Any]:
         async with stdio_client(server) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 initialize = await session.initialize()
-                tools = await session.list_tools()
-                tool_names = [tool.name for tool in tools.tools]
+                tool_list, tool_pages = await _collect_tool_pages(session)
+                tool_names = [tool.name for tool in tool_list]
                 if "keepa.context_policy" not in tool_names:
                     raise AssertionError("SDK adapter did not expose keepa.context_policy")
+                if not tool_pages or tool_pages[0]["tool_names"][0] != "keepa.context_policy":
+                    raise AssertionError("SDK adapter first tool page did not prioritize keepa.context_policy")
+                if len(tool_pages[0]["tool_names"]) > 8:
+                    raise AssertionError("SDK adapter first tool page is too large for Agent startup")
                 tool_result = await session.call_tool("keepa.context_policy", {})
                 if tool_result.isError or not tool_result.structuredContent:
                     raise AssertionError("keepa.context_policy did not return structuredContent")
@@ -64,6 +90,9 @@ async def _run_smoke() -> dict[str, Any]:
         },
         "tools": {
             "count": len(tool_names),
+            "page_count": len(tool_pages),
+            "first_page_names": tool_pages[0]["tool_names"],
+            "first_page_meta": tool_pages[0]["meta"],
             "has_context_policy": "keepa.context_policy" in tool_names,
         },
         "resources": {

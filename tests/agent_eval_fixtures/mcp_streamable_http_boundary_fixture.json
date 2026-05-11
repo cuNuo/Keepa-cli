@@ -1,0 +1,146 @@
+{
+  "id": "mcp_streamable_http_boundary_fixture",
+  "description": "Streamable HTTP adapter 前置合约：Origin 防护、MCP-Session-Id 生命周期和 JSON-RPC/HTTP 错误映射；当前只作为 fixture，不启用 HTTP transport。",
+  "kind": "mcp_streamable_http_contract",
+  "cases": [
+    {
+      "id": "origin-localhost-allowed",
+      "category": "origin",
+      "method": "POST",
+      "origin": "http://127.0.0.1:3000",
+      "allowed_origins": ["http://127.0.0.1:3000", "http://localhost:3000"],
+      "expected": {
+        "http_status": 200,
+        "decision": "allow"
+      }
+    },
+    {
+      "id": "origin-cross-site-rejected-before-json-decode",
+      "category": "origin",
+      "method": "POST",
+      "origin": "https://evil.example",
+      "allowed_origins": ["http://127.0.0.1:3000", "http://localhost:3000"],
+      "expected": {
+        "http_status": 403,
+        "decision": "reject",
+        "jsonrpc_error_code": -32000,
+        "jsonrpc_id": null
+      }
+    },
+    {
+      "id": "session-initialize-may-set-secure-visible-ascii-id",
+      "category": "session",
+      "method": "POST",
+      "jsonrpc_method": "initialize",
+      "session_state": "initializing",
+      "session_id": "7b3c4d5e6f7a8b9c-safe-session",
+      "expected": {
+        "http_status": 200,
+        "response_header": "MCP-Session-Id",
+        "session_id_visible_ascii": true
+      }
+    },
+    {
+      "id": "session-subsequent-request-missing-id",
+      "category": "session",
+      "method": "POST",
+      "jsonrpc_method": "tools/list",
+      "session_state": "missing",
+      "expected": {
+        "http_status": 400,
+        "jsonrpc_error_code": -32001,
+        "jsonrpc_id": null
+      }
+    },
+    {
+      "id": "session-expired-id-requires-new-initialize",
+      "category": "session",
+      "method": "POST",
+      "jsonrpc_method": "tools/list",
+      "session_state": "expired",
+      "session_id": "expired-visible-ascii-session",
+      "expected": {
+        "http_status": 404,
+        "jsonrpc_error_code": -32002,
+        "next_action": "send initialize without MCP-Session-Id"
+      }
+    },
+    {
+      "id": "session-delete-not-allowed-is-explicit",
+      "category": "session",
+      "method": "DELETE",
+      "session_state": "delete_not_allowed",
+      "session_id": "active-visible-ascii-session",
+      "expected": {
+        "http_status": 405,
+        "decision": "method_not_allowed"
+      }
+    },
+    {
+      "id": "error-malformed-json-parse-error",
+      "category": "error_mapping",
+      "method": "POST",
+      "error_kind": "parse_error",
+      "expected": {
+        "http_status": 400,
+        "content_type": "application/json",
+        "jsonrpc_error_code": -32700,
+        "jsonrpc_id": null
+      }
+    },
+    {
+      "id": "error-invalid-request-object",
+      "category": "error_mapping",
+      "method": "POST",
+      "error_kind": "invalid_request",
+      "expected": {
+        "http_status": 400,
+        "content_type": "application/json",
+        "jsonrpc_error_code": -32600,
+        "jsonrpc_id": null
+      }
+    },
+    {
+      "id": "error-application-jsonrpc-error-stays-json-response",
+      "category": "error_mapping",
+      "method": "POST",
+      "jsonrpc_method": "tools/call",
+      "error_kind": "application_jsonrpc_error",
+      "expected": {
+        "http_status": 200,
+        "content_type": "application/json",
+        "jsonrpc_error_code": -32602
+      }
+    },
+    {
+      "id": "notification-accepted-no-body",
+      "category": "error_mapping",
+      "method": "POST",
+      "jsonrpc_method": "notifications/initialized",
+      "error_kind": "notification_accepted",
+      "expected": {
+        "http_status": 202,
+        "body": null
+      }
+    }
+  ],
+  "assertions": [
+    {"path": "kind", "equals": "mcp_streamable_http_contract"},
+    {"path": "protocol_version", "equals": "2025-11-25"},
+    {"path": "endpoint_path", "equals": "/mcp"},
+    {"path": "session_header", "equals": "MCP-Session-Id"},
+    {"path": "required_categories", "contains": "origin"},
+    {"path": "required_categories", "contains": "session"},
+    {"path": "required_categories", "contains": "error_mapping"},
+    {"path": "missing_categories", "length": 0},
+    {"path": "case_count", "equals": 10},
+    {"path": "results.1.contract_status", "equals": 403},
+    {"path": "results.1.origin_allowed", "equals": false},
+    {"path": "results.2.session_id_visible_ascii", "equals": true},
+    {"path": "results.3.contract_status", "equals": 400},
+    {"path": "results.4.contract_status", "equals": 404},
+    {"path": "results.6.jsonrpc_error_code", "equals": -32700},
+    {"path": "results.8.contract_status", "equals": 200},
+    {"path": "results.9.contract_status", "equals": 202}
+  ]
+}

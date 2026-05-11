@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
+import binascii
 import importlib.util
 import importlib.metadata
 import json
@@ -27,6 +29,23 @@ SDK_PACKAGE = "mcp"
 ADAPTER_NAME = "keepa_mcp_sdk_adapter"
 PRODUCTION_ENTRYPOINT = "python -m keepa_cli --mcp"
 SDK_STDIO_ENTRYPOINT = "python -m keepa_cli.agent.mcp_sdk_adapter --stdio"
+SDK_DEFAULT_TOOL_PAGE_SIZE = 8
+SDK_AGENT_START_TOOLS = (
+    "keepa.context_policy",
+    "keepa.docs_index",
+    "keepa.workflow_plan",
+    "keepa.agent_profile_generate",
+    "keepa.products_get",
+    "keepa.products_compare",
+    "keepa.categories_search",
+    "keepa.finder_query",
+)
+SDK_AGENT_START_RESOURCES = (
+    "keepa://context/policy",
+    "keepa://tools/index",
+    "keepa://toolsets/research",
+    "keepa://guides/agent-profile",
+)
 SUPPORTED_SPIKE_METHODS = (
     "initialize",
     "tools/list",
@@ -64,6 +83,9 @@ def adapter_status() -> dict[str, Any]:
         "boundary": "protocol_adapter_only",
         "business_core": "AgentSession -> run_command",
         "supported_fixture_methods": list(SUPPORTED_SPIKE_METHODS),
+        "sdk_default_tool_page_size": SDK_DEFAULT_TOOL_PAGE_SIZE,
+        "sdk_agent_start_tools": list(SDK_AGENT_START_TOOLS),
+        "sdk_agent_start_resources": list(SDK_AGENT_START_RESOURCES),
         "streamable_http_rule": "streamable HTTP 只替换协议 adapter，继续复用 AgentSession/service/session cache。",
     }
 
@@ -200,6 +222,56 @@ def _current_mcp_result(
     return dict(result or {}) if isinstance(result, Mapping) else {}
 
 
+def _encode_sdk_cursor(offset: int) -> str:
+    raw = json.dumps({"sdk_offset": offset}, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
+
+
+def _decode_sdk_cursor(cursor: Any) -> int:
+    if cursor in (None, ""):
+        return 0
+    if not isinstance(cursor, str):
+        raise ValueError("SDK tools/list cursor must be a string")
+    padded = cursor + "=" * (-len(cursor) % 4)
+    try:
+        payload = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
+    except (binascii.Error, UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("SDK tools/list cursor is not valid") from exc
+    offset = payload.get("sdk_offset") if isinstance(payload, dict) else None
+    if not isinstance(offset, int) or offset < 0:
+        raise ValueError("SDK tools/list cursor does not contain a valid offset")
+    return offset
+
+
+def _sdk_ordered_tools(tools: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    priority = {name: index for index, name in enumerate(SDK_AGENT_START_TOOLS)}
+    indexed = [(index, dict(tool)) for index, tool in enumerate(tools)]
+    indexed.sort(key=lambda item: (priority.get(str(item[1].get("name")), len(priority) + item[0]), item[0]))
+    return [tool for _index, tool in indexed]
+
+
+def _sdk_tools_meta(*, total_count: int, offset: int, count: int, has_more: bool) -> dict[str, Any]:
+    return {
+        "count": count,
+        "total_count": total_count,
+        "offset": offset,
+        "limit": SDK_DEFAULT_TOOL_PAGE_SIZE,
+        "has_more": has_more,
+        "toolset": "all",
+        "adapter_start_strategy": {
+            "default_page_size": SDK_DEFAULT_TOOL_PAGE_SIZE,
+            "first_page_priority": list(SDK_AGENT_START_TOOLS),
+            "recommended_first_calls": [
+                {"method": "tools/call", "name": "keepa.context_policy", "arguments": {}},
+                {"method": "resources/read", "uri": "keepa://tools/index"},
+                {"method": "resources/read", "uri": "keepa://toolsets/research"},
+            ],
+            "resource_first_uris": list(SDK_AGENT_START_RESOURCES),
+            "note": "官方 SDK typed list_tools 只支持标准 cursor；adapter 默认分页展示 all toolset，Agent 应先读 policy/resource，再按 nextCursor 拉取更多 schema。",
+        },
+    }
+
+
 def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
     """创建官方 Python SDK low-level Server。
 
@@ -212,26 +284,30 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
         "keepa_mcp",
         version=__version__,
         instructions=(
-            "Use Keepa MCP tools with structured params. Prefer fixture or dry_run before live calls. "
+            "Use keepa.context_policy first, then prefer keepa://tools/index or keepa://toolsets/research "
+            "before paging through every tool schema. Prefer fixture or dry_run before live calls. "
             "High-cost requests return confirmation_required unless yes=true is supplied."
         ),
     )
     session = AgentSession(env=env)
 
     async def _list_tools(req: Any) -> Any:
-        params = {"toolset": "all"}
-        if getattr(req, "params", None) and req.params.cursor:
-            params["cursor"] = req.params.cursor
-        result = _current_mcp_result("tools/list", params, session=session, env=env)
-        tools = [_tool_to_sdk(types, tool) for tool in result.get("tools") or []]
+        cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
+        offset = _decode_sdk_cursor(cursor)
+        result = _current_mcp_result("tools/list", {"toolset": "all"}, session=session, env=env)
+        ordered = _sdk_ordered_tools(result.get("tools") or [])
+        page = ordered[offset : offset + SDK_DEFAULT_TOOL_PAGE_SIZE]
+        next_offset = offset + len(page)
+        has_more = next_offset < len(ordered)
+        tools = [_tool_to_sdk(types, tool) for tool in page]
         server._tool_cache.clear()
         for tool in tools:
             server._tool_cache[tool.name] = tool
         return types.ServerResult(
             types.ListToolsResult(
                 tools=tools,
-                nextCursor=result.get("nextCursor"),
-                _meta=result.get("_meta"),
+                nextCursor=_encode_sdk_cursor(next_offset) if has_more else None,
+                _meta=_sdk_tools_meta(total_count=len(ordered), offset=offset, count=len(page), has_more=has_more),
             )
         )
     server.request_handlers[types.ListToolsRequest] = _list_tools
