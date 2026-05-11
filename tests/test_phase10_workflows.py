@@ -402,6 +402,23 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertEqual(data["next_actions"][0]["tool"], "tracking.list")
         self.assertNotIn("tracking.add", {step["tool"] for step in data["steps"]})
 
+    def test_workflow_plan_business_aliases_are_offline_profile(self):
+        for name, mcp_tool in (
+            ("velocity-research", "keepa.find_fast_movers"),
+            ("inventory-audit", "keepa.inventory_audit"),
+            ("market-opportunity", "keepa.market_opportunity"),
+        ):
+            payload = run_command("workflow.plan", {"name": name, "domain": "US"}, env={})
+            self.assertTrue(payload["ok"], name)
+            data = payload["data"]
+            self.assertEqual(data["workflow_policy"]["recommended_toolset"], "business")
+            self.assertEqual(data["workflow_policy"]["recommended_profile"], "offline_fixture_only")
+            self.assertEqual(data["workflow_policy"]["inactive_tools"], [])
+            self.assertEqual(data["steps"][0]["mcp_tool"], mcp_tool)
+            self.assertEqual(data["steps"][0]["estimated_tokens"], 0)
+            self.assertIn("business_input", data["workflow_inputs"])
+            self.assertIn("business_metrics", data["artifacts"])
+
     def test_cli_workflow_commands_return_json(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             asin_file = Path(temp_dir) / "asins.txt"

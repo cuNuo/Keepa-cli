@@ -84,7 +84,17 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         docs_names = {item["name"] for item in docs["result"]["tools"]}
-        self.assertEqual({"keepa.docs_index", "keepa.docs_read", "keepa.context_policy", "keepa.query_research_context"}, docs_names)
+        self.assertEqual(
+            {"keepa.docs_index", "keepa.docs_read", "keepa.context_policy", "keepa.query_research_context", "keepa.agent_profile_generate"},
+            docs_names,
+        )
+
+        business = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "business", "method": "tools/list", "params": {"toolset": "business"}}),
+            env={},
+        )
+        business_names = {item["name"] for item in business["result"]["tools"]}
+        self.assertEqual({"keepa.find_fast_movers", "keepa.inventory_audit", "keepa.market_opportunity", "keepa.agent_profile_generate"}, business_names)
 
         tracking = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "tracking", "method": "tools/list", "params": {"toolset": "tracking-readonly"}}),
@@ -165,6 +175,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(response["result"]["profile"], "offline_fixture_only")
         self.assertIn("offline_fixture_only", response["result"]["available_profiles"])
         self.assertTrue(tools["keepa.context_policy"]["x-keepa"]["active"])
+        self.assertTrue(tools["keepa.find_fast_movers"]["x-keepa"]["active"])
         self.assertFalse(tools["keepa.products_get"]["x-keepa"]["active"])
         self.assertIn("inactive_tool", tools["keepa.products_get"]["x-keepa"]["inactive_reason"])
 
@@ -208,6 +219,9 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa.product_research", names)
         self.assertIn("keepa.project_onboarding", names)
         self.assertIn("keepa.research_agent_start", names)
+        self.assertIn("keepa.inventory_audit", names)
+        self.assertIn("keepa.velocity_research", names)
+        self.assertIn("keepa.market_opportunity", names)
 
         prompt = handle_mcp_message(
             json.dumps(
@@ -364,6 +378,30 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["data"]["view"], "finder_selection_scaffold")
         self.assertEqual(structured["data"]["selection"]["categories_include"], [1055398])
         self.assertEqual(structured["budget_ledger"]["session_consumed"], 0)
+
+    def test_tools_call_business_alias_returns_formula_metadata(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "business-alias",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "keepa.find_fast_movers",
+                        "arguments": {"fixture": "product_agent_view_B0TEST.json", "profile": "offline_fixture_only"},
+                    },
+                }
+            ),
+            env={},
+        )
+
+        structured = response["result"]["structuredContent"]
+        self.assertTrue(structured["ok"])
+        self.assertEqual(structured["data"]["view"], "business_metrics")
+        metric = structured["data"]["products"][0]["metrics"]["velocity"]
+        self.assertEqual(metric["method"], "monthly_sold_direct_v1")
+        self.assertIn("confidence", metric)
+        self.assertIn("evidence_path", metric)
 
     def test_tools_call_workflow_plan_returns_profile_policy(self):
         response = handle_mcp_message(
@@ -645,6 +683,9 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("keepa://schema/workflow-runtime-contract", uris)
         self.assertIn("keepa://fixtures/manifest", uris)
         self.assertIn("keepa://guides/cassette-promotion", uris)
+        self.assertIn("keepa://guides/categories", uris)
+        self.assertIn("keepa://guides/marketplaces", uris)
+        self.assertIn("keepa://guides/agent-profile", uris)
         self.assertIn("keepa://evidence/recent", uris)
         self.assertIn("keepa://tools/index", uris)
         self.assertIn("keepa://workflow/runtime-contract", uris)

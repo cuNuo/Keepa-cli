@@ -272,6 +272,13 @@ def show_template(name: str, out: str | None = None) -> dict[str, Any]:
 
 
 def _mcp_tool_name(tool: str) -> str:
+    business_aliases = {
+        "business.find-fast-movers": "keepa.find_fast_movers",
+        "business.inventory-audit": "keepa.inventory_audit",
+        "business.market-opportunity": "keepa.market_opportunity",
+    }
+    if tool in business_aliases:
+        return business_aliases[tool]
     return "keepa." + tool.replace(".", "_").replace("-", "_")
 
 
@@ -609,6 +616,40 @@ def _tracking_audit_plan(*, asin: str | None, domain: str) -> list[dict[str, Any
     ]
 
 
+def _business_alias_plan(*, name: str, domain: str) -> list[dict[str, Any]]:
+    command_by_name = {
+        "velocity-research": "business.find-fast-movers",
+        "inventory-audit": "business.inventory-audit",
+        "market-opportunity": "business.market-opportunity",
+    }
+    cli_by_name = {
+        "velocity-research": "business find-fast-movers --input <PRODUCTS_JSON>",
+        "inventory-audit": "business inventory-audit --input <PRODUCTS_JSON>",
+        "market-opportunity": "business market-opportunity --input <PRODUCTS_JSON>",
+    }
+    reason_by_name = {
+        "velocity-research": "turn existing product evidence into monthlySold and velocity metrics with formula confidence",
+        "inventory-audit": "turn existing product evidence into stockout, seller count, and replenishment risk signals",
+        "market-opportunity": "combine velocity, competition, inventory, and cashflow proxy into a conclusion-first shortlist",
+    }
+    command = command_by_name[name]
+    return [
+        _plan_step(
+            step_id=name,
+            title=name.replace("-", " ").title(),
+            action=build_action(
+                tool=command,
+                params={"input": "<PRODUCTS_JSON>", "domain": domain},
+                cli=cli_by_name[name],
+                reason=reason_by_name[name],
+                estimated_tokens=0,
+                requires_confirmation=False,
+            ),
+            fixture_replay="product_agent_view_B0TEST.json",
+        ),
+    ]
+
+
 def _workflow_resource_templates(name: str) -> list[dict[str, str]]:
     templates = [
         {
@@ -622,7 +663,7 @@ def _workflow_resource_templates(name: str) -> list[dict[str, str]]:
             "use": "load offline replay fixture referenced by a step",
         },
     ]
-    if name in {"category-research", "product-research", "report-research"}:
+    if name in {"category-research", "product-research", "report-research", "velocity-research", "inventory-audit", "market-opportunity"}:
         templates.extend(
             [
                 {
@@ -697,6 +738,13 @@ def _workflow_inputs(*, name: str, term: str | None, asin: str | None, domain: s
             "source": "params.asin or artifacts.tracking_list",
             "description": "Tracked ASIN to inspect; can be chosen after list-tracking.",
         }
+    elif name in {"velocity-research", "inventory-audit", "market-opportunity"}:
+        common["business_input"] = {
+            "required": True,
+            "value": "<PRODUCTS_JSON>",
+            "source": "local file, resource_uri, artifact, or inline payload",
+            "description": "Existing Keepa CLI JSON containing raw products, Agent view products, or compare rows.",
+        }
     return common
 
 
@@ -733,6 +781,14 @@ def _workflow_artifacts(name: str) -> dict[str, dict[str, Any]]:
             "tracking_detail": {"kind": "tracking_detail", "produced_by": "get-tracking-detail"},
             "tracking_cost_estimate": {"kind": "budget_estimate", "produced_by": "audit-tracking-cost"},
         }
+    elif name in {"velocity-research", "inventory-audit", "market-opportunity"}:
+        artifacts = {
+            "business_metrics": {
+                "kind": "business_metrics",
+                "produced_by": name,
+                "resource_templates": ["keepa://research/{cache_key}", "keepa://output/{encoded_path}"],
+            }
+        }
     return artifacts
 
 
@@ -746,6 +802,9 @@ def _workflow_policy(name: str, steps: list[dict[str, Any]], totals: Mapping[str
     elif name == "tracking-audit":
         recommended_toolset = "tracking-readonly"
         recommended_profile = "tracking_readonly"
+    elif name in {"velocity-research", "inventory-audit", "market-opportunity"}:
+        recommended_toolset = "business"
+        recommended_profile = "offline_fixture_only"
     else:
         recommended_toolset = "research"
         recommended_profile = "live_read_allowed"
@@ -854,8 +913,13 @@ def build_workflow_plan(*, name: str, term: str | None, asin: str | None, domain
         steps = _report_research_plan(domain=domain, goal=goal)
     elif name == "tracking-audit":
         steps = _tracking_audit_plan(asin=asin, domain=domain)
+    elif name in {"velocity-research", "inventory-audit", "market-opportunity"}:
+        steps = _business_alias_plan(name=name, domain=domain)
     else:
-        raise ValueError("workflow plan supports category-research, product-research, report-research, and tracking-audit")
+        raise ValueError(
+            "workflow plan supports category-research, product-research, report-research, tracking-audit, "
+            "velocity-research, inventory-audit, and market-opportunity"
+        )
 
     totals = {
         "estimated_tokens": sum(int(step["estimated_tokens"]) for step in steps),
@@ -937,9 +1001,26 @@ def _report_rows_from_input(payload: Any) -> list[dict[str, Any]]:
     return _product_rows(payload if isinstance(payload, Mapping) else {})
 
 
-def _report_markdown(title: str, rows: list[dict[str, Any]], source: str) -> str:
+def _report_markdown(title: str, rows: list[dict[str, Any]], source: str, graph_report: Mapping[str, Any] | None = None) -> str:
+    diagnostics = graph_report.get("diagnostics") if isinstance(graph_report, Mapping) and isinstance(graph_report.get("diagnostics"), Mapping) else {}
+    graph_summary = graph_report.get("summary") if isinstance(graph_report, Mapping) and isinstance(graph_report.get("summary"), Mapping) else {}
+    risk_notes = []
+    if diagnostics:
+        risk_notes.append(f"{diagnostics.get('conflict_count', 0)} graph conflicts")
+        risk_notes.append(f"{diagnostics.get('orphan_node_count', 0)} orphan nodes")
+    if not rows and graph_report is None:
+        risk_notes.append("no report rows or graph evidence")
     lines = [
         f"# {title}",
+        "",
+        "## Brief",
+        "",
+        f"- Decision: {'review graph-backed evidence before acting' if graph_report is not None else 'review generated rows before acting'}",
+        f"- Risk: {', '.join(risk_notes) if risk_notes else 'no report-level blocker detected'}",
+        f"- Next action: read the evidence table, then inspect graph/entity sections only where the brief flags risk.",
+        f"- Graph root: `{graph_summary.get('root', '')}`" if graph_summary else "- Graph root: not available",
+        "",
+        "## Evidence Table",
         "",
         f"- Generated: {utc_now_iso()}",
         f"- Source: `{source}`",
@@ -1161,7 +1242,7 @@ def build_report(
         enabled=embed_figures and fmt in {"markdown", "json"},
     )
     if fmt == "markdown":
-        content: Any = _report_markdown(title, rows, input_path)
+        content: Any = _report_markdown(title, rows, input_path, graph_report)
         if figure_info is not None:
             content = str(content).rstrip() + "\n" + _figures_markdown(figure_info) + "\n"
         if graph_report is not None:
@@ -1215,10 +1296,11 @@ def explain_cache(*, input_path: str | None, command: str | None, endpoint: str 
             provenance = dict(data["provenance"])
         elif isinstance(payload.get("provenance"), Mapping):
             provenance = dict(payload["provenance"])
-    estimated = estimate_request_budget(command or str(payload.get("command", ""))).to_dict()
+    payload_command = payload.get("command", "") if isinstance(payload, Mapping) else ""
+    estimated = estimate_request_budget(command or str(payload_command)).to_dict()
     return {
         "input": input_path,
-        "command": command or payload.get("command"),
+        "command": command or payload_command,
         "endpoint": endpoint or provenance.get("endpoint"),
         "source": provenance.get("source", "unknown"),
         "cache_hit": bool(provenance.get("cache_hit", False)),

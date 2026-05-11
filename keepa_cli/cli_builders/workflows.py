@@ -72,7 +72,15 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     workflow_plan = workflow_subparsers.add_parser("plan", help="生成不耗 token 的 Agent 执行图。")
     workflow_plan.add_argument(
         "name",
-        choices=("category-research", "product-research", "report-research", "tracking-audit"),
+        choices=(
+            "category-research",
+            "product-research",
+            "report-research",
+            "tracking-audit",
+            "inventory-audit",
+            "velocity-research",
+            "market-opportunity",
+        ),
         help="工作流名称。",
     )
     workflow_plan.add_argument("--term", help="category-research 使用的关键词。")

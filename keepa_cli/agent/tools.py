@@ -21,6 +21,7 @@ TOOLSET_GROUPS: dict[str, set[str] | None] = {
     "audit": {"audit"},
     "docs": {"docs"},
     "reports": {"reports"},
+    "business": {"business"},
     "tracking-readonly": {"tracking-readonly"},
     "all": None,
 }
@@ -40,6 +41,10 @@ PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
         "keepa.browse_snapshot",
         "keepa.figures_research",
         "keepa.cassettes_sanitize",
+        "keepa.find_fast_movers",
+        "keepa.inventory_audit",
+        "keepa.market_opportunity",
+        "keepa.agent_profile_generate",
     },
     "dry_run_default": {
         "keepa.docs_index",
@@ -61,6 +66,10 @@ PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
         "keepa.reports_build",
         "keepa.browse_snapshot",
         "keepa.figures_research",
+        "keepa.find_fast_movers",
+        "keepa.inventory_audit",
+        "keepa.market_opportunity",
+        "keepa.agent_profile_generate",
     },
     "live_read_allowed": None,
     "tracking_readonly": {
@@ -350,7 +359,15 @@ WORKFLOW_PLAN_SCHEMA: JsonSchema = {
     "properties": {
         "name": {
             "type": "string",
-            "enum": ["category-research", "product-research", "report-research", "tracking-audit"],
+            "enum": [
+                "category-research",
+                "product-research",
+                "report-research",
+                "tracking-audit",
+                "inventory-audit",
+                "velocity-research",
+                "market-opportunity",
+            ],
             "description": "Agent workflow plan name.",
         },
         "term": _string_schema("Keyword for category-research plans."),
@@ -358,6 +375,38 @@ WORKFLOW_PLAN_SCHEMA: JsonSchema = {
         "domain": _string_schema("Keepa domain code, id, or host suffix.", default="US"),
         "goal": _string_schema("Research goal, for example deal or research.", default="research"),
         "hydrate_top": _integer_schema("Optional explicit top-N hydration step for category plans.", minimum=0, default=0),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
+BUSINESS_METRICS_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "input": _string_schema("Local Keepa CLI JSON file containing raw products, Agent view products, or compare rows."),
+        "fixture": _string_schema("Fixture file name under tests/fixtures."),
+        "domain": _string_schema("Keepa domain code carried for evidence context.", default="US"),
+        "payload": {
+            "oneOf": [{"type": "object"}, {"type": "array", "items": {}}],
+            "description": "Inline Keepa CLI payload, Agent view, product list, or compare rows.",
+        },
+        "threshold_monthly_sold": _integer_schema("MonthlySold threshold used to mark fast movers.", minimum=0, default=500),
+        "target_days": _integer_schema("Inventory risk target window in days.", minimum=1, default=30),
+        "max_results": _integer_schema("Optional maximum product rows to return.", minimum=1),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
+AGENT_PROFILE_GENERATE_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "server_name": _string_schema("MCP server name in the generated client config snippet.", default="keepa"),
+        "profile": _string_schema("Recommended profile for tools/list and tools/call.", default="dry_run_default"),
+        "toolset": _string_schema("Recommended toolset for tools/list.", default="research"),
+        "python_command": _string_schema("Optional Python command/path for the generated stdio entrypoint."),
         "from_cache": _string_schema("Session cache key to reuse."),
     },
 }
@@ -835,6 +884,41 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "planning"),
     ),
     ToolDefinition(
+        name="keepa.find_fast_movers",
+        command="business.find-fast-movers",
+        description="Business alias: rank local Keepa product outputs by monthlySold or velocity proxy with formula confidence metadata.",
+        input_schema=BUSINESS_METRICS_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
+        groups=("business", "research"),
+    ),
+    ToolDefinition(
+        name="keepa.inventory_audit",
+        command="business.inventory-audit",
+        description="Business alias: audit local product outputs for inventory and stockout risk with method/input/confidence evidence.",
+        input_schema=BUSINESS_METRICS_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
+        groups=("business", "research"),
+    ),
+    ToolDefinition(
+        name="keepa.market_opportunity",
+        command="business.market-opportunity",
+        description="Business alias: combine velocity, seller competition, inventory risk, and cashflow proxy into a conclusion-first opportunity brief.",
+        input_schema=BUSINESS_METRICS_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
+        groups=("business", "research"),
+    ),
+    ToolDefinition(
+        name="keepa.agent_profile_generate",
+        command="agent.profile.generate",
+        description="Generate a neutral Agent MCP client config snippet plus recommended toolset/profile choices.",
+        input_schema=AGENT_PROFILE_GENERATE_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        groups=("business", "docs", "research"),
+    ),
+    ToolDefinition(
         name="keepa.research_graph_merge",
         command="research_graph.merge",
         description="Merge research_graph objects from category, product, compare, deal, and seller outputs without calling Keepa.",
@@ -1138,7 +1222,7 @@ def workflow_runtime_contract() -> dict[str, Any]:
         if tool.workflow_runtime
     ]
     return {
-        "schema_version": "2026-05-11.2",
+        "schema_version": "2026-05-11.3",
         "schema_resource_uri": "keepa://schema/workflow-runtime-contract",
         "argument_names": args,
         "tool_count": len(tools),

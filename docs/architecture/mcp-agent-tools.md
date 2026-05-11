@@ -2,7 +2,7 @@
 
 ## 背景
 
-Keepa-cli 已经具备 `--json`、`--stdio`、结构化 `next_actions`、Agent 视图、workflow plan 和离线 fixture。下一阶段需要给 Codex、Claude Code 和其他 Agent 暴露 MCP tools，让 Agent 直接调用强类型工具，而不是拼接 CLI 字符串。
+Keepa-cli 已经具备 `--json`、`--stdio`、结构化 `next_actions`、Agent 视图、workflow plan 和离线 fixture。下一阶段需要给 Agent 与其他 MCP 客户端暴露 MCP tools，让 Agent 直接调用强类型工具，而不是拼接 CLI 字符串。
 
 本设计基于以下调研结论：
 
@@ -405,7 +405,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 
 - `tests/test_mcp.py`
   - `initialize` 返回 server info 和 protocol version。
-  - `tools/list` 默认只返回 research，并能按 `audit/reports/tracking-readonly/all` 过滤。
+  - `tools/list` 默认只返回 research，并能按 `audit/business/reports/tracking-readonly/all` 过滤。
   - `tools/call keepa.categories_search` 使用 fixture 返回 `category_candidates`。
   - `tools/call keepa.categories_finder_selection` 本地生成 Finder scaffold，不累计 token。
   - `tools/call keepa.deals_query` 使用 fixture 返回 deal/product `research_graph`。
@@ -475,7 +475,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 
 三个示例统一支持 `--save-summary <path>`；评测与示例共用 `keepa_cli.risk_schema`，避免 `risk_taxonomy` schema 子集校验在不同入口漂移。
 
-输出只保留 tool names、cache/resource URI、风险校验结果、graph counts、brief one-line、report graph counts 与最终 ledger，适合作为 Codex、Claude Code 或自研 Agent 的接入样板。
+输出只保留 tool names、cache/resource URI、风险校验结果、graph counts、brief one-line、report graph counts 与最终 ledger，适合作为 Agent 或自研 MCP 客户端的接入样板。
 
 ## 实施顺序
 
@@ -489,7 +489,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 8. 落地 `research_graph`、统一 `risk_taxonomy`，并让 evaluation specs 断言 Agent 语义质量。（已完成）
 9. 落地 cassette promote workflow：真实响应 -> sanitize -> 双份 fixture -> manifest。（已完成）
 10. 落地 `cassettes.promote_and_verify` / `keepa.cassettes_promote_and_verify`：promote 后检查 fixture parity，并可选运行 Agent eval fixtures。（已完成）
-11. 落地 MCP toolset 动态过滤：`research/audit/reports/tracking-readonly/all`。（已完成）
+11. 落地 MCP toolset 动态过滤：`research/audit/business/reports/tracking-readonly/all`。（已完成）
 12. 把 `research_graph` 扩展到 category/finder/deals/seller/ranking 输出。（已完成）
 13. 落地 `research_graph.merge` 与 `keepa.research_graph_merge`，合并 category -> products -> compare -> seller 研究图。（已完成）
 14. 落地 `research_brief.export` 与 `keepa.research_brief_export`，把 merged graph 或多 payload 汇总为调研 Agent handoff。（已完成）
@@ -518,7 +518,7 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 3. 给 `research_graph.merge` 增加图谱 diff 视图和可选 source preference，帮助 Agent 在冲突来源中做确定性选择。（已完成）
 4. session profile 已与 `workflow.plan` 联动：`workflow_policy` 输出 recommended profile、allowed/inactive tools、profile switch points、确认策略、cache policy 和 budget ledger seed。
 5. workflow policy resource template 已完成，资源优先客户端可不加载完整 plan 先读取执行策略。
-6. `workflow.plan` 覆盖四类内置计划：`category-research`、`product-research`、`report-research`、`tracking-audit`；其中 report 计划固定走 `reports` + `offline_fixture_only`，tracking 计划固定走 `tracking-readonly` + `tracking_readonly`。
+6. `workflow.plan` 覆盖 `category-research`、`product-research`、`report-research`、`tracking-audit`、`inventory-audit`、`velocity-research` 与 `market-opportunity`；其中 report 计划固定走 `reports` + `offline_fixture_only`，tracking 计划固定走 `tracking-readonly` + `tracking_readonly`，business 计划固定走 `business` + `offline_fixture_only`。
 7. `workflow.plan` 已输出 `workflow_inputs`、`artifacts` 与 step 输入/产物引用，Agent 不需要再解析 CLI 字符串来连接图谱、brief、报告和 tracking 只读产物。
 8. MCP workflow resolver 已能把 session cache/resource/path/inline artifact/output.path 以及嵌套 `workflow_context.steps/outputs/results` 转为实际工具参数，并用 `missing_inputs` 明确提示缺失依赖。
 9. 后续按需增加远程 MCP transport 或官方 Python SDK 适配。

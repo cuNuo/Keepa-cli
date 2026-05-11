@@ -16,6 +16,8 @@ from typing import Any
 from keepa_cli.agent_contract import attach_agent_profile
 from keepa_cli.capabilities import build_capabilities
 from keepa_cli.cassettes import promote_cassette_fixture, sanitize_cassette_file
+from keepa_cli.commands.business import can_handle as can_handle_business_command
+from keepa_cli.commands.business import handle_business_command
 from keepa_cli.commands.cache import can_handle as can_handle_cache_command
 from keepa_cli.commands.cache import handle_cache_command
 from keepa_cli.commands.categories import can_handle as can_handle_category_command
@@ -548,7 +550,7 @@ def _research_graph_merge(params: Mapping[str, Any]) -> dict[str, Any]:
     out = _param(params, "out", "output")
     if out:
         output_path = Path(str(out))
-        if output_path.parent:
+        if output_path.parent != Path("."):
             output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(graph, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         data["output"] = {"path": str(output_path), "format": "json", "size_bytes": output_path.stat().st_size}
@@ -587,7 +589,7 @@ def _research_brief_export(params: Mapping[str, Any]) -> dict[str, Any]:
     out = _param(params, "out", "output")
     if out:
         output_path = Path(str(out))
-        if output_path.parent:
+        if output_path.parent != Path("."):
             output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         data["output"] = {"path": str(output_path), "format": "json", "size_bytes": output_path.stat().st_size}
@@ -637,6 +639,8 @@ def run_command(
             return handle_docs_command(command, params)
         if can_handle_workflow_command(command):
             return handle_workflow_command(command, params)
+        if can_handle_business_command(command):
+            return handle_business_command(command, params, fixture_dir=fixture_dir)
         if can_handle_product_command(command):
             return handle_product_command(command, params, fixture_dir=fixture_dir)
         if can_handle_category_command(command):

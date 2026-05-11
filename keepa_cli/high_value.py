@@ -72,7 +72,7 @@ def _result_count(body: dict[str, Any] | list[Any]) -> int:
 def write_body_output(data: dict[str, Any], output_path: Path | str) -> dict[str, Any]:
     body = _body_from_payload_data(data)
     path = Path(output_path)
-    if path.parent:
+    if path.parent != Path("."):
         path.parent.mkdir(parents=True, exist_ok=True)
     content = json.dumps(body, ensure_ascii=False, indent=2, sort_keys=True)
     path.write_text(content + "\n", encoding="utf-8")

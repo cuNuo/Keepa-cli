@@ -63,6 +63,7 @@ keepa_cli = ["fixtures/*.json"]
 
 [tool.coverage.run]
 source = ["keepa_cli"]
+branch = true
 omit = [
     "keepa_cli/ui/*",
     "keepa_cli/cli.py",

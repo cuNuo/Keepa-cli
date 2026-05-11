@@ -17,6 +17,7 @@ from typing import Any
 from keepa_cli import __version__
 from keepa_cli.agent.mcp import iter_mcp_stream
 from keepa_cli.agent.stdio import iter_stdio_output
+from keepa_cli.cli_builders.business import add_business_parser, maybe_run_business_command
 from keepa_cli.cli_builders.cache import add_cache_parser, maybe_run_cache_command
 from keepa_cli.cli_builders.categories import add_categories_parser, maybe_run_categories_command
 from keepa_cli.cli_builders.common import add_live_cache_options, live_cache_params
@@ -111,6 +112,7 @@ def _build_parser() -> argparse.ArgumentParser:
     brief.add_argument("--out", help="把 brief 写入 JSON 文件。")
 
     add_cache_parser(subparsers)
+    add_business_parser(subparsers)
     add_workflow_parsers(subparsers)
     add_products_parser(subparsers)
     add_categories_parser(subparsers)
@@ -299,6 +301,10 @@ def _run_command(args: argparse.Namespace) -> tuple[int, dict[str, Any] | str]:
     cache_result = maybe_run_cache_command(args)
     if cache_result is not None:
         return cache_result
+
+    business_result = maybe_run_business_command(args)
+    if business_result is not None:
+        return business_result
 
     workflow_result = maybe_run_workflow_command(args, parse_params=_parse_params)
     if workflow_result is not None:

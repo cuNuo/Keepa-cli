@@ -111,7 +111,7 @@ kc = "keepa_cli.cli:main"
 
 ## 4. MCP JSON-RPC stdio
 
-`--mcp` 用于 Codex、Claude Code 和其他 MCP 客户端。stdin 每行一个 JSON-RPC 请求，stdout 每行一个 JSON-RPC 响应。
+`--mcp` 用于 Agent 与其他 MCP 客户端。stdin 每行一个 JSON-RPC 请求，stdout 每行一个 JSON-RPC 响应。
 
 列出工具：
 
@@ -153,6 +153,10 @@ kc = "keepa_cli.cli:main"
 - `keepa.bestsellers_get` -> `bestsellers.get`
 - `keepa.topsellers_list` -> `topsellers.list`
 - `keepa.workflow_plan` -> `workflow.plan`
+- `keepa.find_fast_movers` -> `business.find-fast-movers`
+- `keepa.inventory_audit` -> `business.inventory-audit`
+- `keepa.market_opportunity` -> `business.market-opportunity`
+- `keepa.agent_profile_generate` -> `agent.profile.generate`
 - `keepa.research_graph_merge` -> `research_graph.merge`
 - `keepa.research_brief_export` -> `research_brief.export`
 - `keepa.docs_index` -> `docs.index`
@@ -201,6 +205,9 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 - `keepa://schema/workflow-runtime-contract`：`keepa://workflow/runtime-contract` 的 JSON Schema，用于外部 MCP client 校验 runtime 参数、source shape、`missing_inputs` 与 `data.workflow_resolution` 契约。
 - `keepa://fixtures/manifest`：fixture/evidence manifest。
 - `keepa://guides/cassette-promotion`：真实响应脱敏并提升为 fixture 的流程。
+- `keepa://guides/categories`：category ID 发现、Finder scaffold 与 category workflow 输入手册。
+- `keepa://guides/marketplaces`：Keepa marketplace/domain code 与 Amazon host 对照手册。
+- `keepa://guides/agent-profile`：Agent MCP 客户端配置片段、toolset/profile 选择与 business alias 入口。
 - `keepa://evidence/recent`：最近 evidence 摘要。
 - `keepa://context/policy`：offline-first policy、roots、tool gating 与 live Keepa 安全状态。
 - `keepa://tools/index`：MCP toolset 与 tool schema 索引，适合先发现再按需读取。
@@ -250,6 +257,9 @@ MCP prompts 给 Agent 提供稳定起手式，不执行任何请求：
 - `keepa.deal_compare`：多 ASIN deal 视图对比与 selection signals 审计。
 - `keepa.project_onboarding`：先读 zread/wiki 和 schema/evidence，再决定代码修改范围。
 - `keepa.research_agent_start`：调研 Agent 起手式，按 policy -> target resolution -> context query -> workflow plan -> execution -> graph merge 顺序推进。
+- `keepa.inventory_audit`：基于现有产品证据审计缺货、seller count 与补货风险，结论先行。
+- `keepa.velocity_research`：基于 `monthlySold` 或低置信 sales-rank-drop proxy 查找 fast mover。
+- `keepa.market_opportunity`：把 velocity、竞争、库存风险与现金流 proxy 组合成机会 shortlist。
 
 不支持 `resources/read` 的 MCP 客户端可改用 `keepa.docs_index`、`keepa.docs_read`、`keepa.context_policy` 与 `keepa.query_research_context` 工具。`docs.index` 返回 GitHub Pages、zread public、zread resource、schema、fixture manifest 和 evidence 的推荐读取顺序；`docs.read` 接受 `uri` 或 `page`，默认读取 `keepa://zread/wiki/current`。
 
@@ -369,6 +379,9 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan product-research --asin B0D8W1YVBX --domain US --goal deal
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan report-research --domain US --goal deal
 .\.venv\Scripts\python.exe -m keepa_cli --json workflow plan tracking-audit --asin B0D8W1YVBX --domain US
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan inventory-audit --domain US
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan velocity-research --domain US
+.\.venv\Scripts\python.exe -m keepa_cli --json workflow plan market-opportunity --domain US
 ```
 
 `workflow.plan` 是本地规划入口，不访问 Keepa，不消耗 token。输出 `view=workflow_plan`、`workflow_inputs`、`artifacts`、`resource_templates`、`steps`、`totals`、`parallel_groups`、`workflow_policy`、`agent_brief`、`data_quality`、`next_actions`、`evidence_index` 与 `provenance`。每个 step 包含 `id`、`tool`、`mcp_tool`、`params`、`cli/command`、`depends_on`、`parallel_group`、`estimated_tokens`、`worst_case_tokens`、`requires_confirmation`、`fixture_replay`、`input_refs`、`artifact_refs`、`mcp` 与 `execution`，用于 Agent 先规划执行图，再按预算和确认要求逐步执行。
@@ -386,6 +399,26 @@ MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uri
 - `category-research`：关键词 -> category candidates -> Finder scaffold -> category products -> compare candidates；推荐 `research` toolset 与 `dry_run_default` profile，高成本 category products 需要确认。
 - `product-research`：单品 Agent view -> 可选 offers detail；推荐 `research` toolset 与 `live_read_allowed` profile，可选 offers step 需要确认。
 - `report-research`：merged research graph -> markdown report / Agent brief / local browse snapshot / SVG figures；推荐 `reports` toolset 与 `offline_fixture_only` profile，纯本地 0 token。
+- `tracking-audit`：tracking list -> notifications / tracking detail / cost audit；推荐 `tracking-readonly` toolset 与 `tracking_readonly` profile，不暴露 tracking 写操作。
+- `velocity-research` / `inventory-audit` / `market-opportunity`：基于现有产品 JSON、resource 或 artifact 运行 business alias；推荐 `business` toolset 与 `offline_fixture_only` profile，纯本地 0 token。
+
+### business aliases 与 metrics
+
+```powershell
+.\.venv\Scripts\python.exe -m keepa_cli --json business find-fast-movers --fixture product_agent_view_B0TEST.json
+.\.venv\Scripts\python.exe -m keepa_cli --json business inventory-audit --input products.json
+.\.venv\Scripts\python.exe -m keepa_cli --json business market-opportunity --input compare.json
+.\.venv\Scripts\python.exe -m keepa_cli --json business agent-profile --profile offline_fixture_only --toolset business
+```
+
+`business.find-fast-movers`、`business.inventory-audit`、`business.market-opportunity`、`seller-metrics.summary`、`velocity.research` 与 `inventory.audit` 都是纯本地命令，输入可为 Keepa 原始产品 JSON、Agent product view、`products.compare` rows、fixture、MCP resource/artifact 或 inline payload。输出 `view=business_metrics`，先给 `brief.decision/risk/next_actions`，再给 `summary` 和 `products[].metrics`。
+
+所有估算字段必须带 `method`、`version`、`inputs`、`confidence` 与 `evidence_path`。当前公式模块覆盖：
+
+- `velocity`：优先使用 `monthlySold`，缺失时只把 sales rank drops 标为低置信 proxy。
+- `seller_metrics`：优先使用 `stats.totalOfferCount` / Agent `offers.total_offer_count`，再降级到 FBA/FBM 或 seller id 样本下界。
+- `inventory`：基于 out-of-stock percentage、seller count 与 velocity 估算库存风险，不输出确定库存数量。
+- `cashflow`：基于价格与 monthlySold 给出 GMV proxy，明确排除成本、费率、广告、退款、税与账期。
 
 ### Agent figures
 
@@ -399,7 +432,6 @@ MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uri
 默认 `all` 会生成兼容总览 SVG 与独立单图：产品指标对比、真实 price/rank/review history 折线、窗口变化热图、多 ASIN 标准化 small multiples、风险与 research graph 审计摘要。若输入只有 compare 摘要而没有 full Agent history，图表会降级到当前指标与窗口/风险摘要，并在 source JSON 中保留 `data_basis`。
 
 `reports.build` 对 markdown/json 输出会默认在本地生成并嵌入同一组 SVG；可用 `--figure` 复用已有 SVG，`--figure-set history|compare|audit` 限制图表组，或用 `--no-figures` 关闭自动嵌图。MCP Agent 也可读取 `keepa://research/{cache_key}/figures` 或 `keepa://research/{cache_key}/figures/{figure_set}`，从同一 session cache 生成 figure manifest，再按其中 `image/svg+xml` 的 `keepa://output/...` resource 插入报告。
-- `tracking-audit`：tracking list -> notifications / tracking detail / cost audit；推荐 `tracking-readonly` toolset 与 `tracking_readonly` profile，不暴露 tracking 写操作。
 
 ### history export/trend
 

@@ -2,12 +2,12 @@
 
 ## 任务目标
 
-将 MCP 调研结论固化为项目架构文档，明确 Keepa-cli 后续如何为 Codex、Claude Code 和其他 Agent 暴露强类型 MCP tools。
+将 MCP 调研结论固化为项目架构文档，明确 Keepa-cli 后续如何为 Codex 和其他 Agent 暴露强类型 MCP tools。
 
 ## 背景与输入
 
 - 用户要求先认真调研优秀 MCP 或相关 Agent 工具的组织方式，再组织本项目。
-- 调研参考 MCP 官方 tools 规范、官方 Python SDK、OpenAI/Claude Code MCP 接入说明，以及 GitHub、Sentry、Stripe 等成熟 MCP server 的组织方式。
+- 调研参考 MCP 官方 tools 规范、官方 Python SDK、主流 Agent 客户端 MCP 接入说明，以及 GitHub、Sentry、Stripe 等成熟 MCP server 的组织方式。
 - 当前项目已有 `--json`、`--stdio`、Agent view、workflow plan、结构化 `next_actions` 与离线 fixture。
 
 ## 处理过程

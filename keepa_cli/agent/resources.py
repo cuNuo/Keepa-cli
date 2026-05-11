@@ -20,13 +20,14 @@ from keepa_cli import __version__
 from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
 from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names, workflow_runtime_contract
+from keepa_cli.domains import list_domains
 from keepa_cli.figures import build_research_figures_from_payload
 from keepa_cli.research_brief import brief_graph_resource_payload, brief_resource_payload
 from keepa_cli.research_context import build_context_policy
 from keepa_cli.research_graph import extract_research_graphs, graph_summary
 
 
-RESOURCE_SCHEMA_VERSION = "2026-05-10.6"
+RESOURCE_SCHEMA_VERSION = "2026-05-11.1"
 MAX_RESOURCE_TEXT_BYTES = 1_000_000
 
 
@@ -59,6 +60,24 @@ STATIC_RESOURCES: tuple[dict[str, str], ...] = (
         "uri": "keepa://guides/cassette-promotion",
         "name": "cassette-promotion-guide",
         "description": "Offline-first workflow for sanitizing live Keepa responses into regression fixtures.",
+        "mimeType": "text/markdown",
+    },
+    {
+        "uri": "keepa://guides/categories",
+        "name": "category-guide",
+        "description": "Agent guide for category ID discovery, Finder scaffolds, and category workflow inputs.",
+        "mimeType": "text/markdown",
+    },
+    {
+        "uri": "keepa://guides/marketplaces",
+        "name": "marketplace-guide",
+        "description": "Agent guide for Keepa marketplace/domain codes and Amazon host mapping.",
+        "mimeType": "text/markdown",
+    },
+    {
+        "uri": "keepa://guides/agent-profile",
+        "name": "agent-profile-guide",
+        "description": "Agent MCP client profile generator guide with neutral config snippet and toolset/profile recommendations.",
         "mimeType": "text/markdown",
     },
     {
@@ -249,6 +268,12 @@ def read_mcp_resource(
         return _read_text_resource(uri, repo_root / "evidence/manifest.csv", "text/csv")
     if uri == "keepa://guides/cassette-promotion":
         return {"uri": uri, "mimeType": "text/markdown", "text": _cassette_promotion_guide()}
+    if uri == "keepa://guides/categories":
+        return {"uri": uri, "mimeType": "text/markdown", "text": _categories_guide()}
+    if uri == "keepa://guides/marketplaces":
+        return {"uri": uri, "mimeType": "text/markdown", "text": _marketplaces_guide()}
+    if uri == "keepa://guides/agent-profile":
+        return {"uri": uri, "mimeType": "text/markdown", "text": _agent_profile_guide()}
     if uri == "keepa://evidence/recent":
         return {"uri": uri, "mimeType": "application/json", "text": json.dumps(_recent_evidence(repo_root), ensure_ascii=False, indent=2)}
     if uri == "keepa://context/policy":
@@ -1076,6 +1101,86 @@ Offline-first workflow:
 4. Never commit raw runtime logs or token-bearing request metadata.
 
 The promote command re-runs cassette redaction, writes synchronized fixtures, and updates `evidence/manifest.csv` idempotently.
+"""
+
+
+def _categories_guide() -> str:
+    return f"""# Keepa Category Guide
+
+Server version: {__version__}
+
+Agent default path:
+
+1. Use `keepa.categories_search` or `kc --json categories search "<term>" --domain US`.
+2. Pick `category_candidates[].id` with the strongest name/path match.
+3. Generate a local Finder scaffold with `keepa.categories_finder_selection`.
+4. Use `workflow.plan` with `category-research` before any live Best Sellers request.
+
+Useful resources:
+
+- `keepa://context/policy`
+- `keepa://workflow/{{encoded_params}}/policy`
+- `keepa://fixtures/category_search_home.json`
+- `keepa://fixtures/bestsellers_home.json`
+
+Rules:
+
+- Category IDs are marketplace-specific; always keep `domain` with the selected id.
+- `categories.products` and `bestsellers.get` are high-cost live paths and require explicit confirmation.
+- Prefer `finder-selection` and dry-run before hydrated product calls.
+"""
+
+
+def _marketplaces_guide() -> str:
+    rows = "\n".join(
+        f"| {item['code']} | {item['domain_id']} | {item['locale']} | {item['amazon_host']} |"
+        for item in list_domains()
+    )
+    return f"""# Keepa Marketplace Guide
+
+Server version: {__version__}
+
+| Code | Keepa domain id | Locale | Amazon host |
+| --- | ---: | --- | --- |
+{rows}
+
+Agent rules:
+
+- Accept `US`, `1`, `com`, or `amazon.com` style inputs, but persist the normalized `domain_id` in evidence.
+- Never reuse category IDs across marketplaces without rerunning category discovery.
+- Put marketplace assumptions in `provenance.params` or the task evidence log.
+"""
+
+
+def _agent_profile_guide() -> str:
+    return f"""# Agent MCP Profile Guide
+
+Server version: {__version__}
+
+Generate a neutral MCP client snippet:
+
+```powershell
+kc --json business agent-profile --profile dry_run_default --toolset research
+```
+
+Equivalent MCP tool:
+
+```json
+{{"name":"keepa.agent_profile_generate","arguments":{{"profile":"dry_run_default","toolset":"research"}}}}
+```
+
+Recommended profile routing:
+
+- `offline_fixture_only`: local evidence, reports, figures, business metrics, profile generation, and cassette sanitize.
+- `dry_run_default`: category/product research planning and dry-run-first discovery.
+- `live_read_allowed`: approved live read calls only after the user confirms exact steps.
+- `tracking_readonly`: tracking audit without write tools.
+
+Business aliases:
+
+- `keepa.find_fast_movers` -> `business.find-fast-movers`
+- `keepa.inventory_audit` -> `business.inventory-audit`
+- `keepa.market_opportunity` -> `business.market-opportunity`
 """
 
 

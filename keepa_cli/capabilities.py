@@ -15,7 +15,7 @@ from keepa_cli.agent.tools import list_mcp_tools, profile_names, toolset_names, 
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-11.11"
+SCHEMA_VERSION = "2026-05-11.12"
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -44,6 +44,13 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "cache.clear", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "audit.cost", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "workflow.plan", "supports_fixture": False, "supports_live": False, "output": "json-agent-plan"},
+    {"name": "business.find-fast-movers", "supports_fixture": True, "supports_live": False, "output": "json-business-metrics"},
+    {"name": "business.inventory-audit", "supports_fixture": True, "supports_live": False, "output": "json-business-metrics"},
+    {"name": "business.market-opportunity", "supports_fixture": True, "supports_live": False, "output": "json-business-metrics"},
+    {"name": "seller-metrics.summary", "supports_fixture": True, "supports_live": False, "output": "json-business-metrics"},
+    {"name": "velocity.research", "supports_fixture": True, "supports_live": False, "output": "json-business-metrics"},
+    {"name": "inventory.audit", "supports_fixture": True, "supports_live": False, "output": "json-business-metrics"},
+    {"name": "agent.profile.generate", "supports_fixture": False, "supports_live": False, "output": "json-agent-profile"},
     {"name": "research_graph.merge", "supports_fixture": True, "supports_live": False, "output": "json-agent-graph"},
     {"name": "research_brief.export", "supports_fixture": True, "supports_live": False, "output": "json-agent-brief"},
     {"name": "products.get", "supports_fixture": True, "supports_live": True, "output": "json-or-agent-view"},

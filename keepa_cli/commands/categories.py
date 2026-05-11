@@ -246,7 +246,7 @@ def categories_finder_selection(params: Mapping[str, Any]) -> dict[str, Any]:
     output_path = param(params, "out", "output")
     if output_path:
         path = Path(str(output_path))
-        if path.parent:
+        if path.parent != Path("."):
             path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(selection, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         data["output"] = {

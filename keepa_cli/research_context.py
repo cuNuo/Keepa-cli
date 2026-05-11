@@ -53,7 +53,7 @@ def build_context_policy(env: Mapping[str, str] | None = None, *, repo_root: Pat
         "roots": _roots(root),
         "tool_policy": {
             "default_allowed_toolsets": ["research"],
-            "explicit_toolsets": ["audit", "docs", "reports", "tracking-readonly", "all"],
+            "explicit_toolsets": ["audit", "business", "docs", "reports", "tracking-readonly", "all"],
             "write_tools_exposed_by_default": False,
             "supports_allow_tools_filter": True,
             "supports_exclude_tools_filter": True,

@@ -139,6 +139,60 @@ Use this order:
 7. Summarize risk taxonomy, research graph entities, evidence links, missing data, and low-token follow-up actions.
 """,
     ),
+    PromptDefinition(
+        name="keepa.inventory_audit",
+        description="Audit inventory and stockout risk from existing Keepa product evidence.",
+        arguments=(
+            {"name": "input", "description": "Local Keepa CLI JSON path, fixture name, resource URI, or prior artifact.", "required": True},
+            {"name": "domain", "description": "Keepa domain code, usually US.", "required": False},
+        ),
+        template="""
+Run an inventory audit for `{input}` on domain {domain}.
+
+Use this order:
+1. Read `keepa://guides/agent-profile` if profile/toolset selection is unclear.
+2. Call `keepa.workflow_plan` with name `inventory-audit`.
+3. Call `keepa.inventory_audit` with `input`, `fixture`, `payload`, `resource_uri`, or a prior artifact.
+4. Start the answer with `brief.decision`, `brief.risk`, and `brief.next_actions`.
+5. Every estimate must cite `method`, `inputs`, `confidence`, and `evidence_path`; do not convert missing inventory into a firm stock count.
+""",
+    ),
+    PromptDefinition(
+        name="keepa.velocity_research",
+        description="Find fast movers from existing Keepa product evidence without exposing low-level commands.",
+        arguments=(
+            {"name": "input", "description": "Local Keepa CLI JSON path, fixture name, resource URI, or prior artifact.", "required": True},
+            {"name": "threshold_monthly_sold", "description": "MonthlySold threshold for fast mover classification.", "required": False},
+        ),
+        template="""
+Find fast movers in `{input}`.
+
+Use this order:
+1. Call `keepa.workflow_plan` with name `velocity-research`.
+2. Call `keepa.find_fast_movers` with the input and threshold `{threshold_monthly_sold}`.
+3. Return the conclusion first: decision, fast mover count, low-confidence metric count, and next action.
+4. Treat `monthlySold` as direct evidence when present; treat sales rank drops only as a low-confidence proxy.
+5. Do not request live Keepa data unless the user approves a specific follow-up.
+""",
+    ),
+    PromptDefinition(
+        name="keepa.market_opportunity",
+        description="Create a conclusion-first opportunity shortlist from local velocity, seller, inventory, and cashflow metrics.",
+        arguments=(
+            {"name": "input", "description": "Local Keepa CLI JSON path, fixture name, resource URI, or prior artifact.", "required": True},
+            {"name": "goal", "description": "Opportunity goal such as shortlist, replenish, or validate.", "required": False},
+        ),
+        template="""
+Evaluate market opportunity from `{input}`. Goal: {goal}.
+
+Use this order:
+1. Read `keepa://guides/categories` and `keepa://guides/marketplaces` only if category or marketplace assumptions are missing.
+2. Call `keepa.workflow_plan` with name `market-opportunity`.
+3. Call `keepa.market_opportunity` with the existing evidence.
+4. Report `brief.decision`, risk blockers, next actions, then shortlisted products.
+5. Keep formulas auditable: include method, version, inputs, confidence, and evidence_path for each estimate.
+""",
+    ),
 )
 
 

@@ -271,15 +271,26 @@ def _apply_derived_params(
         elif payloads:
             params["payload"] = payloads
 
-    if tool_name in {"keepa.reports_build", "keepa.browse_snapshot", "keepa.figures_research"} and not params.get("input"):
+    local_input_tools = {
+        "keepa.reports_build",
+        "keepa.browse_snapshot",
+        "keepa.figures_research",
+        "keepa.find_fast_movers",
+        "keepa.inventory_audit",
+        "keepa.market_opportunity",
+    }
+    if tool_name in local_input_tools and not params.get("input") and not params.get("payload") and not params.get("fixture"):
         if paths:
             params["input"] = paths[0]
         elif graphs:
             params["input"] = _write_temp_json({"research_graph": graphs[0]}, prefix="keepa-workflow-graph-")
             temp_paths.append(params["input"])
         elif payloads:
-            params["input"] = _write_temp_json(payloads[0], prefix="keepa-workflow-payload-")
-            temp_paths.append(params["input"])
+            if tool_name in {"keepa.find_fast_movers", "keepa.inventory_audit", "keepa.market_opportunity"}:
+                params["payload"] = payloads[0]
+            else:
+                params["input"] = _write_temp_json(payloads[0], prefix="keepa-workflow-payload-")
+                temp_paths.append(params["input"])
 
 
 def _missing_inputs(tool_name: str, params: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -296,7 +307,14 @@ def _missing_inputs(tool_name: str, params: Mapping[str, Any]) -> list[dict[str,
         missing.append({"field": "graph", "accepts": ["resource_uri keepa://research/{cache_key}", "resource_uri keepa://research/{cache_key}/graph", "artifact graph", "artifact output.path"]})
     if tool_name == "keepa.research_brief_export" and not params.get("input") and not params.get("payload") and not params.get("graph"):
         missing.append({"field": "payload", "accepts": ["resource_uri keepa://research/{cache_key}", "artifact merged_graph.path", "artifact payload"]})
-    if tool_name in {"keepa.reports_build", "keepa.browse_snapshot", "keepa.figures_research"} and not params.get("input"):
+    if tool_name in {
+        "keepa.reports_build",
+        "keepa.browse_snapshot",
+        "keepa.figures_research",
+        "keepa.find_fast_movers",
+        "keepa.inventory_audit",
+        "keepa.market_opportunity",
+    } and not params.get("input") and not params.get("payload") and not params.get("fixture"):
         missing.append({"field": "input", "accepts": ["resource_uri keepa://research/{cache_key}", "resource_uri keepa://output/{encoded_path}", "artifact merged_graph.path"]})
     return missing
 
