@@ -48,4 +48,4 @@ npm pack --dry-run --json
 
 - 任务完成时更新 `evidence/tasks/` 下的任务日志，并按需更新 `evidence/manifest.csv`。
 - 长期稳定事实写入 Serena memory；一次性过程只写 evidence。
-- 默认不由 Codex 自动提交；如用户要求提交，再按当前工作区状态分批 stage/commit。
+- 由 Codex 自动提交；按当前工作区状态分批 stage/commit。
