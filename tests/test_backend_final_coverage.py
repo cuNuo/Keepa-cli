@@ -33,7 +33,7 @@ from keepa_cli.agent.tools import (
     validate_tool_arguments,
     workflow_runtime_contract,
 )
-from keepa_cli.agent.workflow_resolver import resolve_workflow_arguments
+from keepa_cli.agent.workflow_resolver import _first, _merge_values, resolve_workflow_arguments
 from keepa_cli.agent_contract import build_data_quality
 from keepa_cli.agent_eval import _assert_next_actions_executable
 from keepa_cli.commands.cache import handle_cache_command
@@ -434,8 +434,11 @@ class BackendFinalCoverageTests(unittest.TestCase):
         self.assertEqual(_product_rows_for_figures({"data": {"body": {"products": ["skip", {"asin": "B2"}]}}})[0]["asin"], "B2")
         self.assertEqual(_product_metric_row({"asin": "B3"})["asin"], "B3")
         self.assertEqual(_product_rows_for_figures({"products": ["skip", {"asin": "B4"}]})[0]["asin"], "B4")
+        self.assertEqual(_product_rows_for_figures({"data": {"products": []}, "products": ["skip", {"asin": "B5"}]})[0]["asin"], "B5")
         self.assertEqual(_raw_temporal_windows({"csv": ["skip"]}), {})
         self.assertEqual(_raw_temporal_windows({"temporal_features": {"series": {"new": "skip", "rank": {"windows": {"x": "skip"}}}}}), {})
+        with mock.patch("keepa_cli.figures._temporal_features", return_value={"series": {"new": "skip", "rank": {"windows": {"x": "skip"}}}}):
+            self.assertEqual(_raw_temporal_windows({"csv": []}), {})
         self.assertEqual(_raw_temporal_windows({"csv": [["skip"]]}) or {}, {})
         self.assertEqual(_raw_temporal_windows(_csv_product())["recent_7d"]["series"]["new"]["change_pct"], -20.0)
         self.assertEqual(_window_heatmap_for_figures({"temporal_features": {"series": {"new": {"windows": {"recent_7d": {"change_pct": "bad"}}}}}}), [])
@@ -466,6 +469,10 @@ class BackendFinalCoverageTests(unittest.TestCase):
         self.assertTrue(_merge_research_graphs([{"research_graph": {"nodes": [{"id": "a"}], "edges": [{"source": "a", "target": "b", "type": "rel"}]}}])["edges"])
         self.assertTrue(_merge_research_graphs([{"research_graph": {"nodes": [{"id": "a"}], "edges": ["skip"]}}])["nodes"])
         self.assertIs(build_research_brief({"payload": {}, "graph": {"root": "g"}})["entity_graph_summary"]["root"], "g")
+        values: dict[str, object] = {}
+        _merge_values(values, {"category_ids": "172282"})
+        self.assertEqual(values["category_ids"], "172282")
+        self.assertEqual(_first("B1"), "B1")
 
 
 if __name__ == "__main__":
