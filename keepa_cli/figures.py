@@ -957,8 +957,6 @@ def _panel_window_heatmap(cells: list[Mapping[str, Any]], *, x: int, y: int, w: 
         lx = legend_x + index * 82
         elements.append(f'<rect x="{lx}" y="{legend_y}" width="24" height="12" rx="3" fill="{_heat_color(value)}" stroke="#ffffff" stroke-width="1"/>')
         elements.append(f'<text x="{lx + 30}" y="{legend_y + 10}" font-family="{FONT_FAMILY}" font-size="8" fill="{PALETTE["muted"]}">{label}</text>')
-    if not elements:
-        elements.append(_empty_panel_text(x, y, "No temporal windows found; run with --agent-view --view research"))
     return _panel_frame(x, y, w, h, "C  Window change heatmap", "Percent change by official Keepa history windows") + "".join(elements) + "</g>"
 
 
