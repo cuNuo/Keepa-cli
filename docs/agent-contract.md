@@ -377,13 +377,25 @@ Agent 语义层：
 
 `workflow_inputs` 明确区分用户已给参数、后续步骤产物和占位值；`artifacts` 给出每个中间产物的 kind、producer、路径或可用 resource template；`resource_templates` 汇总可复用的 `keepa://workflow/{encoded_params}/policy`、`keepa://research/{cache_key}`、`keepa://graphs/{root}`、`keepa://output/{encoded_path}` 等读取入口。Agent 应优先使用这些字段连接步骤，不应解析 `cli` 字符串来猜测输入和输出路径。
 
+`scripts/mcp_example_support.py` 提供可复制的标准库 MCP client helper。`scripts/mcp_agent_workflow_example.py` 按 `workflow.plan -> keepa://schema/risk-taxonomy -> keepa://research/{cache_key} -> keepa://research/{cache_key}/graph -> brief/report` 顺序执行完整离线链路，并在 client 侧校验 `risk_taxonomy.codes/items/severity/evidence_path`。`scripts/mcp_tracking_audit_example.py` 演示 `tracking-readonly` toolset/profile 边界和写工具不暴露；`scripts/mcp_report_research_example.py` 演示本地 graph -> brief -> browse/figures/report 链路。三个示例统一支持 `--save-summary <path>`，便于 Agent pipeline 把集成摘要写入 evidence/runtime 之外的受控路径。外部 Agent 集成时可直接借用其中的 JSON-RPC stdio request/response、同进程 session cache、`resource_uri` 拼接和紧凑 summary 输出模式。
+
 MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uris`、`artifact`、`artifacts`、`workflow_inputs` 与 `workflow_context`。`workflow_context` 可携带顶层 artifact/resource_uri，也可携带 `steps`、`outputs`、`results`、`step_outputs`、`previous_outputs` 等客户端状态容器。这些字段不会传入业务 service，而是在执行前解析为实际参数：`keepa://research/{cache_key}` 可提供完整 cached envelope，`keepa://research/{cache_key}/graph` 可提供 graph merge 输入，`keepa://output/{encoded_path}` 可提供本地文件路径，inline artifact 可提供 `payload` 或 `graph`，`artifact.output.path` / `artifact.data.output.path` 可直接续接本地 graph -> brief -> reports 链路；`keepa://graphs/{root}` 是图谱来源审计入口，不直接替代完整 graph 输入。外部 Agent 可读取 `keepa://workflow/runtime-contract` 获取支持 runtime 参数的 tool 清单、参数名和缺参错误约定，避免遍历全部 tool schema；该 resource 的 `schema_resource_uri` 指向 `keepa://schema/workflow-runtime-contract`，可用于 MCP client 侧校验。解析成功的响应会在 `data.workflow_resolution` 记录来源、推导出的 ASIN/category、graph_count、payload_count 与临时文件；依赖不足时返回 tool error `missing_inputs`，其中 `error.details.missing_inputs` 会说明缺少的字段和可接受来源。
 
 当前内置计划：
 
 - `category-research`：关键词 -> category candidates -> Finder scaffold -> category products -> compare candidates；推荐 `research` toolset 与 `dry_run_default` profile，高成本 category products 需要确认。
 - `product-research`：单品 Agent view -> 可选 offers detail；推荐 `research` toolset 与 `live_read_allowed` profile，可选 offers step 需要确认。
-- `report-research`：merged research graph -> markdown report / Agent brief / local browse snapshot；推荐 `reports` toolset 与 `offline_fixture_only` profile，纯本地 0 token。
+- `report-research`：merged research graph -> markdown report / Agent brief / local browse snapshot / SVG figures；推荐 `reports` toolset 与 `offline_fixture_only` profile，纯本地 0 token。
+
+### Agent figures
+
+`figures.research` / `keepa.figures_research` 从现有 JSON 输出生成统一 SVG 图表，不访问 Keepa API。输入可为 `products.compare`、Agent product view、`research_graph.merge` 或包含 `research_graph` 的报告输出。输出包含：
+
+- `data.figures[].path`：SVG 文件路径。
+- `data.figures[].source_data_path`：图表源数据 JSON，便于审计。
+- `mcp_resource_manifest.resources[]`：MCP text fallback 中的 `keepa://output/...` 资源；SVG MIME 为 `image/svg+xml`。
+
+当前 SVG 是单文件多面板：产品指标对比、风险枚举频率、research graph 实体计数、时序信号摘要。Agent 报告应优先引用 SVG resource，再按需读取 source JSON 审计数据。
 - `tracking-audit`：tracking list -> notifications / tracking detail / cost audit；推荐 `tracking-readonly` toolset 与 `tracking_readonly` profile，不暴露 tracking 写操作。
 
 ### history export/trend

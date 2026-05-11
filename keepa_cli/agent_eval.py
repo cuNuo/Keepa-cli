@@ -15,6 +15,7 @@ from typing import Any
 from keepa_cli.agent.mcp import handle_mcp_message
 from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.tools import get_tool_definition, tool_params_to_command_params, validate_tool_arguments
+from keepa_cli.risk_schema import load_risk_taxonomy_schema, validate_risk_taxonomy
 from keepa_cli.service import run_command
 
 
@@ -58,6 +59,12 @@ def _assert_next_actions_executable(value: Any, path: str) -> None:
         tool_params_to_command_params(tool, params)
 
 
+def _assert_risk_schema_valid(value: Any, path: str, expected: bool) -> None:
+    validation = validate_risk_taxonomy([value], load_risk_taxonomy_schema())
+    if bool(validation["ok"]) is not bool(expected):
+        raise AssertionError(f"{path} risk_schema_valid expected {expected!r}, got {validation!r}")
+
+
 def _assert_spec(payload: dict[str, Any], spec: dict[str, Any]) -> None:
     for assertion in spec["assertions"]:
         value = _resolve_path(payload, assertion["path"])
@@ -85,6 +92,8 @@ def _assert_spec(payload: dict[str, Any], spec: dict[str, Any]) -> None:
             raise AssertionError(f"{assertion['path']} expected not to contain {assertion['not_contains']!r}")
         if assertion.get("next_actions_executable"):
             _assert_next_actions_executable(value, assertion["path"])
+        if "risk_schema_valid" in assertion:
+            _assert_risk_schema_valid(value, assertion["path"], bool(assertion["risk_schema_valid"]))
 
 
 def _copy_json(value: Any) -> Any:

@@ -255,3 +255,15 @@ def iter_mcp_output(input_text: str, *, env: Mapping[str, str] | None = None) ->
         if response is not None:
             lines.append(json.dumps(response, ensure_ascii=False, separators=(",", ":"), default=str))
     return lines
+
+
+def iter_mcp_stream(raw_lines: Any, *, env: Mapping[str, str] | None = None) -> Any:
+    """逐行处理 MCP JSON-RPC 输入，供真实 stdio client 动态串联前序结果。"""
+
+    session = AgentSession(env=env)
+    for raw_line in raw_lines:
+        if not str(raw_line).strip():
+            continue
+        response = handle_mcp_message(str(raw_line), env=env, session=session)
+        if response is not None:
+            yield json.dumps(response, ensure_ascii=False, separators=(",", ":"), default=str)

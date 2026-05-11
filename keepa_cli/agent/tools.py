@@ -38,6 +38,7 @@ PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
         "keepa.audit_cost",
         "keepa.reports_build",
         "keepa.browse_snapshot",
+        "keepa.figures_research",
         "keepa.cassettes_sanitize",
     },
     "dry_run_default": {
@@ -59,6 +60,7 @@ PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
         "keepa.audit_cost",
         "keepa.reports_build",
         "keepa.browse_snapshot",
+        "keepa.figures_research",
     },
     "live_read_allowed": None,
     "tracking_readonly": {
@@ -523,6 +525,19 @@ BROWSE_SNAPSHOT_SCHEMA: JsonSchema = {
 }
 
 
+FIGURES_RESEARCH_SCHEMA: JsonSchema = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["input"],
+    "properties": {
+        "input": _string_schema("Input JSON path from products.compare, research_graph.merge, or Agent view output."),
+        "out_dir": _string_schema("Directory for generated SVG and source JSON.", default="keepa-figures"),
+        "title": _string_schema("Figure title.", default="Keepa Agent Research Figures"),
+        "from_cache": _string_schema("Session cache key to reuse."),
+    },
+}
+
+
 DOCS_INDEX_SCHEMA: JsonSchema = {
     "type": "object",
     "additionalProperties": False,
@@ -913,6 +928,15 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("reports",),
     ),
     ToolDefinition(
+        name="keepa.figures_research",
+        command="figures.research",
+        description="Generate Agent-report-ready SVG figures from product, comparison, or research graph JSON without calling Keepa.",
+        input_schema=FIGURES_RESEARCH_SCHEMA,
+        output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
+        workflow_runtime=True,
+        groups=("reports",),
+    ),
+    ToolDefinition(
         name="keepa.tracking_list",
         command="tracking.list",
         description="Read Keepa tracking list state. This toolset exposes read-only tracking operations only.",
@@ -1075,6 +1099,8 @@ def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] |
         errors.append("one of input or graph is required")
     if tool.name == "keepa.research_brief_export" and not arguments.get("input") and not arguments.get("payload") and not arguments.get("graph"):
         errors.append("one of input, payload, or graph is required")
+    if tool.name == "keepa.figures_research" and not arguments.get("input"):
+        errors.append("input is required")
     return errors
 
 

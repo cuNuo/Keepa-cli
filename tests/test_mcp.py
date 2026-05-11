@@ -68,7 +68,16 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         report_names = {item["name"] for item in reports["result"]["tools"]}
-        self.assertEqual({"keepa.research_graph_merge", "keepa.reports_build", "keepa.browse_snapshot", "keepa.research_brief_export"}, report_names)
+        self.assertEqual(
+            {
+                "keepa.research_graph_merge",
+                "keepa.reports_build",
+                "keepa.browse_snapshot",
+                "keepa.research_brief_export",
+                "keepa.figures_research",
+            },
+            report_names,
+        )
 
         docs = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "docs", "method": "tools/list", "params": {"toolset": "docs"}}),
@@ -1430,6 +1439,44 @@ class McpProtocolTests(unittest.TestCase):
         graph_payload = json.loads(graph_resource["result"]["contents"][0]["text"])
         self.assertTrue(graph_payload["found"])
         self.assertGreaterEqual(graph_payload["input_summary"]["research_graph_count"], 2)
+
+    def test_figures_research_tool_returns_svg_output_resource(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            response = handle_mcp_message(
+                json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": "figures",
+                        "method": "tools/call",
+                        "params": {
+                            "name": "keepa.figures_research",
+                            "arguments": {
+                                "input": "tests/fixtures/agent_eval_products_compare_output.json",
+                                "out_dir": temp_dir,
+                                "title": "MCP SVG Figure Test",
+                            },
+                        },
+                    }
+                ),
+                env={},
+            )
+
+            result = response["result"]
+            structured = result["structuredContent"]
+            text_payload = json.loads(result["content"][0]["text"])
+
+            self.assertTrue(structured["ok"])
+            self.assertEqual(structured["command"], "figures.research")
+            self.assertEqual(structured["data"]["format"], "svg")
+            resources = text_payload["mcp_resource_manifest"]["resources"]
+            svg_resource = next(item for item in resources if item["mimeType"] == "image/svg+xml")
+            svg = handle_mcp_message(
+                json.dumps({"jsonrpc": "2.0", "id": "figure-resource", "method": "resources/read", "params": {"uri": svg_resource["uri"]}}),
+                env={},
+            )
+            content = svg["result"]["contents"][0]
+            self.assertEqual(content["mimeType"], "image/svg+xml")
+            self.assertIn("<svg", content["text"])
 
     def test_research_graph_merge_reports_duplicate_label_conflicts(self):
         graph_a = {

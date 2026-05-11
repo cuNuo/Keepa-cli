@@ -82,7 +82,7 @@ keepa_cli/
 - `research`：context policy、target resolution、context query、产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、research graph merge、research brief export。
 - `docs`：暴露 `keepa.docs_index`、`keepa.docs_read`、`keepa.context_policy`、`keepa.query_research_context`，用于不支持 `resources/read` 的客户端。
 - `audit`：`keepa.audit_cost`、`keepa.cassettes_sanitize`、`keepa.cassettes_promote`。
-- `reports`：`keepa.research_graph_merge`、`keepa.reports_build`、`keepa.browse_snapshot`、`keepa.research_brief_export`，只处理本地文件。
+- `reports`：`keepa.research_graph_merge`、`keepa.reports_build`、`keepa.browse_snapshot`、`keepa.figures_research`、`keepa.research_brief_export`，只处理本地文件。
 - `tracking-readonly`：`keepa.tracking_list`、`keepa.tracking_list_names`、`keepa.tracking_get`、`keepa.tracking_notifications`、`keepa.audit_cost`，不暴露 add/remove/webhook。
 - `all`：显式全量发现，用于调试和 schema 生成。
 
@@ -432,6 +432,50 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
   - `next_actions` 的 `tool + params` 可被 service 或 MCP registry 校验。
 
 所有测试默认 fixture/dry-run，不访问真实 Keepa API。
+
+## Client 示例
+
+`scripts/mcp_example_support.py` 提供面向外部 Agent 的最小 MCP client helper，只依赖 Python 标准库。示例脚本启动 `python -m keepa_cli --mcp`，保持同一 stdio 进程以复用 `AgentSession` cache 和 `budget_ledger`。
+
+`scripts/mcp_agent_workflow_example.py` 按以下顺序执行：
+
+1. `initialize` 与收窄后的 `tools/list`。
+2. `tools/call keepa.workflow_plan` 读取执行图、预算和 resource templates。
+3. `resources/read keepa://schema/risk-taxonomy` 获取风险枚举与 required fields。
+4. `tools/call keepa.categories_products` 使用 fixture 生成候选 ASIN 与 `cache_key`。
+5. `tools/call keepa.products_compare` 传入 `keepa://research/{cache_key}`，由 workflow resolver 推导 ASIN。
+6. client 侧校验 compare payload 中的 `risk_taxonomy.codes/items/severity/evidence_path`。
+7. `tools/call keepa.research_graph_merge` 传入 `keepa://research/{compare_cache_key}/graph`。
+8. `tools/call keepa.research_brief_export` 与 `keepa.reports_build` 传入 merged graph 的 research resource。
+
+`scripts/mcp_tracking_audit_example.py` 演示 `tracking-audit` 计划的只读边界：
+
+1. 使用 `tools/list toolset=tracking-readonly profile=tracking_readonly`。
+2. 调用 `keepa.workflow_plan name=tracking-audit`，确认 recommended toolset/profile 与 confirmation steps。
+3. 用 fixture 调用 `keepa.tracking_list`，再把 `keepa://research/{cache_key}` 传给 `keepa.tracking_get` 与 `keepa.audit_cost`，让 resolver 推导 tracked ASIN。
+4. 验证 `keepa.tracking_add` 这类写工具在 MCP 中是 unknown tool，说明写路径没有暴露。
+
+`scripts/mcp_report_research_example.py` 演示 `report-research` 计划的纯本地报告链路：
+
+1. 使用 `tools/list toolset=reports profile=offline_fixture_only`。
+2. 调用 `keepa.workflow_plan name=report-research`，确认 0 token 本地链路。
+3. 从本地 compare fixture 调用 `keepa.research_graph_merge` 并写入临时 graph JSON。
+4. 通过 merged graph 的 `resource_uri` 导出 `keepa.research_brief_export` 和 `keepa.browse_snapshot`。
+5. 调用 `keepa.figures_research`，读取 MCP text fallback 里的 `mcp_resource_manifest.resources[]`，把 `image/svg+xml` 的 `keepa://output/...` 作为报告图片资源。
+6. 通过 `workflow_context.steps/outputs` 把 graph artifact 交给 `keepa.reports_build`，展示 Agent 常见状态容器如何被 resolver 接续。
+
+运行：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\mcp_agent_workflow_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_tracking_audit_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json --save-summary evidence\runtime\mcp-report-summary.json
+```
+
+三个示例统一支持 `--save-summary <path>`；评测与示例共用 `keepa_cli.risk_schema`，避免 `risk_taxonomy` schema 子集校验在不同入口漂移。
+
+输出只保留 tool names、cache/resource URI、风险校验结果、graph counts、brief one-line、report graph counts 与最终 ledger，适合作为 Codex、Claude Code 或自研 Agent 的接入样板。
 
 ## 实施顺序
 

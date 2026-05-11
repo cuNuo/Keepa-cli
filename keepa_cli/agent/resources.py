@@ -1025,6 +1025,8 @@ def _mime_type(path: Path) -> str:
         return "text/markdown"
     if suffix in {".html", ".htm"}:
         return "text/html"
+    if suffix == ".svg":
+        return "image/svg+xml"
     return "text/plain"
 
 

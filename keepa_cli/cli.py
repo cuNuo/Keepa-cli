@@ -15,7 +15,7 @@ from collections.abc import Sequence
 from typing import Any
 
 from keepa_cli import __version__
-from keepa_cli.agent.mcp import iter_mcp_output
+from keepa_cli.agent.mcp import iter_mcp_stream
 from keepa_cli.agent.stdio import iter_stdio_output
 from keepa_cli.cli_builders.cache import add_cache_parser, maybe_run_cache_command
 from keepa_cli.cli_builders.categories import add_categories_parser, maybe_run_categories_command
@@ -525,9 +525,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.mcp:
-        input_text = sys.stdin.read()
-        for line in iter_mcp_output(input_text, env=os.environ):
+        for line in iter_mcp_stream(sys.stdin, env=os.environ):
             sys.stdout.write(line + "\n")
+            sys.stdout.flush()
         return 0
 
     if args.command is None:

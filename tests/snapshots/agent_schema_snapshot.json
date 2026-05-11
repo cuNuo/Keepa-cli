@@ -683,6 +683,15 @@
           "supports_fixture": "bool",
           "supports_live": "bool",
           "worst_case_tokens": "int"
+        },
+        {
+          "estimated_tokens": "int",
+          "name": "str",
+          "output": "str",
+          "requires_confirmation": "bool",
+          "supports_fixture": "bool",
+          "supports_live": "bool",
+          "worst_case_tokens": "int"
         }
       ],
       "entrypoints": [
@@ -4720,6 +4729,162 @@
             "inputSchema": {
               "additionalProperties": "bool",
               "properties": {
+                "artifact": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "artifacts": {
+                  "description": "str",
+                  "items": {},
+                  "type": "str"
+                },
+                "from_cache": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "input": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out_dir": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "profile": {
+                  "description": "str",
+                  "enum": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "resource_uri": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "resource_uris": {
+                  "description": "str",
+                  "items": {
+                    "type": "str"
+                  },
+                  "type": "str"
+                },
+                "title": {
+                  "default": "str",
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_context": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "workflow_inputs": {
+                  "description": "str",
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str"
+              ],
+              "type": "str"
+            },
+            "name": "str",
+            "outputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
+                "budget_ledger": {
+                  "properties": {
+                    "blocked_actions": {
+                      "type": "str"
+                    },
+                    "cache_hits": {
+                      "type": "str"
+                    },
+                    "consumed_source": {
+                      "type": "str"
+                    },
+                    "remaining_limit": {
+                      "type": [
+                        "str",
+                        "str"
+                      ]
+                    },
+                    "session_consumed": {
+                      "type": "str"
+                    },
+                    "session_estimated": {
+                      "type": "str"
+                    }
+                  },
+                  "required": [
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "type": "str"
+                },
+                "cache_hit": {
+                  "type": "str"
+                },
+                "cache_key": {
+                  "type": "str"
+                },
+                "command": {
+                  "type": "str"
+                },
+                "data": {
+                  "type": "str"
+                },
+                "error": {
+                  "type": "str"
+                },
+                "ok": {
+                  "type": "str"
+                }
+              },
+              "required": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "type": "str"
+            },
+            "x-keepa": {
+              "active": "bool",
+              "groups": [
+                "str"
+              ],
+              "inactive_reason": "null",
+              "service_command": "str",
+              "workflow_runtime": "bool",
+              "workflow_runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ]
+            }
+          },
+          {
+            "annotations": {
+              "destructiveHint": "bool",
+              "idempotentHint": "bool",
+              "openWorldHint": "bool",
+              "readOnlyHint": "bool"
+            },
+            "description": "str",
+            "inputSchema": {
+              "additionalProperties": "bool",
+              "properties": {
                 "asins_only": {
                   "default": "bool",
                   "description": "str",
@@ -5496,6 +5661,22 @@
             {
               "groups": [
                 "str",
+                "str"
+              ],
+              "name": "str",
+              "resource_uri": "str",
+              "runtime_args": [
+                "str",
+                "str",
+                "str",
+                "str",
+                "str",
+                "str"
+              ],
+              "service_command": "str"
+            },
+            {
+              "groups": [
                 "str"
               ],
               "name": "str",

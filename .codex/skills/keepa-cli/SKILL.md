@@ -51,7 +51,7 @@ kc --mcp
 
 Use `keepa.products_get` for single-product research and `keepa.products_compare` for multi-ASIN deal comparison. Product Agent views include `agent_brief`, `risk_taxonomy`, `research_graph`, `data_quality`, `selection_signals`, `next_actions`, and `evidence_index`; read those before loading raw output or chunks.
 
-MCP `tools/list` defaults to `toolset=research`. Use `toolset=audit` for `keepa.audit_cost` and cassette tools, `toolset=reports` for local report/browse/brief export tools, `toolset=tracking-readonly` for read-only tracking, and `toolset=all` only when debugging schema discovery. Add `profile=offline_fixture_only`, `dry_run_default`, `live_read_allowed`, `tracking_readonly`, or `fixture_curation` when a client supports staged tool discovery. Inactive tools are marked with `x-keepa.active=false`, and `tools/call` with the same profile returns `inactive_tool` before service execution. Research tools include `keepa.categories_finder_selection`, `keepa.research_graph_merge`, and `keepa.research_brief_export`.
+MCP `tools/list` defaults to `toolset=research`. Use `toolset=audit` for `keepa.audit_cost` and cassette tools, `toolset=reports` for local report/browse/SVG figure/brief export tools, `toolset=tracking-readonly` for read-only tracking, and `toolset=all` only when debugging schema discovery. Add `profile=offline_fixture_only`, `dry_run_default`, `live_read_allowed`, `tracking_readonly`, or `fixture_curation` when a client supports staged tool discovery. Inactive tools are marked with `x-keepa.active=false`, and `tools/call` with the same profile returns `inactive_tool` before service execution. Research tools include `keepa.categories_finder_selection`, `keepa.research_graph_merge`, and `keepa.research_brief_export`.
 
 MCP `resources/list` exposes `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://schema/risk-taxonomy`, `keepa://schema/workflow-runtime-contract`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, `keepa://evidence/recent`, and `keepa://workflow/runtime-contract`. `resources/templates/list` exposes `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://workflow/{encoded_params}/policy`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://schema/risk-taxonomy` when an Agent needs to validate risk codes, severity, and evidence paths without loading the full product schema; use `keepa://workflow/runtime-contract` to discover resolver-enabled tools and follow its `schema_resource_uri` for validation, `keepa://workflow/{encoded_params}/policy` to read a compact `workflow_policy` from base64url JSON workflow params, `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. If a tool text fallback includes `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` with `resources/read` instead of asking for the whole raw body again.
 
@@ -59,13 +59,27 @@ For general research Agents, read `keepa://context/policy`, call `keepa.resolve_
 
 `workflow.plan` returns `workflow_inputs`, `artifacts`, `resource_templates`, and `workflow_policy` for MCP execution control. It supports `category-research`, `product-research`, `report-research`, and `tracking-audit`. Read it before running steps: apply `tool_discovery.params` to `tools/list`, follow `profile_switch_points`, treat `inactive_tools` as deliberate stage gates, connect steps with `input_refs` / `artifact_refs`, and only add `yes=true` after explicit confirmation for the listed `confirmation_policy.step_ids`. MCP `tools/call` accepts `resource_uri`, `resource_uris`, `artifact`, `artifacts`, `workflow_inputs`, and `workflow_context` to resolve prior outputs into concrete params; it also understands `artifact.output.path` / `artifact.data.output.path` and nested `workflow_context.steps` / `outputs` / `results` for local graph -> brief -> reports chains. Inspect `data.workflow_resolution` or `error.kind=missing_inputs`. `report-research` is local-only through the `reports` toolset; `tracking-audit` is read-only through `tracking-readonly`.
 
+For a copyable Agent MCP client example:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\mcp_agent_workflow_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_tracking_audit_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json --save-summary evidence\runtime\mcp-report-summary.json
+```
+
+The scripts use a single `python -m keepa_cli --mcp` stdio session to run `workflow.plan -> resource_uri -> risk schema validation -> graph/brief/report`, tracking-readonly audit, and local report-research handoff with fixtures only. `--save-summary` writes the compact integration summary to a controlled path for Agent pipelines.
+
 For local workflows:
 
 ```powershell
 kc --json batch asins asins.txt --domain US --dry-run --out batch.json
 kc --json reports build --input batch.json --format markdown --out report.md
 kc --json browse snapshot --input batch.json --out-dir keepa-browse
+kc --json figures research --input batch.json --out-dir keepa-figures
 ```
+
+`browse.snapshot` can render rows from raw product bodies or `research_graph` product nodes. `figures research` emits one SVG plus source JSON; through MCP, `keepa.figures_research` exposes the SVG as an `image/svg+xml` `keepa://output/...` resource suitable for reports.
 
 `reports build` can also consume a merged research graph JSON and emit entity/relationship report sections:
 

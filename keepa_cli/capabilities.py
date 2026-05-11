@@ -31,6 +31,7 @@ COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "research.target.resolve", "supports_fixture": False, "supports_live": False, "output": "json-agent-targets"},
     {"name": "research.context.query", "supports_fixture": False, "supports_live": False, "output": "json-agent-context-resources"},
     {"name": "browse.snapshot", "supports_fixture": True, "supports_live": False, "output": "html-directory"},
+    {"name": "figures.research", "supports_fixture": True, "supports_live": False, "output": "svg-directory"},
     {"name": "batch.asins", "supports_fixture": True, "supports_live": False, "output": "json-file-optional"},
     {"name": "templates.list", "supports_fixture": False, "supports_live": False, "output": "json"},
     {"name": "templates.show", "supports_fixture": False, "supports_live": False, "output": "json-file-optional"},

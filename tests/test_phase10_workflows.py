@@ -123,6 +123,56 @@ class Phase10WorkflowTests(unittest.TestCase):
             self.assertIn("research_graph_report", report_json)
             self.assertGreaterEqual(report_json["research_graph_report"]["node_count"], 1)
 
+    def test_browse_snapshot_uses_research_graph_product_nodes(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            merged_path = root / "merged-graph.json"
+            browse_dir = root / "browse"
+            merged = run_command(
+                "research_graph.merge",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_output.json",
+                    "root": "browse_graph_products",
+                    "out": str(merged_path),
+                },
+                env={},
+            )
+            self.assertTrue(merged["ok"])
+
+            browse = run_command("browse.snapshot", {"input": str(merged_path), "out_dir": str(browse_dir), "title": "Graph Browse"}, env={})
+
+            self.assertTrue(browse["ok"])
+            self.assertGreaterEqual(browse["data"]["row_count"], 3)
+            self.assertGreaterEqual(browse["data"]["research_graph"]["node_count"], 3)
+            self.assertIn("B0D8W1YVBX", (browse_dir / "index.html").read_text(encoding="utf-8"))
+            data = json.loads((browse_dir / "data.json").read_text(encoding="utf-8"))
+            self.assertEqual(data["rows"][0]["source"], "research_graph")
+
+    def test_figures_research_generates_svg_and_source_data(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            figures = run_command(
+                "figures.research",
+                {
+                    "input": "tests/fixtures/agent_eval_products_compare_output.json",
+                    "out_dir": temp_dir,
+                    "title": "Agent Research Figure Test",
+                },
+                env={},
+            )
+
+            self.assertTrue(figures["ok"])
+            figure = figures["data"]["figures"][0]
+            svg_path = Path(figure["path"])
+            source_path = Path(figure["source_data_path"])
+            self.assertTrue(svg_path.is_file())
+            self.assertTrue(source_path.is_file())
+            svg_text = svg_path.read_text(encoding="utf-8")
+            self.assertIn("<svg", svg_text)
+            self.assertIn("A  Product comparison", svg_text)
+            self.assertIn("D  Temporal signals", svg_text)
+            source = json.loads(source_path.read_text(encoding="utf-8"))
+            self.assertGreaterEqual(len(source["products"]), 3)
+
     def test_workflow_plan_category_research_is_local_agent_graph(self):
         payload = run_command(
             "workflow.plan",

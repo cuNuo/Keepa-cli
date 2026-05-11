@@ -48,6 +48,13 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     reports_build.add_argument("--out", help="写入报告文件。")
     reports_build.add_argument("--title", default="Keepa Report", help="报告标题。")
 
+    figures = subparsers.add_parser("figures", help="生成 Agent 报告可插入的本地 SVG 图。")
+    figures_subparsers = figures.add_subparsers(dest="figures_command")
+    figures_research = figures_subparsers.add_parser("research", help="从产品/图谱 JSON 生成多面板 SVG。")
+    figures_research.add_argument("--input", required=True, help="输入 JSON 文件。")
+    figures_research.add_argument("--out-dir", default="keepa-figures", help="输出目录。")
+    figures_research.add_argument("--title", default="Keepa Agent Research Figures", help="图标题。")
+
     audit = subparsers.add_parser("audit", help="本地成本审计命令。")
     audit_subparsers = audit.add_subparsers(dest="audit_command")
     audit_cost = audit_subparsers.add_parser("cost", help="估算一个命令或命令清单的 Keepa token 成本。")
@@ -107,6 +114,13 @@ def maybe_run_workflow_command(
         payload = run_command(
             "reports.build",
             {"input": args.input, "format": args.format, "out": args.out, "title": args.title},
+        )
+        return 0 if payload["ok"] else 1, payload
+
+    if args.command == "figures" and args.figures_command == "research":
+        payload = run_command(
+            "figures.research",
+            {"input": args.input, "out_dir": args.out_dir, "title": args.title},
         )
         return 0 if payload["ok"] else 1, payload
 

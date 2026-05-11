@@ -18,6 +18,7 @@
     {"path": "data.rows.0.selection_signals.price_stability.new_price_trend", "equals": "down"},
     {"path": "data.rows.0.selection_signals.content_quality.video_count", "min": 1},
     {"path": "data.rows.0.risk_taxonomy.codes", "contains": "data_missing"},
+    {"path": "data", "risk_schema_valid": true},
     {"path": "data.rows.0.research_graph.entity_counts.category", "min": 5},
     {"path": "data.risk_summary.by_code.data_missing", "min": 3},
     {"path": "data.research_graph.entity_counts.product", "min": 3},

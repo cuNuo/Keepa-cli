@@ -273,7 +273,7 @@ def _apply_derived_params(
         elif payloads:
             params["payload"] = payloads
 
-    if tool_name in {"keepa.reports_build", "keepa.browse_snapshot"} and not params.get("input"):
+    if tool_name in {"keepa.reports_build", "keepa.browse_snapshot", "keepa.figures_research"} and not params.get("input"):
         if paths:
             params["input"] = paths[0]
         elif graphs:
@@ -298,7 +298,7 @@ def _missing_inputs(tool_name: str, params: Mapping[str, Any]) -> list[dict[str,
         missing.append({"field": "graph", "accepts": ["resource_uri keepa://research/{cache_key}", "resource_uri keepa://research/{cache_key}/graph", "artifact graph", "artifact output.path"]})
     if tool_name == "keepa.research_brief_export" and not params.get("input") and not params.get("payload") and not params.get("graph"):
         missing.append({"field": "payload", "accepts": ["resource_uri keepa://research/{cache_key}", "artifact merged_graph.path", "artifact payload"]})
-    if tool_name in {"keepa.reports_build", "keepa.browse_snapshot"} and not params.get("input"):
+    if tool_name in {"keepa.reports_build", "keepa.browse_snapshot", "keepa.figures_research"} and not params.get("input"):
         missing.append({"field": "input", "accepts": ["resource_uri keepa://research/{cache_key}", "resource_uri keepa://output/{encoded_path}", "artifact merged_graph.path"]})
     return missing
 

@@ -133,6 +133,7 @@ kc --json finder query --selection-file keepa_cli/fixtures/finder_selection.json
 kc --json batch asins .\asins.txt --domain US --dry-run --out .\batch.json
 kc --json reports build --input .\batch.json --format markdown --out .\report.md
 kc --json browse snapshot --input .\batch.json --out-dir .\keepa-browse
+kc --json figures research --input .\batch.json --out-dir .\keepa-figures
 ```
 
 查看内置模板：
@@ -197,9 +198,22 @@ kc --json domains list
 '{"jsonrpc":"2.0","id":4,"method":"prompts/list","params":{}}' | kc --mcp
 ```
 
-MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/docs/audit/reports/tracking-readonly/all` 控制上下文大小；`profile` 可按会话阶段标记 inactive tools（`offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`），被 profile 禁用的 `tools/call` 会在 service 执行前返回 `inactive_tool`。research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、`keepa.research_graph_merge` 与 `keepa.research_brief_export`；audit 覆盖 cost、cassette sanitize/promote 与 `keepa.cassettes_promote_and_verify`；reports 覆盖图谱合并、本地报告、浏览快照与 brief export；tracking 覆盖只读 tracking 与 cost audit。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
+MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`tools/list` 可传 `toolset=research/docs/audit/reports/tracking-readonly/all` 控制上下文大小；`profile` 可按会话阶段标记 inactive tools（`offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`），被 profile 禁用的 `tools/call` 会在 service 执行前返回 `inactive_tool`。research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、`keepa.research_graph_merge` 与 `keepa.research_brief_export`；audit 覆盖 cost、cassette sanitize/promote 与 `keepa.cassettes_promote_and_verify`；reports 覆盖图谱合并、本地报告、浏览快照、SVG 图表生成与 brief export；tracking 覆盖只读 tracking 与 cost audit。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`。
 
 MCP resources 用于减少 `tools/list` 上下文：`keepa://context/policy`、`keepa://schema/products-agent-view`、`keepa://schema/risk-taxonomy`、`keepa://schema/workflow-runtime-contract`、`keepa://fixtures/manifest`、`keepa://guides/cassette-promotion`、`keepa://evidence/recent`、`keepa://tools/index`、`keepa://workflow/runtime-contract`、`keepa://prompts/index`、`keepa://zread/wiki/current`、`keepa://zread/wiki/toc`、`keepa://zread/wiki/pages`。`resources/templates/list` 会暴露 `keepa://schema/{name}`、`keepa://fixtures/{name}`、`keepa://cache-key/{command}/{encoded_params}`、`keepa://workflow/{encoded_params}/policy`、`keepa://research/{cache_key}`、`keepa://research/{cache_key}/brief`、`keepa://research/{cache_key}/graph`、`keepa://graphs/{root}`、`keepa://toolsets/{toolset}`、`keepa://tools/{name}`、`keepa://prompts/{name}`、`keepa://asin/{asin}/fixture`、`keepa://evidence/{encoded_logical_path}`、`keepa://zread/wiki/page/{slug_or_file}`、`keepa://chunk/{encoded_path}`、`keepa://output/{encoded_path}`，让 Agent 能发现 URI 形状而不是硬编码。`keepa://schema/risk-taxonomy` 提供稳定风险枚举和带证据路径的 risk item 契约；`keepa://workflow/runtime-contract` 可直接读取哪些 MCP tool 支持 `resource_uri/artifact/workflow_inputs` 运行时解析，并通过 `schema_resource_uri=keepa://schema/workflow-runtime-contract` 指向可校验 schema；`keepa://workflow/{encoded_params}/policy` 可从 base64url JSON 计划参数读取紧凑的 `workflow_policy` 和步骤摘要；`keepa://research/{cache_key}` 审计同一 MCP session 内缓存结果；`keepa://research/{cache_key}/brief` 回读已导出的 brief；`keepa://graphs/{root}` 从 session cache 和本地 fixture 查研究图来源。大响应仍完整保留在 `structuredContent`，text fallback 只返回摘要和 `mcp_resource_manifest`，其中 `keepa://chunk/...` / `keepa://output/...` 可按需读取具体分块。MCP prompts 提供 product research、category research、deal compare 与 project onboarding 起手式。
+
+可复制的 Agent 集成示例：
+
+```powershell
+.\.venv\Scripts\python.exe scripts\mcp_agent_workflow_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_tracking_audit_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json --save-summary evidence\runtime\mcp-report-summary.json
+```
+
+这些示例会启动 `python -m keepa_cli --mcp` stdio server，并在同一 session 内复用 cache key、resource URI 与预算账本。`mcp_agent_workflow_example.py` 调用 `keepa.workflow_plan`，读取 `keepa://schema/risk-taxonomy`，通过 `resource_uri` 串联 fixture 版类目商品与 compare，校验风险枚举，再合并 research graph、导出 Agent brief 并生成 JSON report。`mcp_tracking_audit_example.py` 专门演示 `tracking-readonly` toolset/profile 边界，并证明 tracking 写工具不会暴露给 MCP。`mcp_report_research_example.py` 演示本地 `reports` toolset，把已有 graph fixture 转成 graph、brief、browse snapshot、SVG figure resource 与 report。所有示例都支持 `--save-summary <path>`，便于 Agent pipeline 把集成摘要写入受控路径。共享 helper `scripts/mcp_example_support.py` 只用标准库，便于其他 Agent 直接复制 client 模式。
+
+`browse.snapshot` 现在既能读取原始 Keepa product body，也能从 `research_graph` 的 product nodes 提取产品行，因此 merged graph 没有 raw rows 时仍能生成可浏览 HTML。`figures research` 会从产品对比、risk taxonomy、图谱实体计数和时序信号生成单个 SVG 与源数据 JSON。通过 MCP 调用 `keepa.figures_research` 时，SVG 会作为 `image/svg+xml` 的 `keepa://output/...` resource 返回，方便 Agent 在调研报告中插入稳定图表，而不用一次性加载大 JSON。
 
 跨命令研究图可本地合并，不访问 Keepa：
 

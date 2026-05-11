@@ -20,6 +20,7 @@ from keepa_cli.workflows import (
     list_templates,
     show_template,
 )
+from keepa_cli.figures import build_research_figures
 
 
 WORKFLOW_COMMANDS = {
@@ -29,6 +30,7 @@ WORKFLOW_COMMANDS = {
     "templates.show",
     "reports.build",
     "audit.cost",
+    "figures.research",
     "workflow.plan",
 }
 
@@ -85,6 +87,12 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
                 }
             ]
         data = audit_cost([dict(item) for item in specs if isinstance(item, Mapping)])
+    elif command == "figures.research":
+        data = build_research_figures(
+            input_path=str(_param(params, "input", "input_path", default="")),
+            out_dir=str(_param(params, "out_dir", "out-dir", default="keepa-figures")),
+            title=str(_param(params, "title", default="Keepa Agent Research Figures")),
+        )
     elif command == "workflow.plan":
         data = build_workflow_plan(
             name=str(_param(params, "name", "workflow", default="")),

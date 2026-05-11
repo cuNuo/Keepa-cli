@@ -52,8 +52,9 @@ With MCP, call structured tools instead of CLI strings:
 - `keepa.workflow_plan`
 - `keepa.research_graph_merge`
 - `keepa.research_brief_export`
+- `keepa.figures_research`
 
-Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse builders, and `tracking-readonly` only for read-only tracking state. Add `profile=offline_fixture_only` or `profile=dry_run_default` during early research; inactive tools include `x-keepa.active=false`, and `tools/call` returns `inactive_tool` before service execution when a profile disallows a tool.
+Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse/SVG figure builders, and `tracking-readonly` only for read-only tracking state. Add `profile=offline_fixture_only` or `profile=dry_run_default` during early research; inactive tools include `x-keepa.active=false`, and `tools/call` returns `inactive_tool` before service execution when a profile disallows a tool.
 
 Use `resources/list` before loading long docs. Stable resources are `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://schema/risk-taxonomy`, `keepa://schema/workflow-runtime-contract`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, `keepa://evidence/recent`, and `keepa://workflow/runtime-contract`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://workflow/{encoded_params}/policy`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://schema/risk-taxonomy` to validate risk codes, severity, and evidence paths, `keepa://workflow/runtime-contract` to discover resolver-enabled tools and follow its `schema_resource_uri` for validation, `keepa://workflow/{encoded_params}/policy` to read compact workflow execution policy from base64url JSON workflow params, `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
 
@@ -74,6 +75,17 @@ After `keepa.workflow_plan`, read `workflow_inputs`, `artifacts`, `resource_temp
 When executing later MCP steps, prefer `resource_uri` / `resource_uris` over copying large payloads. `tools/call` can resolve `keepa://research/{cache_key}`, `keepa://research/{cache_key}/graph`, `keepa://output/{encoded_path}`, inline `artifact`, `artifact.output.path` / `artifact.data.output.path`, nested `workflow_context.steps` / `outputs` / `results`, and `workflow_inputs` into concrete params. Use `keepa://graphs/{root}` to audit graph sources, not as a replacement for a full graph payload. Successful tool results include `data.workflow_resolution`; if a dependency is missing, the tool returns `missing_inputs` with accepted sources instead of running the service layer.
 
 Use `keepa.research_agent_start` prompt when a client supports MCP prompts. It encodes the policy -> resolve -> context -> plan -> execute -> graph merge order.
+
+For a copyable MCP client integration sample, run:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\mcp_agent_workflow_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_tracking_audit_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json
+.\.venv\Scripts\python.exe scripts\mcp_report_research_example.py --json --save-summary evidence\runtime\mcp-report-summary.json
+```
+
+The examples demonstrate `workflow.plan`, `keepa://schema/risk-taxonomy`, `keepa://research/{cache_key}` resource chaining, risk schema validation, graph merge, brief export, report build, tracking-readonly boundaries, and local graph -> brief -> browse/report handoff in fixture-backed stdio sessions. Use `--save-summary` when an Agent pipeline needs to persist the compact integration summary to a controlled path.
 
 ## Read Order
 
@@ -100,6 +112,8 @@ After category discovery, compare, and seller/deals steps, merge graphs with `re
 Use `research_brief.export` / `keepa.research_brief_export` after graph merge or multi-payload research. The brief gives downstream research Agents a stable `decision_summary`, `risk_summary`, `entity_graph_summary`, `follow_up_plan`, `evidence_links`, and `recommended_read_order` without rereading every raw payload.
 
 Use `reports.build` on the merged graph JSON when a human-readable or downstream relationship report is needed. Markdown includes entity and relationship tables; JSON includes `research_graph_report`.
+
+Use `figures.research` / `keepa.figures_research` when a report needs a visual artifact. It creates one SVG plus source JSON from product comparison rows, risk codes, graph entity counts, and temporal signals. In MCP, read the `image/svg+xml` `keepa://output/...` resource from `mcp_resource_manifest` and insert that SVG into the downstream report; load source JSON only for audit.
 
 ## Cassette Promotion
 

@@ -109,6 +109,25 @@ def _product_rows(payload: Mapping[str, Any]) -> list[dict[str, Any]]:
                     }
                 )
         return rows
+    graphs = extract_research_graphs(payload)
+    graph_rows: list[dict[str, Any]] = []
+    for graph in graphs:
+        nodes = graph.get("nodes") if isinstance(graph.get("nodes"), list) else []
+        for node in nodes:
+            if not isinstance(node, Mapping) or node.get("type") != "product":
+                continue
+            attributes = node.get("attributes") if isinstance(node.get("attributes"), Mapping) else {}
+            graph_rows.append(
+                {
+                    "asin": str(attributes.get("asin") or str(node.get("id") or "").removeprefix("product:")),
+                    "title": str(node.get("label") or ""),
+                    "brand": str(attributes.get("brand") or ""),
+                    "categoryTree": [],
+                    "source": "research_graph",
+                }
+            )
+    if graph_rows:
+        return graph_rows
     return []
 
 
@@ -120,7 +139,9 @@ def build_browse_snapshot(*, input_path: str | None, out_dir: str, title: str) -
     out.mkdir(parents=True, exist_ok=True)
     index_path = out / "index.html"
     data_path = out / "data.json"
-    write_json(data_path, {"generated_at": generated_at, "source": input_path, "rows": rows})
+    graphs = extract_research_graphs(payload)
+    graph_summary_data = graph_summary(graphs[0]) if graphs else {}
+    write_json(data_path, {"generated_at": generated_at, "source": input_path, "rows": rows, "research_graph": graph_summary_data})
 
     max_bar = max((len(row.get("title", "")) for row in rows), default=1)
     cards = []
@@ -170,6 +191,8 @@ def build_browse_snapshot(*, input_path: str | None, out_dir: str, title: str) -
   <main>
     <section class="panel">
       <div class="metric"><span>Products</span><strong>{len(rows)}</strong></div>
+      <div class="metric"><span>Graph nodes</span><strong>{html.escape(str(graph_summary_data.get("node_count", 0)))}</strong></div>
+      <div class="metric"><span>Graph edges</span><strong>{html.escape(str(graph_summary_data.get("edge_count", 0)))}</strong></div>
       <div class="metric"><span>Data file</span><strong>data.json</strong></div>
       {''.join(bars)}
     </section>
@@ -184,6 +207,7 @@ def build_browse_snapshot(*, input_path: str | None, out_dir: str, title: str) -
         "index": str(index_path),
         "data": str(data_path),
         "row_count": len(rows),
+        "research_graph": graph_summary_data,
         "provenance": build_cache_provenance(
             endpoint="local://browse.snapshot",
             params={"input": input_path or "", "out_dir": out_dir, "title": title},
