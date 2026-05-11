@@ -154,7 +154,7 @@ class BackendFinalCoverageTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 read_mcp_resource("keepa://zread/wiki/current", root=root)
 
-        outside_uri = path_to_resource_uri(Path("C:/definitely-outside-keepa-resource.txt"), kind="output")
+        outside_uri = path_to_resource_uri(Path.home() / "definitely-outside-keepa-resource.txt", kind="output")
         with self.assertRaises(ValueError):
             read_mcp_resource(outside_uri, root=Path.cwd())
 
@@ -441,7 +441,7 @@ class BackendFinalCoverageTests(unittest.TestCase):
         self.assertEqual(_window_heatmap_for_figures({"temporal_features": {"series": {"new": {"windows": {"recent_7d": {"change_pct": "bad"}}}}}}), [])
         self.assertIn("No temporal windows", _panel_window_heatmap([{"series": "new"}], x=0, y=0, w=300, h=200))
         self.assertIn("Price / rank history", _panel_history_lines([{"asin": "B1", "name": "new", "points": [{"value": 1}]}], x=0, y=0, w=650, h=300))
-        self.assertIn("Small multiples", _panel_history_small_multiples([{"asin": "B1", "series": [{"metric": "new", "normalized_points": [{"x": 0, "y": 0}]}]}], x=0, y=0, w=650, h=300))
+        self.assertIn("history small multiples", _panel_history_small_multiples([{"asin": "B1", "series": [{"metric": "new", "normalized_points": [{"x": 0, "y": 0}]}]}], x=0, y=0, w=650, h=300))
         self.assertIsNone(_num({"bad": True}))
         self.assertEqual(extract_history_rows({"asin": "B1", "csv": [[]]}, "amazon"), [])
         self.assertEqual(extract_history_rows({"asin": "B1", "csv": [[1, -1]]}, "amazon", include_missing=True)[0]["value"], None)
