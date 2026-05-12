@@ -241,6 +241,7 @@ def build_product_compare_view(agent_view: Mapping[str, Any], *, include_history
                     "risk_flags": (product.get("selection_signals") or {}).get("risk_flags")
                     if isinstance(product.get("selection_signals"), Mapping)
                     else None,
+                    "next_actions": product.get("next_actions"),
                     "data_quality": product.get("data_quality"),
                     "bounded_history_points": bounded_history,
                 }

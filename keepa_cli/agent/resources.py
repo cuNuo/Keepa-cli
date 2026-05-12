@@ -1033,6 +1033,8 @@ def _compact_compare_row(row: Mapping[str, Any]) -> dict[str, Any]:
         "next_actions",
     )
     result = {key: copy.deepcopy(row[key]) for key in keys if key in row}
+    if "total_offer_count" in result:
+        result["offer_count"] = result["total_offer_count"]
     signals = row.get("selection_signals")
     if isinstance(signals, Mapping):
         result["selection_signals"] = {
@@ -1040,12 +1042,20 @@ def _compact_compare_row(row: Mapping[str, Any]) -> dict[str, Any]:
             for key in ("demand", "competition", "content_quality", "price_stability")
             if key in signals
         }
+        if "content_quality" in signals:
+            result["content_quality"] = copy.deepcopy(signals["content_quality"])
     taxonomy = row.get("risk_taxonomy")
     if isinstance(taxonomy, Mapping):
         result["risk_taxonomy"] = {
             "codes": copy.deepcopy(taxonomy.get("codes", [])),
             "highest_severity": taxonomy.get("highest_severity"),
             "risk_count": taxonomy.get("risk_count"),
+        }
+        result["risk_summary"] = {
+            "codes": copy.deepcopy(taxonomy.get("codes", [])),
+            "highest_severity": taxonomy.get("highest_severity"),
+            "risk_count": taxonomy.get("risk_count"),
+            "flags": copy.deepcopy(row.get("risk_flags", [])),
         }
     graph = row.get("research_graph")
     if isinstance(graph, Mapping):

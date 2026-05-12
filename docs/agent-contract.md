@@ -391,7 +391,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json research brief .\research-graph.json --title "Agent selection brief" --out .\brief.json
 ```
 
-`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`external_signal_stub`、`ip_risk_inputs`、`claim_risk_inputs`、`data_quality` 与 `recommended_read_order`。外部广告、媒体、专利/FTO、宣称合规证据由调用方通过这些 slot 合并，Keepa MCP 不直接联网检索这些证据。MCP 对应工具为 `research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
+`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`external_signal_stub`、`ip_risk_inputs`、`claim_risk_inputs`、`data_quality` 与 `recommended_read_order`。外部广告、媒体、专利/FTO、宣称合规证据由调用方通过这些 slot 合并，Keepa MCP 不直接联网检索这些证据。`research_brief.export` 与 `reports.build` 都支持 `out_dir`，用于把可提交摘要写入指定目录；raw/runtime 大文件应留在 runtime evidence 区并标注不进入普通提交。MCP 对应工具为 `research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
 
 `reports.build` 可直接消费 `research_graph.merge --out` 写出的 merged graph JSON。Markdown 输出会追加 `Research Graph`、`Entities` 和 `Relationships` 小节；JSON 输出会增加 `research_graph_report`，包含 summary、entity_counts、nodes、edges、sources、diagnostics 与 diff。这样 Agent 可以把图谱合并和报告生成分成两步，并用 `keepa://graphs/{root}` 或 `keepa://research/{cache_key}` 回查来源。
 

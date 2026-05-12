@@ -419,6 +419,51 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["error"]["kind"], "profile_requires_fixture_or_dry_run")
         self.assertEqual(structured["error"]["details"]["live_profile"], "live_read_allowed")
 
+    def test_safe_profiles_keep_live_research_tools_discoverable_but_guard_calls(self):
+        live_research_tools = {
+            "products_get": {"asin": "B0D8W1YVBX", "domain": "US"},
+            "products_compare": {"asin": ["B0D8W1YVBX", "B0EVALCMP1"], "domain": "US"},
+            "categories_products": {"category": "172282", "domain": "US"},
+            "finder_query": {"selection": {}, "domain": "US"},
+            "deals_query": {"selection": {}, "domain": "US"},
+            "bestsellers_get": {"category": "172282", "domain": "US"},
+            "topsellers_list": {"domain": "US"},
+        }
+        for profile in ("offline_fixture_only", "dry_run_default"):
+            with self.subTest(profile=profile, phase="list"):
+                response = handle_mcp_message(
+                    json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": f"list-{profile}",
+                            "method": "tools/list",
+                            "params": {"toolset": "all", "profile": profile, "limit": 100},
+                        }
+                    ),
+                    env={},
+                )
+                tools = {item["name"]: item for item in response["result"]["tools"]}
+                for tool_name in live_research_tools:
+                    self.assertTrue(tools[tool_name]["x-keepa"]["active"], tool_name)
+
+            for tool_name, arguments in live_research_tools.items():
+                with self.subTest(profile=profile, tool=tool_name, phase="call"):
+                    response = handle_mcp_message(
+                        json.dumps(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": f"guard-{profile}-{tool_name}",
+                                "method": "tools/call",
+                                "params": {"name": tool_name, "arguments": {**arguments, "profile": profile}},
+                            }
+                        ),
+                        env={},
+                    )
+                    structured = response["result"]["structuredContent"]
+                    self.assertTrue(response["result"]["isError"])
+                    self.assertEqual(structured["error"]["kind"], "profile_requires_fixture_or_dry_run")
+                    self.assertEqual(structured["error"]["details"]["live_profile"], "live_read_allowed")
+
     def test_prompts_list_and_get_return_agent_playbooks(self):
         listed = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompts", "method": "prompts/list", "params": {}}), env={})
         names = {item["name"] for item in listed["result"]["prompts"]}
@@ -745,7 +790,11 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("research_graph_summary", structured["data"])
         self.assertIn("mcp_resource_manifest", structured)
         self.assertEqual(structured["data"]["rows"][0]["total_offer_count"], 5)
+        self.assertEqual(structured["data"]["rows"][0]["offer_count"], 5)
         self.assertIn("content_quality", structured["data"]["rows"][0]["selection_signals"])
+        self.assertIn("content_quality", structured["data"]["rows"][0])
+        self.assertIn("risk_summary", structured["data"]["rows"][0])
+        self.assertIn("next_actions", structured["data"]["rows"][0])
         self.assertTrue(any(item.get("type") == "session_cache" for item in structured["mcp_resource_manifest"]["resources"]))
 
     def test_unknown_tool_returns_json_rpc_error(self):

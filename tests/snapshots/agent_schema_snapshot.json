@@ -10133,6 +10133,24 @@
           },
           "monthly_sold": "int",
           "new_price": "float",
+          "next_actions": [
+            {
+              "cli": "str",
+              "command": "str",
+              "estimated_tokens": "int",
+              "params": {
+                "agent_view": "bool",
+                "asin": "str",
+                "domain": "str",
+                "full": "bool",
+                "offers": "str",
+                "view": "str"
+              },
+              "reason": "str",
+              "requires_confirmation": "bool",
+              "tool": "str"
+            }
+          ],
           "rating": "float",
           "research_graph": {
             "edge_count": "int",

@@ -194,6 +194,8 @@ kc --json browse snapshot --input .\batch.json --out-dir .\keepa-browse
 kc --json figures research --input .\batch.json --out-dir .\keepa-figures
 ```
 
+`reports build` also accepts `--out-dir` when a report workflow should write a commit-ready summary file into a dedicated directory; keep raw runtime evidence under `evidence/runtime*` and out of normal commits.
+
 Use built-in workflow templates:
 
 ```powershell

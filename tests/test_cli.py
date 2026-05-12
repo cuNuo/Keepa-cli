@@ -51,6 +51,29 @@ class CliTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertTrue(any(item["code"] == "US" for item in payload["data"]["domains"]))
 
+    def test_reports_build_accepts_out_dir(self):
+        with TemporaryDirectory() as temp_dir:
+            result = self.run_module(
+                "--json",
+                "reports",
+                "build",
+                "--input",
+                "tests/fixtures/agent_eval_products_compare_output.json",
+                "--format",
+                "markdown",
+                "--out-dir",
+                temp_dir,
+                "--no-figures",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["ok"])
+            output_path = Path(payload["data"]["output"]["path"])
+            self.assertEqual(output_path.parent, Path(temp_dir))
+            self.assertTrue(output_path.is_file())
+            self.assertEqual(payload["data"]["output"]["commit_boundary"], "commit_ready_summary")
+
     def test_config_show_returns_default_config(self):
         result = self.run_module("--json", "config", "show")
 

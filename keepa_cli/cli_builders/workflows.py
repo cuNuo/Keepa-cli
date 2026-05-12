@@ -46,6 +46,7 @@ def add_workflow_parsers(subparsers: argparse._SubParsersAction[argparse.Argumen
     reports_build.add_argument("--input", required=True, help="输入 JSON 文件。")
     reports_build.add_argument("--format", choices=("markdown", "json", "csv"), default="markdown", help="报告格式。")
     reports_build.add_argument("--out", help="写入报告文件。")
+    reports_build.add_argument("--out-dir", help="未提供 --out 时写入可提交报告目录。")
     reports_build.add_argument("--title", default="Keepa Report", help="报告标题。")
     reports_build.add_argument("--figure", help="嵌入已有 SVG/图片路径；未提供时 markdown/json 报告会本地生成 SVG。")
     reports_build.add_argument("--figures-dir", help="自动生成 SVG 的输出目录。")
@@ -130,6 +131,7 @@ def maybe_run_workflow_command(
                 "input": args.input,
                 "format": args.format,
                 "out": args.out,
+                "out_dir": args.out_dir,
                 "title": args.title,
                 "figure": args.figure,
                 "figures_dir": args.figures_dir,

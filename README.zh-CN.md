@@ -138,6 +138,8 @@ kc --json browse snapshot --input .\batch.json --out-dir .\keepa-browse
 kc --json figures research --input .\batch.json --out-dir .\keepa-figures
 ```
 
+`reports build` 也支持 `--out-dir`，用于把 report workflow 的可提交摘要写入独立目录；真实调研的 raw/runtime 证据仍应放在 `evidence/runtime*` 并避免进入普通提交。
+
 查看内置模板：
 
 ```powershell
