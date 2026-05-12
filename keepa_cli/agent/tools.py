@@ -132,6 +132,7 @@ class ToolDefinition:
     idempotent: bool = True
     open_world: bool = False
     workflow_runtime: bool = False
+    long_running_candidate: bool = False
 
     def to_mcp_tool(self) -> dict[str, Any]:
         title = self.title or f"Keepa {self.name.replace('.', ' ').replace('_', ' ').title()}"
@@ -142,6 +143,14 @@ class ToolDefinition:
         if self.workflow_runtime:
             keepa_meta["workflow_runtime"] = True
             keepa_meta["workflow_runtime_args"] = sorted(workflow_runtime_argument_names())
+        if self.long_running_candidate:
+            keepa_meta["long_running_candidate"] = True
+            keepa_meta["normal_tools_call_policy"] = "fixture_or_small_output_only"
+            keepa_meta["future_task_support"] = {
+                "target": "required",
+                "protocol": "MCP Tasks/progress",
+                "reason": "large local file/report/figure generation should not block ordinary tools/call",
+            }
         return {
             "name": self.name,
             "title": title,
@@ -1131,6 +1140,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=REPORTS_BUILD_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        long_running_candidate=True,
         read_only=False,
         groups=("reports",),
     ),
@@ -1151,6 +1161,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         input_schema=FIGURES_RESEARCH_SCHEMA,
         output_schema=MCP_ENVELOPE_OUTPUT_SCHEMA,
         workflow_runtime=True,
+        long_running_candidate=True,
         read_only=False,
         groups=("reports",),
     ),
@@ -1330,6 +1341,8 @@ def workflow_runtime_contract() -> dict[str, Any]:
             "groups": list(tool.groups),
             "resource_uri": f"keepa://tools/{tool.name}",
             "runtime_args": args,
+            "long_running_candidate": tool.long_running_candidate,
+            "future_task_support": "required" if tool.long_running_candidate else None,
         }
         for tool in TOOL_DEFINITIONS
         if tool.workflow_runtime

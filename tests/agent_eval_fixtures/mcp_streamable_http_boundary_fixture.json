@@ -77,6 +77,54 @@
       }
     },
     {
+      "id": "timeout-default-uses-bounded-adapter-policy",
+      "category": "timeout",
+      "method": "POST",
+      "jsonrpc_method": "tools/list",
+      "timeout_ms": null,
+      "expected": {
+        "http_status": 200,
+        "timeout_header": "Keepa-MCP-Timeout-Ms",
+        "normalized_timeout_ms": 30000
+      }
+    },
+    {
+      "id": "timeout-request-header-in-range",
+      "category": "timeout",
+      "method": "POST",
+      "jsonrpc_method": "tools/call",
+      "timeout_ms": "45000",
+      "expected": {
+        "http_status": 200,
+        "normalized_timeout_ms": 45000
+      }
+    },
+    {
+      "id": "timeout-request-header-below-minimum-rejected",
+      "category": "timeout",
+      "method": "POST",
+      "jsonrpc_method": "tools/call",
+      "timeout_ms": 10,
+      "expected": {
+        "http_status": 400,
+        "jsonrpc_error_code": -32602,
+        "timeout_valid": false
+      }
+    },
+    {
+      "id": "timeout-expired-maps-to-gateway-timeout",
+      "category": "timeout",
+      "method": "POST",
+      "jsonrpc_method": "tools/call",
+      "timeout_state": "expired",
+      "timeout_ms": 30000,
+      "expected": {
+        "http_status": 504,
+        "jsonrpc_error_code": -32003,
+        "next_action": "retry idempotent request or resume through MCP Tasks/progress when available"
+      }
+    },
+    {
       "id": "error-malformed-json-parse-error",
       "category": "error_mapping",
       "method": "POST",
@@ -129,18 +177,26 @@
     {"path": "protocol_version", "equals": "2025-11-25"},
     {"path": "endpoint_path", "equals": "/mcp"},
     {"path": "session_header", "equals": "MCP-Session-Id"},
+    {"path": "session_header_aliases", "contains": "Mcp-Session-Id"},
+    {"path": "request_timeout_header", "equals": "Keepa-MCP-Timeout-Ms"},
+    {"path": "default_request_timeout_ms", "equals": 30000},
     {"path": "required_categories", "contains": "origin"},
     {"path": "required_categories", "contains": "session"},
+    {"path": "required_categories", "contains": "timeout"},
     {"path": "required_categories", "contains": "error_mapping"},
     {"path": "missing_categories", "length": 0},
-    {"path": "case_count", "equals": 10},
+    {"path": "case_count", "equals": 14},
     {"path": "results.1.contract_status", "equals": 403},
     {"path": "results.1.origin_allowed", "equals": false},
     {"path": "results.2.session_id_visible_ascii", "equals": true},
     {"path": "results.3.contract_status", "equals": 400},
     {"path": "results.4.contract_status", "equals": 404},
-    {"path": "results.6.jsonrpc_error_code", "equals": -32700},
-    {"path": "results.8.contract_status", "equals": 200},
-    {"path": "results.9.contract_status", "equals": 202}
+    {"path": "results.6.normalized_timeout_ms", "equals": 30000},
+    {"path": "results.7.normalized_timeout_ms", "equals": 45000},
+    {"path": "results.8.timeout_valid", "equals": false},
+    {"path": "results.9.contract_status", "equals": 504},
+    {"path": "results.10.jsonrpc_error_code", "equals": -32700},
+    {"path": "results.12.contract_status", "equals": 200},
+    {"path": "results.13.contract_status", "equals": 202}
   ]
 }

@@ -1832,6 +1832,12 @@ class McpProtocolTests(unittest.TestCase):
         reports_schema = tools["reports_build"]["inputSchema"]["properties"]["figure_set"]
         self.assertEqual(figures_schema["enum"], ["all", "history", "compare", "audit"])
         self.assertEqual(reports_schema["default"], "all")
+        for name in ("figures_research", "reports_build"):
+            meta = tools[name]["x-keepa"]
+            self.assertTrue(meta["long_running_candidate"])
+            self.assertEqual(meta["normal_tools_call_policy"], "fixture_or_small_output_only")
+            self.assertEqual(meta["future_task_support"]["target"], "required")
+            self.assertEqual(tools[name]["execution"]["taskSupport"], "forbidden")
 
     def test_report_markdown_svg_resource_links_are_readable(self):
         session = AgentSession(env={})

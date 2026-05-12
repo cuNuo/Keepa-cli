@@ -51,8 +51,16 @@ class ReleaseEcosystemTests(unittest.TestCase):
         self.assertIn("scripts/check_agent_eval_fixtures.py", quality_gate)
         self.assertIn("scripts/check_mcp_output_schema.py", quality_gate)
         self.assertIn("scripts/check_mcp_performance_gate.py", quality_gate)
+        self.assertIn("--performance-out", quality_gate)
+        self.assertTrue(Path("scripts/summarize_mcp_performance_history.py").exists())
         self.assertIn("mcp_sdk_adapter_filter_parity.json", quality_gate)
         self.assertIn("scripts/export_mcp_inspector_snapshot.py", quality_gate)
+
+    def test_ci_uploads_mcp_performance_artifact(self):
+        workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn("--performance-out artifacts/mcp-performance/", workflow)
+        self.assertIn("actions/upload-artifact@v4", workflow)
+        self.assertIn("mcp-performance-${{ runner.os }}-py311", workflow)
 
 
 if __name__ == "__main__":

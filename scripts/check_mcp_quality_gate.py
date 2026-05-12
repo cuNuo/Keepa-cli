@@ -64,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", help="输出 JSON 汇总。")
     parser.add_argument("--skip-if-missing", action="store_true", help="缺少可选 mcp 包时跳过 SDK typed 检查。")
     parser.add_argument("--require-sdk", action="store_true", help="要求官方 mcp 包已安装；CI 的 mcp-sdk-adapter job 应使用。")
+    parser.add_argument("--performance-out", type=Path, help="把 performance gate 完整 JSON 写入指定路径，供 CI artifact 归档。")
     args = parser.parse_args(argv)
 
     status = adapter_status()
@@ -73,10 +74,13 @@ def main(argv: list[str] | None = None) -> int:
 
     python = sys.executable
     skip_flag = ["--skip-if-missing"] if args.skip_if_missing and not args.require_sdk else []
+    performance_command = [python, "scripts/check_mcp_performance_gate.py", "--json"]
+    if args.performance_out:
+        performance_command.extend(["--out", str(args.performance_out)])
     steps = [
         ("agent eval fixtures", [python, "scripts/check_agent_eval_fixtures.py"]),
         ("output schema", [python, "scripts/check_mcp_output_schema.py", "--json"]),
-        ("performance gate", [python, "scripts/check_mcp_performance_gate.py", "--json"]),
+        ("performance gate", performance_command),
         ("adapter fixture equivalence", [python, "scripts/compare_mcp_sdk_adapter_fixture.py"]),
         (
             "adapter filter parity",

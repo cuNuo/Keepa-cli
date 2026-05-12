@@ -69,7 +69,7 @@ adapter 原则：
 - `scripts/smoke_mcp_sdk_adapter_client.py` 使用官方 `ClientSession` 连接 SDK stdio adapter，验证 `initialize`、分页 `list_tools`、`list_resources`、`list_resource_templates`、`list_prompts`、`call_tool context_policy` 与 `read_resource keepa://context/policy`。
 - `scripts/check_mcp_sdk_adapter_typed_fixture.py` 把 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json` 的每个 step 映射成官方 SDK typed client 调用；SDK 不支持的 Keepa 扩展 `toolset/limit` 会记录为 mapping limitation，并继续验证完整分页、错误结构与 `ping`。
 - `scripts/export_mcp_inspector_snapshot.py --check` 会通过官方 typed client 导出并校验可复现 Inspector snapshot，覆盖 serverInfo、list_* 首页、分页、错误映射和 ping。
-- `scripts/check_mcp_quality_gate.py --require-sdk` 聚合 Agent eval fixture、outputSchema 离线校验、MCP performance gate、adapter fixture 等价、adapter filter parity、SDK typed smoke、typed Inspector fixture 与 snapshot 校验；远端 `mcp-sdk-adapter` job 安装 `.[mcp-sdk]` 后运行该门禁。该脚本的 `--json` 成功与失败输出都保持单一 JSON payload，失败步骤的 stdout/stderr 只进入 `steps[].*_tail`，便于 Agent 和 CI 解析。
+- `scripts/check_mcp_quality_gate.py --require-sdk` 聚合 Agent eval fixture、outputSchema 离线校验、MCP performance gate、adapter fixture 等价、adapter filter parity、SDK typed smoke、typed Inspector fixture 与 snapshot 校验；远端 `mcp-sdk-adapter` job 安装 `.[mcp-sdk]` 后运行该门禁。该脚本的 `--json` 成功与失败输出都保持单一 JSON payload，失败步骤的 stdout/stderr 只进入 `steps[].*_tail`，便于 Agent 和 CI 解析。CI 会通过 `--performance-out artifacts/mcp-performance/...` 上传完整 performance JSON；后续用 `scripts/summarize_mcp_performance_history.py` 汇总多轮真实 p95 历史，再收紧 `scripts/check_mcp_performance_gate.py` 的 `THRESHOLDS`。
 - 当前 fixture 对比覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、非法 `tools/call` 与 `ping`，要求兼容 handler 响应 JSON 完全等价。raw cursor 已升级为不透明 payload，包含 collection、offset、filter fingerprint 与 schema version；客户端不能解析或跨过滤条件复用。官方 `ClientSession` 的 `list_*` 只支持标准 cursor 参数，不支持 Keepa 扩展的 `toolset/limit` 参数；因此 SDK adapter 以显式 `toolset=all limit=100` 从 raw registry 拉取完整工具全集，再默认压缩 tools/resources/resource templates/prompts 首页，分别以 `context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `product_research` 起手，避免一次性读取全部 schema。
 - 2026-05-12 已在 `keepa_cli.agent.tools.validate_tool_arguments()` 前置统一 JSON Schema 校验，覆盖 `type`、`enum`、`minimum`、`oneOf`、`anyOf`、`additionalProperties` 和 array `items`。失败统一映射到 `tools/call` 的 `isError=true` / `invalid_arguments`，因此当前 raw stdio handler 与官方 SDK adapter 都共享同一校验结果。
 - 负向覆盖已固定到 `tests/agent_eval_fixtures/mcp_schema_validation_negative.json` 与 `tests.test_mcp`，分别覆盖错误类型、非法 enum、越界 integer 和 array item 类型错误；`scripts/smoke_mcp_sdk_adapter_client.py` 也会通过官方 `ClientSession` 验证 SDK adapter 的 schema 错误映射。
@@ -80,9 +80,9 @@ adapter 原则：
 如果后续增加 Streamable HTTP，只允许新增协议 adapter：
 
 - 保持 `AgentSession`、`run_command`、tool registry、resource registry、prompt registry、workflow resolver 与 budget ledger 不复制。
-- HTTP adapter 只处理请求解码、session id、Origin/localhost 防护、响应编码、错误码映射和 SDK/ASGI 生命周期。
+- HTTP adapter 只处理请求解码、session id、Origin/localhost 防护、请求级 timeout、响应编码、错误码映射和 SDK/ASGI 生命周期。
 - 任何 HTTP 输出都必须先通过当前 Inspector fixture 或等价 fixture；不能为了适配 HTTP 改动无前缀 tool schema 或 service command 参数。
-- `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json` 已固定 Origin allowlist/reject、`MCP-Session-Id` 缺失/过期/DELETE、parse/invalid request、notification 202 与 application JSON-RPC error 的 HTTP status 映射；后续 HTTP adapter 必须先复用该 fixture 做红线回归。
+- `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json` 已固定 Origin allowlist/reject、`MCP-Session-Id` 缺失/过期/DELETE、请求级 timeout 默认值/范围/超时映射、parse/invalid request、notification 202 与 application JSON-RPC error 的 HTTP status 映射；后续 HTTP adapter 必须先复用该 fixture 做红线回归。
 - 本地桌面 Agent 和 CLI 文档默认仍推荐 stdio；HTTP 只作为远程或浏览器型 MCP client 的可选入口。
 
 ## 后续动作
@@ -99,7 +99,8 @@ adapter 原则：
 - P0 已完成：`scripts/check_mcp_performance_gate.py` 固化 initialize、`tools/list research`、`tools/list all limit=8`、`resources/list`、`prompts/list`、`context_policy` 与 fixture `products_get` 基准，默认连续 30 次取 p95，并记录 JSON bytes、text fallback bytes、structuredContent bytes 与 fixture cache hit p95；`toolset=all` 无 `limit` 必须返回 starter page + `nextCursor`。
 - P1 已完成：重输出工具结果在保留 `mcp_resource_manifest` text fallback 的同时追加官方 `resource_link` content block；`outputSchema` 校验只进入 `scripts/check_mcp_output_schema.py` 与质量门禁，不放在热路径。
 - P1 已完成：`scripts/check_mcp_sdk_adapter_typed_fixture.py` 已把 Inspector fixture step 映射为 SDK typed client 调用，记录 `toolset/limit` 这类 SDK typed API 不支持的扩展参数。
-- P1 已完成：Streamable HTTP 前置 Origin/session/error fixture 已加入 `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json`，并由 `keepa_cli.agent.mcp_http_contract` 与单测验证。
+- P1 已完成：Streamable HTTP 前置 Origin/session/timeout/error fixture 已加入 `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json`，并由 `keepa_cli.agent.mcp_http_contract` 与单测验证。
+- P1 已完成：`reports_build` 与 `figures_research` 已通过 `x-keepa.long_running_candidate` 标出未来 Tasks/progress 边界；当前未声明 Tasks server capability，普通 `tools/call` 仅保留离线 fixture 或小输出路径，后续远程/HTTP 生产化必须先实现 progress、timeout、可恢复结果资源。
 - P1 已完成：`scripts/export_mcp_inspector_snapshot.py --check` 固化无需 UI 的 typed Inspector 快照；人工 Inspector UI 差异只在出现客户端展示问题时补充到 evidence。
 - P2：FastMCP decorator 只保留只读样例；若未来希望减少样板，应先验证无前缀 tool name、resource templates、annotations 和 direct `CallToolResult` 是否能完整表达。
 - P2 已完成基础流程：`scripts/manual_live_product_read.py` 默认只做 dry-run；只有显式 `--yes-live` 且存在 `KEEPA_API_KEY` 才执行单 ASIN `products.get`，输出 token budget、`tokens.status` 前后摘要、SQLite cache provenance 与脱敏结果摘要。该脚本不进入默认 CI。

@@ -11,7 +11,12 @@ import json
 import unittest
 from pathlib import Path
 
-from keepa_cli.agent.mcp_http_contract import evaluate_streamable_http_contract, is_origin_allowed, is_visible_ascii_session_id
+from keepa_cli.agent.mcp_http_contract import (
+    evaluate_streamable_http_contract,
+    is_origin_allowed,
+    is_visible_ascii_session_id,
+    normalize_request_timeout_ms,
+)
 
 
 FIXTURE = Path("tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json")
@@ -29,17 +34,27 @@ class McpHttpContractTests(unittest.TestCase):
         self.assertFalse(is_visible_ascii_session_id("包含中文的-session"))
         self.assertFalse(is_visible_ascii_session_id("short"))
 
+    def test_request_timeout_contract_is_bounded(self):
+        self.assertEqual(normalize_request_timeout_ms(None), 30_000)
+        self.assertEqual(normalize_request_timeout_ms("45000"), 45_000)
+        with self.assertRaises(ValueError):
+            normalize_request_timeout_ms(10)
+        with self.assertRaises(ValueError):
+            normalize_request_timeout_ms(True)
+
     def test_streamable_http_fixture_covers_required_boundaries(self):
         spec = json.loads(FIXTURE.read_text(encoding="utf-8"))
         payload = evaluate_streamable_http_contract(spec)
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["missing_categories"], [])
         categories = {result["category"] for result in payload["results"]}
-        self.assertEqual(categories, {"origin", "session", "error_mapping"})
+        self.assertEqual(categories, {"origin", "session", "timeout", "error_mapping"})
         statuses = {result["id"]: result["contract_status"] for result in payload["results"]}
         self.assertEqual(statuses["origin-cross-site-rejected-before-json-decode"], 403)
         self.assertEqual(statuses["session-subsequent-request-missing-id"], 400)
         self.assertEqual(statuses["session-expired-id-requires-new-initialize"], 404)
+        self.assertEqual(statuses["timeout-request-header-below-minimum-rejected"], 400)
+        self.assertEqual(statuses["timeout-expired-maps-to-gateway-timeout"], 504)
         self.assertEqual(statuses["error-application-jsonrpc-error-stays-json-response"], 200)
 
 

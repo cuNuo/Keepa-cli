@@ -717,6 +717,7 @@ def _tools_index() -> dict[str, Any]:
                 "service_command": (tool.get("x-keepa") or {}).get("service_command"),
                 "groups": (tool.get("x-keepa") or {}).get("groups", []),
                 "workflow_runtime": bool((tool.get("x-keepa") or {}).get("workflow_runtime")),
+                "long_running_candidate": bool((tool.get("x-keepa") or {}).get("long_running_candidate")),
                 "resource_uri": f"keepa://tools/{tool['name']}",
             }
             for tool in list_mcp_tools(toolsets="all")
@@ -767,6 +768,9 @@ def _read_tool_resource(uri: str) -> dict[str, str]:
             "cli_string_is_display_only": True,
             "workflow_runtime": tool.workflow_runtime,
             "workflow_runtime_contract_uri": "keepa://workflow/runtime-contract" if tool.workflow_runtime else None,
+            "long_running_candidate": tool.long_running_candidate,
+            "normal_tools_call_policy": "fixture_or_small_output_only" if tool.long_running_candidate else None,
+            "future_task_support": "required" if tool.long_running_candidate else None,
         },
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}

@@ -51,3 +51,4 @@ evidence/tasks/20260512-1105-mcp实现规范审查.md,MCP 实现规范审查,act
 evidence/tasks/20260512-1129-mcp-json-schema-validator与入口评估.md,MCP JSON Schema validator 与入口评估,active,2026-05-12,"记录 MCP tools/call 统一 JSON Schema 入参校验、schema 负向 fixture、SDK adapter 负向 smoke、生产入口评估、验证结果与后续 FastMCP 迁移边界。"
 evidence/tasks/20260512-1203-mcp无前缀契约文档同步.md,MCP 无前缀契约文档同步,active,2026-05-12,"记录 README.zh-CN 旧名前缀漂移修正、外部客户端只迁移无前缀新名、SDK adapter 生产入口前置 parity 条件与 memory 同步。"
 evidence/tasks/20260512-1231-mcp性能门禁与opaque-cursor优化.md,MCP 性能门禁与 opaque cursor 优化,active,2026-05-12,"记录 MCP performance gate、opaque cursor payload、toolset=all starter page、schema cache、resource_link content block、SDK adapter filter parity fixture、outputSchema 离线门禁与 focused 验证。"
+evidence/tasks/20260512-1258-mcp性能历史http-timeout与长任务边界.md,MCP 性能历史 HTTP timeout 与长任务边界,active,2026-05-12,"记录 performance gate artifact 输出与历史阈值建议脚本、CI artifact 上传、Streamable HTTP timeout/session-id/Origin 前置合约、reports/figures 未来 Tasks/progress 边界、文档同步与本地验证。"

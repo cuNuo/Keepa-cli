@@ -15,16 +15,23 @@ from keepa_cli.agent.mcp import MCP_PROTOCOL_VERSION
 
 
 MCP_SESSION_HEADER = "MCP-Session-Id"
+MCP_SESSION_HEADER_ALIASES = ("Mcp-Session-Id", MCP_SESSION_HEADER)
 MCP_PROTOCOL_VERSION_HEADER = "MCP-Protocol-Version"
+MCP_REQUEST_TIMEOUT_HEADER = "Keepa-MCP-Timeout-Ms"
 MCP_ENDPOINT_PATH = "/mcp"
 SESSION_ID_PATTERN = r"^[\x21-\x7e]{16,256}$"
 VISIBLE_ASCII_SESSION_ID = re.compile(SESSION_ID_PATTERN)
+DEFAULT_REQUEST_TIMEOUT_MS = 30_000
+MIN_REQUEST_TIMEOUT_MS = 1_000
+MAX_REQUEST_TIMEOUT_MS = 300_000
 
 ERROR_HTTP_STATUS: dict[str, int] = {
     "origin_rejected": 403,
     "missing_session_id": 400,
     "expired_session_id": 404,
     "invalid_protocol_version": 400,
+    "invalid_timeout": 400,
+    "request_timeout": 504,
     "parse_error": 400,
     "invalid_request": 400,
     "notification_accepted": 202,
@@ -43,6 +50,20 @@ def is_origin_allowed(origin: str | None, allowed_origins: Sequence[str]) -> boo
     return origin in set(allowed_origins)
 
 
+def normalize_request_timeout_ms(value: Any | None) -> int:
+    if value in (None, ""):
+        return DEFAULT_REQUEST_TIMEOUT_MS
+    if isinstance(value, bool):
+        raise ValueError("request timeout must be an integer millisecond value")
+    try:
+        timeout_ms = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("request timeout must be an integer millisecond value") from exc
+    if timeout_ms < MIN_REQUEST_TIMEOUT_MS or timeout_ms > MAX_REQUEST_TIMEOUT_MS:
+        raise ValueError(f"request timeout must be between {MIN_REQUEST_TIMEOUT_MS} and {MAX_REQUEST_TIMEOUT_MS} ms")
+    return timeout_ms
+
+
 def expected_http_status_for_case(case: Mapping[str, Any]) -> int:
     category = str(case.get("category") or "")
     if category == "origin":
@@ -55,6 +76,14 @@ def expected_http_status_for_case(case: Mapping[str, Any]) -> int:
             return ERROR_HTTP_STATUS["expired_session_id"]
         if state == "delete_not_allowed":
             return ERROR_HTTP_STATUS["delete_not_allowed"]
+        return 200
+    if category == "timeout":
+        if str(case.get("timeout_state") or "") == "expired":
+            return ERROR_HTTP_STATUS["request_timeout"]
+        try:
+            normalize_request_timeout_ms(case.get("timeout_ms"))
+        except ValueError:
+            return ERROR_HTTP_STATUS["invalid_timeout"]
         return 200
     if category == "error_mapping":
         error_kind = str(case.get("error_kind") or "")
@@ -89,21 +118,37 @@ def evaluate_streamable_http_contract(spec: Mapping[str, Any]) -> dict[str, Any]
             session_id = str(case.get("session_id") or "")
             result["session_id_visible_ascii"] = bool(session_id and is_visible_ascii_session_id(session_id))
             result["session_header"] = MCP_SESSION_HEADER
+            result["session_header_aliases"] = list(MCP_SESSION_HEADER_ALIASES)
+        if category == "timeout":
+            try:
+                result["normalized_timeout_ms"] = normalize_request_timeout_ms(case.get("timeout_ms"))
+                result["timeout_valid"] = True
+            except ValueError as exc:
+                result["normalized_timeout_ms"] = None
+                result["timeout_valid"] = False
+                result["timeout_error"] = str(exc)
+            result["timeout_header"] = MCP_REQUEST_TIMEOUT_HEADER
         if category == "error_mapping":
             result["error_kind"] = case.get("error_kind")
             result["jsonrpc_error_code"] = expected.get("jsonrpc_error_code")
         results.append(result)
 
-    missing_categories = sorted({"origin", "session", "error_mapping"} - categories)
+    required_categories = ["origin", "session", "timeout", "error_mapping"]
+    missing_categories = sorted(set(required_categories) - categories)
     return {
         "ok": not missing_categories and all(result["ok"] for result in results),
         "kind": "mcp_streamable_http_contract",
         "protocol_version": MCP_PROTOCOL_VERSION,
         "endpoint_path": MCP_ENDPOINT_PATH,
         "session_header": MCP_SESSION_HEADER,
+        "session_header_aliases": list(MCP_SESSION_HEADER_ALIASES),
         "protocol_version_header": MCP_PROTOCOL_VERSION_HEADER,
+        "request_timeout_header": MCP_REQUEST_TIMEOUT_HEADER,
+        "default_request_timeout_ms": DEFAULT_REQUEST_TIMEOUT_MS,
+        "min_request_timeout_ms": MIN_REQUEST_TIMEOUT_MS,
+        "max_request_timeout_ms": MAX_REQUEST_TIMEOUT_MS,
         "session_id_pattern": SESSION_ID_PATTERN,
-        "required_categories": ["origin", "session", "error_mapping"],
+        "required_categories": required_categories,
         "missing_categories": missing_categories,
         "case_count": len(results),
         "results": results,

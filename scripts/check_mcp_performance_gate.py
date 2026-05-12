@@ -13,6 +13,7 @@ import math
 import sys
 import time
 from collections.abc import Callable, Mapping
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -173,6 +174,7 @@ def run_gate(*, iterations: int = DEFAULT_ITERATIONS) -> dict[str, Any]:
 
     return {
         "ok": not failures,
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "iterations": iterations,
         "benchmarks": benchmarks,
         "starter_page": {
@@ -185,14 +187,22 @@ def run_gate(*, iterations: int = DEFAULT_ITERATIONS) -> dict[str, Any]:
     }
 
 
+def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="运行 Keepa MCP 性能门禁。")
     parser.add_argument("--json", action="store_true", help="输出 JSON。")
     parser.add_argument("--iterations", type=int, default=DEFAULT_ITERATIONS, help="每个基准项重复次数，默认 30。")
+    parser.add_argument("--out", type=Path, help="把完整性能基准 JSON 写入指定路径，供 CI artifact 与历史阈值收紧使用。")
     args = parser.parse_args(argv)
     if args.iterations < 3:
         parser.error("--iterations must be at least 3")
     payload = run_gate(iterations=args.iterations)
+    if args.out:
+        _write_json(args.out, payload)
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True))
     elif payload["ok"]:

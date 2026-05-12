@@ -46,4 +46,14 @@ jobs:
       - name: Run SDK adapter unit tests
         run: python -m unittest tests.test_mcp_sdk_adapter tests.test_mcp_http_contract -v
       - name: Run MCP quality gate
-        run: python scripts/check_mcp_quality_gate.py --require-sdk
+        run: |
+          mkdir -p artifacts/mcp-performance
+          python scripts/check_mcp_quality_gate.py --require-sdk --performance-out artifacts/mcp-performance/mcp-performance-ubuntu-py311.json
+      - name: Upload MCP performance artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-performance-${{ runner.os }}-py311-${{ github.run_attempt }}
+          path: artifacts/mcp-performance/*.json
+          if-no-files-found: warn
+          retention-days: 14

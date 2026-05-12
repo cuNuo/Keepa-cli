@@ -5554,10 +5554,17 @@
             "title": "str",
             "x-keepa": {
               "active": "bool",
+              "future_task_support": {
+                "protocol": "str",
+                "reason": "str",
+                "target": "str"
+              },
               "groups": [
                 "str"
               ],
               "inactive_reason": "null",
+              "long_running_candidate": "bool",
+              "normal_tools_call_policy": "str",
               "service_command": "str",
               "workflow_runtime": "bool",
               "workflow_runtime_args": [
@@ -5887,10 +5894,17 @@
             "title": "str",
             "x-keepa": {
               "active": "bool",
+              "future_task_support": {
+                "protocol": "str",
+                "reason": "str",
+                "target": "str"
+              },
               "groups": [
                 "str"
               ],
               "inactive_reason": "null",
+              "long_running_candidate": "bool",
+              "normal_tools_call_policy": "str",
               "service_command": "str",
               "workflow_runtime": "bool",
               "workflow_runtime_args": [
@@ -6603,10 +6617,12 @@
           "tool_count": "int",
           "tools": [
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6620,11 +6636,13 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6638,10 +6656,12 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6655,11 +6675,13 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6673,10 +6695,12 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6690,10 +6714,12 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6707,10 +6733,12 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6724,11 +6752,13 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6742,11 +6772,13 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6760,10 +6792,12 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str",
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6777,9 +6811,11 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "str",
               "groups": [
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6793,9 +6829,11 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6809,9 +6847,11 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "str",
               "groups": [
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
@@ -6825,9 +6865,11 @@
               "service_command": "str"
             },
             {
+              "future_task_support": "null",
               "groups": [
                 "str"
               ],
+              "long_running_candidate": "bool",
               "name": "str",
               "resource_uri": "str",
               "runtime_args": [
