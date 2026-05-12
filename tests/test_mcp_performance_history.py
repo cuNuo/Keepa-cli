@@ -8,6 +8,7 @@ tests/test_mcp_performance_history.py
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -15,6 +16,9 @@ import unittest
 from pathlib import Path
 
 from scripts.summarize_mcp_performance_history import summarize_history
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _report(p95_ms: float, json_bytes: int) -> dict:
@@ -57,11 +61,15 @@ class McpPerformanceHistoryTests(unittest.TestCase):
             root = Path(temp_dir)
             (root / "one.json").write_text(json.dumps(_report(2, 1_000)), encoding="utf-8")
             (root / "two.json").write_text(json.dumps(_report(3, 1_200)), encoding="utf-8")
+            (root / "notes.json").write_text(json.dumps({"ok": True, "kind": "not-a-performance-report"}), encoding="utf-8")
+            (root / "partial.json").write_text("{", encoding="utf-8")
             out = root / "summary.json"
+            env = dict(os.environ)
+            env["PYTHONIOENCODING"] = "cp1252"
             result = subprocess.run(
                 [
                     sys.executable,
-                    "scripts/summarize_mcp_performance_history.py",
+                    str(REPO_ROOT / "scripts" / "summarize_mcp_performance_history.py"),
                     str(root),
                     "--json",
                     "--out",
@@ -70,7 +78,10 @@ class McpPerformanceHistoryTests(unittest.TestCase):
                     "3",
                 ],
                 text=True,
+                encoding="utf-8",
                 capture_output=True,
+                cwd=REPO_ROOT,
+                env=env,
                 check=True,
             )
             stdout_payload = json.loads(result.stdout)

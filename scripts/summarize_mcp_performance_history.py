@@ -32,6 +32,13 @@ METRIC_SOURCES: dict[str, str] = {
 }
 
 
+def _configure_utf8_stdio() -> None:
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="replace")
+
+
 def _p95(values: Sequence[float]) -> float:
     if not values:
         return 0.0
@@ -65,7 +72,10 @@ def _expand_inputs(inputs: Iterable[str]) -> list[Path]:
 def _load_reports(paths: Sequence[Path]) -> list[dict[str, Any]]:
     reports: list[dict[str, Any]] = []
     for path in paths:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            continue
         if isinstance(payload, Mapping) and isinstance(payload.get("benchmarks"), list):
             item = dict(payload)
             item["_source_path"] = str(path)
@@ -182,6 +192,7 @@ def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _configure_utf8_stdio()
     parser = argparse.ArgumentParser(description="汇总 MCP performance gate 历史 JSON 并输出阈值收紧建议。")
     parser.add_argument("inputs", nargs="+", help="performance JSON 文件、目录或 glob。")
     parser.add_argument("--json", action="store_true", help="输出 JSON。")
