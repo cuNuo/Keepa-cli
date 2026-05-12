@@ -22,6 +22,8 @@
     {"path": "result.content.0.text.$json.mcp_resource_manifest.strategy", "equals": "summary_with_resource_refs"},
     {"path": "result.content.0.text.$json.mcp_resource_manifest.resources", "length_min": 4},
     {"path": "result.content.0.text.$json.mcp_resource_manifest.resources.0.uri", "contains": "keepa://chunk/"},
+    {"path": "result.content.1.type", "equals": "resource_link"},
+    {"path": "result.content.1.uri", "contains": "keepa://chunk/"},
     {"path": "result.content.0.text", "not_contains": "temporal_features"},
     {"path": "result.isError", "equals": false}
   ]

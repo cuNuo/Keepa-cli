@@ -7824,6 +7824,54 @@
         {
           "text": "str",
           "type": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "size": "int",
+          "type": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "size": "int",
+          "type": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "size": "int",
+          "type": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "size": "int",
+          "type": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "size": "int",
+          "type": "str",
+          "uri": "str"
+        },
+        {
+          "description": "str",
+          "mimeType": "str",
+          "name": "str",
+          "size": "int",
+          "type": "str",
+          "uri": "str"
         }
       ],
       "isError": "bool",
@@ -9583,6 +9631,9 @@
     "result": {
       "_meta": {
         "count": "int",
+        "cursor_collection": "str",
+        "cursor_fingerprint": "str",
+        "cursor_schema_version": "str",
         "has_more": "bool",
         "limit": "int",
         "offset": "int",

@@ -7,6 +7,7 @@ keepa_cli/agent/tools.py
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass
 from typing import Any, Mapping
 
@@ -1194,6 +1195,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
 
 
 _TOOL_BY_NAME = {tool.name: tool for tool in TOOL_DEFINITIONS}
+_MCP_TOOL_SCHEMA_CACHE = {tool.name: tool.to_mcp_tool() for tool in TOOL_DEFINITIONS}
 
 
 def resolve_toolset_groups(toolsets: str | list[str] | tuple[str, ...] | set[str] | None = None) -> set[str] | None:
@@ -1239,7 +1241,7 @@ def list_mcp_tools(
         tools = tuple(tool for tool in tools if tool.name not in excluded)
     result: list[dict[str, Any]] = []
     for tool in tools:
-        item = tool.to_mcp_tool()
+        item = copy.deepcopy(_MCP_TOOL_SCHEMA_CACHE[tool.name])
         active = allowed_by_profile is None or tool.name in allowed_by_profile
         item["x-keepa"]["active"] = active
         item["x-keepa"]["inactive_reason"] = None if active else f"inactive_tool: profile {profile} does not allow this tool"

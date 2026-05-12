@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import json
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -35,7 +36,19 @@ from keepa_cli.envelope import error_envelope
 JSONRPC_VERSION = "2.0"
 MCP_PROTOCOL_VERSION = "2025-11-25"
 DEFAULT_PAGED_LIST_LIMIT = 50
+DEFAULT_ALL_TOOLSET_LIST_LIMIT = 8
 MAX_PAGED_LIST_LIMIT = 100
+CURSOR_SCHEMA_VERSION = "2026-05-12.1"
+RAW_AGENT_START_TOOLS = (
+    "context_policy",
+    "docs_index",
+    "workflow_plan",
+    "agent_profile_generate",
+    "products_get",
+    "products_compare",
+    "categories_search",
+    "finder_query",
+)
 
 
 def _jsonrpc_result(message_id: Any, result: Mapping[str, Any]) -> dict[str, Any]:
@@ -53,12 +66,59 @@ def _json_text(payload: Mapping[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
-def _encode_cursor(offset: int) -> str:
-    raw = json.dumps({"offset": offset}, separators=(",", ":")).encode("utf-8")
+def _resource_link_content_items(content_payload: Mapping[str, Any]) -> list[dict[str, Any]]:
+    manifest = content_payload.get("mcp_resource_manifest")
+    if not isinstance(manifest, Mapping):
+        return []
+    items: list[dict[str, Any]] = []
+    for resource in manifest.get("resources") or []:
+        if not isinstance(resource, Mapping) or not resource.get("uri"):
+            continue
+        item: dict[str, Any] = {
+            "type": "resource_link",
+            "uri": str(resource["uri"]),
+            "name": str(resource.get("name") or resource["uri"]),
+        }
+        if resource.get("mimeType"):
+            item["mimeType"] = str(resource["mimeType"])
+        if resource.get("size_bytes") is not None:
+            item["size"] = resource["size_bytes"]
+        description_parts = [str(resource.get("type") or "resource")]
+        if resource.get("json_path"):
+            description_parts.append(f"json_path={resource['json_path']}")
+        item["description"] = "; ".join(description_parts)
+        items.append(item)
+    return items
+
+
+def _stable_json(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True, default=str)
+
+
+def _fingerprint(value: Mapping[str, Any]) -> str:
+    return hashlib.sha256(_stable_json(value).encode("utf-8")).hexdigest()[:16]
+
+
+def _cursor_fingerprint(collection: str, params: Mapping[str, Any]) -> str:
+    filter_params = {key: value for key, value in params.items() if key not in {"cursor", "limit"}}
+    return _fingerprint({"collection": collection, "filters": filter_params})
+
+
+def _encode_cursor(offset: int, *, collection: str, fingerprint: str) -> str:
+    raw = json.dumps(
+        {
+            "v": 1,
+            "schema_version": CURSOR_SCHEMA_VERSION,
+            "collection": collection,
+            "offset": offset,
+            "fingerprint": fingerprint,
+        },
+        separators=(",", ":"),
+    ).encode("utf-8")
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
-def _decode_cursor(cursor: Any) -> int:
+def _decode_cursor(cursor: Any, *, collection: str, fingerprint: str) -> int:
     if cursor in (None, ""):
         return 0
     if not isinstance(cursor, str):
@@ -68,16 +128,26 @@ def _decode_cursor(cursor: Any) -> int:
         payload = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8"))
     except (binascii.Error, UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
         raise ValueError("cursor is not a valid Keepa MCP pagination cursor") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("cursor payload must be an object")
+    if payload.get("schema_version") != CURSOR_SCHEMA_VERSION:
+        raise ValueError("cursor schema_version does not match this server")
+    if payload.get("collection") != collection:
+        raise ValueError(f"cursor collection does not match {collection}")
+    if payload.get("fingerprint") != fingerprint:
+        raise ValueError("cursor filters do not match this request")
     offset = payload.get("offset") if isinstance(payload, dict) else None
     if not isinstance(offset, int) or offset < 0:
         raise ValueError("cursor does not contain a valid offset")
     return offset
 
 
-def _list_limit(params: Mapping[str, Any]) -> int | None:
+def _list_limit(params: Mapping[str, Any], *, default_limit: int | None = None) -> int | None:
     value = params.get("limit")
     if value in (None, ""):
-        return DEFAULT_PAGED_LIST_LIMIT if params.get("cursor") else None
+        if params.get("cursor"):
+            return DEFAULT_PAGED_LIST_LIMIT
+        return default_limit
     if isinstance(value, bool):
         raise ValueError("limit must be an integer between 1 and 100")
     try:
@@ -89,9 +159,17 @@ def _list_limit(params: Mapping[str, Any]) -> int | None:
     return limit
 
 
-def _paginated_result(items: Sequence[dict[str, Any]], *, result_key: str, params: Mapping[str, Any]) -> dict[str, Any]:
-    offset = _decode_cursor(params.get("cursor"))
-    limit = _list_limit(params)
+def _paginated_result(
+    items: Sequence[dict[str, Any]],
+    *,
+    result_key: str,
+    params: Mapping[str, Any],
+    collection: str,
+    default_limit: int | None = None,
+) -> dict[str, Any]:
+    fingerprint = _cursor_fingerprint(collection, params)
+    offset = _decode_cursor(params.get("cursor"), collection=collection, fingerprint=fingerprint)
+    limit = _list_limit(params, default_limit=default_limit)
     page_limit = len(items) if limit is None else limit
     page = [dict(item) for item in items[offset : offset + page_limit]]
     next_offset = offset + len(page)
@@ -103,11 +181,25 @@ def _paginated_result(items: Sequence[dict[str, Any]], *, result_key: str, param
             "offset": offset,
             "limit": page_limit,
             "has_more": next_offset < len(items),
+            "cursor_schema_version": CURSOR_SCHEMA_VERSION,
+            "cursor_collection": collection,
+            "cursor_fingerprint": fingerprint,
         },
     }
     if next_offset < len(items):
-        result["nextCursor"] = _encode_cursor(next_offset)
+        result["nextCursor"] = _encode_cursor(next_offset, collection=collection, fingerprint=fingerprint)
     return result
+
+
+def _priority_ordered_items(items: Sequence[dict[str, Any]], priority_names: Sequence[str], *, key: str) -> list[dict[str, Any]]:
+    priority = {name: index for index, name in enumerate(priority_names)}
+    return sorted(
+        items,
+        key=lambda item: (
+            priority.get(str(item.get(key) or ""), len(priority)),
+            str(item.get(key) or ""),
+        ),
+    )
 
 
 def _tool_name_filter(value: Any) -> list[str] | None:
@@ -124,9 +216,11 @@ def _tool_name_filter(value: Any) -> list[str] | None:
 
 def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
     content_payload = compact_payload_for_mcp(payload)
+    content = [{"type": "text", "text": _json_text(content_payload)}]
+    content.extend(_resource_link_content_items(content_payload))
     return {
         "structuredContent": payload,
-        "content": [{"type": "text", "text": _json_text(content_payload)}],
+        "content": content,
         "isError": not bool(payload.get("ok")),
     }
 
@@ -211,8 +305,16 @@ def handle_mcp_message(
             )
         except ValueError as exc:
             return _jsonrpc_error(message_id, -32602, "Invalid profile", {"message": str(exc), "available_profiles": profile_names()})
+        if use_all_toolsets:
+            tools = _priority_ordered_items(tools, RAW_AGENT_START_TOOLS, key="name")
         try:
-            result = _paginated_result(tools, result_key="tools", params=params)
+            result = _paginated_result(
+                tools,
+                result_key="tools",
+                params=params,
+                collection="tools",
+                default_limit=DEFAULT_ALL_TOOLSET_LIST_LIMIT if use_all_toolsets else None,
+            )
         except ValueError as exc:
             return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
         result.update(
@@ -232,12 +334,23 @@ def handle_mcp_message(
         return _handle_tools_call(message_id, params, env=env, session=session)
     if method == "resources/list":
         try:
-            return _jsonrpc_result(message_id, _paginated_result(list_mcp_resources(), result_key="resources", params=params))
+            return _jsonrpc_result(
+                message_id,
+                _paginated_result(list_mcp_resources(), result_key="resources", params=params, collection="resources"),
+            )
         except ValueError as exc:
             return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
     if method == "resources/templates/list":
         try:
-            return _jsonrpc_result(message_id, _paginated_result(list_mcp_resource_templates(), result_key="resourceTemplates", params=params))
+            return _jsonrpc_result(
+                message_id,
+                _paginated_result(
+                    list_mcp_resource_templates(),
+                    result_key="resourceTemplates",
+                    params=params,
+                    collection="resourceTemplates",
+                ),
+            )
         except ValueError as exc:
             return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
     if method == "resources/read":
@@ -250,7 +363,10 @@ def handle_mcp_message(
         return _jsonrpc_result(message_id, {"contents": [content]})
     if method == "prompts/list":
         try:
-            return _jsonrpc_result(message_id, _paginated_result(list_mcp_prompts(), result_key="prompts", params=params))
+            return _jsonrpc_result(
+                message_id,
+                _paginated_result(list_mcp_prompts(), result_key="prompts", params=params, collection="prompts"),
+            )
         except ValueError as exc:
             return _jsonrpc_error(message_id, -32602, "Invalid pagination params", {"message": str(exc)})
     if method == "prompts/get":

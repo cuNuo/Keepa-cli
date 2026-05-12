@@ -75,7 +75,18 @@ def main(argv: list[str] | None = None) -> int:
     skip_flag = ["--skip-if-missing"] if args.skip_if_missing and not args.require_sdk else []
     steps = [
         ("agent eval fixtures", [python, "scripts/check_agent_eval_fixtures.py"]),
+        ("output schema", [python, "scripts/check_mcp_output_schema.py", "--json"]),
+        ("performance gate", [python, "scripts/check_mcp_performance_gate.py", "--json"]),
         ("adapter fixture equivalence", [python, "scripts/compare_mcp_sdk_adapter_fixture.py"]),
+        (
+            "adapter filter parity",
+            [
+                python,
+                "scripts/compare_mcp_sdk_adapter_fixture.py",
+                "--fixture",
+                "tests/mcp_fixtures/mcp_sdk_adapter_filter_parity.json",
+            ],
+        ),
         ("sdk typed smoke", [python, "scripts/smoke_mcp_sdk_adapter_client.py", "--json", *skip_flag]),
         ("sdk typed inspector fixture", [python, "scripts/check_mcp_sdk_adapter_typed_fixture.py", "--json", *skip_flag]),
         ("sdk inspector snapshot", [python, "scripts/export_mcp_inspector_snapshot.py", "--check", "--json", *skip_flag]),

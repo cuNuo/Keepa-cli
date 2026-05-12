@@ -115,8 +115,20 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("audit_cost", tracking_names)
         self.assertNotIn("tracking.add", tracking_names)
 
+        all_default = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "all-default", "method": "tools/list", "params": {"toolset": "all"}}),
+            env={},
+        )
+        self.assertLessEqual(len(all_default["result"]["tools"]), 8)
+        self.assertEqual(
+            ["context_policy", "docs_index", "workflow_plan", "agent_profile_generate"],
+            [item["name"] for item in all_default["result"]["tools"][:4]],
+        )
+        self.assertIn("nextCursor", all_default["result"])
+        self.assertTrue(all_default["result"]["_meta"]["has_more"])
+
         all_tools = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "all", "method": "tools/list", "params": {"toolset": "all"}}),
+            json.dumps({"jsonrpc": "2.0", "id": "all", "method": "tools/list", "params": {"toolset": "all", "limit": 100}}),
             env={},
         )
         self.assertEqual(set(tool_names()), {item["name"] for item in all_tools["result"]["tools"]})
@@ -129,6 +141,8 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(len(first_tools["result"]["tools"]), 3)
         self.assertIn("nextCursor", first_tools["result"])
         self.assertEqual(first_tools["result"]["_meta"]["total_count"], len(tool_names()))
+        self.assertEqual(first_tools["result"]["_meta"]["cursor_schema_version"], "2026-05-12.1")
+        self.assertEqual(first_tools["result"]["_meta"]["cursor_collection"], "tools")
 
         second_tools = handle_mcp_message(
             json.dumps(
@@ -146,6 +160,21 @@ class McpProtocolTests(unittest.TestCase):
         self.assertFalse(first_names.intersection(second_names))
         self.assertEqual(second_tools["result"]["_meta"]["offset"], 3)
 
+        wrong_filter = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "tools-page-wrong-filter",
+                    "method": "tools/list",
+                    "params": {"toolset": "research", "limit": 3, "cursor": first_tools["result"]["nextCursor"]},
+                }
+            ),
+            env={},
+        )
+        self.assertEqual(wrong_filter["error"]["code"], -32602)
+        self.assertEqual(wrong_filter["error"]["message"], "Invalid pagination params")
+        self.assertIn("cursor filters do not match", wrong_filter["error"]["data"]["message"])
+
         resources = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "resources-page", "method": "resources/list", "params": {"limit": 2}}),
             env={},
@@ -153,6 +182,21 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(len(resources["result"]["resources"]), 2)
         self.assertIn("nextCursor", resources["result"])
         self.assertIn("title", resources["result"]["resources"][0])
+        self.assertEqual(resources["result"]["_meta"]["cursor_collection"], "resources")
+
+        wrong_collection = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "resources-page-wrong-cursor",
+                    "method": "resources/list",
+                    "params": {"limit": 2, "cursor": first_tools["result"]["nextCursor"]},
+                }
+            ),
+            env={},
+        )
+        self.assertEqual(wrong_collection["error"]["code"], -32602)
+        self.assertIn("cursor collection does not match resources", wrong_collection["error"]["data"]["message"])
 
         prompts = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "prompts-page", "method": "prompts/list", "params": {"limit": 2}}),
@@ -161,6 +205,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(len(prompts["result"]["prompts"]), 2)
         self.assertIn("nextCursor", prompts["result"])
         self.assertIn("title", prompts["result"]["prompts"][0])
+        self.assertEqual(prompts["result"]["_meta"]["cursor_collection"], "prompts")
 
         templates = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "templates-page", "method": "resources/templates/list", "params": {"limit": 1}}),
@@ -168,6 +213,49 @@ class McpProtocolTests(unittest.TestCase):
         )
         self.assertEqual(len(templates["result"]["resourceTemplates"]), 1)
         self.assertIn("nextCursor", templates["result"])
+        self.assertEqual(templates["result"]["_meta"]["cursor_collection"], "resourceTemplates")
+
+    def test_list_methods_have_stable_first_page_order(self):
+        tools = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "tools-order", "method": "tools/list", "params": {"toolset": "all", "limit": 8}}),
+            env={},
+        )
+        self.assertEqual(
+            [
+                "context_policy",
+                "docs_index",
+                "workflow_plan",
+                "agent_profile_generate",
+                "products_get",
+                "products_compare",
+                "categories_search",
+                "finder_query",
+            ],
+            [item["name"] for item in tools["result"]["tools"]],
+        )
+
+        resources = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "resources-order", "method": "resources/list", "params": {"limit": 4}}),
+            env={},
+        )
+        self.assertEqual(
+            [
+                "keepa://schema/products-agent-view",
+                "keepa://schema/workflow-runtime-contract",
+                "keepa://schema/risk-taxonomy",
+                "keepa://fixtures/manifest",
+            ],
+            [item["uri"] for item in resources["result"]["resources"]],
+        )
+
+        prompts = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "prompts-order", "method": "prompts/list", "params": {"limit": 4}}),
+            env={},
+        )
+        self.assertEqual(
+            ["product_research", "category_research", "deal_compare", "project_onboarding"],
+            [item["name"] for item in prompts["result"]["prompts"]],
+        )
 
     def test_tools_list_supports_allow_and_exclude_filters(self):
         response = handle_mcp_message(
@@ -225,7 +313,14 @@ class McpProtocolTests(unittest.TestCase):
 
     def test_tools_list_marks_inactive_tools_for_profile(self):
         response = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "profile", "method": "tools/list", "params": {"toolset": "all", "profile": "offline_fixture_only"}}),
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "profile",
+                    "method": "tools/list",
+                    "params": {"toolset": "all", "profile": "offline_fixture_only", "limit": 100},
+                }
+            ),
             env={},
         )
         tools = {item["name"]: item for item in response["result"]["tools"]}
@@ -1136,6 +1231,8 @@ class McpProtocolTests(unittest.TestCase):
             self.assertGreaterEqual(text_payload["mcp_resource_manifest"]["resource_count"], 3)
             self.assertNotIn("temporal_features", json.dumps(text_payload.get("data", {})))
             uri = text_payload["mcp_resource_manifest"]["resources"][0]["uri"]
+            self.assertEqual(result["content"][1]["type"], "resource_link")
+            self.assertEqual(result["content"][1]["uri"], uri)
             chunk = handle_mcp_message(
                 json.dumps({"jsonrpc": "2.0", "id": "chunk", "method": "resources/read", "params": {"uri": uri}}),
                 env={},

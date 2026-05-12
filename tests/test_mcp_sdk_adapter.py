@@ -30,6 +30,7 @@ from scripts.check_mcp_quality_gate import QualityGateStepError, _run_step, main
 
 
 INSPECTOR_FIXTURE = Path("tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json")
+FILTER_PARITY_FIXTURE = Path("tests/mcp_fixtures/mcp_sdk_adapter_filter_parity.json")
 
 
 class McpSdkAdapterSpikeTests(unittest.TestCase):
@@ -68,6 +69,13 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
             capture_output=True,
         )
         self.assertIn("mcp sdk adapter fixture equivalence ok", completed.stdout)
+
+    def test_filter_parity_fixture_matches_current_mcp_output(self):
+        spec = json.loads(FILTER_PARITY_FIXTURE.read_text(encoding="utf-8"))
+        result = compare_fixture_outputs(spec, env={})
+        self.assertTrue(result["ok"], result["first_difference"])
+        self.assertEqual(result["fixture_id"], "mcp_sdk_adapter_filter_parity")
+        self.assertEqual(result["step_count"], 7)
 
     @unittest.skipUnless(adapter_status()["sdk_available"], "official mcp package is optional")
     def test_official_sdk_client_smoke(self):
@@ -152,6 +160,8 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         payload = json.loads(completed.stdout)
         self.assertTrue(payload["ok"])
         labels = [step["label"] for step in payload["steps"]]
+        self.assertIn("performance gate", labels)
+        self.assertIn("adapter filter parity", labels)
         self.assertIn("sdk inspector snapshot", labels)
 
     def test_mcp_quality_gate_json_failure_stays_machine_readable(self):

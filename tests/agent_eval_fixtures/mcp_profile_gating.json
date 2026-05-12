@@ -5,7 +5,8 @@
   "method": "tools/list",
   "params": {
     "toolset": "all",
-    "profile": "offline_fixture_only"
+    "profile": "offline_fixture_only",
+    "limit": 100
   },
   "assertions": [
     {"path": "result.profile", "equals": "offline_fixture_only"},

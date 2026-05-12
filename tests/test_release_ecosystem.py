@@ -49,6 +49,9 @@ class ReleaseEcosystemTests(unittest.TestCase):
         quality_gate = Path("scripts/check_mcp_quality_gate.py").read_text(encoding="utf-8")
         self.assertIn("scripts/check_mcp_quality_gate.py", release_gate)
         self.assertIn("scripts/check_agent_eval_fixtures.py", quality_gate)
+        self.assertIn("scripts/check_mcp_output_schema.py", quality_gate)
+        self.assertIn("scripts/check_mcp_performance_gate.py", quality_gate)
+        self.assertIn("mcp_sdk_adapter_filter_parity.json", quality_gate)
         self.assertIn("scripts/export_mcp_inspector_snapshot.py", quality_gate)
 
 

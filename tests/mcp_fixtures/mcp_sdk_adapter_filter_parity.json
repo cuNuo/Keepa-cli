@@ -1,0 +1,41 @@
+{
+  "id": "mcp_sdk_adapter_filter_parity",
+  "description": "SDK adapter 提升生产入口前必须保持 raw stdio 的 toolset/profile/allow/exclude/limit/cursor 过滤与分页语义。",
+  "kind": "mcp_session",
+  "steps": [
+    {"id": "initialize", "method": "initialize", "params": {}},
+    {"id": "tools-research-page-1", "method": "tools/list", "params": {"toolset": "research", "limit": 3}},
+    {
+      "id": "tools-research-page-2",
+      "method": "tools/list",
+      "params": {
+        "toolset": "research",
+        "limit": 3,
+        "cursor": {"$response_path": {"step": "tools-research-page-1", "path": "result.nextCursor"}}
+      }
+    },
+    {
+      "id": "tools-profile-allow-exclude",
+      "method": "tools/list",
+      "params": {
+        "toolset": "all",
+        "profile": "offline_fixture_only",
+        "allow_tools": ["context_policy", "products_get", "find_fast_movers"],
+        "exclude_tools": ["context_policy"],
+        "limit": 10
+      }
+    },
+    {
+      "id": "tools-filtered-page",
+      "method": "tools/list",
+      "params": {
+        "toolset": "all",
+        "allow_tools": ["context_policy", "products_get"],
+        "exclude_tools": ["products_get"],
+        "limit": 10
+      }
+    },
+    {"id": "resources-page", "method": "resources/list", "params": {"limit": 2}},
+    {"id": "prompts-page", "method": "prompts/list", "params": {"limit": 2}}
+  ]
+}

@@ -151,6 +151,15 @@ def _content_to_sdk(types: Any, content: Mapping[str, Any]) -> Any:
         return types.TextContent(type="text", text=str(content.get("text", "")))
     if content_type == "image":  # pragma: no cover - 当前 Keepa MCP 只返回 text/resource。
         return types.ImageContent(type="image", data=str(content.get("data", "")), mimeType=str(content.get("mimeType") or "image/png"))
+    if content_type == "resource_link":
+        return types.ResourceLink(
+            type="resource_link",
+            uri=str(content.get("uri", "")),
+            name=str(content.get("name") or content.get("uri") or "resource"),
+            description=content.get("description"),
+            mimeType=content.get("mimeType"),
+            size=content.get("size") if isinstance(content.get("size"), int) else None,
+        )
     if content_type == "resource":  # pragma: no cover - 预留给后续 embedded resource。
         return types.EmbeddedResource(type="resource", resource=content["resource"])
     return types.TextContent(type="text", text=json.dumps(content, ensure_ascii=False, sort_keys=True))
@@ -364,6 +373,35 @@ def _sdk_tools_meta(*, total_count: int, offset: int, count: int, has_more: bool
     return meta
 
 
+def _resolve_response_path(responses_by_step: Mapping[str, Mapping[str, Any]], reference: Mapping[str, Any]) -> Any:
+    step_id = str(reference.get("step") or "")
+    path = str(reference.get("path") or "")
+    if not step_id or step_id not in responses_by_step:
+        raise ValueError(f"fixture response reference has unknown step: {step_id}")
+    current: Any = responses_by_step[step_id]
+    for part in path.split("."):
+        if isinstance(current, list):
+            current = current[int(part)]
+        elif isinstance(current, Mapping):
+            current = current[part]
+        else:
+            raise ValueError(f"fixture response reference stopped at {part!r}: {path}")
+    return current
+
+
+def _resolve_fixture_refs(value: Any, responses_by_step: Mapping[str, Mapping[str, Any]]) -> Any:
+    if isinstance(value, Mapping):
+        if set(value) == {"$response_path"}:
+            reference = value["$response_path"]
+            if not isinstance(reference, Mapping):
+                raise ValueError("fixture $response_path must be an object")
+            return _resolve_response_path(responses_by_step, reference)
+        return {key: _resolve_fixture_refs(item, responses_by_step) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_resolve_fixture_refs(item, responses_by_step) for item in value]
+    return value
+
+
 def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
     """创建官方 Python SDK low-level Server。
 
@@ -386,7 +424,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
     async def _list_tools(req: Any) -> Any:
         cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
         offset = _decode_sdk_cursor(cursor)
-        result = _current_mcp_result("tools/list", {"toolset": "all"}, session=session, env=env)
+        result = _current_mcp_result("tools/list", {"toolset": "all", "limit": 100}, session=session, env=env)
         ordered = _sdk_ordered_tools(result.get("tools") or [])
         page = ordered[offset : offset + SDK_DEFAULT_TOOL_PAGE_SIZE]
         next_offset = offset + len(page)
@@ -584,14 +622,17 @@ def run_mcp_fixture_steps(
 ) -> dict[str, Any]:
     session = AgentSession(env=env)
     responses: list[dict[str, Any]] = []
+    responses_by_step: dict[str, dict[str, Any]] = {}
     for index, step in enumerate(steps):
+        step_id = str(step.get("id") or f"adapter-fixture-{index}")
+        params = _resolve_fixture_refs(step.get("params") or {}, responses_by_step)
         response = handler(
             json.dumps(
                 {
                     "jsonrpc": "2.0",
-                    "id": step.get("id") or f"adapter-fixture-{index}",
+                    "id": step_id,
                     "method": step["method"],
-                    "params": step.get("params") or {},
+                    "params": params,
                 },
             ),
             env=env,
@@ -599,6 +640,7 @@ def run_mcp_fixture_steps(
         )
         if response is not None:
             responses.append(response)
+            responses_by_step[step_id] = response
     return {"ok": True, "kind": "mcp_session", "responses": responses, "budget_ledger": session.ledger.to_dict()}
 
 
