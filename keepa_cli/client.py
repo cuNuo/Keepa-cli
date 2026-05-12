@@ -29,7 +29,7 @@ from keepa_cli.cache import (
 from keepa_cli.config import load_config
 from keepa_cli.envelope import error_envelope, success_envelope
 from keepa_cli.request_spec import build_request_spec
-from keepa_cli.token_budget import estimate_request_budget
+from keepa_cli.token_budget import build_token_refill_guidance, estimate_request_budget
 
 
 TOKEN_BUCKET_FIELDS = {
@@ -334,10 +334,8 @@ class KeepaClient:
         if exc.code != 429:
             return None
         body = KeepaClient._read_http_error_body(exc)
-        refill = body.get("refillIn")
-        try:
-            wait_ms = int(refill)
-        except (TypeError, ValueError):
+        wait_ms = KeepaClient._retry_after_ms_from_error(exc, body)
+        if wait_ms is None:
             return None
         if wait_ms <= 0:
             return 0
@@ -409,6 +407,23 @@ class KeepaClient:
         return token_bucket
 
     @staticmethod
+    def _retry_after_ms_from_error(exc: urllib.error.HTTPError, body: dict[str, Any]) -> int | None:
+        refill = body.get("refillIn")
+        if refill is not None:
+            try:
+                return int(refill)
+            except (TypeError, ValueError):
+                pass
+
+        headers = getattr(exc, "headers", None) or getattr(exc, "hdrs", None)
+        header_value = headers.get("Retry-After") if hasattr(headers, "get") else None
+        try:
+            retry_after_seconds = int(header_value)
+        except (TypeError, ValueError):
+            return None
+        return max(retry_after_seconds, 0) * 1000
+
+    @staticmethod
     def _decode_response_body(response: Any) -> dict[str, Any]:
         raw_body = response.read()
         encoding = ""
@@ -429,8 +444,19 @@ class KeepaClient:
         body = self._read_http_error_body(exc)
         token_bucket = self._token_bucket_from_body(body, budget)
         details: dict[str, Any] = {"endpoint": endpoint}
-        if exc.code == 429 and "refillIn" in body:
-            details["retry_after_ms"] = body["refillIn"]
+        if exc.code == 429:
+            retry_after_ms = self._retry_after_ms_from_error(exc, body)
+            if retry_after_ms is not None:
+                details["retry_after_ms"] = retry_after_ms
+                details["retry_after_seconds"] = (retry_after_ms + 999) // 1000
+            guidance = build_token_refill_guidance(
+                command,
+                budget,
+                token_bucket=token_bucket,
+                retry_after_ms=retry_after_ms,
+            )
+            details["token_refill_guidance"] = guidance
+            details["next_actions"] = guidance["next_actions"]
 
         return error_envelope(
             command=command,

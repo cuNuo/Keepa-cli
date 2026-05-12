@@ -806,6 +806,10 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(result["isError"])
         self.assertFalse(structured["ok"])
         self.assertEqual(structured["error"]["kind"], "confirmation_required")
+        details = structured["error"]["details"]
+        self.assertEqual(details["token_refill_guidance"]["status_command"], "tokens.status")
+        self.assertEqual(details["token_refill_guidance"]["wait_strategy"], "check_tokens_status")
+        self.assertIn("set_hydrate_top_zero", details["token_refill_guidance"]["hints"])
         self.assertEqual(structured["budget_ledger"]["blocked_actions"][0]["tool"], "categories_products")
 
     def test_iter_mcp_output_keeps_session_cache_across_lines(self):

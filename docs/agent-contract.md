@@ -65,6 +65,7 @@ kc = "keepa_cli.cli:main"
 - `ok=true` 代表命令级成功；空结果仍然可以成功。
 - `ok=false` 时 `error.kind` 是 Agent 的主要分支字段。
 - `token_bucket.estimated` 用于执行前预算；真实 API 响应会继续映射 `tokens_left`、`tokens_consumed`、`refill_rate`、`refill_in_ms`。
+- Keepa token 会按套餐持续补充；`not_enough_token` 和高成本 `confirmation_required` 都必须给出 `token_refill_guidance`，让 Agent 可以选择等待后重试、先查 `tokens.status`、缩小请求范围或使用缓存/fixture/dry-run。
 - 所有 `key`、`api_key`、`apikey`、`token`、`authorization` 字段必须打码。
 
 ## 3. stdio JSON Lines
@@ -101,7 +102,26 @@ kc = "keepa_cli.cli:main"
       "details": {
         "resume_with": "--yes",
         "estimated_tokens": 50,
-        "worst_case_tokens": 50
+        "worst_case_tokens": 50,
+        "token_refill_guidance": {
+          "status_command": "tokens.status",
+          "wait_strategy": "check_tokens_status",
+          "estimated_tokens": 50,
+          "worst_case_tokens": 50,
+          "hints": ["check_tokens_status", "wait_for_plan_refill", "use_cache_fixture_or_dry_run"],
+          "next_actions": [
+            {"action": "check_tokens_status", "command": "tokens.status"},
+            {"action": "retry_when_tokens_available"},
+            {"action": "reduce_request_scope"},
+            {"action": "use_cache_fixture_or_dry_run"}
+          ]
+        },
+        "next_actions": [
+          {"action": "check_tokens_status", "command": "tokens.status"},
+          {"action": "retry_when_tokens_available"},
+          {"action": "reduce_request_scope"},
+          {"action": "use_cache_fixture_or_dry_run"}
+        ]
       }
     },
     "token_bucket": {}

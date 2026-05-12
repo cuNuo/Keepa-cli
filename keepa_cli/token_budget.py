@@ -7,6 +7,7 @@ keepa_cli/token_budget.py
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -56,6 +57,97 @@ def _to_int(value: Any, default: int = 0) -> int:
         return int(value)
     except (TypeError, ValueError):
         return default
+
+
+def _optional_int(value: Any) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _retry_seconds(wait_ms: int | None) -> int | None:
+    if wait_ms is None:
+        return None
+    if wait_ms <= 0:
+        return 0
+    return (wait_ms + 999) // 1000
+
+
+def _budget_dict(budget: BudgetEstimate | Mapping[str, Any] | None) -> dict[str, Any]:
+    if budget is None:
+        return BudgetEstimate(0, 0, False).to_dict()
+    if isinstance(budget, BudgetEstimate):
+        return budget.to_dict()
+    return dict(budget)
+
+
+def _guidance_hints(command: str) -> list[str]:
+    normalized = command.lower()
+    hints = ["check_tokens_status", "wait_for_plan_refill", "use_cache_fixture_or_dry_run"]
+    if normalized in {"products.get", "product.get", "products.compare"}:
+        hints.extend(["split_asins", "reduce_offers", "avoid_update_zero_until_refilled"])
+    elif normalized in {"categories.products", "category.products"}:
+        hints.extend(["set_hydrate_top_zero", "split_category_research_steps"])
+    elif normalized in {"finder.query", "query"}:
+        hints.append("lower_max_tokens")
+    elif normalized.startswith("tracking."):
+        hints.append("prefer_tracking_readonly_or_dry_run")
+    return hints
+
+
+def build_token_refill_guidance(
+    command: str,
+    budget: BudgetEstimate | Mapping[str, Any] | None = None,
+    *,
+    token_bucket: Mapping[str, Any] | None = None,
+    retry_after_ms: int | None = None,
+) -> dict[str, Any]:
+    budget_data = _budget_dict(budget)
+    bucket = dict(token_bucket or {})
+    estimated = _optional_int(budget_data.get("estimated_tokens")) or 0
+    worst_case = _optional_int(budget_data.get("worst_case_tokens")) or estimated
+    tokens_left = _optional_int(bucket.get("tokens_left", bucket.get("tokensLeft")))
+    refill_in_ms = _optional_int(bucket.get("refill_in_ms", bucket.get("refillIn")))
+    refill_rate = _optional_int(bucket.get("refill_rate", bucket.get("refillRate")))
+
+    wait_ms = retry_after_ms if retry_after_ms is not None else refill_in_ms
+    wait_seconds = _retry_seconds(wait_ms)
+    target_tokens = max(estimated, worst_case, 0)
+    token_deficit = None
+    if tokens_left is not None and target_tokens > tokens_left:
+        token_deficit = target_tokens - tokens_left
+    if wait_seconds is None and token_deficit and refill_rate and refill_rate > 0:
+        wait_seconds = max(60, ((token_deficit + refill_rate - 1) // refill_rate) * 60)
+
+    wait_strategy = "wait_for_refill" if wait_seconds is not None else "check_tokens_status"
+    guidance: dict[str, Any] = {
+        "status_command": "tokens.status",
+        "wait_strategy": wait_strategy,
+        "estimated_tokens": estimated,
+        "worst_case_tokens": worst_case,
+        "hints": _guidance_hints(command),
+        "next_actions": [
+            {"action": "check_tokens_status", "command": "tokens.status"},
+            {"action": "retry_after_refill" if wait_seconds is not None else "retry_when_tokens_available"},
+            {"action": "reduce_request_scope"},
+            {"action": "use_cache_fixture_or_dry_run"},
+        ],
+    }
+    if tokens_left is not None:
+        guidance["tokens_left"] = tokens_left
+    if token_deficit is not None:
+        guidance["token_deficit"] = token_deficit
+    if refill_rate is not None:
+        guidance["refill_rate_per_minute"] = refill_rate
+    if refill_in_ms is not None:
+        guidance["refill_in_ms"] = refill_in_ms
+    if retry_after_ms is not None:
+        guidance["retry_after_ms"] = retry_after_ms
+    if wait_seconds is not None:
+        guidance["retry_after_seconds"] = wait_seconds
+        guidance["next_actions"][1]["wait_seconds"] = wait_seconds
+    return guidance
 
 
 def _product_budget(params: dict[str, Any]) -> BudgetEstimate:

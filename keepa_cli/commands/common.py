@@ -13,7 +13,7 @@ from typing import Any
 
 from keepa_cli.client import KeepaClient
 from keepa_cli.envelope import error_envelope
-from keepa_cli.token_budget import estimate_request_budget
+from keepa_cli.token_budget import build_token_refill_guidance, estimate_request_budget
 
 
 DEFAULT_FIXTURE_DIR = Path(__file__).resolve().parent.parent / "fixtures"
@@ -101,6 +101,7 @@ def confirmation_required(command: str, params: Mapping[str, Any]) -> dict[str, 
         return None
     if bool_option(params, "dry_run", "dry-run") or params.get("fixture") or bool_option(params, "yes"):
         return None
+    guidance = build_token_refill_guidance(command, budget)
     return error_envelope(
         command=command,
         kind="confirmation_required",
@@ -109,6 +110,8 @@ def confirmation_required(command: str, params: Mapping[str, Any]) -> dict[str, 
             "resume_with": "--yes",
             "estimated_tokens": budget["estimated_tokens"],
             "worst_case_tokens": budget["worst_case_tokens"],
+            "token_refill_guidance": guidance,
+            "next_actions": guidance["next_actions"],
         },
         token_bucket={"estimated": budget},
     )

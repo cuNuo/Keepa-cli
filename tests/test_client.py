@@ -263,6 +263,12 @@ class KeepaClientTests(unittest.TestCase):
         self.assertFalse(payload["ok"])
         self.assertEqual(payload["error"]["kind"], "not_enough_token")
         self.assertEqual(payload["error"]["details"]["retry_after_ms"], 12000)
+        self.assertEqual(payload["error"]["details"]["retry_after_seconds"], 12)
+        guidance = payload["error"]["details"]["token_refill_guidance"]
+        self.assertEqual(guidance["wait_strategy"], "wait_for_refill")
+        self.assertEqual(guidance["retry_after_seconds"], 12)
+        self.assertEqual(guidance["token_deficit"], 2)
+        self.assertEqual(guidance["next_actions"][0]["command"], "tokens.status")
         self.assertEqual(payload["token_bucket"]["refill_in_ms"], 12000)
         self.assertNotIn("SECRET123", encoded)
 
@@ -298,6 +304,38 @@ class KeepaClientTests(unittest.TestCase):
         self.assertEqual(opener.calls, 2)
         self.assertEqual(waits, [12.0])
         self.assertEqual(payload["token_bucket"]["waited_for_refill_ms"], 12000)
+
+    def test_http_429_uses_retry_after_header_when_refill_body_is_absent(self):
+        body = json.dumps({"tokensLeft": 0, "error": {"type": "TOKEN_LIMIT"}}).encode("utf-8")
+        error = urllib.error.HTTPError(
+            url="https://api.keepa.com/product?key=SECRET123",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={"Retry-After": "30"},
+            fp=io.BytesIO(body),
+        )
+        retry_error = urllib.error.HTTPError(
+            url="https://api.keepa.com/product?key=SECRET123",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={"Retry-After": "30"},
+            fp=io.BytesIO(body),
+        )
+        waits: list[float] = []
+        client = KeepaClient(opener=SequenceOpener([error, retry_error]), sleeper=waits.append)
+
+        payload = client.request(
+            command="products.get",
+            method="GET",
+            path="/product",
+            params={"domain": "1", "asin": "B001GZ6QEC", "key": "SECRET123"},
+            env={"KEEPA_CLI_NO_CACHE": "1"},
+        )
+
+        self.assertFalse(payload["ok"])
+        self.assertEqual(waits, [30.0])
+        self.assertEqual(payload["error"]["details"]["retry_after_ms"], 30000)
+        self.assertEqual(payload["error"]["details"]["token_refill_guidance"]["retry_after_seconds"], 30)
 
     def test_server_error_retries_once_before_success(self):
         server_error = urllib.error.HTTPError(

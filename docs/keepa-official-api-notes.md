@@ -19,6 +19,7 @@
 - 官方说明所有请求通过 HTTPS GET 发出，并接受 gzip 编码；应尽量复用 Keep-Alive 连接。
 - 响应为 JSON，常见 token bucket 字段包括 `refillRate`、`refillIn`、`tokensLeft`、`tokensConsumed`、`tokenFlowReduction`、`processingTimeInMs` 和 `error`。
 - `tokensLeft` 可能为负，因为提交请求时余额为正即可执行较大请求。
+- Keepa token 会按套餐速率持续补充；token 不足时应优先返回可等待时间、`tokens.status` 查询入口和降级建议，而不是把请求当作永久拒绝。
 - 未使用 token 会在 60 分钟后过期。
 
 ## HTTP 状态码
@@ -27,7 +28,7 @@
 - `400`：请求 malformed 或无法执行。
 - `402`：API key 没有访问权限。
 - `405`：参数超出允许范围。
-- `429`：token 不足。
+- `429`：token 不足。若响应体有 `refillIn` 或响应头有 `Retry-After`，客户端应最多自动等待一次，并在仍失败时把等待秒数与 `token_refill_guidance` 返回给 Agent。
 - `500`：服务端异常。
 
 本仓库当前不接真实 API；这些状态码通过 fake transport 和 fixture 做信息流测试。

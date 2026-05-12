@@ -7,7 +7,7 @@ tests/test_token_budget.py
 
 import unittest
 
-from keepa_cli.token_budget import BudgetEstimate, estimate_request_budget
+from keepa_cli.token_budget import BudgetEstimate, build_token_refill_guidance, estimate_request_budget
 
 
 class TokenBudgetTests(unittest.TestCase):
@@ -82,6 +82,30 @@ class TokenBudgetTests(unittest.TestCase):
                 "notes": [],
             },
         )
+
+    def test_refill_guidance_maps_bucket_wait_and_deficit(self):
+        guidance = build_token_refill_guidance(
+            "products.get",
+            BudgetEstimate(estimated_tokens=13, worst_case_tokens=13, requires_confirmation=True),
+            token_bucket={"tokens_left": -1, "refill_in_ms": 12000, "refill_rate": 20},
+        )
+
+        self.assertEqual(guidance["wait_strategy"], "wait_for_refill")
+        self.assertEqual(guidance["retry_after_seconds"], 12)
+        self.assertEqual(guidance["token_deficit"], 14)
+        self.assertIn("reduce_offers", guidance["hints"])
+        self.assertEqual(guidance["next_actions"][0]["command"], "tokens.status")
+
+    def test_refill_guidance_without_live_bucket_points_to_status_check(self):
+        guidance = build_token_refill_guidance(
+            "categories.products",
+            {"estimated_tokens": 50, "worst_case_tokens": 50, "requires_confirmation": True},
+        )
+
+        self.assertEqual(guidance["wait_strategy"], "check_tokens_status")
+        self.assertEqual(guidance["status_command"], "tokens.status")
+        self.assertIn("set_hydrate_top_zero", guidance["hints"])
+        self.assertEqual(guidance["next_actions"][1]["action"], "retry_when_tokens_available")
 
 
 if __name__ == "__main__":

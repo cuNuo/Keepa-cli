@@ -153,6 +153,8 @@ Agent profiles are `summary`, `research`, `deal`, and `audit`. Start from `agent
 
 Token budgets include component-level hints. Product requests start at `1 token * product count`; explicit `--rating` and `--buybox` are budgeted as additional product-level costs, `--offers` is budgeted as Keepa offer pages (`6 tokens * ceil(offers / 10) * product count`), and `--update 0` is tracked as a worst-case live refresh.
 
+Keepa account tokens refill continuously according to your plan. A `429` / `not_enough_token` response is not treated as a permanent rejection: the error details include `retry_after_ms`, `retry_after_seconds`, and `token_refill_guidance` when Keepa returns refill metadata. High-cost confirmation errors also include `token_refill_guidance` with `tokens.status`, wait/retry, request-scope reduction, cache, fixture, and dry-run next actions.
+
 Use explicit flags when you need tighter history windows or specialized fields:
 
 ```powershell

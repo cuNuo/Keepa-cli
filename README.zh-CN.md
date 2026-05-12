@@ -92,6 +92,8 @@ kc --json doctor
 kc --json config set-max-tokens 250
 ```
 
+Keepa token 会按套餐持续补充。`429` / `not_enough_token` 不表示永久拒绝：错误详情会在 Keepa 返回 refill 元数据时给出 `retry_after_ms`、`retry_after_seconds` 与 `token_refill_guidance`。高成本确认错误同样会给出 `tokens.status`、等待后重试、缩小请求范围、使用缓存、fixture 或 dry-run 的下一步建议。
+
 ## 语言
 
 默认界面语言为英文。切换中文：

@@ -15,7 +15,7 @@ from typing import Any
 from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.envelope import error_envelope
 from keepa_cli.service import run_command
-from keepa_cli.token_budget import estimate_request_budget
+from keepa_cli.token_budget import build_token_refill_guidance, estimate_request_budget
 
 
 Runner = Callable[[str, Mapping[str, Any]], dict[str, Any]]
@@ -26,10 +26,13 @@ def _bypass_confirmation(params: Mapping[str, Any]) -> bool:
 
 
 def _confirmation_required(command: str, budget: dict[str, Any], *, tool: str | None = None) -> dict[str, Any]:
+    guidance = build_token_refill_guidance(command, budget)
     details: dict[str, Any] = {
         "resume_with": "--yes",
         "estimated_tokens": budget["estimated_tokens"],
         "worst_case_tokens": budget["worst_case_tokens"],
+        "token_refill_guidance": guidance,
+        "next_actions": guidance["next_actions"],
     }
     if tool:
         details["resume_with_tool"] = {"tool": tool, "params": {"yes": True}}
