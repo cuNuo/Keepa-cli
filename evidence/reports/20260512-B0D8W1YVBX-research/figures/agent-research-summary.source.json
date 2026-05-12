@@ -1,0 +1,3419 @@
+{
+  "schema_version": "2026-05-11.4",
+  "products": [
+    {
+      "asin": "B0D8W1YVBX",
+      "title": "EQQUALBERRY Vitamin Illuminating Serum | Niacinamide 4% + Brightening Vitamin C Face Serum with Hyaluronic Acid & Vitamin E | Dark Spot, Uneven Tone Care | Korean Skincare, 1.01 fl.oz",
+      "brand": "EQQUALBERRY",
+      "price": null,
+      "rank": null,
+      "monthly_sold": null,
+      "review_count": null
+    }
+  ],
+  "risk_codes": [],
+  "entity_counts": [],
+  "temporal_signals": [],
+  "history_series": [
+    {
+      "asin": "B0D8W1YVBX",
+      "name": "new",
+      "unit": "currency",
+      "path": "$.products[0].history_summary.series.new.last_points",
+      "point_count": 129,
+      "shown_points": 120,
+      "data_basis": "history_summary.last_points",
+      "points": [
+        {
+          "x": 60,
+          "timestamp": "2026-03-14T16:24:00Z",
+          "keepa_minute": 7994424,
+          "value": 17.2
+        },
+        {
+          "x": 61,
+          "timestamp": "2026-03-14T19:14:00Z",
+          "keepa_minute": 7994594,
+          "value": 19.95
+        },
+        {
+          "x": 62,
+          "timestamp": "2026-03-19T18:08:00Z",
+          "keepa_minute": 8001728,
+          "value": 17.2
+        },
+        {
+          "x": 63,
+          "timestamp": "2026-03-19T19:42:00Z",
+          "keepa_minute": 8001822,
+          "value": 19.95
+        },
+        {
+          "x": 64,
+          "timestamp": "2026-03-20T02:36:00Z",
+          "keepa_minute": 8002236,
+          "value": 19.99
+        },
+        {
+          "x": 65,
+          "timestamp": "2026-03-20T09:40:00Z",
+          "keepa_minute": 8002660,
+          "value": 19.95
+        },
+        {
+          "x": 66,
+          "timestamp": "2026-03-20T13:34:00Z",
+          "keepa_minute": 8002894,
+          "value": 19.99
+        },
+        {
+          "x": 67,
+          "timestamp": "2026-03-20T22:08:00Z",
+          "keepa_minute": 8003408,
+          "value": 19.95
+        },
+        {
+          "x": 68,
+          "timestamp": "2026-03-20T23:26:00Z",
+          "keepa_minute": 8003486,
+          "value": 19.99
+        },
+        {
+          "x": 69,
+          "timestamp": "2026-03-25T07:16:00Z",
+          "keepa_minute": 8009716,
+          "value": 14.99
+        },
+        {
+          "x": 70,
+          "timestamp": "2026-04-01T07:36:00Z",
+          "keepa_minute": 8019816,
+          "value": 19.99
+        },
+        {
+          "x": 71,
+          "timestamp": "2026-04-02T07:16:00Z",
+          "keepa_minute": 8021236,
+          "value": 15.99
+        },
+        {
+          "x": 72,
+          "timestamp": "2026-04-07T07:34:00Z",
+          "keepa_minute": 8028454,
+          "value": 18.99
+        },
+        {
+          "x": 73,
+          "timestamp": "2026-04-07T18:52:00Z",
+          "keepa_minute": 8029132,
+          "value": 19.98
+        },
+        {
+          "x": 74,
+          "timestamp": "2026-04-12T08:06:00Z",
+          "keepa_minute": 8035686,
+          "value": 19.5
+        },
+        {
+          "x": 75,
+          "timestamp": "2026-04-13T17:56:00Z",
+          "keepa_minute": 8037716,
+          "value": 18.99
+        },
+        {
+          "x": 76,
+          "timestamp": "2026-04-17T05:58:00Z",
+          "keepa_minute": 8042758,
+          "value": 19.99
+        },
+        {
+          "x": 77,
+          "timestamp": "2026-04-20T05:56:00Z",
+          "keepa_minute": 8047076,
+          "value": 19.9
+        },
+        {
+          "x": 78,
+          "timestamp": "2026-04-20T17:44:00Z",
+          "keepa_minute": 8047784,
+          "value": 17.2
+        },
+        {
+          "x": 79,
+          "timestamp": "2026-04-20T19:12:00Z",
+          "keepa_minute": 8047872,
+          "value": 16.99
+        },
+        {
+          "x": 80,
+          "timestamp": "2026-04-20T21:10:00Z",
+          "keepa_minute": 8047990,
+          "value": 19.9
+        },
+        {
+          "x": 81,
+          "timestamp": "2026-04-20T23:12:00Z",
+          "keepa_minute": 8048112,
+          "value": 16.99
+        },
+        {
+          "x": 82,
+          "timestamp": "2026-04-21T01:10:00Z",
+          "keepa_minute": 8048230,
+          "value": 19.9
+        },
+        {
+          "x": 83,
+          "timestamp": "2026-04-21T04:32:00Z",
+          "keepa_minute": 8048432,
+          "value": 19.5
+        },
+        {
+          "x": 84,
+          "timestamp": "2026-04-21T16:16:00Z",
+          "keepa_minute": 8049136,
+          "value": 16.99
+        },
+        {
+          "x": 85,
+          "timestamp": "2026-04-21T19:08:00Z",
+          "keepa_minute": 8049308,
+          "value": 19.5
+        },
+        {
+          "x": 86,
+          "timestamp": "2026-04-22T14:56:00Z",
+          "keepa_minute": 8050496,
+          "value": 15.5
+        },
+        {
+          "x": 87,
+          "timestamp": "2026-04-22T17:00:00Z",
+          "keepa_minute": 8050620,
+          "value": 19.5
+        },
+        {
+          "x": 88,
+          "timestamp": "2026-04-22T21:56:00Z",
+          "keepa_minute": 8050916,
+          "value": 15.5
+        },
+        {
+          "x": 89,
+          "timestamp": "2026-04-22T22:44:00Z",
+          "keepa_minute": 8050964,
+          "value": 19.5
+        },
+        {
+          "x": 90,
+          "timestamp": "2026-04-23T01:12:00Z",
+          "keepa_minute": 8051112,
+          "value": 15.5
+        },
+        {
+          "x": 91,
+          "timestamp": "2026-04-23T02:00:00Z",
+          "keepa_minute": 8051160,
+          "value": 19.5
+        },
+        {
+          "x": 92,
+          "timestamp": "2026-04-23T08:00:00Z",
+          "keepa_minute": 8051520,
+          "value": 15.5
+        },
+        {
+          "x": 93,
+          "timestamp": "2026-04-23T10:04:00Z",
+          "keepa_minute": 8051644,
+          "value": 19.5
+        },
+        {
+          "x": 94,
+          "timestamp": "2026-04-23T14:00:00Z",
+          "keepa_minute": 8051880,
+          "value": 15.5
+        },
+        {
+          "x": 95,
+          "timestamp": "2026-04-23T16:50:00Z",
+          "keepa_minute": 8052050,
+          "value": 19.5
+        },
+        {
+          "x": 96,
+          "timestamp": "2026-04-23T18:04:00Z",
+          "keepa_minute": 8052124,
+          "value": 15.99
+        },
+        {
+          "x": 97,
+          "timestamp": "2026-04-23T20:32:00Z",
+          "keepa_minute": 8052272,
+          "value": 19.5
+        },
+        {
+          "x": 98,
+          "timestamp": "2026-04-23T21:42:00Z",
+          "keepa_minute": 8052342,
+          "value": 15.99
+        },
+        {
+          "x": 99,
+          "timestamp": "2026-04-23T23:44:00Z",
+          "keepa_minute": 8052464,
+          "value": 19.5
+        },
+        {
+          "x": 100,
+          "timestamp": "2026-04-24T17:12:00Z",
+          "keepa_minute": 8053512,
+          "value": 15.99
+        },
+        {
+          "x": 101,
+          "timestamp": "2026-04-24T18:04:00Z",
+          "keepa_minute": 8053564,
+          "value": 17.99
+        },
+        {
+          "x": 102,
+          "timestamp": "2026-04-24T19:14:00Z",
+          "keepa_minute": 8053634,
+          "value": 16.99
+        },
+        {
+          "x": 103,
+          "timestamp": "2026-04-24T20:00:00Z",
+          "keepa_minute": 8053680,
+          "value": 15.99
+        },
+        {
+          "x": 104,
+          "timestamp": "2026-04-24T21:56:00Z",
+          "keepa_minute": 8053796,
+          "value": 19.5
+        },
+        {
+          "x": 105,
+          "timestamp": "2026-04-24T23:52:00Z",
+          "keepa_minute": 8053912,
+          "value": 15.99
+        },
+        {
+          "x": 106,
+          "timestamp": "2026-04-25T01:20:00Z",
+          "keepa_minute": 8054000,
+          "value": 19.5
+        },
+        {
+          "x": 107,
+          "timestamp": "2026-04-25T13:36:00Z",
+          "keepa_minute": 8054736,
+          "value": 15.99
+        },
+        {
+          "x": 108,
+          "timestamp": "2026-04-25T13:52:00Z",
+          "keepa_minute": 8054752,
+          "value": 19.5
+        },
+        {
+          "x": 109,
+          "timestamp": "2026-04-25T17:28:00Z",
+          "keepa_minute": 8054968,
+          "value": 15.99
+        },
+        {
+          "x": 110,
+          "timestamp": "2026-04-25T22:12:00Z",
+          "keepa_minute": 8055252,
+          "value": 19.5
+        },
+        {
+          "x": 111,
+          "timestamp": "2026-04-26T02:52:00Z",
+          "keepa_minute": 8055532,
+          "value": 15.99
+        },
+        {
+          "x": 112,
+          "timestamp": "2026-04-26T03:52:00Z",
+          "keepa_minute": 8055592,
+          "value": 19.5
+        },
+        {
+          "x": 113,
+          "timestamp": "2026-04-26T16:40:00Z",
+          "keepa_minute": 8056360,
+          "value": 15.99
+        },
+        {
+          "x": 114,
+          "timestamp": "2026-04-26T19:08:00Z",
+          "keepa_minute": 8056508,
+          "value": 19.5
+        },
+        {
+          "x": 115,
+          "timestamp": "2026-04-26T20:36:00Z",
+          "keepa_minute": 8056596,
+          "value": 15.99
+        },
+        {
+          "x": 116,
+          "timestamp": "2026-04-26T21:58:00Z",
+          "keepa_minute": 8056678,
+          "value": 19.5
+        },
+        {
+          "x": 117,
+          "timestamp": "2026-04-27T00:04:00Z",
+          "keepa_minute": 8056804,
+          "value": 15.99
+        },
+        {
+          "x": 118,
+          "timestamp": "2026-04-27T00:32:00Z",
+          "keepa_minute": 8056832,
+          "value": 19.5
+        },
+        {
+          "x": 119,
+          "timestamp": "2026-04-27T07:46:00Z",
+          "keepa_minute": 8057266,
+          "value": 14.99
+        }
+      ]
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "name": "buy_box_shipping",
+      "unit": "currency",
+      "path": "$.products[0].history_summary.series.buy_box_shipping.last_points",
+      "point_count": 249,
+      "shown_points": 120,
+      "data_basis": "history_summary.last_points",
+      "points": [
+        {
+          "x": 60,
+          "timestamp": "2026-04-24T15:42:00Z",
+          "keepa_minute": 8053422,
+          "value": 19.99
+        },
+        {
+          "x": 61,
+          "timestamp": "2026-04-24T16:28:00Z",
+          "keepa_minute": 8053468,
+          "value": 19.5
+        },
+        {
+          "x": 62,
+          "timestamp": "2026-04-24T17:12:00Z",
+          "keepa_minute": 8053512,
+          "value": 19.99
+        },
+        {
+          "x": 63,
+          "timestamp": "2026-04-24T18:04:00Z",
+          "keepa_minute": 8053564,
+          "value": 17.99
+        },
+        {
+          "x": 64,
+          "timestamp": "2026-04-24T19:14:00Z",
+          "keepa_minute": 8053634,
+          "value": 16.99
+        },
+        {
+          "x": 65,
+          "timestamp": "2026-04-24T20:00:00Z",
+          "keepa_minute": 8053680,
+          "value": 15.99
+        },
+        {
+          "x": 66,
+          "timestamp": "2026-04-24T21:56:00Z",
+          "keepa_minute": 8053796,
+          "value": 19.99
+        },
+        {
+          "x": 67,
+          "timestamp": "2026-04-24T22:00:00Z",
+          "keepa_minute": 8053800,
+          "value": 19.99
+        },
+        {
+          "x": 68,
+          "timestamp": "2026-04-24T22:04:00Z",
+          "keepa_minute": 8053804,
+          "value": 19.99
+        },
+        {
+          "x": 69,
+          "timestamp": "2026-04-24T23:00:00Z",
+          "keepa_minute": 8053860,
+          "value": 19.5
+        },
+        {
+          "x": 70,
+          "timestamp": "2026-04-24T23:52:00Z",
+          "keepa_minute": 8053912,
+          "value": 15.99
+        },
+        {
+          "x": 71,
+          "timestamp": "2026-04-25T01:20:00Z",
+          "keepa_minute": 8054000,
+          "value": 19.5
+        },
+        {
+          "x": 72,
+          "timestamp": "2026-04-25T02:00:00Z",
+          "keepa_minute": 8054040,
+          "value": 19.99
+        },
+        {
+          "x": 73,
+          "timestamp": "2026-04-25T03:50:00Z",
+          "keepa_minute": 8054150,
+          "value": 19.99
+        },
+        {
+          "x": 74,
+          "timestamp": "2026-04-25T05:00:00Z",
+          "keepa_minute": 8054220,
+          "value": 19.99
+        },
+        {
+          "x": 75,
+          "timestamp": "2026-04-25T07:02:00Z",
+          "keepa_minute": 8054342,
+          "value": 19.5
+        },
+        {
+          "x": 76,
+          "timestamp": "2026-04-25T07:04:00Z",
+          "keepa_minute": 8054344,
+          "value": 19.99
+        },
+        {
+          "x": 77,
+          "timestamp": "2026-04-25T07:52:00Z",
+          "keepa_minute": 8054392,
+          "value": 19.5
+        },
+        {
+          "x": 78,
+          "timestamp": "2026-04-25T09:28:00Z",
+          "keepa_minute": 8054488,
+          "value": 19.99
+        },
+        {
+          "x": 79,
+          "timestamp": "2026-04-25T09:46:00Z",
+          "keepa_minute": 8054506,
+          "value": 19.5
+        },
+        {
+          "x": 80,
+          "timestamp": "2026-04-25T11:34:00Z",
+          "keepa_minute": 8054614,
+          "value": 19.99
+        },
+        {
+          "x": 81,
+          "timestamp": "2026-04-25T13:20:00Z",
+          "keepa_minute": 8054720,
+          "value": 19.5
+        },
+        {
+          "x": 82,
+          "timestamp": "2026-04-25T13:40:00Z",
+          "keepa_minute": 8054740,
+          "value": 15.99
+        },
+        {
+          "x": 83,
+          "timestamp": "2026-04-25T13:52:00Z",
+          "keepa_minute": 8054752,
+          "value": 19.99
+        },
+        {
+          "x": 84,
+          "timestamp": "2026-04-25T15:56:00Z",
+          "keepa_minute": 8054876,
+          "value": 19.99
+        },
+        {
+          "x": 85,
+          "timestamp": "2026-04-25T16:06:00Z",
+          "keepa_minute": 8054886,
+          "value": 19.99
+        },
+        {
+          "x": 86,
+          "timestamp": "2026-04-25T17:28:00Z",
+          "keepa_minute": 8054968,
+          "value": 15.99
+        },
+        {
+          "x": 87,
+          "timestamp": "2026-04-25T22:12:00Z",
+          "keepa_minute": 8055252,
+          "value": 19.5
+        },
+        {
+          "x": 88,
+          "timestamp": "2026-04-25T23:14:00Z",
+          "keepa_minute": 8055314,
+          "value": 19.99
+        },
+        {
+          "x": 89,
+          "timestamp": "2026-04-25T23:24:00Z",
+          "keepa_minute": 8055324,
+          "value": 19.99
+        },
+        {
+          "x": 90,
+          "timestamp": "2026-04-26T01:44:00Z",
+          "keepa_minute": 8055464,
+          "value": 19.5
+        },
+        {
+          "x": 91,
+          "timestamp": "2026-04-26T02:52:00Z",
+          "keepa_minute": 8055532,
+          "value": 19.99
+        },
+        {
+          "x": 92,
+          "timestamp": "2026-04-26T03:52:00Z",
+          "keepa_minute": 8055592,
+          "value": 15.99
+        },
+        {
+          "x": 93,
+          "timestamp": "2026-04-26T04:58:00Z",
+          "keepa_minute": 8055658,
+          "value": 19.5
+        },
+        {
+          "x": 94,
+          "timestamp": "2026-04-26T05:20:00Z",
+          "keepa_minute": 8055680,
+          "value": 19.99
+        },
+        {
+          "x": 95,
+          "timestamp": "2026-04-26T07:00:00Z",
+          "keepa_minute": 8055780,
+          "value": 19.5
+        },
+        {
+          "x": 96,
+          "timestamp": "2026-04-26T07:28:00Z",
+          "keepa_minute": 8055808,
+          "value": 19.99
+        },
+        {
+          "x": 97,
+          "timestamp": "2026-04-26T09:32:00Z",
+          "keepa_minute": 8055932,
+          "value": 19.5
+        },
+        {
+          "x": 98,
+          "timestamp": "2026-04-26T09:36:00Z",
+          "keepa_minute": 8055936,
+          "value": 19.99
+        },
+        {
+          "x": 99,
+          "timestamp": "2026-04-26T11:00:00Z",
+          "keepa_minute": 8056020,
+          "value": 19.99
+        },
+        {
+          "x": 100,
+          "timestamp": "2026-04-26T12:04:00Z",
+          "keepa_minute": 8056084,
+          "value": 19.5
+        },
+        {
+          "x": 101,
+          "timestamp": "2026-04-26T13:16:00Z",
+          "keepa_minute": 8056156,
+          "value": 19.99
+        },
+        {
+          "x": 102,
+          "timestamp": "2026-04-26T13:40:00Z",
+          "keepa_minute": 8056180,
+          "value": 19.99
+        },
+        {
+          "x": 103,
+          "timestamp": "2026-04-26T14:56:00Z",
+          "keepa_minute": 8056256,
+          "value": 19.5
+        },
+        {
+          "x": 104,
+          "timestamp": "2026-04-26T15:04:00Z",
+          "keepa_minute": 8056264,
+          "value": 19.99
+        },
+        {
+          "x": 105,
+          "timestamp": "2026-04-26T16:12:00Z",
+          "keepa_minute": 8056332,
+          "value": 19.5
+        },
+        {
+          "x": 106,
+          "timestamp": "2026-04-26T16:40:00Z",
+          "keepa_minute": 8056360,
+          "value": 15.99
+        },
+        {
+          "x": 107,
+          "timestamp": "2026-04-26T19:08:00Z",
+          "keepa_minute": 8056508,
+          "value": 19.5
+        },
+        {
+          "x": 108,
+          "timestamp": "2026-04-26T19:28:00Z",
+          "keepa_minute": 8056528,
+          "value": 19.99
+        },
+        {
+          "x": 109,
+          "timestamp": "2026-04-26T20:36:00Z",
+          "keepa_minute": 8056596,
+          "value": 15.99
+        },
+        {
+          "x": 110,
+          "timestamp": "2026-04-26T20:56:00Z",
+          "keepa_minute": 8056616,
+          "value": 19.99
+        },
+        {
+          "x": 111,
+          "timestamp": "2026-04-26T21:58:00Z",
+          "keepa_minute": 8056678,
+          "value": 19.99
+        },
+        {
+          "x": 112,
+          "timestamp": "2026-04-27T00:04:00Z",
+          "keepa_minute": 8056804,
+          "value": 19.5
+        },
+        {
+          "x": 113,
+          "timestamp": "2026-04-27T00:32:00Z",
+          "keepa_minute": 8056832,
+          "value": 19.99
+        },
+        {
+          "x": 114,
+          "timestamp": "2026-04-27T01:36:00Z",
+          "keepa_minute": 8056896,
+          "value": 19.5
+        },
+        {
+          "x": 115,
+          "timestamp": "2026-04-27T02:00:00Z",
+          "keepa_minute": 8056920,
+          "value": 19.99
+        },
+        {
+          "x": 116,
+          "timestamp": "2026-04-27T03:24:00Z",
+          "keepa_minute": 8057004,
+          "value": 19.99
+        },
+        {
+          "x": 117,
+          "timestamp": "2026-04-27T04:32:00Z",
+          "keepa_minute": 8057072,
+          "value": 19.5
+        },
+        {
+          "x": 118,
+          "timestamp": "2026-04-27T05:42:00Z",
+          "keepa_minute": 8057142,
+          "value": 19.99
+        },
+        {
+          "x": 119,
+          "timestamp": "2026-04-27T07:46:00Z",
+          "keepa_minute": 8057266,
+          "value": 14.99
+        }
+      ]
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "name": "sales_rank",
+      "unit": "rank",
+      "path": "$.products[0].history_summary.series.sales_rank.last_points",
+      "point_count": 2740,
+      "shown_points": 119,
+      "data_basis": "history_summary.last_points",
+      "points": [
+        {
+          "x": 60,
+          "timestamp": "2026-04-12T21:38:00Z",
+          "keepa_minute": 8036498,
+          "value": 49.0
+        },
+        {
+          "x": 61,
+          "timestamp": "2026-04-13T09:06:00Z",
+          "keepa_minute": 8037186,
+          "value": 46.0
+        },
+        {
+          "x": 62,
+          "timestamp": "2026-04-13T15:30:00Z",
+          "keepa_minute": 8037570,
+          "value": 45.0
+        },
+        {
+          "x": 63,
+          "timestamp": "2026-04-14T06:04:00Z",
+          "keepa_minute": 8038444,
+          "value": 53.0
+        },
+        {
+          "x": 64,
+          "timestamp": "2026-04-14T10:20:00Z",
+          "keepa_minute": 8038700,
+          "value": 50.0
+        },
+        {
+          "x": 65,
+          "timestamp": "2026-04-14T12:04:00Z",
+          "keepa_minute": 8038804,
+          "value": 51.0
+        },
+        {
+          "x": 66,
+          "timestamp": "2026-04-15T02:16:00Z",
+          "keepa_minute": 8039656,
+          "value": 52.0
+        },
+        {
+          "x": 67,
+          "timestamp": "2026-04-15T05:48:00Z",
+          "keepa_minute": 8039868,
+          "value": 51.0
+        },
+        {
+          "x": 68,
+          "timestamp": "2026-04-15T07:06:00Z",
+          "keepa_minute": 8039946,
+          "value": 52.0
+        },
+        {
+          "x": 69,
+          "timestamp": "2026-04-15T09:24:00Z",
+          "keepa_minute": 8040084,
+          "value": 53.0
+        },
+        {
+          "x": 70,
+          "timestamp": "2026-04-15T14:58:00Z",
+          "keepa_minute": 8040418,
+          "value": 52.0
+        },
+        {
+          "x": 71,
+          "timestamp": "2026-04-15T17:12:00Z",
+          "keepa_minute": 8040552,
+          "value": 51.0
+        },
+        {
+          "x": 72,
+          "timestamp": "2026-04-16T05:08:00Z",
+          "keepa_minute": 8041268,
+          "value": 53.0
+        },
+        {
+          "x": 73,
+          "timestamp": "2026-04-16T11:08:00Z",
+          "keepa_minute": 8041628,
+          "value": 49.0
+        },
+        {
+          "x": 74,
+          "timestamp": "2026-04-16T18:08:00Z",
+          "keepa_minute": 8042048,
+          "value": 50.0
+        },
+        {
+          "x": 75,
+          "timestamp": "2026-04-16T22:46:00Z",
+          "keepa_minute": 8042326,
+          "value": 37.0
+        },
+        {
+          "x": 76,
+          "timestamp": "2026-04-17T05:58:00Z",
+          "keepa_minute": 8042758,
+          "value": 38.0
+        },
+        {
+          "x": 77,
+          "timestamp": "2026-04-17T23:48:00Z",
+          "keepa_minute": 8043828,
+          "value": 42.0
+        },
+        {
+          "x": 78,
+          "timestamp": "2026-04-18T10:36:00Z",
+          "keepa_minute": 8044476,
+          "value": 41.0
+        },
+        {
+          "x": 79,
+          "timestamp": "2026-04-18T22:32:00Z",
+          "keepa_minute": 8045192,
+          "value": 46.0
+        },
+        {
+          "x": 80,
+          "timestamp": "2026-04-19T05:38:00Z",
+          "keepa_minute": 8045618,
+          "value": 47.0
+        },
+        {
+          "x": 81,
+          "timestamp": "2026-04-19T22:24:00Z",
+          "keepa_minute": 8046624,
+          "value": 48.0
+        },
+        {
+          "x": 82,
+          "timestamp": "2026-04-20T03:52:00Z",
+          "keepa_minute": 8046952,
+          "value": 49.0
+        },
+        {
+          "x": 83,
+          "timestamp": "2026-04-20T10:18:00Z",
+          "keepa_minute": 8047338,
+          "value": 47.0
+        },
+        {
+          "x": 84,
+          "timestamp": "2026-04-20T16:56:00Z",
+          "keepa_minute": 8047736,
+          "value": 55.0
+        },
+        {
+          "x": 85,
+          "timestamp": "2026-04-21T11:04:00Z",
+          "keepa_minute": 8048824,
+          "value": 54.0
+        },
+        {
+          "x": 86,
+          "timestamp": "2026-04-21T18:04:00Z",
+          "keepa_minute": 8049244,
+          "value": 57.0
+        },
+        {
+          "x": 87,
+          "timestamp": "2026-04-21T22:24:00Z",
+          "keepa_minute": 8049504,
+          "value": 58.0
+        },
+        {
+          "x": 88,
+          "timestamp": "2026-04-22T22:24:00Z",
+          "keepa_minute": 8050944,
+          "value": 67.0
+        },
+        {
+          "x": 89,
+          "timestamp": "2026-04-23T04:40:00Z",
+          "keepa_minute": 8051320,
+          "value": 66.0
+        },
+        {
+          "x": 90,
+          "timestamp": "2026-04-23T18:08:00Z",
+          "keepa_minute": 8052128,
+          "value": 67.0
+        },
+        {
+          "x": 91,
+          "timestamp": "2026-04-24T12:04:00Z",
+          "keepa_minute": 8053204,
+          "value": 65.0
+        },
+        {
+          "x": 92,
+          "timestamp": "2026-04-24T22:00:00Z",
+          "keepa_minute": 8053800,
+          "value": 70.0
+        },
+        {
+          "x": 93,
+          "timestamp": "2026-04-25T06:08:00Z",
+          "keepa_minute": 8054288,
+          "value": 69.0
+        },
+        {
+          "x": 94,
+          "timestamp": "2026-04-25T12:08:00Z",
+          "keepa_minute": 8054648,
+          "value": 68.0
+        },
+        {
+          "x": 95,
+          "timestamp": "2026-04-26T10:18:00Z",
+          "keepa_minute": 8055978,
+          "value": 66.0
+        },
+        {
+          "x": 96,
+          "timestamp": "2026-04-26T16:40:00Z",
+          "keepa_minute": 8056360,
+          "value": 64.0
+        },
+        {
+          "x": 97,
+          "timestamp": "2026-04-27T10:36:00Z",
+          "keepa_minute": 8057436,
+          "value": 63.0
+        },
+        {
+          "x": 98,
+          "timestamp": "2026-04-27T18:08:00Z",
+          "keepa_minute": 8057888,
+          "value": 68.0
+        },
+        {
+          "x": 99,
+          "timestamp": "2026-04-28T04:28:00Z",
+          "keepa_minute": 8058508,
+          "value": 67.0
+        },
+        {
+          "x": 100,
+          "timestamp": "2026-04-28T10:24:00Z",
+          "keepa_minute": 8058864,
+          "value": 65.0
+        },
+        {
+          "x": 101,
+          "timestamp": "2026-04-29T00:08:00Z",
+          "keepa_minute": 8059688,
+          "value": 35.0
+        },
+        {
+          "x": 102,
+          "timestamp": "2026-04-29T05:04:00Z",
+          "keepa_minute": 8059984,
+          "value": 36.0
+        },
+        {
+          "x": 103,
+          "timestamp": "2026-04-29T23:48:00Z",
+          "keepa_minute": 8061108,
+          "value": 27.0
+        },
+        {
+          "x": 104,
+          "timestamp": "2026-04-30T22:36:00Z",
+          "keepa_minute": 8062476,
+          "value": 26.0
+        },
+        {
+          "x": 105,
+          "timestamp": "2026-05-01T06:08:00Z",
+          "keepa_minute": 8062928,
+          "value": 28.0
+        },
+        {
+          "x": 106,
+          "timestamp": "2026-05-01T16:42:00Z",
+          "keepa_minute": 8063562,
+          "value": 24.0
+        },
+        {
+          "x": 107,
+          "timestamp": "2026-05-03T00:08:00Z",
+          "keepa_minute": 8065448,
+          "value": 22.0
+        },
+        {
+          "x": 108,
+          "timestamp": "2026-05-03T05:36:00Z",
+          "keepa_minute": 8065776,
+          "value": 23.0
+        },
+        {
+          "x": 109,
+          "timestamp": "2026-05-03T23:48:00Z",
+          "keepa_minute": 8066868,
+          "value": 22.0
+        },
+        {
+          "x": 110,
+          "timestamp": "2026-05-04T04:20:00Z",
+          "keepa_minute": 8067140,
+          "value": 23.0
+        },
+        {
+          "x": 111,
+          "timestamp": "2026-05-05T02:56:00Z",
+          "keepa_minute": 8068496,
+          "value": 24.0
+        },
+        {
+          "x": 112,
+          "timestamp": "2026-05-05T06:04:00Z",
+          "keepa_minute": 8068684,
+          "value": 26.0
+        },
+        {
+          "x": 113,
+          "timestamp": "2026-05-06T05:40:00Z",
+          "keepa_minute": 8070100,
+          "value": 28.0
+        },
+        {
+          "x": 114,
+          "timestamp": "2026-05-07T00:08:00Z",
+          "keepa_minute": 8071208,
+          "value": 25.0
+        },
+        {
+          "x": 115,
+          "timestamp": "2026-05-07T06:08:00Z",
+          "keepa_minute": 8071568,
+          "value": 26.0
+        },
+        {
+          "x": 116,
+          "timestamp": "2026-05-07T22:52:00Z",
+          "keepa_minute": 8072572,
+          "value": 24.0
+        },
+        {
+          "x": 117,
+          "timestamp": "2026-05-08T06:04:00Z",
+          "keepa_minute": 8073004,
+          "value": 26.0
+        },
+        {
+          "x": 118,
+          "timestamp": "2026-05-08T11:04:00Z",
+          "keepa_minute": 8073304,
+          "value": 25.0
+        },
+        {
+          "x": 119,
+          "timestamp": "2026-05-10T01:20:00Z",
+          "keepa_minute": 8075600,
+          "value": 23.0
+        }
+      ]
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "name": "review_count",
+      "unit": "count",
+      "path": "$.products[0].history_summary.series.review_count.last_points",
+      "point_count": 2956,
+      "shown_points": 120,
+      "data_basis": "history_summary.last_points",
+      "points": [
+        {
+          "x": 60,
+          "timestamp": "2026-05-04T22:28:00Z",
+          "keepa_minute": 8068228,
+          "value": 11306.0
+        },
+        {
+          "x": 61,
+          "timestamp": "2026-05-05T00:44:00Z",
+          "keepa_minute": 8068364,
+          "value": 11308.0
+        },
+        {
+          "x": 62,
+          "timestamp": "2026-05-05T02:52:00Z",
+          "keepa_minute": 8068492,
+          "value": 11309.0
+        },
+        {
+          "x": 63,
+          "timestamp": "2026-05-05T06:48:00Z",
+          "keepa_minute": 8068728,
+          "value": 11310.0
+        },
+        {
+          "x": 64,
+          "timestamp": "2026-05-05T08:16:00Z",
+          "keepa_minute": 8068816,
+          "value": 11309.0
+        },
+        {
+          "x": 65,
+          "timestamp": "2026-05-05T09:08:00Z",
+          "keepa_minute": 8068868,
+          "value": 11310.0
+        },
+        {
+          "x": 66,
+          "timestamp": "2026-05-05T10:20:00Z",
+          "keepa_minute": 8068940,
+          "value": 11311.0
+        },
+        {
+          "x": 67,
+          "timestamp": "2026-05-05T12:36:00Z",
+          "keepa_minute": 8069076,
+          "value": 11312.0
+        },
+        {
+          "x": 68,
+          "timestamp": "2026-05-05T13:34:00Z",
+          "keepa_minute": 8069134,
+          "value": 11313.0
+        },
+        {
+          "x": 69,
+          "timestamp": "2026-05-05T15:22:00Z",
+          "keepa_minute": 8069242,
+          "value": 11366.0
+        },
+        {
+          "x": 70,
+          "timestamp": "2026-05-05T15:42:00Z",
+          "keepa_minute": 8069262,
+          "value": 11368.0
+        },
+        {
+          "x": 71,
+          "timestamp": "2026-05-05T16:48:00Z",
+          "keepa_minute": 8069328,
+          "value": 11369.0
+        },
+        {
+          "x": 72,
+          "timestamp": "2026-05-05T17:28:00Z",
+          "keepa_minute": 8069368,
+          "value": 11370.0
+        },
+        {
+          "x": 73,
+          "timestamp": "2026-05-05T18:50:00Z",
+          "keepa_minute": 8069450,
+          "value": 10938.0
+        },
+        {
+          "x": 74,
+          "timestamp": "2026-05-05T19:08:00Z",
+          "keepa_minute": 8069468,
+          "value": 11372.0
+        },
+        {
+          "x": 75,
+          "timestamp": "2026-05-05T19:30:00Z",
+          "keepa_minute": 8069490,
+          "value": 11373.0
+        },
+        {
+          "x": 76,
+          "timestamp": "2026-05-06T01:08:00Z",
+          "keepa_minute": 8069828,
+          "value": 11374.0
+        },
+        {
+          "x": 77,
+          "timestamp": "2026-05-06T01:32:00Z",
+          "keepa_minute": 8069852,
+          "value": 11375.0
+        },
+        {
+          "x": 78,
+          "timestamp": "2026-05-06T04:00:00Z",
+          "keepa_minute": 8070000,
+          "value": 11376.0
+        },
+        {
+          "x": 79,
+          "timestamp": "2026-05-06T04:52:00Z",
+          "keepa_minute": 8070052,
+          "value": 11377.0
+        },
+        {
+          "x": 80,
+          "timestamp": "2026-05-06T06:14:00Z",
+          "keepa_minute": 8070134,
+          "value": 11378.0
+        },
+        {
+          "x": 81,
+          "timestamp": "2026-05-06T08:18:00Z",
+          "keepa_minute": 8070258,
+          "value": 11377.0
+        },
+        {
+          "x": 82,
+          "timestamp": "2026-05-06T09:24:00Z",
+          "keepa_minute": 8070324,
+          "value": 11378.0
+        },
+        {
+          "x": 83,
+          "timestamp": "2026-05-06T09:44:00Z",
+          "keepa_minute": 8070344,
+          "value": 11380.0
+        },
+        {
+          "x": 84,
+          "timestamp": "2026-05-06T14:28:00Z",
+          "keepa_minute": 8070628,
+          "value": 11434.0
+        },
+        {
+          "x": 85,
+          "timestamp": "2026-05-06T15:36:00Z",
+          "keepa_minute": 8070696,
+          "value": 11372.0
+        },
+        {
+          "x": 86,
+          "timestamp": "2026-05-06T15:44:00Z",
+          "keepa_minute": 8070704,
+          "value": 11434.0
+        },
+        {
+          "x": 87,
+          "timestamp": "2026-05-06T17:00:00Z",
+          "keepa_minute": 8070780,
+          "value": 11437.0
+        },
+        {
+          "x": 88,
+          "timestamp": "2026-05-06T20:38:00Z",
+          "keepa_minute": 8070998,
+          "value": 11440.0
+        },
+        {
+          "x": 89,
+          "timestamp": "2026-05-07T05:16:00Z",
+          "keepa_minute": 8071516,
+          "value": 11442.0
+        },
+        {
+          "x": 90,
+          "timestamp": "2026-05-07T05:42:00Z",
+          "keepa_minute": 8071542,
+          "value": 11443.0
+        },
+        {
+          "x": 91,
+          "timestamp": "2026-05-07T07:18:00Z",
+          "keepa_minute": 8071638,
+          "value": 11444.0
+        },
+        {
+          "x": 92,
+          "timestamp": "2026-05-07T09:36:00Z",
+          "keepa_minute": 8071776,
+          "value": 11446.0
+        },
+        {
+          "x": 93,
+          "timestamp": "2026-05-07T10:12:00Z",
+          "keepa_minute": 8071812,
+          "value": 11440.0
+        },
+        {
+          "x": 94,
+          "timestamp": "2026-05-07T11:38:00Z",
+          "keepa_minute": 8071898,
+          "value": 11447.0
+        },
+        {
+          "x": 95,
+          "timestamp": "2026-05-07T13:36:00Z",
+          "keepa_minute": 8072016,
+          "value": 11494.0
+        },
+        {
+          "x": 96,
+          "timestamp": "2026-05-07T15:44:00Z",
+          "keepa_minute": 8072144,
+          "value": 11495.0
+        },
+        {
+          "x": 97,
+          "timestamp": "2026-05-07T17:00:00Z",
+          "keepa_minute": 8072220,
+          "value": 11496.0
+        },
+        {
+          "x": 98,
+          "timestamp": "2026-05-07T17:42:00Z",
+          "keepa_minute": 8072262,
+          "value": 11497.0
+        },
+        {
+          "x": 99,
+          "timestamp": "2026-05-07T18:28:00Z",
+          "keepa_minute": 8072308,
+          "value": 11440.0
+        },
+        {
+          "x": 100,
+          "timestamp": "2026-05-07T19:08:00Z",
+          "keepa_minute": 8072348,
+          "value": 11498.0
+        },
+        {
+          "x": 101,
+          "timestamp": "2026-05-07T22:52:00Z",
+          "keepa_minute": 8072572,
+          "value": 11497.0
+        },
+        {
+          "x": 102,
+          "timestamp": "2026-05-08T03:32:00Z",
+          "keepa_minute": 8072852,
+          "value": 11500.0
+        },
+        {
+          "x": 103,
+          "timestamp": "2026-05-08T04:40:00Z",
+          "keepa_minute": 8072920,
+          "value": 11501.0
+        },
+        {
+          "x": 104,
+          "timestamp": "2026-05-08T08:24:00Z",
+          "keepa_minute": 8073144,
+          "value": 11502.0
+        },
+        {
+          "x": 105,
+          "timestamp": "2026-05-08T11:36:00Z",
+          "keepa_minute": 8073336,
+          "value": 11503.0
+        },
+        {
+          "x": 106,
+          "timestamp": "2026-05-08T12:46:00Z",
+          "keepa_minute": 8073406,
+          "value": 11528.0
+        },
+        {
+          "x": 107,
+          "timestamp": "2026-05-08T13:34:00Z",
+          "keepa_minute": 8073454,
+          "value": 11543.0
+        },
+        {
+          "x": 108,
+          "timestamp": "2026-05-08T16:44:00Z",
+          "keepa_minute": 8073644,
+          "value": 11544.0
+        },
+        {
+          "x": 109,
+          "timestamp": "2026-05-09T05:22:00Z",
+          "keepa_minute": 8074402,
+          "value": 11546.0
+        },
+        {
+          "x": 110,
+          "timestamp": "2026-05-09T07:24:00Z",
+          "keepa_minute": 8074524,
+          "value": 11549.0
+        },
+        {
+          "x": 111,
+          "timestamp": "2026-05-09T10:02:00Z",
+          "keepa_minute": 8074682,
+          "value": 11551.0
+        },
+        {
+          "x": 112,
+          "timestamp": "2026-05-09T10:30:00Z",
+          "keepa_minute": 8074710,
+          "value": 11544.0
+        },
+        {
+          "x": 113,
+          "timestamp": "2026-05-09T11:24:00Z",
+          "keepa_minute": 8074764,
+          "value": 11552.0
+        },
+        {
+          "x": 114,
+          "timestamp": "2026-05-09T13:32:00Z",
+          "keepa_minute": 8074892,
+          "value": 11590.0
+        },
+        {
+          "x": 115,
+          "timestamp": "2026-05-09T16:20:00Z",
+          "keepa_minute": 8075060,
+          "value": 11593.0
+        },
+        {
+          "x": 116,
+          "timestamp": "2026-05-09T18:00:00Z",
+          "keepa_minute": 8075160,
+          "value": 11594.0
+        },
+        {
+          "x": 117,
+          "timestamp": "2026-05-09T19:24:00Z",
+          "keepa_minute": 8075244,
+          "value": 11595.0
+        },
+        {
+          "x": 118,
+          "timestamp": "2026-05-09T23:32:00Z",
+          "keepa_minute": 8075492,
+          "value": 11597.0
+        },
+        {
+          "x": 119,
+          "timestamp": "2026-05-10T02:44:00Z",
+          "keepa_minute": 8075684,
+          "value": 11598.0
+        }
+      ]
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "name": "rating",
+      "unit": "rating",
+      "path": "$.products[0].history_summary.series.rating.last_points",
+      "point_count": 109,
+      "shown_points": 106,
+      "data_basis": "history_summary.last_points",
+      "points": [
+        {
+          "x": 46,
+          "timestamp": "2025-06-22T04:24:00Z",
+          "keepa_minute": 7612104,
+          "value": 4.4
+        },
+        {
+          "x": 47,
+          "timestamp": "2025-06-23T15:00:00Z",
+          "keepa_minute": 7614180,
+          "value": 4.3
+        },
+        {
+          "x": 48,
+          "timestamp": "2025-06-30T14:08:00Z",
+          "keepa_minute": 7624208,
+          "value": 4.4
+        },
+        {
+          "x": 49,
+          "timestamp": "2025-07-28T05:58:00Z",
+          "keepa_minute": 7664038,
+          "value": 4.3
+        },
+        {
+          "x": 50,
+          "timestamp": "2025-07-28T16:40:00Z",
+          "keepa_minute": 7664680,
+          "value": 4.4
+        },
+        {
+          "x": 51,
+          "timestamp": "2025-07-31T03:48:00Z",
+          "keepa_minute": 7668228,
+          "value": 4.3
+        },
+        {
+          "x": 52,
+          "timestamp": "2025-08-04T02:50:00Z",
+          "keepa_minute": 7673930,
+          "value": 4.4
+        },
+        {
+          "x": 53,
+          "timestamp": "2025-08-04T15:06:00Z",
+          "keepa_minute": 7674666,
+          "value": 4.3
+        },
+        {
+          "x": 54,
+          "timestamp": "2025-08-06T12:22:00Z",
+          "keepa_minute": 7677382,
+          "value": 4.4
+        },
+        {
+          "x": 55,
+          "timestamp": "2025-08-06T15:28:00Z",
+          "keepa_minute": 7677568,
+          "value": 4.3
+        },
+        {
+          "x": 56,
+          "timestamp": "2025-10-01T02:44:00Z",
+          "keepa_minute": 7757444,
+          "value": 4.4
+        },
+        {
+          "x": 58,
+          "timestamp": "2025-10-01T05:18:00Z",
+          "keepa_minute": 7757598,
+          "value": 4.3
+        },
+        {
+          "x": 59,
+          "timestamp": "2025-10-13T16:50:00Z",
+          "keepa_minute": 7775570,
+          "value": 4.4
+        },
+        {
+          "x": 60,
+          "timestamp": "2025-10-19T09:40:00Z",
+          "keepa_minute": 7783780,
+          "value": 4.5
+        },
+        {
+          "x": 61,
+          "timestamp": "2025-10-20T16:48:00Z",
+          "keepa_minute": 7785648,
+          "value": 4.4
+        },
+        {
+          "x": 62,
+          "timestamp": "2025-10-20T19:28:00Z",
+          "keepa_minute": 7785808,
+          "value": 4.5
+        },
+        {
+          "x": 63,
+          "timestamp": "2025-10-21T15:08:00Z",
+          "keepa_minute": 7786988,
+          "value": 4.4
+        },
+        {
+          "x": 64,
+          "timestamp": "2025-10-21T16:58:00Z",
+          "keepa_minute": 7787098,
+          "value": 4.5
+        },
+        {
+          "x": 65,
+          "timestamp": "2025-10-21T17:52:00Z",
+          "keepa_minute": 7787152,
+          "value": 4.4
+        },
+        {
+          "x": 66,
+          "timestamp": "2025-10-24T06:36:00Z",
+          "keepa_minute": 7790796,
+          "value": 4.5
+        },
+        {
+          "x": 67,
+          "timestamp": "2025-10-24T08:14:00Z",
+          "keepa_minute": 7790894,
+          "value": 4.4
+        },
+        {
+          "x": 68,
+          "timestamp": "2025-11-08T15:52:00Z",
+          "keepa_minute": 7812952,
+          "value": 4.5
+        },
+        {
+          "x": 69,
+          "timestamp": "2025-11-08T16:16:00Z",
+          "keepa_minute": 7812976,
+          "value": 4.4
+        },
+        {
+          "x": 70,
+          "timestamp": "2025-11-08T17:04:00Z",
+          "keepa_minute": 7813024,
+          "value": 4.5
+        },
+        {
+          "x": 71,
+          "timestamp": "2025-11-08T18:56:00Z",
+          "keepa_minute": 7813136,
+          "value": 4.4
+        },
+        {
+          "x": 72,
+          "timestamp": "2025-11-08T21:08:00Z",
+          "keepa_minute": 7813268,
+          "value": 4.5
+        },
+        {
+          "x": 73,
+          "timestamp": "2026-01-18T10:32:00Z",
+          "keepa_minute": 7914872,
+          "value": 4.4
+        },
+        {
+          "x": 74,
+          "timestamp": "2026-01-18T13:28:00Z",
+          "keepa_minute": 7915048,
+          "value": 4.5
+        },
+        {
+          "x": 75,
+          "timestamp": "2026-01-21T16:18:00Z",
+          "keepa_minute": 7919538,
+          "value": 4.4
+        },
+        {
+          "x": 76,
+          "timestamp": "2026-01-21T22:58:00Z",
+          "keepa_minute": 7919938,
+          "value": 4.5
+        },
+        {
+          "x": 77,
+          "timestamp": "2026-01-22T00:20:00Z",
+          "keepa_minute": 7920020,
+          "value": 4.4
+        },
+        {
+          "x": 78,
+          "timestamp": "2026-01-22T14:40:00Z",
+          "keepa_minute": 7920880,
+          "value": 4.5
+        },
+        {
+          "x": 79,
+          "timestamp": "2026-01-22T18:38:00Z",
+          "keepa_minute": 7921118,
+          "value": 4.4
+        },
+        {
+          "x": 80,
+          "timestamp": "2026-01-23T05:42:00Z",
+          "keepa_minute": 7921782,
+          "value": 4.5
+        },
+        {
+          "x": 81,
+          "timestamp": "2026-01-23T10:52:00Z",
+          "keepa_minute": 7922092,
+          "value": 4.4
+        },
+        {
+          "x": 82,
+          "timestamp": "2026-01-25T17:12:00Z",
+          "keepa_minute": 7925352,
+          "value": 4.5
+        },
+        {
+          "x": 83,
+          "timestamp": "2026-01-25T17:58:00Z",
+          "keepa_minute": 7925398,
+          "value": 4.4
+        },
+        {
+          "x": 84,
+          "timestamp": "2026-01-25T19:44:00Z",
+          "keepa_minute": 7925504,
+          "value": 4.5
+        },
+        {
+          "x": 85,
+          "timestamp": "2026-01-25T22:04:00Z",
+          "keepa_minute": 7925644,
+          "value": 4.4
+        },
+        {
+          "x": 86,
+          "timestamp": "2026-01-25T23:28:00Z",
+          "keepa_minute": 7925728,
+          "value": 4.5
+        },
+        {
+          "x": 87,
+          "timestamp": "2026-01-26T03:08:00Z",
+          "keepa_minute": 7925948,
+          "value": 4.4
+        },
+        {
+          "x": 88,
+          "timestamp": "2026-01-27T06:08:00Z",
+          "keepa_minute": 7927568,
+          "value": 4.5
+        },
+        {
+          "x": 89,
+          "timestamp": "2026-01-27T13:56:00Z",
+          "keepa_minute": 7928036,
+          "value": 4.4
+        },
+        {
+          "x": 91,
+          "timestamp": "2026-02-24T05:04:00Z",
+          "keepa_minute": 7967824,
+          "value": 4.4
+        },
+        {
+          "x": 93,
+          "timestamp": "2026-02-25T14:00:00Z",
+          "keepa_minute": 7969800,
+          "value": 4.4
+        },
+        {
+          "x": 94,
+          "timestamp": "2026-04-10T05:44:00Z",
+          "keepa_minute": 8032664,
+          "value": 4.3
+        },
+        {
+          "x": 95,
+          "timestamp": "2026-04-10T19:16:00Z",
+          "keepa_minute": 8033476,
+          "value": 4.4
+        },
+        {
+          "x": 96,
+          "timestamp": "2026-04-10T19:44:00Z",
+          "keepa_minute": 8033504,
+          "value": 4.3
+        },
+        {
+          "x": 97,
+          "timestamp": "2026-04-10T22:28:00Z",
+          "keepa_minute": 8033668,
+          "value": 4.4
+        },
+        {
+          "x": 98,
+          "timestamp": "2026-04-10T23:00:00Z",
+          "keepa_minute": 8033700,
+          "value": 4.3
+        },
+        {
+          "x": 99,
+          "timestamp": "2026-04-11T00:30:00Z",
+          "keepa_minute": 8033790,
+          "value": 4.4
+        },
+        {
+          "x": 100,
+          "timestamp": "2026-04-11T01:20:00Z",
+          "keepa_minute": 8033840,
+          "value": 4.3
+        },
+        {
+          "x": 101,
+          "timestamp": "2026-04-11T12:52:00Z",
+          "keepa_minute": 8034532,
+          "value": 4.4
+        },
+        {
+          "x": 102,
+          "timestamp": "2026-04-11T13:16:00Z",
+          "keepa_minute": 8034556,
+          "value": 4.3
+        },
+        {
+          "x": 103,
+          "timestamp": "2026-04-11T13:20:00Z",
+          "keepa_minute": 8034560,
+          "value": 4.4
+        },
+        {
+          "x": 104,
+          "timestamp": "2026-04-11T13:42:00Z",
+          "keepa_minute": 8034582,
+          "value": 4.3
+        },
+        {
+          "x": 105,
+          "timestamp": "2026-04-11T16:16:00Z",
+          "keepa_minute": 8034736,
+          "value": 4.4
+        },
+        {
+          "x": 106,
+          "timestamp": "2026-04-11T17:58:00Z",
+          "keepa_minute": 8034838,
+          "value": 4.3
+        },
+        {
+          "x": 107,
+          "timestamp": "2026-04-11T22:20:00Z",
+          "keepa_minute": 8035100,
+          "value": 4.4
+        },
+        {
+          "x": 108,
+          "timestamp": "2026-04-11T23:36:00Z",
+          "keepa_minute": 8035176,
+          "value": 4.3
+        }
+      ]
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "name": "new_offer_count",
+      "unit": "count",
+      "path": "$.products[0].history_summary.series.new_offer_count.last_points",
+      "point_count": 195,
+      "shown_points": 120,
+      "data_basis": "history_summary.last_points",
+      "points": [
+        {
+          "x": 60,
+          "timestamp": "2026-03-20T13:34:00Z",
+          "keepa_minute": 8002894,
+          "value": 2.0
+        },
+        {
+          "x": 61,
+          "timestamp": "2026-03-20T22:24:00Z",
+          "keepa_minute": 8003424,
+          "value": 3.0
+        },
+        {
+          "x": 62,
+          "timestamp": "2026-03-20T23:26:00Z",
+          "keepa_minute": 8003486,
+          "value": 2.0
+        },
+        {
+          "x": 63,
+          "timestamp": "2026-03-23T22:32:00Z",
+          "keepa_minute": 8007752,
+          "value": 1.0
+        },
+        {
+          "x": 64,
+          "timestamp": "2026-03-23T23:32:00Z",
+          "keepa_minute": 8007812,
+          "value": 2.0
+        },
+        {
+          "x": 65,
+          "timestamp": "2026-03-24T19:08:00Z",
+          "keepa_minute": 8008988,
+          "value": 3.0
+        },
+        {
+          "x": 66,
+          "timestamp": "2026-03-26T21:58:00Z",
+          "keepa_minute": 8012038,
+          "value": 4.0
+        },
+        {
+          "x": 67,
+          "timestamp": "2026-03-27T00:36:00Z",
+          "keepa_minute": 8012196,
+          "value": 3.0
+        },
+        {
+          "x": 68,
+          "timestamp": "2026-03-27T18:08:00Z",
+          "keepa_minute": 8013248,
+          "value": 4.0
+        },
+        {
+          "x": 69,
+          "timestamp": "2026-03-29T07:12:00Z",
+          "keepa_minute": 8015472,
+          "value": 3.0
+        },
+        {
+          "x": 70,
+          "timestamp": "2026-04-03T21:44:00Z",
+          "keepa_minute": 8023544,
+          "value": 4.0
+        },
+        {
+          "x": 71,
+          "timestamp": "2026-04-13T15:46:00Z",
+          "keepa_minute": 8037586,
+          "value": 5.0
+        },
+        {
+          "x": 72,
+          "timestamp": "2026-04-13T20:12:00Z",
+          "keepa_minute": 8037852,
+          "value": 4.0
+        },
+        {
+          "x": 73,
+          "timestamp": "2026-04-15T15:54:00Z",
+          "keepa_minute": 8040474,
+          "value": 5.0
+        },
+        {
+          "x": 74,
+          "timestamp": "2026-04-16T20:16:00Z",
+          "keepa_minute": 8042176,
+          "value": 4.0
+        },
+        {
+          "x": 75,
+          "timestamp": "2026-04-20T06:14:00Z",
+          "keepa_minute": 8047094,
+          "value": 3.0
+        },
+        {
+          "x": 76,
+          "timestamp": "2026-04-20T17:44:00Z",
+          "keepa_minute": 8047784,
+          "value": 4.0
+        },
+        {
+          "x": 77,
+          "timestamp": "2026-04-20T21:10:00Z",
+          "keepa_minute": 8047990,
+          "value": 3.0
+        },
+        {
+          "x": 78,
+          "timestamp": "2026-04-20T23:12:00Z",
+          "keepa_minute": 8048112,
+          "value": 4.0
+        },
+        {
+          "x": 79,
+          "timestamp": "2026-04-21T01:10:00Z",
+          "keepa_minute": 8048230,
+          "value": 3.0
+        },
+        {
+          "x": 80,
+          "timestamp": "2026-04-21T16:16:00Z",
+          "keepa_minute": 8049136,
+          "value": 4.0
+        },
+        {
+          "x": 81,
+          "timestamp": "2026-04-21T19:08:00Z",
+          "keepa_minute": 8049308,
+          "value": 3.0
+        },
+        {
+          "x": 82,
+          "timestamp": "2026-04-22T14:56:00Z",
+          "keepa_minute": 8050496,
+          "value": 4.0
+        },
+        {
+          "x": 83,
+          "timestamp": "2026-04-22T17:00:00Z",
+          "keepa_minute": 8050620,
+          "value": 3.0
+        },
+        {
+          "x": 84,
+          "timestamp": "2026-04-22T21:56:00Z",
+          "keepa_minute": 8050916,
+          "value": 4.0
+        },
+        {
+          "x": 85,
+          "timestamp": "2026-04-22T22:44:00Z",
+          "keepa_minute": 8050964,
+          "value": 3.0
+        },
+        {
+          "x": 86,
+          "timestamp": "2026-04-23T01:12:00Z",
+          "keepa_minute": 8051112,
+          "value": 4.0
+        },
+        {
+          "x": 87,
+          "timestamp": "2026-04-23T02:00:00Z",
+          "keepa_minute": 8051160,
+          "value": 3.0
+        },
+        {
+          "x": 88,
+          "timestamp": "2026-04-23T08:00:00Z",
+          "keepa_minute": 8051520,
+          "value": 4.0
+        },
+        {
+          "x": 89,
+          "timestamp": "2026-04-23T10:04:00Z",
+          "keepa_minute": 8051644,
+          "value": 3.0
+        },
+        {
+          "x": 90,
+          "timestamp": "2026-04-23T14:00:00Z",
+          "keepa_minute": 8051880,
+          "value": 4.0
+        },
+        {
+          "x": 91,
+          "timestamp": "2026-04-23T16:50:00Z",
+          "keepa_minute": 8052050,
+          "value": 3.0
+        },
+        {
+          "x": 92,
+          "timestamp": "2026-04-23T18:04:00Z",
+          "keepa_minute": 8052124,
+          "value": 4.0
+        },
+        {
+          "x": 93,
+          "timestamp": "2026-04-23T20:32:00Z",
+          "keepa_minute": 8052272,
+          "value": 3.0
+        },
+        {
+          "x": 94,
+          "timestamp": "2026-04-23T21:42:00Z",
+          "keepa_minute": 8052342,
+          "value": 4.0
+        },
+        {
+          "x": 95,
+          "timestamp": "2026-04-23T23:44:00Z",
+          "keepa_minute": 8052464,
+          "value": 3.0
+        },
+        {
+          "x": 96,
+          "timestamp": "2026-04-24T17:12:00Z",
+          "keepa_minute": 8053512,
+          "value": 4.0
+        },
+        {
+          "x": 97,
+          "timestamp": "2026-04-24T21:56:00Z",
+          "keepa_minute": 8053796,
+          "value": 3.0
+        },
+        {
+          "x": 98,
+          "timestamp": "2026-04-24T23:52:00Z",
+          "keepa_minute": 8053912,
+          "value": 4.0
+        },
+        {
+          "x": 99,
+          "timestamp": "2026-04-25T01:20:00Z",
+          "keepa_minute": 8054000,
+          "value": 3.0
+        },
+        {
+          "x": 100,
+          "timestamp": "2026-04-25T13:36:00Z",
+          "keepa_minute": 8054736,
+          "value": 4.0
+        },
+        {
+          "x": 101,
+          "timestamp": "2026-04-25T13:52:00Z",
+          "keepa_minute": 8054752,
+          "value": 3.0
+        },
+        {
+          "x": 102,
+          "timestamp": "2026-04-25T17:28:00Z",
+          "keepa_minute": 8054968,
+          "value": 4.0
+        },
+        {
+          "x": 103,
+          "timestamp": "2026-04-25T22:12:00Z",
+          "keepa_minute": 8055252,
+          "value": 3.0
+        },
+        {
+          "x": 104,
+          "timestamp": "2026-04-26T02:52:00Z",
+          "keepa_minute": 8055532,
+          "value": 4.0
+        },
+        {
+          "x": 105,
+          "timestamp": "2026-04-26T19:08:00Z",
+          "keepa_minute": 8056508,
+          "value": 3.0
+        },
+        {
+          "x": 106,
+          "timestamp": "2026-04-26T20:36:00Z",
+          "keepa_minute": 8056596,
+          "value": 4.0
+        },
+        {
+          "x": 107,
+          "timestamp": "2026-04-26T21:58:00Z",
+          "keepa_minute": 8056678,
+          "value": 3.0
+        },
+        {
+          "x": 108,
+          "timestamp": "2026-04-27T00:04:00Z",
+          "keepa_minute": 8056804,
+          "value": 4.0
+        },
+        {
+          "x": 109,
+          "timestamp": "2026-04-27T00:32:00Z",
+          "keepa_minute": 8056832,
+          "value": 3.0
+        },
+        {
+          "x": 110,
+          "timestamp": "2026-04-28T20:30:00Z",
+          "keepa_minute": 8059470,
+          "value": 4.0
+        },
+        {
+          "x": 111,
+          "timestamp": "2026-04-29T05:12:00Z",
+          "keepa_minute": 8059992,
+          "value": 5.0
+        },
+        {
+          "x": 112,
+          "timestamp": "2026-04-29T11:28:00Z",
+          "keepa_minute": 8060368,
+          "value": 4.0
+        },
+        {
+          "x": 113,
+          "timestamp": "2026-04-30T05:00:00Z",
+          "keepa_minute": 8061420,
+          "value": 5.0
+        },
+        {
+          "x": 114,
+          "timestamp": "2026-04-30T15:38:00Z",
+          "keepa_minute": 8062058,
+          "value": 4.0
+        },
+        {
+          "x": 115,
+          "timestamp": "2026-05-01T14:04:00Z",
+          "keepa_minute": 8063404,
+          "value": 5.0
+        },
+        {
+          "x": 116,
+          "timestamp": "2026-05-02T20:20:00Z",
+          "keepa_minute": 8065220,
+          "value": 4.0
+        },
+        {
+          "x": 117,
+          "timestamp": "2026-05-04T00:50:00Z",
+          "keepa_minute": 8066930,
+          "value": 3.0
+        },
+        {
+          "x": 118,
+          "timestamp": "2026-05-07T19:08:00Z",
+          "keepa_minute": 8072348,
+          "value": 4.0
+        },
+        {
+          "x": 119,
+          "timestamp": "2026-05-10T04:02:00Z",
+          "keepa_minute": 8075762,
+          "value": 5.0
+        }
+      ]
+    }
+  ],
+  "window_heatmap": [
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "new",
+      "change_pct": -12.8488,
+      "direction": null,
+      "observed_days": 6.585,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.new"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "sales_rank",
+      "change_pct": 0.0,
+      "direction": null,
+      "observed_days": 6.822,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.sales_rank"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "new_offer_count",
+      "change_pct": 66.6667,
+      "direction": null,
+      "observed_days": 6.133,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.new_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "rating",
+      "change_pct": 0.0,
+      "direction": null,
+      "observed_days": 1.744,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.rating"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "review_count",
+      "change_pct": 3.5906,
+      "direction": null,
+      "observed_days": 6.987,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.review_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "buy_box_shipping",
+      "change_pct": -12.8488,
+      "direction": null,
+      "observed_days": 6.585,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.buy_box_shipping"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_7d",
+      "series": "new_fba_offer_count",
+      "change_pct": 50.0,
+      "direction": null,
+      "observed_days": 6.133,
+      "path": "$.products[0].csv.temporal_features.recent_7d.series.new_fba_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "new",
+      "change_pct": -25.0125,
+      "direction": null,
+      "observed_days": 26.007,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.new"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "sales_rank",
+      "change_pct": -39.4737,
+      "direction": null,
+      "observed_days": 29.957,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.sales_rank"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "new_offer_count",
+      "change_pct": 0.0,
+      "direction": null,
+      "observed_days": 26.511,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.new_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "rating",
+      "change_pct": 0.0,
+      "direction": null,
+      "observed_days": 1.744,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.rating"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "review_count",
+      "change_pct": 18.4194,
+      "direction": null,
+      "observed_days": 29.967,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.review_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "buy_box_shipping",
+      "change_pct": -25.0125,
+      "direction": null,
+      "observed_days": 26.007,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.buy_box_shipping"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_30d",
+      "series": "new_fba_offer_count",
+      "change_pct": -25.0,
+      "direction": null,
+      "observed_days": 26.511,
+      "path": "$.products[0].csv.temporal_features.recent_30d.series.new_fba_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "new",
+      "change_pct": -16.6759,
+      "direction": null,
+      "observed_days": 79.976,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.new"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "sales_rank",
+      "change_pct": 9.5238,
+      "direction": null,
+      "observed_days": 89.949,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.sales_rank"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "new_offer_count",
+      "change_pct": 25.0,
+      "direction": null,
+      "observed_days": 88.588,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.new_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "rating",
+      "change_pct": -2.2727,
+      "direction": null,
+      "observed_days": 83.544,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.rating"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "review_count",
+      "change_pct": 91.0708,
+      "direction": null,
+      "observed_days": 89.906,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.review_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "buy_box_shipping",
+      "change_pct": -25.0125,
+      "direction": null,
+      "observed_days": 83.393,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.buy_box_shipping"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_90d",
+      "series": "new_fba_offer_count",
+      "change_pct": 50.0,
+      "direction": null,
+      "observed_days": 88.885,
+      "path": "$.products[0].csv.temporal_features.recent_90d.series.new_fba_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "new",
+      "change_pct": -6.2539,
+      "direction": null,
+      "observed_days": 170.951,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.new"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "sales_rank",
+      "change_pct": -25.8065,
+      "direction": null,
+      "observed_days": 179.956,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.sales_rank"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "new_offer_count",
+      "change_pct": 150.0,
+      "direction": null,
+      "observed_days": 172.19,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.new_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "rating",
+      "change_pct": -4.4444,
+      "direction": null,
+      "observed_days": 174.581,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.rating"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "review_count",
+      "change_pct": 404.2609,
+      "direction": null,
+      "observed_days": 179.928,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.review_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "buy_box_shipping",
+      "change_pct": -6.2539,
+      "direction": null,
+      "observed_days": 170.951,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.buy_box_shipping"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_180d",
+      "series": "new_fba_offer_count",
+      "change_pct": 50.0,
+      "direction": null,
+      "observed_days": 88.885,
+      "path": "$.products[0].csv.temporal_features.recent_180d.series.new_fba_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "new",
+      "change_pct": -6.2539,
+      "direction": null,
+      "observed_days": 356.968,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.new"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "sales_rank",
+      "change_pct": -99.0141,
+      "direction": null,
+      "observed_days": 364.986,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.sales_rank"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "new_offer_count",
+      "change_pct": 150.0,
+      "direction": null,
+      "observed_days": 359.742,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.new_offer_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "rating",
+      "change_pct": 0.0,
+      "direction": null,
+      "observed_days": 345.39,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.rating"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "review_count",
+      "change_pct": 3167.0423,
+      "direction": null,
+      "observed_days": 364.547,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.review_count"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "buy_box_shipping",
+      "change_pct": -6.2539,
+      "direction": null,
+      "observed_days": 356.968,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.buy_box_shipping"
+    },
+    {
+      "asin": "B0D8W1YVBX",
+      "window": "recent_365d",
+      "series": "new_fba_offer_count",
+      "change_pct": 50.0,
+      "direction": null,
+      "observed_days": 88.885,
+      "path": "$.products[0].csv.temporal_features.recent_365d.series.new_fba_offer_count"
+    }
+  ],
+  "small_multiples": [
+    {
+      "asin": "B0D8W1YVBX",
+      "label": "B0D8W1YVBX",
+      "series": [
+        {
+          "metric": "new",
+          "label": "New price",
+          "color": "#087f73",
+          "unit": "currency",
+          "point_count": 40,
+          "start": 17.2,
+          "end": 14.99,
+          "change_pct": -12.84883720930232,
+          "normalized_points": [
+            {
+              "x": 0.0,
+              "y": 1.0,
+              "value": 19.9
+            },
+            {
+              "x": 0.0256,
+              "y": 0.4073,
+              "value": 16.99
+            },
+            {
+              "x": 0.0513,
+              "y": 1.0,
+              "value": 19.9
+            },
+            {
+              "x": 0.0769,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.1026,
+              "y": 0.4073,
+              "value": 16.99
+            },
+            {
+              "x": 0.1282,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.1538,
+              "y": 0.1039,
+              "value": 15.5
+            },
+            {
+              "x": 0.1795,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.2051,
+              "y": 0.1039,
+              "value": 15.5
+            },
+            {
+              "x": 0.2308,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.2564,
+              "y": 0.1039,
+              "value": 15.5
+            },
+            {
+              "x": 0.2821,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.3077,
+              "y": 0.1039,
+              "value": 15.5
+            },
+            {
+              "x": 0.3333,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.359,
+              "y": 0.1039,
+              "value": 15.5
+            },
+            {
+              "x": 0.3846,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.4103,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.4359,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.4615,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.4872,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.5128,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.5385,
+              "y": 0.611,
+              "value": 17.99
+            },
+            {
+              "x": 0.5641,
+              "y": 0.4073,
+              "value": 16.99
+            },
+            {
+              "x": 0.5897,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.6154,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.641,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.6667,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.6923,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.7179,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.7436,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.7692,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.7949,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.8205,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.8462,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.8718,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.8974,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.9231,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 0.9487,
+              "y": 0.2037,
+              "value": 15.99
+            },
+            {
+              "x": 0.9744,
+              "y": 0.9185,
+              "value": 19.5
+            },
+            {
+              "x": 1.0,
+              "y": 0.0,
+              "value": 14.99
+            }
+          ]
+        },
+        {
+          "metric": "buy_box_shipping",
+          "label": "Buy box",
+          "color": "#2f5fb3",
+          "unit": "currency",
+          "point_count": 40,
+          "start": 19.99,
+          "end": 14.99,
+          "change_pct": -25.012506253126553,
+          "normalized_points": [
+            {
+              "x": 0.0,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.0256,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.0513,
+              "y": 0.2,
+              "value": 15.99
+            },
+            {
+              "x": 0.0769,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.1026,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.1282,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.1538,
+              "y": 0.2,
+              "value": 15.99
+            },
+            {
+              "x": 0.1795,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.2051,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.2308,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.2564,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.2821,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.3077,
+              "y": 0.2,
+              "value": 15.99
+            },
+            {
+              "x": 0.3333,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.359,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.3846,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.4103,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.4359,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.4615,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.4872,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.5128,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.5385,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.5641,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.5897,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.6154,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.641,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.6667,
+              "y": 0.2,
+              "value": 15.99
+            },
+            {
+              "x": 0.6923,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.7179,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.7436,
+              "y": 0.2,
+              "value": 15.99
+            },
+            {
+              "x": 0.7692,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.7949,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.8205,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.8462,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.8718,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.8974,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.9231,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 0.9487,
+              "y": 0.902,
+              "value": 19.5
+            },
+            {
+              "x": 0.9744,
+              "y": 1.0,
+              "value": 19.99
+            },
+            {
+              "x": 1.0,
+              "y": 0.0,
+              "value": 14.99
+            }
+          ]
+        },
+        {
+          "metric": "sales_rank",
+          "label": "Sales rank",
+          "color": "#c05621",
+          "unit": "rank",
+          "point_count": 40,
+          "start": 49.0,
+          "end": 23.0,
+          "change_pct": -53.06122448979592,
+          "normalized_points": [
+            {
+              "x": 0.0,
+              "y": 0.4792,
+              "value": 47.0
+            },
+            {
+              "x": 0.0256,
+              "y": 0.4583,
+              "value": 48.0
+            },
+            {
+              "x": 0.0513,
+              "y": 0.4375,
+              "value": 49.0
+            },
+            {
+              "x": 0.0769,
+              "y": 0.4792,
+              "value": 47.0
+            },
+            {
+              "x": 0.1026,
+              "y": 0.3125,
+              "value": 55.0
+            },
+            {
+              "x": 0.1282,
+              "y": 0.3333,
+              "value": 54.0
+            },
+            {
+              "x": 0.1538,
+              "y": 0.2708,
+              "value": 57.0
+            },
+            {
+              "x": 0.1795,
+              "y": 0.25,
+              "value": 58.0
+            },
+            {
+              "x": 0.2051,
+              "y": 0.0625,
+              "value": 67.0
+            },
+            {
+              "x": 0.2308,
+              "y": 0.0833,
+              "value": 66.0
+            },
+            {
+              "x": 0.2564,
+              "y": 0.0625,
+              "value": 67.0
+            },
+            {
+              "x": 0.2821,
+              "y": 0.1042,
+              "value": 65.0
+            },
+            {
+              "x": 0.3077,
+              "y": 0.0,
+              "value": 70.0
+            },
+            {
+              "x": 0.3333,
+              "y": 0.0208,
+              "value": 69.0
+            },
+            {
+              "x": 0.359,
+              "y": 0.0417,
+              "value": 68.0
+            },
+            {
+              "x": 0.3846,
+              "y": 0.0833,
+              "value": 66.0
+            },
+            {
+              "x": 0.4103,
+              "y": 0.125,
+              "value": 64.0
+            },
+            {
+              "x": 0.4359,
+              "y": 0.1458,
+              "value": 63.0
+            },
+            {
+              "x": 0.4615,
+              "y": 0.0417,
+              "value": 68.0
+            },
+            {
+              "x": 0.4872,
+              "y": 0.0625,
+              "value": 67.0
+            },
+            {
+              "x": 0.5128,
+              "y": 0.1042,
+              "value": 65.0
+            },
+            {
+              "x": 0.5385,
+              "y": 0.7292,
+              "value": 35.0
+            },
+            {
+              "x": 0.5641,
+              "y": 0.7083,
+              "value": 36.0
+            },
+            {
+              "x": 0.5897,
+              "y": 0.8958,
+              "value": 27.0
+            },
+            {
+              "x": 0.6154,
+              "y": 0.9167,
+              "value": 26.0
+            },
+            {
+              "x": 0.641,
+              "y": 0.875,
+              "value": 28.0
+            },
+            {
+              "x": 0.6667,
+              "y": 0.9583,
+              "value": 24.0
+            },
+            {
+              "x": 0.6923,
+              "y": 1.0,
+              "value": 22.0
+            },
+            {
+              "x": 0.7179,
+              "y": 0.9792,
+              "value": 23.0
+            },
+            {
+              "x": 0.7436,
+              "y": 1.0,
+              "value": 22.0
+            },
+            {
+              "x": 0.7692,
+              "y": 0.9792,
+              "value": 23.0
+            },
+            {
+              "x": 0.7949,
+              "y": 0.9583,
+              "value": 24.0
+            },
+            {
+              "x": 0.8205,
+              "y": 0.9167,
+              "value": 26.0
+            },
+            {
+              "x": 0.8462,
+              "y": 0.875,
+              "value": 28.0
+            },
+            {
+              "x": 0.8718,
+              "y": 0.9375,
+              "value": 25.0
+            },
+            {
+              "x": 0.8974,
+              "y": 0.9167,
+              "value": 26.0
+            },
+            {
+              "x": 0.9231,
+              "y": 0.9583,
+              "value": 24.0
+            },
+            {
+              "x": 0.9487,
+              "y": 0.9167,
+              "value": 26.0
+            },
+            {
+              "x": 0.9744,
+              "y": 0.9375,
+              "value": 25.0
+            },
+            {
+              "x": 1.0,
+              "y": 0.9792,
+              "value": 23.0
+            }
+          ]
+        },
+        {
+          "metric": "review_count",
+          "label": "Reviews",
+          "color": "#6f4eb2",
+          "unit": "count",
+          "point_count": 40,
+          "start": 11306.0,
+          "end": 11598.0,
+          "change_pct": 2.5826994516186095,
+          "normalized_points": [
+            {
+              "x": 0.0,
+              "y": 0.0265,
+              "value": 11378.0
+            },
+            {
+              "x": 0.0256,
+              "y": 0.0221,
+              "value": 11377.0
+            },
+            {
+              "x": 0.0513,
+              "y": 0.0265,
+              "value": 11378.0
+            },
+            {
+              "x": 0.0769,
+              "y": 0.0354,
+              "value": 11380.0
+            },
+            {
+              "x": 0.1026,
+              "y": 0.2743,
+              "value": 11434.0
+            },
+            {
+              "x": 0.1282,
+              "y": 0.0,
+              "value": 11372.0
+            },
+            {
+              "x": 0.1538,
+              "y": 0.2743,
+              "value": 11434.0
+            },
+            {
+              "x": 0.1795,
+              "y": 0.2876,
+              "value": 11437.0
+            },
+            {
+              "x": 0.2051,
+              "y": 0.3009,
+              "value": 11440.0
+            },
+            {
+              "x": 0.2308,
+              "y": 0.3097,
+              "value": 11442.0
+            },
+            {
+              "x": 0.2564,
+              "y": 0.3142,
+              "value": 11443.0
+            },
+            {
+              "x": 0.2821,
+              "y": 0.3186,
+              "value": 11444.0
+            },
+            {
+              "x": 0.3077,
+              "y": 0.3274,
+              "value": 11446.0
+            },
+            {
+              "x": 0.3333,
+              "y": 0.3009,
+              "value": 11440.0
+            },
+            {
+              "x": 0.359,
+              "y": 0.3319,
+              "value": 11447.0
+            },
+            {
+              "x": 0.3846,
+              "y": 0.5398,
+              "value": 11494.0
+            },
+            {
+              "x": 0.4103,
+              "y": 0.5442,
+              "value": 11495.0
+            },
+            {
+              "x": 0.4359,
+              "y": 0.5487,
+              "value": 11496.0
+            },
+            {
+              "x": 0.4615,
+              "y": 0.5531,
+              "value": 11497.0
+            },
+            {
+              "x": 0.4872,
+              "y": 0.3009,
+              "value": 11440.0
+            },
+            {
+              "x": 0.5128,
+              "y": 0.5575,
+              "value": 11498.0
+            },
+            {
+              "x": 0.5385,
+              "y": 0.5531,
+              "value": 11497.0
+            },
+            {
+              "x": 0.5641,
+              "y": 0.5664,
+              "value": 11500.0
+            },
+            {
+              "x": 0.5897,
+              "y": 0.5708,
+              "value": 11501.0
+            },
+            {
+              "x": 0.6154,
+              "y": 0.5752,
+              "value": 11502.0
+            },
+            {
+              "x": 0.641,
+              "y": 0.5796,
+              "value": 11503.0
+            },
+            {
+              "x": 0.6667,
+              "y": 0.6903,
+              "value": 11528.0
+            },
+            {
+              "x": 0.6923,
+              "y": 0.7566,
+              "value": 11543.0
+            },
+            {
+              "x": 0.7179,
+              "y": 0.7611,
+              "value": 11544.0
+            },
+            {
+              "x": 0.7436,
+              "y": 0.7699,
+              "value": 11546.0
+            },
+            {
+              "x": 0.7692,
+              "y": 0.7832,
+              "value": 11549.0
+            },
+            {
+              "x": 0.7949,
+              "y": 0.792,
+              "value": 11551.0
+            },
+            {
+              "x": 0.8205,
+              "y": 0.7611,
+              "value": 11544.0
+            },
+            {
+              "x": 0.8462,
+              "y": 0.7965,
+              "value": 11552.0
+            },
+            {
+              "x": 0.8718,
+              "y": 0.9646,
+              "value": 11590.0
+            },
+            {
+              "x": 0.8974,
+              "y": 0.9779,
+              "value": 11593.0
+            },
+            {
+              "x": 0.9231,
+              "y": 0.9823,
+              "value": 11594.0
+            },
+            {
+              "x": 0.9487,
+              "y": 0.9867,
+              "value": 11595.0
+            },
+            {
+              "x": 0.9744,
+              "y": 0.9956,
+              "value": 11597.0
+            },
+            {
+              "x": 1.0,
+              "y": 1.0,
+              "value": 11598.0
+            }
+          ]
+        }
+      ],
+      "data_basis": "history_summary.last_points"
+    }
+  ]
+}

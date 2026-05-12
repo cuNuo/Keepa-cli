@@ -1,0 +1,131 @@
+{
+  "generated_at": "2026-05-12T23:00:00+08:00",
+  "domain": "US",
+  "primary_asin": "B0D8W1YVBX",
+  "data_sources": [
+    "Keepa MCP products_get live_read_allowed",
+    "Keepa MCP products_compare live_read_allowed",
+    "local sanitized fixture product_B0D8W1YVBX_agent_eval.json"
+  ],
+  "target": {
+    "asin": "B0D8W1YVBX",
+    "brand": "EQQUALBERRY",
+    "title": "EQQUALBERRY Vitamin Illuminating Serum | Niacinamide 4% + Brightening Vitamin C Face Serum with Hyaluronic Acid & Vitamin E | Dark Spot, Uneven Tone Care | Korean Skincare, 1.01 fl.oz",
+    "category_path": [
+      "Beauty & Personal Care",
+      "Skin Care",
+      "Face",
+      "Treatments & Masks",
+      "Serums"
+    ],
+    "serums_category_id": "7792528011",
+    "current_new_price_usd": 15.99,
+    "avg30_new_price_usd": 17.19,
+    "avg90_new_price_usd": 17.94,
+    "monthly_sold": 100000,
+    "beauty_sales_rank": 23,
+    "serums_sales_rank_latest": 1,
+    "rating": 4.3,
+    "review_count": 11742,
+    "offers_total": 5,
+    "new_fba_offers": 2,
+    "new_fbm_offers": 3,
+    "price_change_pct_all_time": -36.0144,
+    "new_price_volatility_cv": 0.115,
+    "risk_codes": [
+      "buybox_missing",
+      "data_missing",
+      "price_unstable"
+    ],
+    "content_assets": {
+      "images": 9,
+      "videos": 11,
+      "aplus_available": true,
+      "aplus_module_count": 7
+    },
+    "logistics": {
+      "fba_pick_and_pack_fee_cents": 409,
+      "referral_fee_percent": 15.01,
+      "package_weight_grams": 140,
+      "item_weight_grams": 28
+    }
+  },
+  "comparison_rows": [
+    {
+      "asin": "B0D8W1YVBX",
+      "brand": "EQQUALBERRY",
+      "format": "vitamin/brightening serum",
+      "current_new_price_usd": 15.99,
+      "monthly_sold": 100000,
+      "sales_rank": 23,
+      "offers": 5,
+      "price_change_pct": -36.0144,
+      "volatility_cv": 0.115
+    },
+    {
+      "asin": "B0CLLV2T1P",
+      "brand": "ANUA",
+      "format": "niacinamide + TXA serum",
+      "current_new_price_usd": 21.85,
+      "monthly_sold": 40000,
+      "sales_rank": 220,
+      "offers": 1,
+      "price_change_pct": 15.0,
+      "volatility_cv": 0.1423
+    },
+    {
+      "asin": "B091238V7N",
+      "brand": "AXIS-Y",
+      "format": "5% niacinamide dark spot serum",
+      "current_new_price_usd": 14.39,
+      "monthly_sold": 7000,
+      "sales_rank": 2701,
+      "offers": 7,
+      "price_change_pct": -34.5909,
+      "volatility_cv": 0.1193
+    },
+    {
+      "asin": "B09VK94MSL",
+      "brand": "GOODAL",
+      "format": "green tangerine vitamin C ampoule",
+      "current_new_price_usd": 34.98,
+      "monthly_sold": 200,
+      "sales_rank": 58293,
+      "offers": 2,
+      "price_change_pct": 45.75,
+      "volatility_cv": 0.1444
+    },
+    {
+      "asin": "B0D2Z3GGCY",
+      "brand": "medicube",
+      "format": "adjacent vitamin C capsule cream",
+      "current_new_price_usd": 19.9,
+      "monthly_sold": 30000,
+      "sales_rank": 48,
+      "offers": 1,
+      "price_change_pct": -41.4706,
+      "volatility_cv": 0.3747
+    },
+    {
+      "asin": "B0DK4Y2YP3",
+      "brand": "celimax",
+      "format": "adjacent retinal booster serum",
+      "current_new_price_usd": 20.0,
+      "monthly_sold": 40000,
+      "sales_rank": 112,
+      "offers": 13,
+      "price_change_pct": -16.6667,
+      "volatility_cv": 0.1269
+    }
+  ],
+  "not_run": [
+    {
+      "step": "Keepa categories.products for category 7792528011",
+      "reason": "dry run estimated 50 Keepa tokens; skipped to avoid high-cost category pull in a one-off report"
+    },
+    {
+      "step": "Keepa offers=20 for target",
+      "reason": "estimated 13 tokens and required explicit high-cost confirmation; current offer-count and FBA/FBM summary were enough for opportunity decision"
+    }
+  ]
+}
