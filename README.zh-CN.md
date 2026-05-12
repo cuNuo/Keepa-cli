@@ -196,7 +196,32 @@ kc --json domains list
 '{"id":"1","method":"doctor","params":{}}' | kc --stdio
 ```
 
-执行 `npm install -g @cunuo/keepa-cli` 后，Windows 上直接把下面这段粘到 MCP 客户端配置里：
+Codex CLI / Codex 桌面端使用 `D:\.codex\config.toml`，不是 `mcpServers` JSON。当前仓库本地开发直接运行：
+
+```powershell
+codex mcp remove Keepa
+codex mcp add Keepa -- D:\github\Keepa-cli\.venv\Scripts\python.exe -m keepa_cli --mcp
+codex mcp get Keepa
+```
+
+等价的 Codex TOML 是：
+
+```toml
+[mcp_servers.Keepa]
+command = 'D:\github\Keepa-cli\.venv\Scripts\python.exe'
+args = ["-m", "keepa_cli", "--mcp"]
+```
+
+如果希望 Codex 通过 MCP 进程环境传入 Keepa key，而不是读取已经保存的 CLI config，再追加：
+
+```toml
+[mcp_servers.Keepa.env]
+KEEPA_API_KEY = "YOUR_KEEPA_64_CHARACTER_ACCESS_KEY"
+```
+
+改完 MCP 配置后需要重启 Codex session。客户端 alias 可以叫 `Keepa` 或 `keepa`；服务端初始化返回的 `serverInfo.name` 是 `keepa_mcp`。
+
+其他支持 `mcpServers` JSON 的 MCP 客户端可用下面的配置；Codex 不使用这段 JSON。执行 `npm install -g @cunuo/keepa-cli` 后，Windows 上可粘贴：
 
 ```json
 {

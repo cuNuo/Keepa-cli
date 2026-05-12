@@ -279,7 +279,32 @@ stdio JSON Lines:
 '{"id":"1","method":"doctor","params":{}}' | kc --stdio
 ```
 
-After `npm install -g @cunuo/keepa-cli`, copy this MCP client config on Windows:
+Codex CLI / Codex desktop use `D:\.codex\config.toml`, not `mcpServers` JSON. For this repository checkout, run:
+
+```powershell
+codex mcp remove Keepa
+codex mcp add Keepa -- D:\github\Keepa-cli\.venv\Scripts\python.exe -m keepa_cli --mcp
+codex mcp get Keepa
+```
+
+The equivalent Codex TOML is:
+
+```toml
+[mcp_servers.Keepa]
+command = 'D:\github\Keepa-cli\.venv\Scripts\python.exe'
+args = ["-m", "keepa_cli", "--mcp"]
+```
+
+If you want Codex to pass the Keepa key through the MCP process environment instead of using the saved CLI config, add:
+
+```toml
+[mcp_servers.Keepa.env]
+KEEPA_API_KEY = "YOUR_KEEPA_64_CHARACTER_ACCESS_KEY"
+```
+
+Restart the Codex session after changing MCP config. The server alias may be `Keepa` or `keepa`; the MCP server itself reports `serverInfo.name=keepa_mcp`.
+
+For JSON-based MCP clients other than Codex, after `npm install -g @cunuo/keepa-cli`, copy this config on Windows:
 
 ```json
 {
