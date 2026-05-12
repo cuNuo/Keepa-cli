@@ -19,7 +19,14 @@ from typing import Any
 from keepa_cli import __version__
 from keepa_cli.agent.cache_keys import build_cache_key
 from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
-from keepa_cli.agent.tools import get_tool_definition, list_mcp_tools, resolve_toolset_groups, toolset_names, workflow_runtime_contract
+from keepa_cli.agent.tools import (
+    future_task_support_contract,
+    get_tool_definition,
+    list_mcp_tools,
+    resolve_toolset_groups,
+    toolset_names,
+    workflow_runtime_contract,
+)
 from keepa_cli.domains import list_domains
 from keepa_cli.figures import build_research_figures_from_payload
 from keepa_cli.research_brief import brief_graph_resource_payload, brief_resource_payload
@@ -770,7 +777,7 @@ def _read_tool_resource(uri: str) -> dict[str, str]:
             "workflow_runtime_contract_uri": "keepa://workflow/runtime-contract" if tool.workflow_runtime else None,
             "long_running_candidate": tool.long_running_candidate,
             "normal_tools_call_policy": "fixture_or_small_output_only" if tool.long_running_candidate else None,
-            "future_task_support": "required" if tool.long_running_candidate else None,
+            "future_task_support": future_task_support_contract() if tool.long_running_candidate else None,
         },
     }
     return {"uri": uri, "mimeType": "application/json", "text": json.dumps(payload, ensure_ascii=False, indent=2)}

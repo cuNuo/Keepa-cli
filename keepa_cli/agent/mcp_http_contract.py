@@ -8,10 +8,13 @@ keepa_cli/agent/mcp_http_contract.py
 from __future__ import annotations
 
 import re
-from collections.abc import Mapping, Sequence
+import json
+from collections.abc import Mapping, MutableMapping, Sequence
+from dataclasses import dataclass, field
 from typing import Any
 
-from keepa_cli.agent.mcp import MCP_PROTOCOL_VERSION
+from keepa_cli.agent.mcp import JSONRPC_VERSION, MCP_PROTOCOL_VERSION, handle_mcp_message
+from keepa_cli.agent.session import AgentSession
 
 
 MCP_SESSION_HEADER = "MCP-Session-Id"
@@ -39,6 +42,16 @@ ERROR_HTTP_STATUS: dict[str, int] = {
     "delete_not_allowed": 405,
 }
 
+ADAPTER_JSONRPC_ERRORS: dict[str, tuple[int, str]] = {
+    "origin_rejected": (-32000, "Origin rejected"),
+    "missing_session_id": (-32001, "Missing MCP session id"),
+    "expired_session_id": (-32002, "Expired MCP session id"),
+    "invalid_protocol_version": (-32004, "Invalid MCP protocol version"),
+    "invalid_timeout": (-32602, "Invalid request timeout"),
+    "request_timeout": (-32003, "Request timeout"),
+    "delete_not_allowed": (-32005, "Method not allowed"),
+}
+
 
 def is_visible_ascii_session_id(value: str) -> bool:
     return bool(VISIBLE_ASCII_SESSION_ID.fullmatch(value))
@@ -62,6 +75,162 @@ def normalize_request_timeout_ms(value: Any | None) -> int:
     if timeout_ms < MIN_REQUEST_TIMEOUT_MS or timeout_ms > MAX_REQUEST_TIMEOUT_MS:
         raise ValueError(f"request timeout must be between {MIN_REQUEST_TIMEOUT_MS} and {MAX_REQUEST_TIMEOUT_MS} ms")
     return timeout_ms
+
+
+def _header_value(headers: Mapping[str, Any], name: str) -> str | None:
+    for key, value in headers.items():
+        if str(key).lower() == name.lower():
+            return str(value)
+    return None
+
+
+def _jsonrpc_error_payload(message_id: Any, kind: str, *, data: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    code, message = ADAPTER_JSONRPC_ERRORS[kind]
+    error: dict[str, Any] = {"code": code, "message": message}
+    if data:
+        error["data"] = dict(data)
+    return {"jsonrpc": JSONRPC_VERSION, "id": message_id, "error": error}
+
+
+def _response(status: int, body: Any | None, *, headers: Mapping[str, str] | None = None) -> dict[str, Any]:
+    return {
+        "http_status": status,
+        "headers": dict(headers or {}),
+        "body": body,
+        "content_type": "application/json" if body is not None else None,
+    }
+
+
+def _jsonrpc_method(body: Any) -> str:
+    if isinstance(body, Mapping):
+        return str(body.get("method") or "")
+    return ""
+
+
+@dataclass
+class StreamableHttpAdapterContract:
+    """不启动 HTTP server 的真实 adapter harness，所有 JSON-RPC 业务仍走 raw MCP handler。"""
+
+    allowed_origins: tuple[str, ...] = ("http://127.0.0.1:3000", "http://localhost:3000")
+    sessions: MutableMapping[str, AgentSession] = field(default_factory=dict)
+    expired_session_ids: set[str] = field(default_factory=set)
+    _session_counter: int = 0
+
+    def _new_session_id(self) -> str:
+        self._session_counter += 1
+        return f"keepa-session-{self._session_counter:08d}"
+
+    def register_session(self, session_id: str, *, expired: bool = False) -> None:
+        if expired:
+            self.expired_session_ids.add(session_id)
+            return
+        self.sessions[session_id] = AgentSession(env={})
+
+    def handle(
+        self,
+        *,
+        method: str = "POST",
+        headers: Mapping[str, Any] | None = None,
+        body: str | bytes | Mapping[str, Any] | None = None,
+        timeout_state: str | None = None,
+    ) -> dict[str, Any]:
+        request_headers = dict(headers or {})
+        origin = _header_value(request_headers, "Origin")
+        if not is_origin_allowed(origin, self.allowed_origins):
+            return _response(ERROR_HTTP_STATUS["origin_rejected"], _jsonrpc_error_payload(None, "origin_rejected"))
+
+        if method.upper() == "DELETE":
+            return _response(ERROR_HTTP_STATUS["delete_not_allowed"], _jsonrpc_error_payload(None, "delete_not_allowed"))
+        if method.upper() != "POST":
+            return _response(ERROR_HTTP_STATUS["delete_not_allowed"], _jsonrpc_error_payload(None, "delete_not_allowed"))
+
+        try:
+            timeout_ms = normalize_request_timeout_ms(_header_value(request_headers, MCP_REQUEST_TIMEOUT_HEADER))
+        except ValueError as exc:
+            return _response(ERROR_HTTP_STATUS["invalid_timeout"], _jsonrpc_error_payload(None, "invalid_timeout", data={"message": str(exc)}))
+        if timeout_state == "expired":
+            return _response(ERROR_HTTP_STATUS["request_timeout"], _jsonrpc_error_payload(None, "request_timeout", data={"timeout_ms": timeout_ms}))
+
+        raw_body = body
+        if isinstance(raw_body, bytes):
+            raw_message = raw_body.decode("utf-8", errors="replace")
+        elif isinstance(raw_body, str):
+            raw_message = raw_body
+        elif raw_body is None:
+            raw_message = "{}"
+        else:
+            raw_message = json.dumps(raw_body, ensure_ascii=False)
+
+        try:
+            parsed = json.loads(raw_message)
+        except json.JSONDecodeError:
+            payload = handle_mcp_message(raw_message, env={}, session=None)
+            return _response(ERROR_HTTP_STATUS["parse_error"], payload)
+
+        if not isinstance(parsed, Mapping):
+            payload = handle_mcp_message(raw_message, env={}, session=None)
+            return _response(ERROR_HTTP_STATUS["invalid_request"], payload)
+
+        message_id = parsed.get("id")
+        rpc_method = _jsonrpc_method(parsed)
+        if rpc_method == "notifications/initialized":
+            payload = handle_mcp_message(raw_message, env={}, session=None)
+            return _response(ERROR_HTTP_STATUS["notification_accepted"], payload)
+
+        session_id = _header_value(request_headers, MCP_SESSION_HEADER)
+        if rpc_method == "initialize":
+            session_id = session_id or self._new_session_id()
+            self.sessions[session_id] = AgentSession(env={})
+            payload = handle_mcp_message(raw_message, env={}, session=self.sessions[session_id])
+            return _response(200, payload, headers={MCP_SESSION_HEADER: session_id})
+
+        if not session_id:
+            return _response(ERROR_HTTP_STATUS["missing_session_id"], _jsonrpc_error_payload(message_id, "missing_session_id"))
+        if session_id in self.expired_session_ids or session_id not in self.sessions:
+            return _response(ERROR_HTTP_STATUS["expired_session_id"], _jsonrpc_error_payload(message_id, "expired_session_id"))
+
+        payload = handle_mcp_message(raw_message, env={}, session=self.sessions[session_id])
+        status = ERROR_HTTP_STATUS["application_jsonrpc_error"] if isinstance(payload, Mapping) and payload.get("error") else 200
+        return _response(status, payload)
+
+
+def _case_body(case: Mapping[str, Any]) -> str:
+    if "body" in case:
+        value = case["body"]
+        return value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    error_kind = str(case.get("error_kind") or "")
+    if error_kind == "parse_error":
+        return '{"jsonrpc": "2.0", "id": 1, "method":'
+    if error_kind == "invalid_request":
+        return "[]"
+    if error_kind == "application_jsonrpc_error":
+        return json.dumps({"jsonrpc": JSONRPC_VERSION, "id": "app-error", "method": "tools/call", "params": {"name": "unknown_tool", "arguments": {}}})
+    method = str(case.get("jsonrpc_method") or "initialize")
+    params: dict[str, Any] = {}
+    if method == "tools/call":
+        params = {"name": "context_policy", "arguments": {}}
+    return json.dumps({"jsonrpc": JSONRPC_VERSION, "id": case.get("id"), "method": method, "params": params})
+
+
+def adapter_response_for_case(case: Mapping[str, Any]) -> dict[str, Any]:
+    adapter = StreamableHttpAdapterContract(allowed_origins=tuple(case.get("allowed_origins") or ("http://127.0.0.1:3000", "http://localhost:3000")))
+    session_id = str(case.get("session_id") or "active-visible-ascii-session")
+    category = str(case.get("category") or "")
+    if category in {"timeout", "error_mapping"} or str(case.get("session_state") or "") in {"active", "expired"}:
+        adapter.register_session(session_id, expired=str(case.get("session_state") or "") == "expired")
+    headers: dict[str, str] = {}
+    if case.get("origin") is not None:
+        headers["Origin"] = str(case["origin"])
+    if category in {"timeout", "error_mapping"} or case.get("session_id"):
+        headers[MCP_SESSION_HEADER] = session_id
+    if case.get("timeout_ms") is not None:
+        headers[MCP_REQUEST_TIMEOUT_HEADER] = str(case["timeout_ms"])
+    return adapter.handle(
+        method=str(case.get("method") or "POST"),
+        headers=headers,
+        body=_case_body(case),
+        timeout_state=str(case.get("timeout_state") or "") or None,
+    )
 
 
 def expected_http_status_for_case(case: Mapping[str, Any]) -> int:
@@ -112,6 +281,14 @@ def evaluate_streamable_http_contract(spec: Mapping[str, Any]) -> dict[str, Any]
             "contract_status": status,
             "ok": int(expected.get("http_status", status)) == status,
         }
+        adapter_response = adapter_response_for_case(case)
+        result["adapter_status"] = adapter_response["http_status"]
+        result["adapter_ok"] = int(expected.get("http_status", status)) == adapter_response["http_status"]
+        result["ok"] = bool(result["ok"] and result["adapter_ok"])
+        if isinstance(adapter_response.get("body"), Mapping):
+            error = adapter_response["body"].get("error")
+            if isinstance(error, Mapping):
+                result["adapter_jsonrpc_error_code"] = error.get("code")
         if category == "origin":
             result["origin_allowed"] = is_origin_allowed(case.get("origin"), case.get("allowed_origins") or [])
         if category == "session":

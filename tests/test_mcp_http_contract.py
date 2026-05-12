@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 
 from keepa_cli.agent.mcp_http_contract import (
+    StreamableHttpAdapterContract,
+    adapter_response_for_case,
     evaluate_streamable_http_contract,
     is_origin_allowed,
     is_visible_ascii_session_id,
@@ -56,6 +58,37 @@ class McpHttpContractTests(unittest.TestCase):
         self.assertEqual(statuses["timeout-request-header-below-minimum-rejected"], 400)
         self.assertEqual(statuses["timeout-expired-maps-to-gateway-timeout"], 504)
         self.assertEqual(statuses["error-application-jsonrpc-error-stays-json-response"], 200)
+        self.assertTrue(all(result["adapter_ok"] for result in payload["results"]))
+        self.assertEqual(payload["results"][10]["adapter_jsonrpc_error_code"], -32700)
+        self.assertEqual(payload["results"][12]["adapter_jsonrpc_error_code"], -32602)
+
+    def test_streamable_http_adapter_contract_reuses_raw_mcp_handler(self):
+        adapter = StreamableHttpAdapterContract()
+        initialize = adapter.handle(
+            method="POST",
+            headers={"Origin": "http://localhost:3000"},
+            body={"jsonrpc": "2.0", "id": "init", "method": "initialize", "params": {}},
+        )
+        session_id = initialize["headers"]["MCP-Session-Id"]
+
+        response = adapter.handle(
+            method="POST",
+            headers={"MCP-Session-Id": session_id},
+            body={"jsonrpc": "2.0", "id": "tools", "method": "tools/list", "params": {"toolset": "all", "limit": 2}},
+        )
+
+        self.assertEqual(response["http_status"], 200)
+        self.assertEqual(response["body"]["result"]["tools"][0]["name"], "context_policy")
+        self.assertIn(session_id, adapter.sessions)
+
+    def test_streamable_http_fixture_cases_are_real_adapter_executable(self):
+        spec = json.loads(FIXTURE.read_text(encoding="utf-8"))
+        responses = {case["id"]: adapter_response_for_case(case) for case in spec["cases"]}
+
+        self.assertEqual(responses["origin-cross-site-rejected-before-json-decode"]["http_status"], 403)
+        self.assertEqual(responses["session-subsequent-request-missing-id"]["body"]["error"]["code"], -32001)
+        self.assertEqual(responses["timeout-request-header-below-minimum-rejected"]["body"]["error"]["code"], -32602)
+        self.assertIsNone(responses["notification-accepted-no-body"]["body"])
 
 
 if __name__ == "__main__":

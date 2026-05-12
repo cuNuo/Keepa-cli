@@ -58,7 +58,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "pattern": "^keepa\\.[a-z0-9_]+$"
+            "pattern": "^[a-z0-9_]+$"
           },
           "service_command": {
             "type": "string"
@@ -72,7 +72,7 @@
           },
           "resource_uri": {
             "type": "string",
-            "pattern": "^keepa://tools/keepa\\.[a-z0-9_]+$"
+            "pattern": "^keepa://tools/[a-z0-9_]+$"
           },
           "runtime_args": {
             "type": "array",
@@ -83,6 +83,72 @@
               "const": "resource_uri"
             },
             "minItems": 6
+          },
+          "long_running_candidate": {
+            "type": "boolean"
+          },
+          "future_task_support": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "target",
+                  "protocol",
+                  "cancel",
+                  "progress",
+                  "result"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                  "target": {
+                    "const": "required"
+                  },
+                  "protocol": {
+                    "const": "MCP Tasks/progress"
+                  },
+                  "cancel": {
+                    "type": "object",
+                    "required": [
+                      "method"
+                    ],
+                    "properties": {
+                      "method": {
+                        "const": "tasks/cancel"
+                      }
+                    }
+                  },
+                  "progress": {
+                    "type": "object",
+                    "required": [
+                      "notification"
+                    ],
+                    "properties": {
+                      "notification": {
+                        "const": "notifications/progress"
+                      }
+                    }
+                  },
+                  "result": {
+                    "type": "object",
+                    "required": [
+                      "method",
+                      "resource_uri_template"
+                    ],
+                    "properties": {
+                      "method": {
+                        "const": "tasks/result"
+                      },
+                      "resource_uri_template": {
+                        "const": "keepa://tasks/{task_id}/result"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       }

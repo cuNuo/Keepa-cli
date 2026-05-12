@@ -916,6 +916,10 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("resource_uri", runtime_payload["argument_names"])
         self.assertEqual(runtime_payload["failure_kind"], "missing_inputs")
         self.assertTrue(any(item["name"] == "products_compare" for item in runtime_payload["tools"]))
+        report_tool = next(item for item in runtime_payload["tools"] if item["name"] == "reports_build")
+        self.assertEqual(report_tool["future_task_support"]["cancel"]["method"], "tasks/cancel")
+        self.assertEqual(report_tool["future_task_support"]["progress"]["notification"], "notifications/progress")
+        self.assertEqual(report_tool["future_task_support"]["result"]["method"], "tasks/result")
 
         runtime_schema = handle_mcp_message(
             json.dumps(
@@ -1086,6 +1090,16 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(tool_payload["execution"]["workflow_runtime"])
         self.assertEqual(tool_payload["execution"]["workflow_runtime_contract_uri"], "keepa://workflow/runtime-contract")
         self.assertIn("inputSchema", tool_payload["tool"])
+
+        long_tool = handle_mcp_message(
+            json.dumps({"jsonrpc": "2.0", "id": "long-tool", "method": "resources/read", "params": {"uri": "keepa://tools/figures_research"}}),
+            env={},
+        )
+        long_payload = json.loads(long_tool["result"]["contents"][0]["text"])
+        future = long_payload["execution"]["future_task_support"]
+        self.assertEqual(future["cancel"]["method"], "tasks/cancel")
+        self.assertEqual(future["progress"]["notification"], "notifications/progress")
+        self.assertEqual(future["result"]["resource_uri_template"], "keepa://tasks/{task_id}/result")
 
         prompts = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "prompts-index", "method": "resources/read", "params": {"uri": "keepa://prompts/index"}}),
@@ -1841,6 +1855,9 @@ class McpProtocolTests(unittest.TestCase):
             self.assertTrue(meta["long_running_candidate"])
             self.assertEqual(meta["normal_tools_call_policy"], "fixture_or_small_output_only")
             self.assertEqual(meta["future_task_support"]["target"], "required")
+            self.assertEqual(meta["future_task_support"]["cancel"]["method"], "tasks/cancel")
+            self.assertEqual(meta["future_task_support"]["progress"]["notification"], "notifications/progress")
+            self.assertEqual(meta["future_task_support"]["result"]["resource_uri_template"], "keepa://tasks/{task_id}/result")
             self.assertEqual(tools[name]["execution"]["taskSupport"], "forbidden")
 
     def test_report_markdown_svg_resource_links_are_readable(self):

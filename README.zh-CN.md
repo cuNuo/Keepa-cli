@@ -219,7 +219,9 @@ MCP resources 用于减少 `tools/list` 上下文：`keepa://context/policy`、`
 
 这些示例会启动 `python -m keepa_cli --mcp` stdio server，并在同一 session 内复用 cache key、resource URI 与预算账本。`mcp_agent_workflow_example.py` 调用 `workflow_plan`，读取 `keepa://schema/risk-taxonomy`，通过 `resource_uri` 串联 fixture 版类目商品与 compare，校验风险枚举，再合并 research graph、导出 Agent brief 并生成 JSON report。`mcp_tracking_audit_example.py` 专门演示 `tracking-readonly` toolset/profile 边界，并证明 tracking 写工具不会暴露给 MCP。`mcp_report_research_example.py` 演示本地 `reports` toolset，把已有 graph fixture 转成 graph、brief、browse snapshot、SVG figure resource 与 report。所有示例都支持 `--save-summary <path>`，便于 Agent pipeline 把集成摘要写入受控路径。共享 helper `scripts/mcp_example_support.py` 只用标准库，便于其他 Agent 直接复制 client 模式。
 
-`browse.snapshot` 现在既能读取原始 Keepa product body，也能从 `research_graph` 的 product nodes 提取产品行，因此 merged graph 没有 raw rows 时仍能生成可浏览 HTML。`figures research` 会从产品对比、risk taxonomy、图谱实体计数和时序信号生成单个 SVG 与源数据 JSON。通过 MCP 调用 `figures_research` 时，SVG 会作为 `image/svg+xml` 的 `keepa://output/...` resource 返回，方便 Agent 在调研报告中插入稳定图表，而不用一次性加载大 JSON。`reports_build` 与 `figures_research` 已标记为未来 MCP Tasks/progress 候选；普通 `tools/call` 仅保留 fixture 或小输出路径，大型生产报告需等 task/progress 支持后再走长任务路径。
+`browse.snapshot` 现在既能读取原始 Keepa product body，也能从 `research_graph` 的 product nodes 提取产品行，因此 merged graph 没有 raw rows 时仍能生成可浏览 HTML。`figures research` 会从产品对比、risk taxonomy、图谱实体计数和时序信号生成单个 SVG 与源数据 JSON。通过 MCP 调用 `figures_research` 时，SVG 会作为 `image/svg+xml` 的 `keepa://output/...` resource 返回，方便 Agent 在调研报告中插入稳定图表，而不用一次性加载大 JSON。`reports_build` 与 `figures_research` 已标记为未来 MCP Tasks/progress 候选；普通 `tools/call` 仅保留 fixture 或小输出路径，大型生产报告必须同时具备 `tasks/cancel`、`notifications/progress`、`tasks/result` 与 `keepa://tasks/{task_id}/result` 可恢复结果资源后，再走长任务路径。
+
+Streamable HTTP 仍只是协议 adapter 边界，不复制业务逻辑。`StreamableHttpAdapterContract` 会把 HTTP fixture 变成可执行 adapter case，并把有效 JSON-RPC body 转给同一个 raw MCP handler，同时验证 Origin、session id、timeout、notification 和错误状态映射。
 
 跨命令研究图可本地合并，不访问 Keepa：
 

@@ -118,6 +118,40 @@ def is_tool_active_for_profile(tool_name: str, profile: str | None) -> bool:
     return allowed is None or tool_name in allowed
 
 
+def future_task_support_contract() -> dict[str, Any]:
+    return {
+        "target": "required",
+        "protocol": "MCP Tasks/progress",
+        "reason": "large local file/report/figure generation should not block ordinary tools/call",
+        "normal_tools_call_policy": "fixture_or_small_output_only",
+        "start": {
+            "method": "tools/call",
+            "progress_token_source": "_meta.progressToken",
+            "returns": "task reference when remote HTTP production mode enables tasks",
+        },
+        "cancel": {
+            "method": "tasks/cancel",
+            "required": True,
+            "idempotent": True,
+            "terminal_state": "cancelled",
+        },
+        "progress": {
+            "notification": "notifications/progress",
+            "required": True,
+            "token_field": "progressToken",
+            "monotonic": True,
+            "states": ["queued", "running", "writing_result", "completed", "failed", "cancelled"],
+        },
+        "result": {
+            "method": "tasks/result",
+            "required": True,
+            "resource_uri_template": "keepa://tasks/{task_id}/result",
+            "resource_mime_type": "application/json",
+            "retention": "bounded by adapter task retention policy",
+        },
+    }
+
+
 @dataclass(frozen=True)
 class ToolDefinition:
     name: str
@@ -146,11 +180,7 @@ class ToolDefinition:
         if self.long_running_candidate:
             keepa_meta["long_running_candidate"] = True
             keepa_meta["normal_tools_call_policy"] = "fixture_or_small_output_only"
-            keepa_meta["future_task_support"] = {
-                "target": "required",
-                "protocol": "MCP Tasks/progress",
-                "reason": "large local file/report/figure generation should not block ordinary tools/call",
-            }
+            keepa_meta["future_task_support"] = future_task_support_contract()
         return {
             "name": self.name,
             "title": title,
@@ -1342,13 +1372,13 @@ def workflow_runtime_contract() -> dict[str, Any]:
             "resource_uri": f"keepa://tools/{tool.name}",
             "runtime_args": args,
             "long_running_candidate": tool.long_running_candidate,
-            "future_task_support": "required" if tool.long_running_candidate else None,
+            "future_task_support": future_task_support_contract() if tool.long_running_candidate else None,
         }
         for tool in TOOL_DEFINITIONS
         if tool.workflow_runtime
     ]
     return {
-        "schema_version": "2026-05-11.3",
+        "schema_version": "2026-05-12.1",
         "schema_resource_uri": "keepa://schema/workflow-runtime-contract",
         "argument_names": args,
         "tool_count": len(tools),
