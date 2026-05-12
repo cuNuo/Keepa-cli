@@ -766,6 +766,26 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("unsupported argument: extra", result["structuredContent"]["error"]["details"]["errors"])
         self.assertIn("Call tools/list", result["structuredContent"]["error"]["details"]["next_action"])
 
+    def test_tools_list_input_schemas_are_registration_compatible(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "schema-compat",
+                    "method": "tools/list",
+                    "params": {"toolset": "all", "limit": 100},
+                }
+            ),
+            env={},
+        )
+        forbidden = {"oneOf", "anyOf", "allOf", "enum", "not"}
+
+        for tool in response["result"]["tools"]:
+            with self.subTest(tool=tool["name"]):
+                schema = tool["inputSchema"]
+                self.assertEqual(schema.get("type"), "object")
+                self.assertFalse(forbidden.intersection(schema), schema)
+
     def test_json_schema_tool_arguments_return_structured_errors(self):
         cases = [
             ("categories_search", {"domain": "US", "term": 123}, "term: expected string"),

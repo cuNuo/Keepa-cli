@@ -185,7 +185,7 @@ class ToolDefinition:
             "name": self.name,
             "title": title,
             "description": self.description,
-            "inputSchema": _schema_with_common_properties(self.input_schema, workflow_runtime=self.workflow_runtime),
+            "inputSchema": _mcp_input_schema(self.input_schema, workflow_runtime=self.workflow_runtime),
             "execution": {"taskSupport": "forbidden"},
             "outputSchema": self.output_schema,
             "annotations": {
@@ -230,6 +230,9 @@ PROFILE_SCHEMA: JsonSchema = {
 }
 
 
+ROOT_SCHEMA_KEYWORDS_UNSUPPORTED_BY_TOOL_REGISTRATION = frozenset({"oneOf", "anyOf", "allOf", "enum", "not"})
+
+
 def _schema_with_common_properties(schema: JsonSchema, *, workflow_runtime: bool = False) -> JsonSchema:
     patched = dict(schema)
     properties = dict(patched.get("properties") or {})
@@ -242,6 +245,15 @@ def _schema_with_common_properties(schema: JsonSchema, *, workflow_runtime: bool
         properties.setdefault("workflow_inputs", {"type": "object", "description": "workflow.plan workflow_inputs object or subset for late-bound input resolution."})
         properties.setdefault("workflow_context", {"type": "object", "description": "Additional workflow context with artifacts/resource_uris from prior steps."})
     patched["properties"] = properties
+    return patched
+
+
+def _mcp_input_schema(schema: JsonSchema, *, workflow_runtime: bool = False) -> JsonSchema:
+    patched = _schema_with_common_properties(copy.deepcopy(schema), workflow_runtime=workflow_runtime)
+    for keyword in ROOT_SCHEMA_KEYWORDS_UNSUPPORTED_BY_TOOL_REGISTRATION:
+        patched.pop(keyword, None)
+    patched.setdefault("type", "object")
+    patched.setdefault("properties", {})
     return patched
 
 

@@ -2210,18 +2210,6 @@
             },
             "inputSchema": {
               "additionalProperties": "bool",
-              "anyOf": [
-                {
-                  "required": [
-                    "str"
-                  ]
-                },
-                {
-                  "required": [
-                    "str"
-                  ]
-                }
-              ],
               "properties": {
                 "domain": {
                   "default": "str",
@@ -2363,18 +2351,6 @@
             },
             "inputSchema": {
               "additionalProperties": "bool",
-              "anyOf": [
-                {
-                  "required": [
-                    "str"
-                  ]
-                },
-                {
-                  "required": [
-                    "str"
-                  ]
-                }
-              ],
               "properties": {
                 "domain": {
                   "default": "str",
@@ -3767,18 +3743,6 @@
             },
             "inputSchema": {
               "additionalProperties": "bool",
-              "anyOf": [
-                {
-                  "required": [
-                    "str"
-                  ]
-                },
-                {
-                  "required": [
-                    "str"
-                  ]
-                }
-              ],
               "properties": {
                 "artifact": {
                   "description": "str",
@@ -3971,23 +3935,6 @@
             },
             "inputSchema": {
               "additionalProperties": "bool",
-              "anyOf": [
-                {
-                  "required": [
-                    "str"
-                  ]
-                },
-                {
-                  "required": [
-                    "str"
-                  ]
-                },
-                {
-                  "required": [
-                    "str"
-                  ]
-                }
-              ],
               "properties": {
                 "artifact": {
                   "description": "str",

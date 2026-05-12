@@ -131,6 +131,62 @@ class McpClientExampleTests(unittest.TestCase):
             self.assertEqual(saved["ok"], True)
             self.assertEqual(saved["steps"]["report"]["format"], payload["steps"]["report"]["format"])
 
+    def test_real_stdio_finder_query_schema_is_registration_compatible(self) -> None:
+        process = subprocess.Popen(
+            [sys.executable, "-m", "keepa_cli", "--mcp"],
+            cwd=REPO_ROOT,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+        )
+
+        def request(method: str, params: dict) -> dict:
+            assert process.stdin is not None
+            assert process.stdout is not None
+            request.next_id += 1
+            process.stdin.write(json.dumps({"jsonrpc": "2.0", "id": request.next_id, "method": method, "params": params}) + "\n")
+            process.stdin.flush()
+            raw = process.stdout.readline()
+            if not raw:
+                self.fail(process.stderr.read() if process.stderr else "MCP subprocess closed before response")
+            response = json.loads(raw)
+            self.assertNotIn("error", response)
+            return response["result"]
+
+        request.next_id = 0
+
+        try:
+            tools = request("tools/list", {"toolset": "all", "limit": 100})["tools"]
+            finder = next(tool for tool in tools if tool["name"] == "finder_query")
+            schema = finder["inputSchema"]
+            forbidden_root_keywords = {"oneOf", "anyOf", "allOf", "enum", "not"}
+            self.assertEqual(schema.get("type"), "object")
+            self.assertFalse(forbidden_root_keywords.intersection(schema), schema)
+
+            result = request(
+                "tools/call",
+                {
+                    "name": "finder_query",
+                    "arguments": {
+                        "selection_file": "keepa_cli/fixtures/finder_selection.json",
+                        "domain": "US",
+                        "dry_run": True,
+                    },
+                },
+            )
+            self.assertFalse(result["isError"])
+            self.assertTrue(result["structuredContent"]["ok"])
+        finally:
+            if process.stdin:
+                process.stdin.close()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=5)
+
 
 if __name__ == "__main__":
     unittest.main()
