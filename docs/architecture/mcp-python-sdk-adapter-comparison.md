@@ -49,6 +49,7 @@ adapter 原则：
 
 - `initialize` 返回的 `serverInfo.name`、`title`、`protocolVersion` 与当前契约兼容，或迁移文档明确说明差异。
 - `tools/list` 能保留 `title`、`inputSchema`、`outputSchema`、`annotations`、`x-keepa` metadata，且不会一次强制塞入不需要的 toolsets。
+- `tools/list` 与 `prompts/list` 必须补齐生产入口的过滤与分页 parity：`toolset`、`profile`、`allow_tools`、`exclude_tools`、`limit`、`cursor` 的语义和错误映射要与 raw stdio 一致，不能只依赖 SDK typed API 的标准 cursor。
 - `tools/call` 能返回 `structuredContent`、compact text fallback、`isError`，并保留 `invalid_arguments` / `inactive_tool` 等工具错误语义。
 - `resources/templates/list` 能暴露当前 dynamic URI templates，`resources/read` 能处理 session cache 与 encoded local output path。
 - Inspector smoke fixture、`tests.test_mcp`、Agent eval fixtures、`npm pack --dry-run --json` 全部通过。
@@ -72,7 +73,7 @@ adapter 原则：
 - 当前 fixture 对比覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、非法 `tools/call` 与 `ping`，要求兼容 handler 响应 JSON 完全等价。官方 `ClientSession` 的 `list_*` 只支持标准 cursor 参数，不支持 Keepa 扩展的 `toolset/limit` 参数；因此 SDK adapter 以 `toolset=all` 作为完整工具全集，同时默认压缩 tools/resources/resource templates/prompts 首页，分别以 `context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `product_research` 起手，避免一次性读取全部 schema。
 - 2026-05-12 已在 `keepa_cli.agent.tools.validate_tool_arguments()` 前置统一 JSON Schema 校验，覆盖 `type`、`enum`、`minimum`、`oneOf`、`anyOf`、`additionalProperties` 和 array `items`。失败统一映射到 `tools/call` 的 `isError=true` / `invalid_arguments`，因此当前 raw stdio handler 与官方 SDK adapter 都共享同一校验结果。
 - 负向覆盖已固定到 `tests/agent_eval_fixtures/mcp_schema_validation_negative.json` 与 `tests.test_mcp`，分别覆盖错误类型、非法 enum、越界 integer 和 array item 类型错误；`scripts/smoke_mcp_sdk_adapter_client.py` 也会通过官方 `ClientSession` 验证 SDK adapter 的 schema 错误映射。
-- 本轮评估后暂不把 SDK adapter 提升为生产入口。官方 FastMCP 支持显式 `name=` 注册工具名，技术上可以表达当前无前缀 tool 名；但 toolset/profile 过滤、分页扩展和动态 resource templates 都依赖现有契约。为保证现有服务完全正常，本轮直接移除 `keepa.` 旧工具名前缀，不保留旧名 alias，也不向现有工具名叠加额外前缀。
+- 本轮评估后暂不把 SDK adapter 提升为生产入口。官方 FastMCP 支持显式 `name=` 注册工具名，技术上可以表达当前无前缀 tool 名；但 toolset/profile/filter 分页 parity 和动态 resource templates 都依赖现有契约。为保证现有服务完全正常，本轮直接移除 `keepa.` 旧工具名前缀，不保留旧名 alias，也不向现有工具名叠加额外前缀；外部客户端迁移只文档化并使用当前无前缀新名。
 
 ## Streamable HTTP 边界
 
@@ -87,6 +88,7 @@ adapter 原则：
 ## 后续动作
 
 - P1：如需人工复核 Inspector UI，再连接 `python -m keepa_cli.agent.mcp_sdk_adapter --stdio`，并把展示差异与 `scripts/export_mcp_inspector_snapshot.py` 的 typed 快照对照记录到 evidence。
+- P1：SDK adapter 提升生产入口前，补齐并固定 `toolset/profile/allow_tools/exclude_tools/limit/cursor` 过滤与分页 parity fixture；未补齐前 raw stdio 继续作为唯一生产入口。
 - P1：把 SDK adapter 扩展到 Streamable HTTP 前，先让 `scripts/check_mcp_quality_gate.py --require-sdk` 与 HTTP boundary fixture 保持通过。
 - P2：若差异可控，再评估 Streamable HTTP adapter；本地桌面和 Agent client 默认仍使用 stdio。
 

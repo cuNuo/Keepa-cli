@@ -44,5 +44,5 @@
 ## 风险与后续
 
 - 当前 validator 是项目内置 JSON Schema 子集实现，避免给默认安装新增依赖；后续若 schema 复杂度继续上升，再评估引入 `jsonschema` 作为正式依赖。
-- 无前缀工具名是当前唯一公开契约；若后续需要恢复旧名，需要单独提出兼容策略并补客户端迁移测试。
-- 若要切换到 FastMCP 生产入口，应先做完整 adapter parity：toolset/profile/filter 分页、resource templates、direct `CallToolResult`、session cache 与 Inspector UI 都必须稳定。
+- 无前缀工具名是当前唯一公开契约；外部客户端迁移只文档化并使用新名，不通过恢复 `keepa.*` 旧名或 alias 做兼容。
+- 若要切换到 FastMCP/SDK adapter 生产入口，应先做完整 adapter parity：`toolset/profile/allow_tools/exclude_tools/limit/cursor` 过滤与分页、resource templates、direct `CallToolResult`、session cache 与 Inspector UI 都必须稳定。

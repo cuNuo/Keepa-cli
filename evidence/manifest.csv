@@ -49,3 +49,4 @@ evidence/tasks/20260512-0131-mcp-sdk分页快照与质量门禁优化.md,MCP SDK
 evidence/tasks/20260512-0149-mcp-quality-gate-json失败输出优化.md,MCP quality gate JSON 失败输出优化,active,2026-05-12,"记录 check_mcp_quality_gate.py 的 JSON 模式失败输出收敛、结构化失败 step、回归测试、文档同步与本地/远端验证。"
 evidence/tasks/20260512-1105-mcp实现规范审查.md,MCP 实现规范审查,active,2026-05-12,"记录按 mcp-builder 与 MCP 2025-11-25 官方规范审查生产 stdio、官方 SDK adapter、HTTP contract fixture、tools/resources/prompts/schema/annotations、质量门禁验证，以及严格合规收口项。"
 evidence/tasks/20260512-1129-mcp-json-schema-validator与入口评估.md,MCP JSON Schema validator 与入口评估,active,2026-05-12,"记录 MCP tools/call 统一 JSON Schema 入参校验、schema 负向 fixture、SDK adapter 负向 smoke、生产入口评估、验证结果与后续 FastMCP 迁移边界。"
+evidence/tasks/20260512-1203-mcp无前缀契约文档同步.md,MCP 无前缀契约文档同步,active,2026-05-12,"记录 README.zh-CN 旧名前缀漂移修正、外部客户端只迁移无前缀新名、SDK adapter 生产入口前置 parity 条件与 memory 同步。"
