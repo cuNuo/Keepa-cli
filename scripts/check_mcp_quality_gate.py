@@ -81,6 +81,7 @@ def main(argv: list[str] | None = None) -> int:
         ("agent eval fixtures", [python, "scripts/check_agent_eval_fixtures.py"]),
         ("output schema", [python, "scripts/check_mcp_output_schema.py", "--json"]),
         ("performance gate", performance_command),
+        ("streamable http adapter", [python, "-m", "unittest", "tests.test_mcp_http_contract", "tests.test_mcp_http_adapter", "-v"]),
         ("adapter fixture equivalence", [python, "scripts/compare_mcp_sdk_adapter_fixture.py"]),
         (
             "adapter filter parity",

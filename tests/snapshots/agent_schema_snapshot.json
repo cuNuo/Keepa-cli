@@ -6557,6 +6557,27 @@
           "str"
         ],
         "transport": "str",
+        "transports": {
+          "stdio": {
+            "entrypoint": "str",
+            "production": "bool"
+          },
+          "streamable_http": {
+            "business_core": "str",
+            "content_negotiation": "str",
+            "endpoint": "str",
+            "entrypoint": "str",
+            "max_sessions": "int",
+            "production": "bool",
+            "protocol_version_header": "str",
+            "request_timeout_header": "str",
+            "required_request_content_type": "str",
+            "required_response_accept": "str",
+            "session_header": "str",
+            "session_idle_ttl_seconds": "int",
+            "supports_sse_get": "bool"
+          }
+        },
         "workflow_runtime": {
           "accepted_sources": [
             {
@@ -7026,6 +7047,7 @@
         }
       },
       "protocols": [
+        "str",
         "str",
         "str",
         "str",

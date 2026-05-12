@@ -200,6 +200,14 @@ kc --json domains list
 '{"jsonrpc":"2.0","id":4,"method":"prompts/list","params":{}}' | kc --mcp
 ```
 
+浏览器型或远程型 MCP client 也可使用 Streamable HTTP：
+
+```powershell
+kc --mcp-http --mcp-http-host 127.0.0.1 --mcp-http-port 8765
+```
+
+HTTP endpoint 是 `POST /mcp`。`initialize` 会返回 `MCP-Session-Id`；后续 POST 与 DELETE 必须携带该 header。adapter 会校验浏览器 Origin allowlist，支持 CORS 预检，接受 `MCP-Protocol-Version=2025-11-25`，按本地策略限制 `Keepa-MCP-Timeout-Ms`，显式不兼容的 `Accept` 返回 406，显式非 JSON 的 `Content-Type` 返回 415，空闲 session 1 小时后清理，活动 HTTP session 上限为 128，并支持 `DELETE /mcp` 终止 session。`GET /mcp` 当前返回 405，因为还未实现 server-sent event stream。HTTP adapter 只是协议层：JSON-RPC body 仍走 `handle_mcp_message -> AgentSession -> service`，因此工具名、schema、cache、resources、prompts 与 token 等待提示都与 stdio 保持一致。
+
 MCP 默认只返回紧凑的 `research` toolset，使用结构化 JSON 参数，不解析 CLI 字符串。`initialize` 返回 `serverInfo.name=keepa_mcp`；MCP 客户端配置别名仍可叫 `keepa`，但公共 tool/prompt 名不再带 `keepa.` 前缀。外部客户端迁移时只把调用名改成新名，例如 `context_policy`、`research_graph_merge`、`research_brief_export`，旧 `keepa.*` 名不会作为 alias 保留。`tools/list` 可传 `toolset=research/docs/audit/reports/tracking-readonly/all` 控制上下文大小，`allow_tools` 与 `exclude_tools` 可进一步收窄单次 schema；`toolset=all` 未显式传 `limit` 时只返回以 `context_policy` 起手的 8 个 starter tools 和 `nextCursor`，MCP cursor 是不透明字符串，不能跨不同过滤条件复用。`profile` 可按会话阶段标记 inactive tools（`offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`），被 profile 禁用的 `tools/call` 会在 service 执行前返回 `inactive_tool`。research 覆盖产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、`research_graph_merge` 与 `research_brief_export`；audit 覆盖 cost、cassette sanitize/promote 与 `cassettes_promote_and_verify`；reports 覆盖图谱合并、本地报告、浏览快照、SVG 图表生成与 brief export；tracking 覆盖只读 tracking 与 cost audit。Agent 结果会尽量提供统一 `research_graph`，工具 envelope 包含 `structuredContent`、JSON text fallback、`cache_key`、`cache_hit` 与 `budget_ledger`；重输出 fallback 还会追加 MCP `resource_link` content block。Inspector 风格协议回归规格位于 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json`；官方 Python MCP SDK adapter 对照位于 `docs/architecture/mcp-python-sdk-adapter-comparison.md`。
 
 隔离 SDK adapter 位于 `keepa_cli/agent/mcp_sdk_adapter.py`；运行 `python scripts/compare_mcp_sdk_adapter_fixture.py` 可对比兼容 handler 与当前 `--mcp` stdio 输出等价性，追加 `--fixture tests/mcp_fixtures/mcp_sdk_adapter_filter_parity.json` 可验证过滤与 cursor parity；运行 `python scripts/smoke_mcp_sdk_adapter_client.py` 可用官方 Python MCP SDK `ClientSession` 真正连接验证，运行 `python scripts/check_mcp_sdk_adapter_typed_fixture.py` 可把 Inspector fixture 映射为 SDK typed client 调用，运行 `python scripts/check_mcp_quality_gate.py --require-sdk` 可执行聚合 MCP 门禁。该门禁同时运行 `scripts/check_mcp_output_schema.py` 与 `scripts/check_mcp_performance_gate.py`，让 outputSchema 校验停留在离线门禁，性能也成为强制检查；CI 会通过 `--performance-out` 写入性能 artifact，`scripts/summarize_mcp_performance_history.py` 可用多轮真实 p95 历史生成阈值收紧建议。可选 `mcp-sdk` extra 启用 SDK 实验和 `python -m keepa_cli.agent.mcp_sdk_adapter --stdio` 入口，但不会替换生产 stdio 入口；提升为生产入口前必须持续满足 `toolset/profile/allow_tools/exclude_tools/limit/cursor` 分页与过滤 parity。SDK adapter 仍以 `toolset=all` 作为可分页全集；tools、resources、resource templates、prompts 首页都会压缩为 Agent starter set，分别以 `context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `product_research` 起手。`python scripts/export_mcp_inspector_snapshot.py --check` 可生成并校验无需 UI 的 typed Inspector 快照。
@@ -221,7 +229,7 @@ MCP resources 用于减少 `tools/list` 上下文：`keepa://context/policy`、`
 
 `browse.snapshot` 现在既能读取原始 Keepa product body，也能从 `research_graph` 的 product nodes 提取产品行，因此 merged graph 没有 raw rows 时仍能生成可浏览 HTML。`figures research` 会从产品对比、risk taxonomy、图谱实体计数和时序信号生成单个 SVG 与源数据 JSON。通过 MCP 调用 `figures_research` 时，SVG 会作为 `image/svg+xml` 的 `keepa://output/...` resource 返回，方便 Agent 在调研报告中插入稳定图表，而不用一次性加载大 JSON。`reports_build` 与 `figures_research` 已标记为未来 MCP Tasks/progress 候选；普通 `tools/call` 仅保留 fixture 或小输出路径，大型生产报告必须同时具备 `tasks/cancel`、`notifications/progress`、`tasks/result` 与 `keepa://tasks/{task_id}/result` 可恢复结果资源后，再走长任务路径。
 
-Streamable HTTP 仍只是协议 adapter 边界，不复制业务逻辑。`StreamableHttpAdapterContract` 会把 HTTP fixture 变成可执行 adapter case，并把有效 JSON-RPC body 转给同一个 raw MCP handler，同时验证 Origin、session id、timeout、notification 和错误状态映射。
+Streamable HTTP 是协议 adapter 边界，不复制业务逻辑。`keepa_cli.agent.mcp_http` 启动标准库 HTTP server；`StreamableHttpAdapterContract` 仍是 server 和 fixture 测试共用的协议核心，覆盖 Origin、session 生命周期、session 清理、timeout、内容协商、JSON-RPC 错误和 notification 边界。
 
 跨命令研究图可本地合并，不访问 Keepa：
 

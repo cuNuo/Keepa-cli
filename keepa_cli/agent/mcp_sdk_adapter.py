@@ -95,6 +95,7 @@ def adapter_status() -> dict[str, Any]:
         "sdk_version": sdk_dependency_version(),
         "server_info_name": "keepa_mcp",
         "production_entrypoint": PRODUCTION_ENTRYPOINT,
+        "streamable_http_entrypoint": "python -m keepa_cli --mcp-http --mcp-http-host 127.0.0.1 --mcp-http-port 8765",
         "sdk_stdio_entrypoint": SDK_STDIO_ENTRYPOINT,
         "production_entrypoint_replaced": False,
         "boundary": "protocol_adapter_only",

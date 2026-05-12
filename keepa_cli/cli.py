@@ -16,6 +16,7 @@ from typing import Any
 
 from keepa_cli import __version__
 from keepa_cli.agent.mcp import iter_mcp_stream
+from keepa_cli.agent.mcp_http import DEFAULT_HTTP_HOST, DEFAULT_HTTP_PORT, serve_mcp_http
 from keepa_cli.agent.stdio import iter_stdio_output
 from keepa_cli.cli_builders.business import add_business_parser, maybe_run_business_command
 from keepa_cli.cli_builders.cache import add_cache_parser, maybe_run_cache_command
@@ -54,6 +55,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--json", action="store_true", help="输出稳定 JSON envelope，供 Agent 调用。")
     parser.add_argument("--stdio", action="store_true", help="启用 JSON Lines 长会话协议。")
     parser.add_argument("--mcp", action="store_true", help="启用 MCP JSON-RPC stdio server。")
+    parser.add_argument("--mcp-http", action="store_true", help="启用 MCP Streamable HTTP server。")
+    parser.add_argument("--mcp-http-host", default=DEFAULT_HTTP_HOST, help="MCP HTTP 监听地址，默认 127.0.0.1。")
+    parser.add_argument("--mcp-http-port", type=int, default=DEFAULT_HTTP_PORT, help="MCP HTTP 监听端口，默认 8765。")
+    parser.add_argument(
+        "--mcp-http-origin",
+        action="append",
+        default=[],
+        help="允许的浏览器 Origin，可重复；默认允许本机 MCP Inspector 常用 Origin。",
+    )
     parser.add_argument("--yes", action="store_true", help="确认执行可能消耗较高 token 的请求。")
 
     subparsers = parser.add_subparsers(dest="command")
@@ -535,6 +545,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.stdout.write(line + "\n")
             sys.stdout.flush()
         return 0
+
+    if args.mcp_http:
+        allowed_origins = tuple(args.mcp_http_origin) if args.mcp_http_origin else None
+        return serve_mcp_http(
+            host=args.mcp_http_host,
+            port=args.mcp_http_port,
+            allowed_origins=allowed_origins,
+            env=os.environ,
+        )
 
     if args.command is None:
         if args.json:

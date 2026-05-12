@@ -1,6 +1,6 @@
 {
   "id": "mcp_streamable_http_boundary_fixture",
-  "description": "Streamable HTTP adapter 前置合约：Origin 防护、MCP-Session-Id 生命周期和 JSON-RPC/HTTP 错误映射；当前只作为 fixture，不启用 HTTP transport。",
+  "description": "Streamable HTTP adapter 合约：Origin 防护、MCP-Session-Id 生命周期、DELETE 终止 session 和 JSON-RPC/HTTP 错误映射；真实 HTTP transport 必须复用同一 adapter core。",
   "kind": "mcp_streamable_http_contract",
   "cases": [
     {
@@ -66,14 +66,14 @@
       }
     },
     {
-      "id": "session-delete-not-allowed-is-explicit",
+      "id": "session-delete-terminates-active-session",
       "category": "session",
       "method": "DELETE",
-      "session_state": "delete_not_allowed",
+      "session_state": "terminated",
       "session_id": "active-visible-ascii-session",
       "expected": {
-        "http_status": 405,
-        "decision": "method_not_allowed"
+        "http_status": 202,
+        "decision": "session_terminated"
       }
     },
     {
@@ -122,6 +122,36 @@
         "http_status": 504,
         "jsonrpc_error_code": -32003,
         "next_action": "retry idempotent request or resume through MCP Tasks/progress when available"
+      }
+    },
+    {
+      "id": "headers-accept-unsupported-rejected",
+      "category": "headers",
+      "method": "POST",
+      "jsonrpc_method": "initialize",
+      "headers": {
+        "Accept": "application/xml",
+        "Content-Type": "application/json"
+      },
+      "expected": {
+        "http_status": 406,
+        "jsonrpc_error_code": -32007,
+        "next_action": "send Accept: application/json, text/event-stream"
+      }
+    },
+    {
+      "id": "headers-content-type-unsupported-rejected",
+      "category": "headers",
+      "method": "POST",
+      "jsonrpc_method": "initialize",
+      "headers": {
+        "Accept": "application/json, text/event-stream",
+        "Content-Type": "text/plain"
+      },
+      "expected": {
+        "http_status": 415,
+        "jsonrpc_error_code": -32008,
+        "next_action": "send Content-Type: application/json"
       }
     },
     {
@@ -183,20 +213,24 @@
     {"path": "required_categories", "contains": "origin"},
     {"path": "required_categories", "contains": "session"},
     {"path": "required_categories", "contains": "timeout"},
+    {"path": "required_categories", "contains": "headers"},
     {"path": "required_categories", "contains": "error_mapping"},
     {"path": "missing_categories", "length": 0},
-    {"path": "case_count", "equals": 14},
+    {"path": "case_count", "equals": 16},
     {"path": "results.1.contract_status", "equals": 403},
     {"path": "results.1.origin_allowed", "equals": false},
     {"path": "results.2.session_id_visible_ascii", "equals": true},
     {"path": "results.3.contract_status", "equals": 400},
     {"path": "results.4.contract_status", "equals": 404},
+    {"path": "results.5.contract_status", "equals": 202},
     {"path": "results.6.normalized_timeout_ms", "equals": 30000},
     {"path": "results.7.normalized_timeout_ms", "equals": 45000},
     {"path": "results.8.timeout_valid", "equals": false},
     {"path": "results.9.contract_status", "equals": 504},
-    {"path": "results.10.jsonrpc_error_code", "equals": -32700},
-    {"path": "results.12.contract_status", "equals": 200},
-    {"path": "results.13.contract_status", "equals": 202}
+    {"path": "results.10.contract_status", "equals": 406},
+    {"path": "results.11.contract_status", "equals": 415},
+    {"path": "results.12.jsonrpc_error_code", "equals": -32700},
+    {"path": "results.14.contract_status", "equals": 200},
+    {"path": "results.15.contract_status", "equals": 202}
   ]
 }

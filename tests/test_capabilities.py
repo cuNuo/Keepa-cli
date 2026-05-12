@@ -20,10 +20,16 @@ class CapabilitiesTests(unittest.TestCase):
 
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["command"], "capabilities")
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.12")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-12.3")
         self.assertIn("tui", payload["data"]["protocols"])
         self.assertIn("mcp", payload["data"]["protocols"])
+        self.assertIn("mcp-http", payload["data"]["protocols"])
         self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
+        self.assertFalse(payload["data"]["mcp"]["transports"]["streamable_http"]["supports_sse_get"])
+        self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["business_core"], "handle_mcp_message -> AgentSession -> service")
+        self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["required_response_accept"], "application/json")
+        self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["session_idle_ttl_seconds"], 3600)
+        self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["max_sessions"], 128)
         self.assertEqual(payload["data"]["mcp"]["default_toolset"], "research")
         self.assertIn("docs", payload["data"]["mcp"]["toolsets"])
         self.assertIn("tracking-readonly", payload["data"]["mcp"]["toolsets"])
@@ -105,7 +111,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertTrue(payload["ok"])
-        self.assertEqual(payload["data"]["schema_version"], "2026-05-11.12")
+        self.assertEqual(payload["data"]["schema_version"], "2026-05-12.3")
 
     def test_stdio_capabilities_returns_response_event(self):
         raw = json.dumps({"id": "caps", "method": "capabilities", "params": {}})
@@ -113,7 +119,7 @@ class CapabilitiesTests(unittest.TestCase):
 
         response = next(event for event in events if event["event"] == "response")
         self.assertTrue(response["payload"]["ok"])
-        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-11.12")
+        self.assertEqual(response["payload"]["data"]["schema_version"], "2026-05-12.3")
 
 
 if __name__ == "__main__":

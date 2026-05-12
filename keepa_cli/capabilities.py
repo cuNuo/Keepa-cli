@@ -15,7 +15,9 @@ from keepa_cli.agent.tools import list_mcp_tools, profile_names, toolset_names, 
 from keepa_cli.token_budget import estimate_request_budget
 
 
-SCHEMA_VERSION = "2026-05-11.12"
+SCHEMA_VERSION = "2026-05-12.3"
+STREAMABLE_HTTP_SESSION_IDLE_TTL_SECONDS = 3_600
+STREAMABLE_HTTP_MAX_SESSIONS = 128
 
 COMMANDS: tuple[dict[str, Any], ...] = (
     {"name": "doctor", "supports_fixture": False, "supports_live": False, "output": "json"},
@@ -101,12 +103,30 @@ def build_capabilities() -> dict[str, Any]:
         )
     return {
         "schema_version": SCHEMA_VERSION,
-        "protocols": ["json", "stdio", "mcp", "tui"],
+        "protocols": ["json", "stdio", "mcp", "mcp-http", "tui"],
         "entrypoints": ["keepa-cli", "kc", "python -m keepa_cli"],
         "mcp": {
             "server_name": "keepa",
             "transport": "stdio",
             "entrypoint": "keepa-cli --mcp",
+            "transports": {
+                "stdio": {"entrypoint": "keepa-cli --mcp", "production": True},
+                "streamable_http": {
+                    "entrypoint": "keepa-cli --mcp-http --mcp-http-host 127.0.0.1 --mcp-http-port 8765",
+                    "endpoint": "/mcp",
+                    "production": True,
+                    "business_core": "handle_mcp_message -> AgentSession -> service",
+                    "supports_sse_get": False,
+                    "session_header": "MCP-Session-Id",
+                    "protocol_version_header": "MCP-Protocol-Version",
+                    "request_timeout_header": "Keepa-MCP-Timeout-Ms",
+                    "session_idle_ttl_seconds": STREAMABLE_HTTP_SESSION_IDLE_TTL_SECONDS,
+                    "max_sessions": STREAMABLE_HTTP_MAX_SESSIONS,
+                    "required_request_content_type": "application/json",
+                    "required_response_accept": "application/json",
+                    "content_negotiation": "missing headers are tolerated for local clients; explicit incompatible Accept returns 406 and explicit non-json Content-Type returns 415",
+                },
+            },
             "default_toolset": "research",
             "toolsets": toolset_names(),
             "profiles": profile_names(),
