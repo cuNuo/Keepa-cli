@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
-POLICY_SCHEMA_VERSION = "2026-05-11.1"
+POLICY_SCHEMA_VERSION = "2026-05-12.1"
 ASIN_RE = re.compile(r"\b[A-Z0-9]{10}\b", re.IGNORECASE)
 UPC_EAN_RE = re.compile(r"\b\d{12,14}\b")
 SELLER_RE = re.compile(r"\bA[A-Z0-9]{9,20}\b", re.IGNORECASE)
@@ -25,7 +25,7 @@ def build_context_policy(env: Mapping[str, str] | None = None, *, repo_root: Pat
     return {
         "schema_version": POLICY_SCHEMA_VERSION,
         "view": "context_policy",
-        "mode": "offline_first",
+        "mode": "live_read_allowed_for_real_research",
         "default_toolset": "research",
         "recommended_start_order": [
             "keepa://context/policy",
@@ -37,11 +37,11 @@ def build_context_policy(env: Mapping[str, str] | None = None, *, repo_root: Pat
             "workflow_plan",
         ],
         "live_keepa": {
-            "allowed_by_default": False,
+            "allowed_by_default": True,
             "requires_api_key": True,
             "api_key_configured": bool(active_env.get("KEEPA_API_KEY")),
             "requires_confirmation_for_high_cost": True,
-            "safe_defaults": ["fixture", "dry_run", "from_cache"],
+            "safe_defaults_for_testing": ["fixture", "dry_run", "from_cache"],
         },
         "session_profiles": [
             "offline_fixture_only",
@@ -58,7 +58,7 @@ def build_context_policy(env: Mapping[str, str] | None = None, *, repo_root: Pat
             "supports_allow_tools_filter": True,
             "supports_exclude_tools_filter": True,
             "supports_profile_gating": True,
-            "profile_behavior": "tools/list marks inactive tools; tools/call returns inactive_tool before service execution when profile disallows a tool",
+            "profile_behavior": "live_read_allowed is for real research; offline_fixture_only and dry_run_default keep live-capable research tools discoverable but require fixture or dry_run at tools/call time",
         },
         "provenance": {
             "source": "local://keepa_cli.research_context.build_context_policy",

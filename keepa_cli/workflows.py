@@ -1,6 +1,6 @@
 """
 keepa_cli/workflows.py
-文件说明：提供 v1.0/v1.5 的离线优先本地工作流。
+文件说明：提供 v1.0/v1.5 的本地工作流与真实调研执行计划。
 主要职责：生成本地浏览快照、批处理计划、报告、模板、缓存解释和成本审计。
 依赖边界：不访问真实 Keepa API；调用方负责 envelope 与命令行解析。
 """
@@ -1278,6 +1278,7 @@ def build_report(
             data["output"] = write_json(out, content)
         else:
             data["output"] = write_text(out, str(content))
+        data["output"]["commit_boundary"] = "commit_ready_summary"
     else:
         data["content"] = content
     return data

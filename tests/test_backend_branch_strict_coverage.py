@@ -473,10 +473,13 @@ class BranchStrictCoverageTests(unittest.TestCase):
                     "risk_taxonomy": {"items": ["skip"], "codes": ["data_missing"], "highest_severity": "medium"},
                     "next_actions": ["skip"],
                     "agent_brief": {"recommended_next_actions": ["skip"]},
+                    "external_signal_stub": {"source": "web", "signal": "ad observed"},
                 }
             }
         )
         self.assertEqual(brief["risk_summary"]["by_code"]["data_missing"], 1)
+        self.assertEqual(brief["external_signal_stub"]["status"], "provided")
+        self.assertIn("ip_risk_inputs", brief["data_quality"]["missing"])
         action_brief = build_research_brief({"payload": {"next_actions": [{"tool": "a"}, {"tool": "b"}], "agent_brief": {"recommended_next_actions": [{"tool": "c"}]}}})
         self.assertTrue(action_brief["follow_up_plan"]["next_actions"])
         self.assertTrue(_payload_for_prepared_spec({"kind": "mcp_session", "steps": [{"method": "notifications/initialized"}]}, FIXTURES)["ok"])

@@ -10,7 +10,7 @@
   "assertions": [
     {"path": "ok", "equals": true},
     {"path": "payloads.0.data.view", "equals": "context_policy"},
-    {"path": "payloads.0.data.live_keepa.allowed_by_default", "equals": false},
+    {"path": "payloads.0.data.live_keepa.allowed_by_default", "equals": true},
     {"path": "payloads.0.data.tool_policy.supports_profile_gating", "equals": true},
     {"path": "payloads.1.data.primary.type", "equals": "asin"},
     {"path": "payloads.1.data.next_actions", "next_actions_executable": true},

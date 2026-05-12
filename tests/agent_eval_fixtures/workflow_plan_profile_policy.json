@@ -14,7 +14,7 @@
     {"path": "data.workflow_policy.recommended_toolset", "equals": "research"},
     {"path": "data.workflow_policy.recommended_profile", "equals": "dry_run_default"},
     {"path": "data.workflow_policy.confirmation_policy.step_ids", "contains": "fetch-category-products"},
-    {"path": "data.workflow_policy.inactive_tools.0.tool", "equals": "products_compare"},
+    {"path": "data.workflow_policy.inactive_tools", "length": 0},
     {"path": "data.workflow_policy.budget_ledger_seed.planned_estimated", "equals": 55},
     {"path": "data.steps.0.mcp.call.name", "equals": "categories_search"},
     {"path": "data.steps.2.execution.confirmation_params.yes", "equals": true},

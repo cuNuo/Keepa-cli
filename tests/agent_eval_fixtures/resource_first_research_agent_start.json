@@ -55,7 +55,7 @@
     {"path": "ok", "equals": true},
     {"path": "responses", "length": 5},
     {"path": "responses.0.result.contents.0.text.$json.view", "equals": "context_policy"},
-    {"path": "responses.0.result.contents.0.text.$json.live_keepa.allowed_by_default", "equals": false},
+    {"path": "responses.0.result.contents.0.text.$json.live_keepa.allowed_by_default", "equals": true},
     {"path": "responses.1.result.structuredContent.data.primary.type", "equals": "keyword"},
     {"path": "responses.2.result.contents.0.text.$json.view", "equals": "workflow_policy_resource"},
     {"path": "responses.2.result.contents.0.text.$json.workflow_inputs.term.value", "equals": "home kitchen"},

@@ -220,7 +220,7 @@ class BackendFinalCoverageTests(unittest.TestCase):
 
         tools = list_mcp_tools(toolsets="all", allow_tools=["products_get", "missing"], exclude_tools=["missing"], profile="offline_fixture_only")
         self.assertEqual([tool["name"] for tool in tools], ["products_get"])
-        self.assertFalse(tools[0]["x-keepa"]["active"])
+        self.assertTrue(tools[0]["x-keepa"]["active"])
         self.assertIsNotNone(get_tool_definition("products_get"))
         self.assertIsNone(get_tool_definition("missing"))
         self.assertIn("products_get", tool_names())

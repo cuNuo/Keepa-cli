@@ -314,7 +314,7 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertTrue(payload["data"]["totals"]["requires_confirmation"])
         self.assertEqual(payload["data"]["workflow_policy"]["recommended_toolset"], "research")
         self.assertEqual(payload["data"]["workflow_policy"]["recommended_profile"], "dry_run_default")
-        self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"][0]["tool"], "products_compare")
+        self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"], [])
         self.assertEqual(payload["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
         self.assertEqual(payload["data"]["workflow_policy"]["budget_ledger_seed"]["planned_estimated"], 55)
         self.assertEqual(

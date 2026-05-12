@@ -348,6 +348,7 @@ def categories_products(params: Mapping[str, Any], fixture_dir: Path | str | Non
             "requested": hydrate_top,
             "reason": "dry-run never hydrates products",
         }
+        data["official_cost_note"] = "Live categories.products uses Keepa /bestsellers. The official base cost is 50 tokens; limit only reduces returned/output candidates, not the /bestsellers base cost."
         data["research_graph"] = build_category_products_graph(category_id=category, candidates=[])
         data["next_actions"] = [
             build_action(
@@ -368,6 +369,32 @@ def categories_products(params: Mapping[str, Any], fixture_dir: Path | str | Non
                     estimated_tokens=50 + hydrate_top,
                 )
             )
+        data["alternative_actions"] = [
+            build_action(
+                tool="categories.finder-selection",
+                params={"category": category, "domain": "<DOMAIN>", "out": f"finder-category-{category}.json"},
+                cli=f"categories finder-selection {category} --domain <DOMAIN> --out finder-category-{category}.json",
+                reason="build a local Finder scaffold before deciding whether /bestsellers is worth 50 tokens",
+                estimated_tokens=0,
+                requires_confirmation=False,
+            ),
+            build_action(
+                tool="categories.search",
+                params={"term": "<TERM>", "domain": "<DOMAIN>"},
+                cli="categories search <TERM> --domain <DOMAIN>",
+                reason="verify category ids before spending the official /bestsellers cost",
+                estimated_tokens=1,
+                requires_confirmation=False,
+            ),
+            build_action(
+                tool="products.compare",
+                params={"asin": ["<ASIN1>", "<ASIN2>"], "domain": "<DOMAIN>", "full": True, "view": "deal"},
+                cli="products compare <ASIN1> <ASIN2> --domain <DOMAIN> --full --view deal",
+                reason="compare known candidate ASINs from web search or prior research without calling /bestsellers",
+                estimated_tokens=2,
+                requires_confirmation=False,
+            ),
+        ]
         attach_agent_profile(
             data,
             view="category_products",
@@ -378,13 +405,14 @@ def categories_products(params: Mapping[str, Any], fixture_dir: Path | str | Non
                 "limit": limit,
                 "research_graph_entities": data["research_graph"].get("entity_counts", {}),
             },
-            present=["request", "next_actions"],
+            present=["request", "next_actions", "official_cost_note"],
             missing=["asins"],
             selection_signals={"source": "bestsellers", "estimated_candidate_limit": limit},
             evidence={
                 "request": ("request", "audit", "Dry-run Keepa request specification."),
                 "research_graph": ("research_graph", "summary", "Category entity for the planned Best Sellers request."),
                 "next_actions": ("next_actions", "summary", "Structured follow-up actions."),
+                "alternative_actions": ("alternative_actions", "summary", "Lower-risk planning paths before a 50-token Best Sellers request."),
                 "hydration": ("hydration", "summary", "Hydration status and requested top-N count."),
             },
         )

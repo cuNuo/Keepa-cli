@@ -3945,6 +3945,34 @@
                   "items": {},
                   "type": "str"
                 },
+                "claim_risk_inputs": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
+                "external_signal_stub": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
                 "from_cache": {
                   "description": "str",
                   "type": "str"
@@ -3981,7 +4009,25 @@
                     }
                   ]
                 },
+                "ip_risk_inputs": {
+                  "description": "str",
+                  "oneOf": [
+                    {
+                      "type": "str"
+                    },
+                    {
+                      "items": {
+                        "type": "str"
+                      },
+                      "type": "str"
+                    }
+                  ]
+                },
                 "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out_dir": {
                   "description": "str",
                   "type": "str"
                 },
@@ -5390,6 +5436,10 @@
                   "type": "str"
                 },
                 "out": {
+                  "description": "str",
+                  "type": "str"
+                },
+                "out_dir": {
                   "description": "str",
                   "type": "str"
                 },
@@ -13802,13 +13852,32 @@
           "str",
           "str",
           "str",
+          "str",
+          "str",
+          "str",
           "str"
         ]
       },
       "brief": {
+        "claim_risk_inputs": {
+          "expected_inputs": [
+            "str",
+            "str",
+            "str",
+            "str",
+            "str"
+          ],
+          "item_count": "int",
+          "items": [],
+          "note": "str",
+          "status": "str"
+        },
         "data_quality": {
           "confidence": "str",
           "missing": [
+            "str",
+            "str",
+            "str",
             "str"
           ],
           "present": [
@@ -13899,6 +13968,19 @@
             "path": "str"
           }
         ],
+        "external_signal_stub": {
+          "expected_inputs": [
+            "str",
+            "str",
+            "str",
+            "str",
+            "str"
+          ],
+          "item_count": "int",
+          "items": [],
+          "note": "str",
+          "status": "str"
+        },
         "follow_up_plan": {
           "action_count": "int",
           "next_actions": [
@@ -13948,11 +14030,27 @@
             }
           ]
         },
+        "ip_risk_inputs": {
+          "expected_inputs": [
+            "str",
+            "str",
+            "str",
+            "str",
+            "str"
+          ],
+          "item_count": "int",
+          "items": [],
+          "note": "str",
+          "status": "str"
+        },
         "provenance": {
           "network": "bool",
           "source": "str"
         },
         "recommended_read_order": [
+          "str",
+          "str",
+          "str",
           "str",
           "str",
           "str",
@@ -13973,6 +14071,9 @@
       "data_quality": {
         "confidence": "str",
         "missing": [
+          "str",
+          "str",
+          "str",
           "str"
         ],
         "present": [
@@ -13988,12 +14089,27 @@
           "path": "str",
           "section": "str"
         },
+        "claim_risk_inputs": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        },
         "decision_summary": {
           "note": "str",
           "path": "str",
           "section": "str"
         },
+        "external_signal_stub": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        },
         "follow_up_plan": {
+          "note": "str",
+          "path": "str",
+          "section": "str"
+        },
+        "ip_risk_inputs": {
           "note": "str",
           "path": "str",
           "section": "str"
@@ -15578,6 +15694,7 @@
         "allowed_tools": [
           "str",
           "str",
+          "str",
           "str"
         ],
         "available_profiles": [
@@ -15613,15 +15730,7 @@
             "str"
           ]
         },
-        "inactive_tools": [
-          {
-            "profile": "str",
-            "reason": "str",
-            "recommended_profile": "str",
-            "step_id": "str",
-            "tool": "str"
-          }
-        ],
+        "inactive_tools": [],
         "planning_profile": "str",
         "profile_switch_points": [
           {
@@ -15637,11 +15746,6 @@
             "profile": "str",
             "reason": "str",
             "requires_confirmation": "bool"
-          },
-          {
-            "before_step": "str",
-            "profile": "str",
-            "reason": "str"
           }
         ],
         "recommended_profile": "str",

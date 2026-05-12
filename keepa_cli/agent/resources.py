@@ -96,7 +96,7 @@ STATIC_RESOURCES: tuple[dict[str, str], ...] = (
     {
         "uri": "keepa://context/policy",
         "name": "context-policy",
-        "description": "Offline-first Agent policy, allowed roots, tool gating hints, and live Keepa safety status.",
+        "description": "Agent policy, allowed roots, profile gating hints, and live Keepa safety status.",
         "mimeType": "application/json",
     },
     {
@@ -355,14 +355,64 @@ def build_resource_manifest(payload: Mapping[str, Any]) -> dict[str, Any] | None
 
 def compact_payload_for_mcp(payload: Mapping[str, Any]) -> dict[str, Any]:
     manifest = build_resource_manifest(payload)
-    if manifest is None:
+    session_manifest = _session_cache_manifest(payload)
+    should_compact_data = manifest is not None or str(payload.get("command") or "") == "products.compare"
+    if manifest is None and session_manifest is None and not should_compact_data:
         return copy.deepcopy(dict(payload))
     compact = copy.deepcopy(dict(payload))
-    compact["mcp_resource_manifest"] = manifest
+    merged_manifest = _merge_resource_manifests(manifest, session_manifest)
+    if merged_manifest is not None:
+        compact["mcp_resource_manifest"] = merged_manifest
     data = compact.get("data")
-    if isinstance(data, Mapping):
+    if should_compact_data and isinstance(data, Mapping):
         compact["data"] = _compact_data_for_mcp(data)
     return compact
+
+
+def _session_cache_manifest(payload: Mapping[str, Any]) -> dict[str, Any] | None:
+    if str(payload.get("command") or "") != "products.compare":
+        return None
+    cache_key = str(payload.get("cache_key") or "").strip()
+    if not cache_key:
+        return None
+    return {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "strategy": "decision_summary_with_session_resource",
+        "resource_count": 1,
+        "resources": [
+            {
+                "uri": f"keepa://research/b64:{_base64url_encode(cache_key)}",
+                "name": "full-products-compare-session-result",
+                "type": "session_cache",
+                "mimeType": "application/json",
+                "json_path": "$",
+                "description": "Explicitly read this resource in the same MCP session for full rows, research_graph, and history_points.",
+            }
+        ],
+    }
+
+
+def _merge_resource_manifests(*manifests: dict[str, Any] | None) -> dict[str, Any] | None:
+    resources: list[dict[str, Any]] = []
+    for manifest in manifests:
+        if not isinstance(manifest, Mapping):
+            continue
+        for resource in manifest.get("resources") or []:
+            if isinstance(resource, Mapping):
+                resources.append(copy.deepcopy(dict(resource)))
+    if not resources:
+        return None
+    deduped: dict[str, dict[str, Any]] = {}
+    for resource in resources:
+        marker = str(resource.get("uri") or resource.get("path") or resource)
+        deduped[marker] = resource
+    ordered = sorted(deduped.values(), key=lambda item: (str(item.get("type") or ""), str(item.get("name") or ""), str(item.get("uri") or "")))
+    return {
+        "schema_version": RESOURCE_SCHEMA_VERSION,
+        "strategy": "summary_with_resource_refs",
+        "resource_count": len(ordered),
+        "resources": ordered,
+    }
 
 
 def path_to_resource_uri(path: Path | str, *, kind: str = "chunk") -> str:
@@ -533,12 +583,14 @@ def _research_cache_payload(
             "command": cached.get("command"),
             "cache_hit": cached.get("cache_hit", False),
             "budget_ledger": copy.deepcopy(cached.get("budget_ledger", {})),
+            "payload": copy.deepcopy(cached),
             "agent_brief": copy.deepcopy(data.get("agent_brief")) if isinstance(data, Mapping) else None,
             "data_quality": copy.deepcopy(data.get("data_quality")) if isinstance(data, Mapping) else None,
             "evidence_index": copy.deepcopy(data.get("evidence_index")) if isinstance(data, Mapping) else None,
             "provenance": copy.deepcopy(data.get("provenance")) if isinstance(data, Mapping) else None,
             "research_graph_count": len(graphs),
             "research_graphs": [_graph_audit_item(graph, source="session_cache", source_ref=cache_key) for graph in graphs],
+            "recommended_read_order": ["payload.data.rows", "payload.data.research_graph", "payload.data.products", "budget_ledger"],
         }
     )
     return payload
@@ -917,6 +969,7 @@ def _compact_data_for_mcp(data: Mapping[str, Any]) -> dict[str, Any]:
         "evidence_index",
         "provenance",
         "next_actions",
+        "workflow_resolution",
     }
     compact: dict[str, Any] = {key: copy.deepcopy(value) for key, value in data.items() if key in keep_keys}
     graph = data.get("research_graph") or data.get("graph")
@@ -963,8 +1016,30 @@ def _compact_product(product: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _compact_compare_row(row: Mapping[str, Any]) -> dict[str, Any]:
-    keys = ("asin", "title", "brand", "new_price", "buy_box_price", "sales_rank", "monthly_sold", "rating", "review_count", "risk_flags")
+    keys = (
+        "asin",
+        "title",
+        "brand",
+        "new_price",
+        "buy_box_price",
+        "sales_rank",
+        "monthly_sold",
+        "rating",
+        "review_count",
+        "total_offer_count",
+        "video_count",
+        "aplus_available",
+        "risk_flags",
+        "next_actions",
+    )
     result = {key: copy.deepcopy(row[key]) for key in keys if key in row}
+    signals = row.get("selection_signals")
+    if isinstance(signals, Mapping):
+        result["selection_signals"] = {
+            key: copy.deepcopy(signals[key])
+            for key in ("demand", "competition", "content_quality", "price_stability")
+            if key in signals
+        }
     taxonomy = row.get("risk_taxonomy")
     if isinstance(taxonomy, Mapping):
         result["risk_taxonomy"] = {

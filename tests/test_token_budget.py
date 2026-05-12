@@ -104,8 +104,10 @@ class TokenBudgetTests(unittest.TestCase):
 
         self.assertEqual(guidance["wait_strategy"], "check_tokens_status")
         self.assertEqual(guidance["status_command"], "tokens.status")
+        self.assertIn("official_bestsellers_cost_50_tokens", guidance["hints"])
         self.assertIn("set_hydrate_top_zero", guidance["hints"])
         self.assertEqual(guidance["next_actions"][1]["action"], "retry_when_tokens_available")
+        self.assertEqual(guidance["alternative_actions"][0]["action"], "confirm_live_bestsellers")
 
 
 if __name__ == "__main__":

@@ -50,6 +50,17 @@ RAW_AGENT_START_TOOLS = (
     "categories_search",
     "finder_query",
 )
+FIXTURE_OR_DRY_RUN_PROFILES = {"offline_fixture_only", "dry_run_default"}
+LIVE_CAPABLE_SAFE_READ_TOOLS = {
+    "products_get",
+    "products_compare",
+    "categories_search",
+    "categories_products",
+    "finder_query",
+    "deals_query",
+    "bestsellers_get",
+    "topsellers_list",
+}
 
 
 def _jsonrpc_result(message_id: Any, result: Mapping[str, Any]) -> dict[str, Any]:
@@ -217,13 +228,24 @@ def _tool_name_filter(value: Any) -> list[str] | None:
 
 def _tool_result(payload: dict[str, Any]) -> dict[str, Any]:
     content_payload = compact_payload_for_mcp(payload)
+    structured_payload = content_payload if str(payload.get("command") or "") == "products.compare" else payload
     content = [{"type": "text", "text": _json_text(content_payload)}]
     content.extend(_resource_link_content_items(content_payload))
     return {
-        "structuredContent": payload,
+        "structuredContent": structured_payload,
         "content": content,
         "isError": not bool(payload.get("ok")),
     }
+
+
+def _has_fixture_or_dry_run(arguments: Mapping[str, Any]) -> bool:
+    if arguments.get("fixture"):
+        return True
+    return bool(arguments.get("dry_run") or arguments.get("dry-run"))
+
+
+def _profile_requires_fixture_or_dry_run(tool_name: str, profile: str, arguments: Mapping[str, Any]) -> bool:
+    return profile in FIXTURE_OR_DRY_RUN_PROFILES and tool_name in LIVE_CAPABLE_SAFE_READ_TOOLS and not _has_fixture_or_dry_run(arguments)
 
 
 def _initialize_result() -> dict[str, Any]:
@@ -443,6 +465,34 @@ class MCPProtocolCore:
                     kind="inactive_tool",
                     message=f"tool {tool.name} is inactive for profile {profile}",
                     details={"tool": tool.name, "profile": profile, "available_profiles": profile_names()},
+                    session=active_session,
+                ),
+            )
+        if profile and _profile_requires_fixture_or_dry_run(tool.name, profile, arguments):
+            return self.jsonrpc_result(
+                message_id,
+                self.tool_error_result(
+                    tool=tool,
+                    kind="profile_requires_fixture_or_dry_run",
+                    message=f"profile {profile} requires fixture or dry_run for tool {tool.name}",
+                    details={
+                        "tool": tool.name,
+                        "profile": profile,
+                        "allowed_safe_params": ["fixture", "dry_run"],
+                        "live_profile": "live_read_allowed",
+                        "next_actions": [
+                            {
+                                "action": "test_or_budget_preview",
+                                "params": {"fixture": "<fixture.json>"},
+                                "alternative_params": {"dry_run": True},
+                            },
+                            {
+                                "action": "real_research",
+                                "profile": "live_read_allowed",
+                                "requires": "KEEPA_API_KEY and normal command confirmation rules for high-cost requests",
+                            },
+                        ],
+                    },
                     session=active_session,
                 ),
             )

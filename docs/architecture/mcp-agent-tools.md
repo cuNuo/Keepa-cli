@@ -74,7 +74,7 @@ keepa_cli/
 | `research_brief_export` | `research_brief.export` | 从 merged graph 或多份 Agent payload 导出调研 brief | 低，本地计算 |
 | `docs_index` | `docs.index` | 列出 zread/schema/evidence/fixture 文档资源 | 低，本地读取 |
 | `docs_read` | `docs.read` | 按 URI 或 zread 页面 slug 读取文档资源 | 低，本地读取 |
-| `context_policy` | `context.policy` | 读取 offline-first policy、roots、tool gating 与 live Keepa 安全状态 | 低，本地计算 |
+| `context_policy` | `context.policy` | 读取 profile policy、roots、tool gating 与 live Keepa 安全状态 | 低，本地计算 |
 | `resolve_research_target` | `research.target.resolve` | 将模糊输入解析为 ASIN、类目、seller、fixture、evidence 或关键词候选 | 低，本地计算 |
 | `query_research_context` | `research.context.query` | 基于目标列出本地 schema、fixture、evidence、zread、cache 资源 | 低，本地计算 |
 
@@ -89,9 +89,9 @@ keepa_cli/
 
 未知 toolset 会返回 JSON-RPC `Invalid toolset`，不静默回退。tracking 写操作仍不暴露给 MCP。
 
-`tools/list.params.allow_tools` 与 `tools/list.params.exclude_tools` 可进一步收窄单次发现面。`tools/list.params.profile` 支持 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`；被 profile 禁用的工具会在 `x-keepa.active=false` 标注，若仍被调用则在 service 执行前返回结构化 `inactive_tool`。调研 Agent 建议先只暴露 `context_policy`、`resolve_research_target`、`query_research_context`、`workflow_plan`，确认目标和预算后再放开具体产品、类目、deals 或 seller 工具。
+`tools/list.params.allow_tools` 与 `tools/list.params.exclude_tools` 可进一步收窄单次发现面。`tools/list.params.profile` 支持 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`；真实调研使用 `live_read_allowed`。`offline_fixture_only` 与 `dry_run_default` 下，产品、类目、Finder、Deals、榜单等研究工具仍可发现，但 `tools/call` 必须传 `fixture` 或 `dry_run`，否则返回结构化 `profile_requires_fixture_or_dry_run`。调研 Agent 建议先只暴露 `context_policy`、`resolve_research_target`、`query_research_context`、`workflow_plan`，确认目标和预算后再放开具体产品、类目、deals 或 seller 工具。
 
-`tools/list.params.profile` 可把调研阶段显式传给 MCP server。当前 profile 包括 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。返回的每个 tool 都带 `x-keepa.active` 与 `x-keepa.inactive_reason`；客户端若继续用同一 `profile` 调用 inactive tool，`tools/call` 会返回结构化 `inactive_tool`，不会进入 service 执行层。这样 Agent 可以在离线发现、dry-run 规划、live read、tracking 只读和 fixture 整理阶段共享同一套工具目录，但把当前阶段不该用的能力显式标成不可用。
+`tools/list.params.profile` 可把调研阶段显式传给 MCP server。当前 profile 包括 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。返回的每个 tool 都带 `x-keepa.active` 与 `x-keepa.inactive_reason`；客户端若继续用同一 `profile` 调用 inactive tool，`tools/call` 会返回结构化 `inactive_tool`，不会进入 service 执行层。这样 Agent 可以在 fixture/dry-run 测试、真实 live read、tracking 只读和 fixture 整理阶段共享同一套工具目录，同时用执行前 guard 阻断安全 profile 下的真实请求。
 
 ## Tool 命名与参数策略
 
@@ -185,7 +185,7 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 | `keepa://fixtures/manifest` | `evidence/manifest.csv` | 查 fixture/evidence 是否已有离线样本 |
 | `keepa://guides/cassette-promotion` | 内置 cassette promote 指南 | live 响应脱敏提升与 parity 验证流程 |
 | `keepa://evidence/recent` | 最近 evidence 摘要 JSON | 快速了解近期验证与变更 |
-| `keepa://context/policy` | offline-first policy、roots、tool gating、live Keepa 状态 | 调研 Agent 的第一读取入口 |
+| `keepa://context/policy` | profile policy、roots、tool gating、live Keepa 状态 | 调研 Agent 的第一读取入口 |
 | `keepa://tools/index` | toolset 与 tool schema 索引 | 先发现工具，再按需读取单个 schema |
 | `keepa://prompts/index` | prompt 索引 | 发现可复用 Agent 起手式 |
 | `keepa://zread/wiki/current` | 当前 zread 版本与公开文档链接 | Agent 项目上手入口 |

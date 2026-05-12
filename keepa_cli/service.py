@@ -583,16 +583,29 @@ def _research_brief_export(params: Mapping[str, Any]) -> dict[str, Any]:
             "decision_summary": {"path": "brief.decision_summary", "section": "summary", "note": "Compact decision facts."},
             "risk_summary": {"path": "brief.risk_summary", "section": "summary", "note": "Deduplicated risk codes and severities."},
             "follow_up_plan": {"path": "brief.follow_up_plan", "section": "summary", "note": "Executable follow-up actions when present."},
+            "external_signal_stub": {"path": "brief.external_signal_stub", "section": "summary", "note": "External ad/media/search evidence slot; Keepa does not collect it."},
+            "ip_risk_inputs": {"path": "brief.ip_risk_inputs", "section": "summary", "note": "Patent/IP/FTO evidence slot for external review inputs."},
+            "claim_risk_inputs": {"path": "brief.claim_risk_inputs", "section": "summary", "note": "Claim and compliance evidence slot for external review inputs."},
         },
         "provenance": brief["provenance"],
     }
     out = _param(params, "out", "output")
+    out_dir = _param(params, "out_dir", "out-dir")
+    if not out and out_dir:
+        output_dir = Path(str(out_dir))
+        output_dir.mkdir(parents=True, exist_ok=True)
+        out = str(output_dir / f"{brief['id']}.brief.json")
     if out:
         output_path = Path(str(out))
         if output_path.parent != Path("."):
             output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(brief, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        data["output"] = {"path": str(output_path), "format": "json", "size_bytes": output_path.stat().st_size}
+        data["output"] = {
+            "path": str(output_path),
+            "format": "json",
+            "size_bytes": output_path.stat().st_size,
+            "commit_boundary": "commit_ready_summary",
+        }
     return success_envelope(
         command="research_brief.export",
         data=data,

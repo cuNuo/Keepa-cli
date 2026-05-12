@@ -50,8 +50,8 @@ class ServiceCommandTests(unittest.TestCase):
     def test_research_context_policy_and_resolution_are_local(self):
         policy = run_command("context.policy", env={})
         self.assertTrue(policy["ok"])
-        self.assertEqual(policy["data"]["mode"], "offline_first")
-        self.assertFalse(policy["data"]["live_keepa"]["allowed_by_default"])
+        self.assertEqual(policy["data"]["mode"], "live_read_allowed_for_real_research")
+        self.assertTrue(policy["data"]["live_keepa"]["allowed_by_default"])
         self.assertIn("evidence/runtime-logs/", policy["data"]["roots"]["never_commit"])
 
         resolved = run_command("research.target.resolve", {"query": "B001GZ6QEC", "domain": "US"}, env={})

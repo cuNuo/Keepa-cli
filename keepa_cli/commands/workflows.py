@@ -8,6 +8,7 @@ keepa_cli/commands/workflows.py
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any
 
 from keepa_cli.envelope import success_envelope
@@ -71,10 +72,17 @@ def handle_workflow_command(command: str, params: Mapping[str, Any]) -> dict[str
     elif command == "templates.show":
         data = show_template(str(_param(params, "name", default="")), _param(params, "out", "output"))
     elif command == "reports.build":
+        report_out = _param(params, "out", "output")
+        report_out_dir = _param(params, "out_dir", "out-dir")
+        if not report_out and report_out_dir:
+            extension = {"markdown": "md", "json": "json", "csv": "csv"}.get(str(_param(params, "format", default="markdown")).lower(), "md")
+            out_dir_path = Path(str(report_out_dir))
+            out_dir_path.mkdir(parents=True, exist_ok=True)
+            report_out = str(out_dir_path / f"keepa-report.{extension}")
         data = build_report(
             input_path=str(_param(params, "input", "input_path", default="")),
             output_format=str(_param(params, "format", default="markdown")),
-            out=_param(params, "out", "output"),
+            out=report_out,
             title=str(_param(params, "title", default="Keepa Report")),
             figure=_param(params, "figure"),
             figures_dir=_param(params, "figures_dir", "figures-dir"),

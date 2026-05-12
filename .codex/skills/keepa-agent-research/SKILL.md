@@ -9,7 +9,7 @@ Use this skill for Agent-first Amazon product research with the local `kc` / `ke
 
 ## Start Safe
 
-Prefer fixture, dry-run, or MCP session cache before any live Keepa request:
+Use fixture, dry-run, or MCP session cache for development, regression tests, and budget previews. For real research, use live reads with `profile=live_read_allowed` and the normal high-cost confirmation rules:
 
 ```powershell
 kc --json doctor
@@ -54,7 +54,7 @@ With MCP, call structured tools instead of CLI strings:
 - `keepa.research_brief_export`
 - `keepa.figures_research`
 
-Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse/SVG figure builders, and `tracking-readonly` only for read-only tracking state. Add `profile=offline_fixture_only` or `profile=dry_run_default` during early research; inactive tools include `x-keepa.active=false`, and `tools/call` returns `inactive_tool` before service execution when a profile disallows a tool.
+Use `tools/list` with `toolset=research` by default. Switch to `audit` for `keepa.audit_cost` and cassette tools, `reports` for local report/browse/SVG figure builders, and `tracking-readonly` only for read-only tracking state. Add `profile=live_read_allowed` for real research. Use `profile=offline_fixture_only` or `profile=dry_run_default` only for testing and budget previews; live-capable research tools remain discoverable but `tools/call` must pass `fixture` or `dry_run`, otherwise it returns `profile_requires_fixture_or_dry_run`. Tools outside a profile still return `inactive_tool`.
 
 Use `resources/list` before loading long docs. Stable resources are `keepa://context/policy`, `keepa://schema/products-agent-view`, `keepa://schema/risk-taxonomy`, `keepa://schema/workflow-runtime-contract`, `keepa://fixtures/manifest`, `keepa://guides/cassette-promotion`, `keepa://evidence/recent`, and `keepa://workflow/runtime-contract`. Use `resources/templates/list` to discover `keepa://schema/{name}`, `keepa://fixtures/{name}`, `keepa://workflow/{encoded_params}/policy`, `keepa://research/{cache_key}`, `keepa://research/{cache_key}/brief`, `keepa://research/{cache_key}/graph`, `keepa://research/{cache_key}/figures`, `keepa://research/{cache_key}/figures/{figure_set}`, `keepa://graphs/{root}`, `keepa://chunk/{encoded_path}`, and `keepa://output/{encoded_path}`. Use `keepa://schema/risk-taxonomy` to validate risk codes, severity, and evidence paths, `keepa://workflow/runtime-contract` to discover resolver-enabled tools and follow its `schema_resource_uri` for validation, `keepa://workflow/{encoded_params}/policy` to read compact workflow execution policy from base64url JSON workflow params, `keepa://research/{cache_key}` to audit same-session cached results, `keepa://research/{cache_key}/brief` to reload an exported brief, `keepa://research/{cache_key}/figures` to generate all SVG figure resources from cached research, `keepa://research/{cache_key}/figures/history|compare|audit` to generate only the chart group needed by the current report step, and `keepa://graphs/{root}` to audit graph sources before writing conclusions. For tool results with `mcp_resource_manifest`, load `keepa://chunk/...` or `keepa://output/...` only when the summary is insufficient.
 
@@ -68,7 +68,7 @@ For a general research Agent, start with policy and target resolution before any
 4. Only then call `keepa.workflow_plan` and execute the minimum required research tools.
 5. Merge graph-bearing outputs with `keepa.research_graph_merge`, then export the final Agent handoff with `keepa.research_brief_export`.
 
-`tools/list` supports `allow_tools`, `exclude_tools`, and `profile`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery. Prefer `profile=offline_fixture_only` before live research; inactive tools are marked in discovery and return `inactive_tool` before service execution if called.
+`tools/list` supports `allow_tools`, `exclude_tools`, and `profile`. Use these filters to expose only the current workflow's tools when the client allows filtered tool discovery. Use `profile=live_read_allowed` for real research; use `offline_fixture_only` only when fixture/dry-run execution is mandatory.
 
 After `keepa.workflow_plan`, read `workflow_inputs`, `artifacts`, `resource_templates`, and `workflow_policy` before running steps. Supported plans are `category-research`, `product-research`, `report-research`, and `tracking-audit`. Use `workflow_policy.tool_discovery.params` for the next `tools/list`, start with the recommended profile, follow `profile_switch_points`, connect steps with `input_refs` / `artifact_refs`, and only add `yes=true` for a confirmation step after the user approves that exact step. Reuse `cache_key` or `from_cache` according to `workflow_policy.cache_policy` before repeating a request. Use `report-research` for local graph/report/brief/browse handoff, and `tracking-audit` only for read-only tracking inspection.
 
@@ -109,7 +109,7 @@ For large outputs, prefer `--view summary`, `--fields`, or `--chunks-dir` instea
 
 After category discovery, compare, and seller/deals steps, merge graphs with `research_graph.merge` / `keepa.research_graph_merge` so downstream reports and memory read one deduplicated `category -> product -> seller/deal` graph. Read `summary.diagnostics` first; duplicate/orphan/conflict counts indicate whether the Agent should inspect full graph sources before writing conclusions.
 
-Use `research_brief.export` / `keepa.research_brief_export` after graph merge or multi-payload research. The brief gives downstream research Agents a stable `decision_summary`, `risk_summary`, `entity_graph_summary`, `follow_up_plan`, `evidence_links`, and `recommended_read_order` without rereading every raw payload.
+Use `research_brief.export` / `keepa.research_brief_export` after graph merge or multi-payload research. The brief gives downstream research Agents a stable `decision_summary`, `risk_summary`, `entity_graph_summary`, `follow_up_plan`, `evidence_links`, `external_signal_stub`, `ip_risk_inputs`, `claim_risk_inputs`, and `recommended_read_order` without rereading every raw payload. Keepa does not directly search external ads or patents; merge web/Exa/manual FTO evidence into those slots. For reports, pass `out_dir` when a workflow needs a commit-ready summary directory and keep raw runtime files out of commits.
 
 Use `reports.build` on the merged graph JSON when a human-readable or downstream relationship report is needed. Markdown includes embedded SVG figures plus entity and relationship tables; JSON includes `figures` and `research_graph_report`. Use `figure_set=history|compare|audit` / `--figure-set history|compare|audit` when the Agent needs a focused report section instead of every chart, and pass `no_figures=true` / `--no-figures` only when the downstream renderer cannot handle images.
 

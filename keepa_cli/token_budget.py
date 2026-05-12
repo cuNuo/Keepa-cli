@@ -88,7 +88,14 @@ def _guidance_hints(command: str) -> list[str]:
     if normalized in {"products.get", "product.get", "products.compare"}:
         hints.extend(["split_asins", "reduce_offers", "avoid_update_zero_until_refilled"])
     elif normalized in {"categories.products", "category.products"}:
-        hints.extend(["set_hydrate_top_zero", "split_category_research_steps"])
+        hints.extend(
+            [
+                "official_bestsellers_cost_50_tokens",
+                "limit_reduces_output_not_bestsellers_base_cost",
+                "set_hydrate_top_zero",
+                "split_category_research_steps",
+            ]
+        )
     elif normalized in {"finder.query", "query"}:
         hints.append("lower_max_tokens")
     elif normalized.startswith("tracking."):
@@ -147,6 +154,31 @@ def build_token_refill_guidance(
     if wait_seconds is not None:
         guidance["retry_after_seconds"] = wait_seconds
         guidance["next_actions"][1]["wait_seconds"] = wait_seconds
+    if command.lower() in {"categories.products", "category.products"}:
+        guidance["official_cost_note"] = "categories.products uses Keepa /bestsellers; the official base cost is 50 tokens and is not reduced by limit."
+        guidance["alternative_actions"] = [
+            {
+                "action": "confirm_live_bestsellers",
+                "tool": "categories_products",
+                "params": {"yes": True, "hydrate_top": 0},
+                "cost_note": "Proceed when the 50-token /bestsellers cost is acceptable.",
+            },
+            {
+                "action": "build_local_finder_scaffold",
+                "tool": "categories_finder_selection",
+                "cost_note": "Local scaffold; no Keepa token cost.",
+            },
+            {
+                "action": "search_categories_first",
+                "tool": "categories_search",
+                "cost_note": "Use when the category id is uncertain before spending /bestsellers tokens.",
+            },
+            {
+                "action": "compare_known_asins",
+                "tool": "products_compare",
+                "cost_note": "Use when candidate ASINs are already known from web search or prior research.",
+            },
+        ]
     return guidance
 
 

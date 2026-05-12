@@ -226,7 +226,7 @@ MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。工具 schem
 
 同一 MCP/stdin 会话内会自动缓存成功响应。重复的 command+params 会返回 `cache_hit=true`，也可以用 `from_cache` 显式复用 `cache_key`。该层是进程内 Agent session cache，用于一次长会话内去重。
 
-`tools/list` 支持 `profile` 参数：`offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。返回的 tool schema 会在 `x-keepa.active` 标明当前 profile 是否允许该工具；`tools/call` 参数也可带同一 `profile`，若工具不允许，会返回 `isError=true` 且 `structuredContent.error.kind=inactive_tool`，并在执行 service 前停止。工具参数校验失败同样作为 `tools/call` 工具结果返回，`structuredContent.error.kind=invalid_arguments` 会附 `errors` 与下一步建议；未知 tool name、未知 toolset/profile、非法 cursor 仍属于 JSON-RPC 参数错误。
+`tools/list` 支持 `profile` 参数：`offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。真实调研默认使用 `live_read_allowed`；`offline_fixture_only` 与 `dry_run_default` 只用于测试开发、回归验证和预算预估。返回的 tool schema 会在 `x-keepa.active` 标明当前 profile 是否允许该工具；产品、类目、Finder、Deals、榜单等研究工具在安全 profile 下仍可发现，但 `tools/call` 必须带 `fixture` 或 `dry_run`，否则返回 `structuredContent.error.kind=profile_requires_fixture_or_dry_run` 并提示切换到 `live_read_allowed`。若工具本身不属于 profile 允许范围，则返回 `inactive_tool` 并在执行 service 前停止。工具参数校验失败同样作为 `tools/call` 工具结果返回，`structuredContent.error.kind=invalid_arguments` 会附 `errors` 与下一步建议；未知 tool name、未知 toolset/profile、非法 cursor 仍属于 JSON-RPC 参数错误。
 
 live GET JSON 响应另有 SQLite 持久缓存，默认路径来自平台缓存目录，可用 `KEEPA_CLI_CACHE_PATH` 或 `cache stats --cache-path <path>` 覆盖审计路径。TTL 默认读取配置里的 `cache_ttl_seconds`，也可用可缓存 live 命令的 `--cache-ttl <seconds>` 或 service 参数 `cache_ttl/cache_ttl_seconds` 显式覆盖；`--no-cache`、service 参数 `no_cache=true` 或 `KEEPA_CLI_NO_CACHE=1` 会禁用 live response cache。dry-run、fixture、binary、POST 与禁用缓存的请求不写入持久缓存。`cache explain-key --endpoint /product --param domain=1 --param asin=B001GZ6QEC` 可让 Agent 从 method、endpoint 与脱敏请求参数反查确定性的 SQLite cache key；`cache inspect <cache_key>` 只返回单条 key 元数据，不输出 cached body；`cache prune-expired --dry-run` / `cache prune-expired` 只统计或清理已过期条目。`cache stats` / `cache clear --dry-run` 只作用于 SQLite response cache，不删除 `tests/fixtures` 或进程内 session cache。release gate 会运行 `scripts/check_live_cache_options.py`，防止新增可缓存 live CLI 命令漏掉 `--cache-ttl` / `--no-cache`。
 
@@ -245,7 +245,7 @@ MCP resources 用于暴露稳定参考资料，避免把文档塞进 `tools/list
 - `keepa://guides/marketplaces`：Keepa marketplace/domain code 与 Amazon host 对照手册。
 - `keepa://guides/agent-profile`：Agent MCP 客户端配置片段、toolset/profile 选择与 business alias 入口。
 - `keepa://evidence/recent`：最近 evidence 摘要。
-- `keepa://context/policy`：offline-first policy、roots、tool gating 与 live Keepa 安全状态。
+- `keepa://context/policy`：profile policy、roots、tool gating 与 live Keepa 安全状态。
 - `keepa://tools/index`：MCP toolset 与 tool schema 索引，适合先发现再按需读取。
 - `keepa://prompts/index`：MCP prompt 索引。
 - `keepa://zread/wiki/current`：当前 zread wiki 版本、公开文档链接和本地浏览命令。
@@ -391,7 +391,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json research brief .\research-graph.json --title "Agent selection brief" --out .\brief.json
 ```
 
-`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 与 `recommended_read_order`。MCP 对应工具为 `research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
+`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`external_signal_stub`、`ip_risk_inputs`、`claim_risk_inputs`、`data_quality` 与 `recommended_read_order`。外部广告、媒体、专利/FTO、宣称合规证据由调用方通过这些 slot 合并，Keepa MCP 不直接联网检索这些证据。MCP 对应工具为 `research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
 
 `reports.build` 可直接消费 `research_graph.merge --out` 写出的 merged graph JSON。Markdown 输出会追加 `Research Graph`、`Entities` 和 `Relationships` 小节；JSON 输出会增加 `research_graph_report`，包含 summary、entity_counts、nodes、edges、sources、diagnostics 与 diff。这样 Agent 可以把图谱合并和报告生成分成两步，并用 `keepa://graphs/{root}` 或 `keepa://research/{cache_key}` 回查来源。
 
@@ -405,7 +405,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json categories products 172282 --domain US --limit 25 --hydrate-top 3 --yes
 ```
 
-`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`，并在成功响应中派生 `view=category_search`、`category_candidates` 与结构化 `next_actions`，引导 Agent 先 dry-run `categories products` 或生成 Finder selection 草稿。`categories.finder-selection` 是纯本地 scaffold 命令，不访问 Keepa，不消耗 token，会输出 `view=finder_selection_scaffold`、`selection`、`field_notes` 与可选 `output.path`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。`--hydrate-top N` 默认关闭，显式开启后只拉取前 N 个候选的 `products.get --full --agent-view --view summary` 摘要，并在预算中追加 `hydrate_top=N` token 组件。category、finder、deals、seller、bestsellers 与 topsellers 的 Agent-facing 响应会尽量提供统一 profile：`agent_brief`、`data_quality`、`selection_signals`、`next_actions`、`evidence_index`、`provenance`。
+`categories.get` 按官方 Category Lookup 映射到 `/category`，支持最多 10 个 category id，`0` 表示 root categories。`categories.search` 映射到 `/search` 并设置 `type=category`，并在成功响应中派生 `view=category_search`、`category_candidates` 与结构化 `next_actions`，引导 Agent 先 dry-run `categories products` 或生成 Finder selection 草稿。`categories.finder-selection` 是纯本地 scaffold 命令，不访问 Keepa，不消耗 token，会输出 `view=finder_selection_scaffold`、`selection`、`field_notes` 与可选 `output.path`。`categories.products` 是 Agent 友好的类目商品候选入口，底层复用 `/bestsellers`，返回 `view=category_products`、候选 ASIN、rank、source category 与下一步 `products compare` / `products get --agent-view` 命令；真实请求与 `bestsellers.get` 一样属于 50 token 高成本路径，默认需要 `--yes`。`limit` 只减少返回和后续处理数量，不降低 `/bestsellers` 官方基础成本；替代路径是先跑 `categories.finder-selection`、`categories.search`，或对已知 ASIN 直接 `products.compare`。`--hydrate-top N` 默认关闭，显式开启后只拉取前 N 个候选的 `products.get --full --agent-view --view summary` 摘要，并在预算中追加 `hydrate_top=N` token 组件。category、finder、deals、seller、bestsellers 与 topsellers 的 Agent-facing 响应会尽量提供统一 profile：`agent_brief`、`data_quality`、`selection_signals`、`next_actions`、`evidence_index`、`provenance`。
 
 ### workflow plan
 

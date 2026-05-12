@@ -96,7 +96,7 @@ def _welcome(env: Mapping[str, str] | None) -> list[str]:
         ],
         [
             "Schema    2026-05-09.1",
-            "Mode      offline-first",
+            "Mode      live-aware",
             "Safety    no live token use by default",
         ],
     )

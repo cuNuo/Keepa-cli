@@ -360,8 +360,9 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("offline_fixture_only", response["result"]["available_profiles"])
         self.assertTrue(tools["context_policy"]["x-keepa"]["active"])
         self.assertTrue(tools["find_fast_movers"]["x-keepa"]["active"])
-        self.assertFalse(tools["products_get"]["x-keepa"]["active"])
-        self.assertIn("inactive_tool", tools["products_get"]["x-keepa"]["inactive_reason"])
+        self.assertTrue(tools["products_get"]["x-keepa"]["active"])
+        self.assertTrue(tools["products_compare"]["x-keepa"]["active"])
+        self.assertTrue(tools["categories_products"]["x-keepa"]["active"])
 
     def test_tools_list_rejects_unknown_profile(self):
         response = handle_mcp_message(
@@ -373,7 +374,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(response["error"]["message"], "Invalid profile")
         self.assertIn("offline_fixture_only", response["error"]["data"]["available_profiles"])
 
-    def test_tools_call_inactive_profile_returns_structured_error(self):
+    def test_tools_call_offline_profile_allows_fixture_product_research(self):
         response = handle_mcp_message(
             json.dumps(
                 {
@@ -391,10 +392,32 @@ class McpProtocolTests(unittest.TestCase):
 
         result = response["result"]
         structured = result["structuredContent"]
+        self.assertFalse(result["isError"])
+        self.assertTrue(structured["ok"])
+        self.assertEqual(structured["command"], "products.get")
+
+    def test_tools_call_offline_profile_requires_fixture_or_dry_run(self):
+        response = handle_mcp_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "profile-guard",
+                    "method": "tools/call",
+                    "params": {
+                        "name": "products_get",
+                        "arguments": {"asin": "B0D8W1YVBX", "domain": "US", "profile": "offline_fixture_only"},
+                    },
+                }
+            ),
+            env={},
+        )
+
+        result = response["result"]
+        structured = result["structuredContent"]
         self.assertTrue(result["isError"])
         self.assertFalse(structured["ok"])
-        self.assertEqual(structured["error"]["kind"], "inactive_tool")
-        self.assertEqual(structured["error"]["details"]["profile"], "offline_fixture_only")
+        self.assertEqual(structured["error"]["kind"], "profile_requires_fixture_or_dry_run")
+        self.assertEqual(structured["error"]["details"]["live_profile"], "live_read_allowed")
 
     def test_prompts_list_and_get_return_agent_playbooks(self):
         listed = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompts", "method": "prompts/list", "params": {}}), env={})
@@ -472,7 +495,8 @@ class McpProtocolTests(unittest.TestCase):
         policy_payload = policy["result"]["structuredContent"]
         self.assertTrue(policy_payload["ok"])
         self.assertEqual(policy_payload["data"]["view"], "context_policy")
-        self.assertFalse(policy_payload["data"]["live_keepa"]["allowed_by_default"])
+        self.assertTrue(policy_payload["data"]["live_keepa"]["allowed_by_default"])
+        self.assertEqual(policy_payload["data"]["mode"], "live_read_allowed_for_real_research")
 
         resolved = handle_mcp_message(
             json.dumps(
@@ -616,7 +640,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["data"]["workflow_policy"]["recommended_profile"], "dry_run_default")
         self.assertEqual(structured["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
         self.assertEqual(structured["data"]["steps"][2]["mcp"]["tool"], "categories_products")
-        self.assertFalse(structured["data"]["steps"][3]["mcp"]["active_in_recommended_profile"])
+        self.assertTrue(structured["data"]["steps"][3]["mcp"]["active_in_recommended_profile"])
 
     def test_tools_call_report_and_tracking_workflow_profiles(self):
         report = handle_mcp_message(
@@ -718,7 +742,11 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["command"], "products.compare")
         self.assertEqual(structured["data"]["product_count"], 3)
         self.assertIn("data_missing", structured["data"]["risk_summary"]["by_code"])
-        self.assertGreaterEqual(structured["data"]["research_graph"]["entity_counts"]["product"], 3)
+        self.assertIn("research_graph_summary", structured["data"])
+        self.assertIn("mcp_resource_manifest", structured)
+        self.assertEqual(structured["data"]["rows"][0]["total_offer_count"], 5)
+        self.assertIn("content_quality", structured["data"]["rows"][0]["selection_signals"])
+        self.assertTrue(any(item.get("type") == "session_cache" for item in structured["mcp_resource_manifest"]["resources"]))
 
     def test_unknown_tool_returns_json_rpc_error(self):
         response = handle_mcp_message(

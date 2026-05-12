@@ -121,7 +121,7 @@ Use this order:
     ),
     PromptDefinition(
         name="research_agent_start",
-        description="Start an offline-first Keepa research Agent workflow with policy, target resolution, context query, planning, and graph merge.",
+        description="Start a Keepa research Agent workflow with policy, target resolution, context query, planning, live-read profile selection, and graph merge.",
         arguments=(
             {"name": "query", "description": "User research query, ASIN, category term, seller id, fixture name, or evidence keyword.", "required": True},
             {"name": "domain", "description": "Keepa domain code, usually US.", "required": False},
@@ -135,7 +135,7 @@ Use this order:
 2. Call `resolve_research_target` with query `{query}` and domain `{domain}`.
 3. Call `query_research_context` with the primary resolved target before live Keepa calls.
 4. If execution is needed, call `workflow_plan` and inspect token estimates and confirmation flags.
-5. Prefer fixture, dry_run, from_cache, and local resources before any live call.
+5. Use `profile=live_read_allowed` for real research; use fixture, dry_run, from_cache, and local resources for tests, budget previews, and repeated calls.
 6. Execute only the minimum required tools, then merge outputs with `research_graph_merge`.
 7. Summarize risk taxonomy, research graph entities, evidence links, missing data, and low-token follow-up actions.
 """,
