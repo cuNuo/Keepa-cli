@@ -5555,8 +5555,41 @@
             "x-keepa": {
               "active": "bool",
               "future_task_support": {
+                "cancel": {
+                  "idempotent": "bool",
+                  "method": "str",
+                  "required": "bool",
+                  "terminal_state": "str"
+                },
+                "normal_tools_call_policy": "str",
+                "progress": {
+                  "monotonic": "bool",
+                  "notification": "str",
+                  "required": "bool",
+                  "states": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "token_field": "str"
+                },
                 "protocol": "str",
                 "reason": "str",
+                "result": {
+                  "method": "str",
+                  "required": "bool",
+                  "resource_mime_type": "str",
+                  "resource_uri_template": "str",
+                  "retention": "str"
+                },
+                "start": {
+                  "method": "str",
+                  "progress_token_source": "str",
+                  "returns": "str"
+                },
                 "target": "str"
               },
               "groups": [
@@ -5895,8 +5928,41 @@
             "x-keepa": {
               "active": "bool",
               "future_task_support": {
+                "cancel": {
+                  "idempotent": "bool",
+                  "method": "str",
+                  "required": "bool",
+                  "terminal_state": "str"
+                },
+                "normal_tools_call_policy": "str",
+                "progress": {
+                  "monotonic": "bool",
+                  "notification": "str",
+                  "required": "bool",
+                  "states": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "token_field": "str"
+                },
                 "protocol": "str",
                 "reason": "str",
+                "result": {
+                  "method": "str",
+                  "required": "bool",
+                  "resource_mime_type": "str",
+                  "resource_uri_template": "str",
+                  "retention": "str"
+                },
+                "start": {
+                  "method": "str",
+                  "progress_token_source": "str",
+                  "returns": "str"
+                },
                 "target": "str"
               },
               "groups": [
@@ -6811,7 +6877,44 @@
               "service_command": "str"
             },
             {
-              "future_task_support": "str",
+              "future_task_support": {
+                "cancel": {
+                  "idempotent": "bool",
+                  "method": "str",
+                  "required": "bool",
+                  "terminal_state": "str"
+                },
+                "normal_tools_call_policy": "str",
+                "progress": {
+                  "monotonic": "bool",
+                  "notification": "str",
+                  "required": "bool",
+                  "states": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "token_field": "str"
+                },
+                "protocol": "str",
+                "reason": "str",
+                "result": {
+                  "method": "str",
+                  "required": "bool",
+                  "resource_mime_type": "str",
+                  "resource_uri_template": "str",
+                  "retention": "str"
+                },
+                "start": {
+                  "method": "str",
+                  "progress_token_source": "str",
+                  "returns": "str"
+                },
+                "target": "str"
+              },
               "groups": [
                 "str"
               ],
@@ -6847,7 +6950,44 @@
               "service_command": "str"
             },
             {
-              "future_task_support": "str",
+              "future_task_support": {
+                "cancel": {
+                  "idempotent": "bool",
+                  "method": "str",
+                  "required": "bool",
+                  "terminal_state": "str"
+                },
+                "normal_tools_call_policy": "str",
+                "progress": {
+                  "monotonic": "bool",
+                  "notification": "str",
+                  "required": "bool",
+                  "states": [
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str",
+                    "str"
+                  ],
+                  "token_field": "str"
+                },
+                "protocol": "str",
+                "reason": "str",
+                "result": {
+                  "method": "str",
+                  "required": "bool",
+                  "resource_mime_type": "str",
+                  "resource_uri_template": "str",
+                  "retention": "str"
+                },
+                "start": {
+                  "method": "str",
+                  "progress_token_source": "str",
+                  "returns": "str"
+                },
+                "target": "str"
+              },
               "groups": [
                 "str"
               ],
