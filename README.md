@@ -279,6 +279,40 @@ stdio JSON Lines:
 '{"id":"1","method":"doctor","params":{}}' | kc --stdio
 ```
 
+After `npm install -g @cunuo/keepa-cli`, copy this MCP client config on Windows:
+
+```json
+{
+  "mcpServers": {
+    "keepa": {
+      "command": "cmd",
+      "args": ["/c", "kc", "--mcp"],
+      "env": {
+        "KEEPA_API_KEY": "YOUR_KEEPA_64_CHARACTER_ACCESS_KEY"
+      }
+    }
+  }
+}
+```
+
+For local development from this repository, use the project virtualenv directly:
+
+```json
+{
+  "mcpServers": {
+    "keepa": {
+      "command": "D:\\github\\Keepa-cli\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "keepa_cli", "--mcp"],
+      "env": {
+        "KEEPA_API_KEY": "YOUR_KEEPA_64_CHARACTER_ACCESS_KEY"
+      }
+    }
+  }
+}
+```
+
+If your token is already stored with `kc --json config set-token ...`, you may remove the `env` block. The server alias can stay `keepa`; the MCP server itself reports `serverInfo.name=keepa_mcp`.
+
 MCP JSON-RPC over stdio:
 
 ```powershell

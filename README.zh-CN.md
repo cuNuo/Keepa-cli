@@ -194,6 +194,43 @@ kc tui --classic
 kc --json capabilities
 kc --json domains list
 '{"id":"1","method":"doctor","params":{}}' | kc --stdio
+```
+
+执行 `npm install -g @cunuo/keepa-cli` 后，Windows 上直接把下面这段粘到 MCP 客户端配置里：
+
+```json
+{
+  "mcpServers": {
+    "keepa": {
+      "command": "cmd",
+      "args": ["/c", "kc", "--mcp"],
+      "env": {
+        "KEEPA_API_KEY": "YOUR_KEEPA_64_CHARACTER_ACCESS_KEY"
+      }
+    }
+  }
+}
+```
+
+如果你是在本仓库本地开发，直接用项目 `.venv`：
+
+```json
+{
+  "mcpServers": {
+    "keepa": {
+      "command": "D:\\github\\Keepa-cli\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "keepa_cli", "--mcp"],
+      "env": {
+        "KEEPA_API_KEY": "YOUR_KEEPA_64_CHARACTER_ACCESS_KEY"
+      }
+    }
+  }
+}
+```
+
+如果已经用 `kc --json config set-token ...` 写入本地配置，可以删掉 `env` 块。客户端里的 server alias 可以继续叫 `keepa`；服务端初始化返回的 `serverInfo.name` 是 `keepa_mcp`。
+
+```powershell
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | kc --mcp
 '{"jsonrpc":"2.0","id":2,"method":"resources/list","params":{}}' | kc --mcp
 '{"jsonrpc":"2.0","id":3,"method":"resources/templates/list","params":{}}' | kc --mcp
