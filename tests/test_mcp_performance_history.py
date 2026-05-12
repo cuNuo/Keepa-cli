@@ -14,8 +14,9 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from scripts.summarize_mcp_performance_history import summarize_history
+from scripts import summarize_mcp_performance_history as perf_history
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -47,7 +48,12 @@ def _report(p95_ms: float, json_bytes: int) -> dict:
 
 class McpPerformanceHistoryTests(unittest.TestCase):
     def test_summarize_history_uses_real_p95_and_flags_tightening(self):
-        payload = summarize_history([_report(2, 1_000), _report(3, 1_200), _report(4, 1_100)], min_samples=3)
+        thresholds = {"initialize": {"p95_ms": 50, "json_bytes": 50_000}}
+        with patch.dict(perf_history.THRESHOLDS, thresholds, clear=True):
+            payload = perf_history.summarize_history(
+                [_report(2, 1_000), _report(3, 1_200), _report(4, 1_100)],
+                min_samples=3,
+            )
         self.assertTrue(payload["ready_to_tighten"])
         initialize = payload["suggested_thresholds"]["initialize"]
         self.assertEqual(initialize["p95_ms"], 10.0)

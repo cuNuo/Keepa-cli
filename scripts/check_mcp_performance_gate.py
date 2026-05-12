@@ -28,18 +28,18 @@ from keepa_cli.agent.session import AgentSession
 DEFAULT_ITERATIONS = 30
 
 THRESHOLDS: dict[str, dict[str, float]] = {
-    "initialize": {"p95_ms": 50, "json_bytes": 50_000},
-    "tools_list_research": {"p95_ms": 120, "json_bytes": 300_000},
-    "tools_list_all_page": {"p95_ms": 120, "json_bytes": 180_000},
-    "resources_list": {"p95_ms": 120, "json_bytes": 120_000},
-    "prompts_list": {"p95_ms": 80, "json_bytes": 80_000},
-    "context_policy": {"p95_ms": 120, "json_bytes": 80_000, "text_bytes": 80_000, "structured_bytes": 80_000},
+    "initialize": {"p95_ms": 10.0, "json_bytes": 1_024},
+    "tools_list_research": {"p95_ms": 10.0, "json_bytes": 69_114},
+    "tools_list_all_page": {"p95_ms": 10.0, "json_bytes": 24_561},
+    "resources_list": {"p95_ms": 10.0, "json_bytes": 4_583},
+    "prompts_list": {"p95_ms": 10.0, "json_bytes": 4_035},
+    "context_policy": {"p95_ms": 10.0, "json_bytes": 5_327, "text_bytes": 2_476, "structured_bytes": 2_476},
     "products_get_fixture": {
-        "p95_ms": 600,
-        "json_bytes": 350_000,
-        "text_bytes": 250_000,
-        "structured_bytes": 350_000,
-        "cache_hit_p95_ms": 120,
+        "p95_ms": 10.0,
+        "json_bytes": 25_341,
+        "text_bytes": 11_980,
+        "structured_bytes": 11_980,
+        "cache_hit_p95_ms": 10.0,
     },
 }
 
