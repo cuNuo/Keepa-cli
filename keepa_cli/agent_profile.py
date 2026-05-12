@@ -74,9 +74,9 @@ def build_agent_profile(
             },
         ],
         "business_aliases": {
-            "keepa.find_fast_movers": "business.find-fast-movers",
-            "keepa.inventory_audit": "business.inventory-audit",
-            "keepa.market_opportunity": "business.market-opportunity",
+            "find_fast_movers": "business.find-fast-movers",
+            "inventory_audit": "business.inventory-audit",
+            "market_opportunity": "business.market-opportunity",
         },
         "notes": [
             "配置片段只声明 stdio server；具体 profile/toolset 应在 tools/list 或 tools/call 参数中显式传入。",

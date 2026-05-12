@@ -4,7 +4,7 @@
   "kind": "mcp",
   "method": "tools/call",
   "params": {
-    "name": "keepa.research_brief_export",
+    "name": "research_brief_export",
     "arguments": {
       "input": [
         "tests/fixtures/agent_eval_category_search_output.json",

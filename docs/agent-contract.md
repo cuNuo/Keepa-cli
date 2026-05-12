@@ -127,7 +127,7 @@ kc = "keepa_cli.cli:main"
   "id": 2,
   "method": "tools/call",
   "params": {
-    "name": "keepa.products_get",
+    "name": "products_get",
     "arguments": {
       "asin": "B001GZ6QEC",
       "domain": "US",
@@ -142,33 +142,33 @@ kc = "keepa_cli.cli:main"
 
 首批工具：
 
-- `keepa.products_get` -> `products.get`
-- `keepa.products_compare` -> `products.compare`
-- `keepa.categories_search` -> `categories.search`
-- `keepa.categories_products` -> `categories.products`
-- `keepa.categories_finder_selection` -> `categories.finder-selection`
-- `keepa.finder_query` -> `finder.query`
-- `keepa.deals_query` -> `deals.query`
-- `keepa.sellers_get` -> `sellers.get`
-- `keepa.bestsellers_get` -> `bestsellers.get`
-- `keepa.topsellers_list` -> `topsellers.list`
-- `keepa.workflow_plan` -> `workflow.plan`
-- `keepa.find_fast_movers` -> `business.find-fast-movers`
-- `keepa.inventory_audit` -> `business.inventory-audit`
-- `keepa.market_opportunity` -> `business.market-opportunity`
-- `keepa.agent_profile_generate` -> `agent.profile.generate`
-- `keepa.research_graph_merge` -> `research_graph.merge`
-- `keepa.research_brief_export` -> `research_brief.export`
-- `keepa.docs_index` -> `docs.index`
-- `keepa.docs_read` -> `docs.read`
-- `keepa.context_policy` -> `context.policy`
-- `keepa.resolve_research_target` -> `research.target.resolve`
-- `keepa.query_research_context` -> `research.context.query`
-- `keepa.audit_cost` -> `audit.cost`
+- `products_get` -> `products.get`
+- `products_compare` -> `products.compare`
+- `categories_search` -> `categories.search`
+- `categories_products` -> `categories.products`
+- `categories_finder_selection` -> `categories.finder-selection`
+- `finder_query` -> `finder.query`
+- `deals_query` -> `deals.query`
+- `sellers_get` -> `sellers.get`
+- `bestsellers_get` -> `bestsellers.get`
+- `topsellers_list` -> `topsellers.list`
+- `workflow_plan` -> `workflow.plan`
+- `find_fast_movers` -> `business.find-fast-movers`
+- `inventory_audit` -> `business.inventory-audit`
+- `market_opportunity` -> `business.market-opportunity`
+- `agent_profile_generate` -> `agent.profile.generate`
+- `research_graph_merge` -> `research_graph.merge`
+- `research_brief_export` -> `research_brief.export`
+- `docs_index` -> `docs.index`
+- `docs_read` -> `docs.read`
+- `context_policy` -> `context.policy`
+- `resolve_research_target` -> `research.target.resolve`
+- `query_research_context` -> `research.context.query`
+- `audit_cost` -> `audit.cost`
 
-MCP stdio 当前返回 `protocolVersion=2025-11-25`，`serverInfo.name=keepa_mcp`；客户端配置里的服务器别名仍可继续使用 `keepa`。迁移规则：不要改 `keepa.*` tool 名；不要把客户端配置键从 `keepa` 强制改成 `keepa_mcp`；只有当外部客户端硬编码断言 `serverInfo.name == "keepa"` 时，才把断言更新为 `keepa_mcp`。`tools/list` / `resources/list` / `resources/templates/list` / `prompts/list` 支持 MCP cursor 分页：请求可传 `cursor`，Keepa-cli 额外支持 `limit` 便于本地调试；响应在 `_meta.total_count`、`_meta.has_more` 与 `nextCursor` 中记录分页状态。
+MCP stdio 当前返回 `protocolVersion=2025-11-25`，`serverInfo.name=keepa_mcp`；客户端配置里的服务器别名仍可继续使用 `keepa`。公共 tool/prompt 名不再使用 `keepa.` 前缀；不要把客户端配置键从 `keepa` 强制改成 `keepa_mcp`；只有当外部客户端硬编码断言 `serverInfo.name == "keepa"` 时，才把断言更新为 `keepa_mcp`。`tools/list` / `resources/list` / `resources/templates/list` / `prompts/list` 支持 MCP cursor 分页：请求可传 `cursor`，Keepa-cli 额外支持 `limit` 便于本地调试；响应在 `_meta.total_count`、`_meta.has_more` 与 `nextCursor` 中记录分页状态。
 
-MCP Inspector 协议回归样例固化在 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json`，覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、`tools/call` 参数错误和 `ping`。官方 Python MCP SDK adapter 对照见 `docs/architecture/mcp-python-sdk-adapter-comparison.md`；生产入口仍是当前薄 stdio JSON-RPC transport。隔离 adapter 位于 `keepa_cli/agent/mcp_sdk_adapter.py`，可用 `scripts/compare_mcp_sdk_adapter_fixture.py` 对比当前 `--mcp` 与 adapter 兼容 handler 输出等价性，并可用 `scripts/smoke_mcp_sdk_adapter_client.py` 通过官方 `ClientSession` 连接 `python -m keepa_cli.agent.mcp_sdk_adapter --stdio`。`scripts/check_mcp_sdk_adapter_typed_fixture.py` 会把 Inspector fixture step 映射成 SDK typed client 调用；`scripts/export_mcp_inspector_snapshot.py --check` 会导出并校验可复现 typed Inspector 快照；`scripts/check_mcp_quality_gate.py --require-sdk` 聚合 fixture 等价、Agent eval、SDK smoke、typed fixture 与 snapshot。由于官方 typed API 的 `list_*` 只支持标准 cursor，不支持 Keepa 扩展 `toolset/limit`，SDK adapter 默认压缩 tools、resources、resource templates、prompts 首页，分别以 `keepa.context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `keepa.product_research` 起手；完整 all-toolset 和完整资源/提示词清单通过 `nextCursor` 继续分页发现。后续 Streamable HTTP 只能新增协议 adapter，继续复用 service/session 层；实现前必须先通过 `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json` 中的 Origin、`MCP-Session-Id` 和错误映射合约。
+MCP Inspector 协议回归样例固化在 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json`，覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、`tools/call` 参数错误和 `ping`。官方 Python MCP SDK adapter 对照见 `docs/architecture/mcp-python-sdk-adapter-comparison.md`；生产入口仍是当前薄 stdio JSON-RPC transport。隔离 adapter 位于 `keepa_cli/agent/mcp_sdk_adapter.py`，可用 `scripts/compare_mcp_sdk_adapter_fixture.py` 对比当前 `--mcp` 与 adapter 兼容 handler 输出等价性，并可用 `scripts/smoke_mcp_sdk_adapter_client.py` 通过官方 `ClientSession` 连接 `python -m keepa_cli.agent.mcp_sdk_adapter --stdio`。`scripts/check_mcp_sdk_adapter_typed_fixture.py` 会把 Inspector fixture step 映射成 SDK typed client 调用；`scripts/export_mcp_inspector_snapshot.py --check` 会导出并校验可复现 typed Inspector 快照；`scripts/check_mcp_quality_gate.py --require-sdk` 聚合 fixture 等价、Agent eval、SDK smoke、typed fixture 与 snapshot。由于官方 typed API 的 `list_*` 只支持标准 cursor，不支持 Keepa 扩展 `toolset/limit`，SDK adapter 默认压缩 tools、resources、resource templates、prompts 首页，分别以 `context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `product_research` 起手；完整 all-toolset 和完整资源/提示词清单通过 `nextCursor` 继续分页发现。后续 Streamable HTTP 只能新增协议 adapter，继续复用 service/session 层；实现前必须先通过 `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json` 中的 Origin、`MCP-Session-Id` 和错误映射合约。
 
 MCP tool 只接受结构化 JSON 参数，不接受 CLI 字符串。工具 schema 包含 `title`、`inputSchema`、`outputSchema`、`execution.taskSupport=forbidden` 与 `annotations`；其中 `openWorldHint` 标出可能访问真实 Keepa / tracking API 的工具，`readOnlyHint=false` / `destructiveHint=true` 标出本地文件或 fixture/evidence 写入类工具。返回同时包含 `structuredContent` 和 `content[0].text` JSON fallback：
 
@@ -258,18 +258,18 @@ Agent 应优先读取 `structuredContent`；当客户端只支持 text fallback 
 
 MCP prompts 给 Agent 提供稳定起手式，不执行任何请求：
 
-- `keepa.product_research`：单品研究，强调先 workflow plan，再低成本 full product view。
-- `keepa.category_research`：类目候选与 Finder scaffold，默认不隐式 hydrate。
-- `keepa.deal_compare`：多 ASIN deal 视图对比与 selection signals 审计。
-- `keepa.project_onboarding`：先读 zread/wiki 和 schema/evidence，再决定代码修改范围。
-- `keepa.research_agent_start`：调研 Agent 起手式，按 policy -> target resolution -> context query -> workflow plan -> execution -> graph merge 顺序推进。
-- `keepa.inventory_audit`：基于现有产品证据审计缺货、seller count 与补货风险，结论先行。
-- `keepa.velocity_research`：基于 `monthlySold` 或低置信 sales-rank-drop proxy 查找 fast mover。
-- `keepa.market_opportunity`：把 velocity、竞争、库存风险与现金流 proxy 组合成机会 shortlist。
+- `product_research`：单品研究，强调先 workflow plan，再低成本 full product view。
+- `category_research`：类目候选与 Finder scaffold，默认不隐式 hydrate。
+- `deal_compare`：多 ASIN deal 视图对比与 selection signals 审计。
+- `project_onboarding`：先读 zread/wiki 和 schema/evidence，再决定代码修改范围。
+- `research_agent_start`：调研 Agent 起手式，按 policy -> target resolution -> context query -> workflow plan -> execution -> graph merge 顺序推进。
+- `inventory_audit`：基于现有产品证据审计缺货、seller count 与补货风险，结论先行。
+- `velocity_research`：基于 `monthlySold` 或低置信 sales-rank-drop proxy 查找 fast mover。
+- `market_opportunity`：把 velocity、竞争、库存风险与现金流 proxy 组合成机会 shortlist。
 
-不支持 `resources/read` 的 MCP 客户端可改用 `keepa.docs_index`、`keepa.docs_read`、`keepa.context_policy` 与 `keepa.query_research_context` 工具。`docs.index` 返回 GitHub Pages、zread public、zread resource、schema、fixture manifest 和 evidence 的推荐读取顺序；`docs.read` 接受 `uri` 或 `page`，默认读取 `keepa://zread/wiki/current`。
+不支持 `resources/read` 的 MCP 客户端可改用 `docs_index`、`docs_read`、`context_policy` 与 `query_research_context` 工具。`docs.index` 返回 GitHub Pages、zread public、zread resource、schema、fixture manifest 和 evidence 的推荐读取顺序；`docs.read` 接受 `uri` 或 `page`，默认读取 `keepa://zread/wiki/current`。
 
-调研 Agent 应先调用 `keepa.context_policy` 或读取 `keepa://context/policy`，再用 `keepa.resolve_research_target` 将用户输入解析为 ASIN、UPC/EAN、seller、category、fixture、evidence 或 keyword 候选，随后用 `keepa.query_research_context` 查找本地资源。只有当本地资源不足时，才进入 `workflow.plan` 与 live-capable tools；真实 Keepa 请求仍需显式 `yes=true` 或 fixture/dry-run 绕过。
+调研 Agent 应先调用 `context_policy` 或读取 `keepa://context/policy`，再用 `resolve_research_target` 将用户输入解析为 ASIN、UPC/EAN、seller、category、fixture、evidence 或 keyword 候选，随后用 `query_research_context` 查找本地资源。只有当本地资源不足时，才进入 `workflow.plan` 与 live-capable tools；真实 Keepa 请求仍需显式 `yes=true` 或 fixture/dry-run 绕过。
 
 ## 5. 当前支持命令
 
@@ -353,7 +353,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json research-graph merge .\category.json .\compare.json .\seller.json --root agent_selection_research --out .\research-graph.json
 ```
 
-`research_graph.merge` 是纯本地命令，不访问 Keepa，不消耗 token。它会递归读取输入 JSON 中的 `research_graph` 字段，去重合并节点和边，添加 root 类型 `research_graph` 与 `includes_graph` 边，并返回 `view=research_graph_merge`、`summary`、`sources`、`diagnostics`、`diff`、`data_quality`、`evidence_index` 与可选 `output.path`。`sources` 包含 `source_weight/confidence`，`diagnostics` 包含重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 包含冲突节点 variants 与 resolution；CLI 的 `--prefer-source` 和 MCP 的 `prefer_source` 可指定 source index 或 source root，让 Agent 在多来源 label/type 不一致时做确定性选择。MCP 对应工具为 `keepa.research_graph_merge`，适合把 category search -> category products -> products compare -> seller/deals 串成单个研究图。
+`research_graph.merge` 是纯本地命令，不访问 Keepa，不消耗 token。它会递归读取输入 JSON 中的 `research_graph` 字段，去重合并节点和边，添加 root 类型 `research_graph` 与 `includes_graph` 边，并返回 `view=research_graph_merge`、`summary`、`sources`、`diagnostics`、`diff`、`data_quality`、`evidence_index` 与可选 `output.path`。`sources` 包含 `source_weight/confidence`，`diagnostics` 包含重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 包含冲突节点 variants 与 resolution；CLI 的 `--prefer-source` 和 MCP 的 `prefer_source` 可指定 source index 或 source root，让 Agent 在多来源 label/type 不一致时做确定性选择。MCP 对应工具为 `research_graph_merge`，适合把 category search -> category products -> products compare -> seller/deals 串成单个研究图。
 
 ### research brief export
 
@@ -361,7 +361,7 @@ Agent 语义层：
 .\.venv\Scripts\python.exe -m keepa_cli --json research brief .\research-graph.json --title "Agent selection brief" --out .\brief.json
 ```
 
-`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 与 `recommended_read_order`。MCP 对应工具为 `keepa.research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
+`research_brief.export` 是纯本地命令，不访问 Keepa，不消耗 token。它可读取 merged graph JSON、多份 Agent payload 文件或 MCP inline payload，输出 `view=research_brief_export`，核心字段为 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 与 `recommended_read_order`。MCP 对应工具为 `research_brief_export`；成功调用后可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 回读图谱摘要。
 
 `reports.build` 可直接消费 `research_graph.merge --out` 写出的 merged graph JSON。Markdown 输出会追加 `Research Graph`、`Entities` 和 `Relationships` 小节；JSON 输出会增加 `research_graph_report`，包含 summary、entity_counts、nodes、edges、sources、diagnostics 与 diff。这样 Agent 可以把图谱合并和报告生成分成两步，并用 `keepa://graphs/{root}` 或 `keepa://research/{cache_key}` 回查来源。
 
@@ -428,7 +428,7 @@ MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uri
 
 ### Agent figures
 
-`figures.research` / `keepa.figures_research` 从现有 JSON 输出生成统一 SVG 图表，不访问 Keepa API。输入可为 `products.compare`、Agent product view、`research_graph.merge` 或包含 `research_graph` 的报告输出。输出包含：
+`figures.research` / `figures_research` 从现有 JSON 输出生成统一 SVG 图表，不访问 Keepa API。输入可为 `products.compare`、Agent product view、`research_graph.merge` 或包含 `research_graph` 的报告输出。输出包含：
 
 - `data.figures[].path`：SVG 文件路径。
 - `data.figures[].source_data_path`：图表源数据 JSON，便于审计。
@@ -457,7 +457,7 @@ MCP `tools/call` 支持 workflow runtime 参数：`resource_uri`、`resource_uri
 .\.venv\Scripts\python.exe -m keepa_cli --json cassettes promote-and-verify .\live-cassette.json --name product_B0EXAMPLE_full --run-eval
 ```
 
-`schema.generate` 从 `tests/snapshots/agent_schema_snapshot.json` 导出产品 Agent 视图 schema 文档。`cassettes.sanitize` 只做本地 JSON 脱敏，清理 URL query、header 与 body 中的 `key/api_key/apikey/token/authorization`。`cassettes.promote` 是完整 promotion workflow：读取真实或已脱敏响应 -> 再次脱敏 -> 同步写入 `tests/fixtures/<name>.json` 与 `keepa_cli/fixtures/<name>.json` -> 追加 `evidence/manifest.csv`。`cassettes.promote_and_verify` / `keepa.cassettes_promote_and_verify` 在 promote 后执行 fixture parity 检查，并可通过 `run_eval=true` / `--run-eval` 运行 Agent eval fixtures，适合把 live sample 固化为调研 Agent 回归资产。默认不访问网络，`--dry-run` 只返回目标路径和预计大小。
+`schema.generate` 从 `tests/snapshots/agent_schema_snapshot.json` 导出产品 Agent 视图 schema 文档。`cassettes.sanitize` 只做本地 JSON 脱敏，清理 URL query、header 与 body 中的 `key/api_key/apikey/token/authorization`。`cassettes.promote` 是完整 promotion workflow：读取真实或已脱敏响应 -> 再次脱敏 -> 同步写入 `tests/fixtures/<name>.json` 与 `keepa_cli/fixtures/<name>.json` -> 追加 `evidence/manifest.csv`。`cassettes.promote_and_verify` / `cassettes_promote_and_verify` 在 promote 后执行 fixture parity 检查，并可通过 `run_eval=true` / `--run-eval` 运行 Agent eval fixtures，适合把 live sample 固化为调研 Agent 回归资产。默认不访问网络，`--dry-run` 只返回目标路径和预计大小。
 
 ### finder/deals/sellers/bestsellers/topsellers
 

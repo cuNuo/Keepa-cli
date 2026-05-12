@@ -5,17 +5,17 @@
   "steps": [
     {
       "command": "tracking.list",
-      "tool": "keepa.tracking_list",
+      "tool": "tracking_list",
       "params": {"asins_only": true, "fixture": "tracking_list.json"}
     },
     {
       "command": "tracking.list",
-      "tool": "keepa.tracking_list",
+      "tool": "tracking_list",
       "params": {"fixture": "tracking_list.json", "asins_only": true}
     },
     {
       "command": "tracking.notifications",
-      "tool": "keepa.tracking_notifications",
+      "tool": "tracking_notifications",
       "params": {"since": 0, "revise": true, "dry_run": true}
     }
   ],

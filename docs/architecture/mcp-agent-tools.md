@@ -59,43 +59,43 @@ keepa_cli/
 
 | MCP tool | service command | 目的 | 默认风险 |
 | --- | --- | --- | --- |
-| `keepa.products_get` | `products.get` | 单 ASIN/少量 ASIN 产品研究，含 `risk_taxonomy` 与 `research_graph` | 低；`offers`、`rating`、`buybox` 可能增量成本 |
-| `keepa.products_compare` | `products.compare` | 多 ASIN deal/research 横向对比，含统一风险汇总与合并图谱 | 低；`offers` 可能增量成本 |
-| `keepa.categories_search` | `categories.search` | 关键词找候选 category | 低 |
-| `keepa.categories_products` | `categories.products` | category 生成商品候选 | 高；真实请求需确认 |
-| `keepa.categories_finder_selection` | `categories.finder-selection` | 本地生成 Finder selection scaffold | 低，本地计算 |
-| `keepa.finder_query` | `finder.query` | Product Finder selection 查询 | 中高；真实请求需确认 |
-| `keepa.deals_query` | `deals.query` | Deals selection 查询，返回 deal/product 图谱 | 中 |
-| `keepa.sellers_get` | `sellers.get` | Seller 与 storefront ASIN 研究 | 低 |
-| `keepa.bestsellers_get` | `bestsellers.get` | Best Sellers 原始榜单 | 高；真实请求需确认 |
-| `keepa.topsellers_list` | `topsellers.list` | Top Sellers 原始榜单 | 高；真实请求需确认 |
-| `keepa.workflow_plan` | `workflow.plan` | 本地生成 Agent 执行图 | 低，本地计算 |
-| `keepa.research_graph_merge` | `research_graph.merge` | 合并 category/products/compare/seller/deals 输出中的研究图 | 低，本地计算 |
-| `keepa.research_brief_export` | `research_brief.export` | 从 merged graph 或多份 Agent payload 导出调研 brief | 低，本地计算 |
-| `keepa.docs_index` | `docs.index` | 列出 zread/schema/evidence/fixture 文档资源 | 低，本地读取 |
-| `keepa.docs_read` | `docs.read` | 按 URI 或 zread 页面 slug 读取文档资源 | 低，本地读取 |
-| `keepa.context_policy` | `context.policy` | 读取 offline-first policy、roots、tool gating 与 live Keepa 安全状态 | 低，本地计算 |
-| `keepa.resolve_research_target` | `research.target.resolve` | 将模糊输入解析为 ASIN、类目、seller、fixture、evidence 或关键词候选 | 低，本地计算 |
-| `keepa.query_research_context` | `research.context.query` | 基于目标列出本地 schema、fixture、evidence、zread、cache 资源 | 低，本地计算 |
+| `products_get` | `products.get` | 单 ASIN/少量 ASIN 产品研究，含 `risk_taxonomy` 与 `research_graph` | 低；`offers`、`rating`、`buybox` 可能增量成本 |
+| `products_compare` | `products.compare` | 多 ASIN deal/research 横向对比，含统一风险汇总与合并图谱 | 低；`offers` 可能增量成本 |
+| `categories_search` | `categories.search` | 关键词找候选 category | 低 |
+| `categories_products` | `categories.products` | category 生成商品候选 | 高；真实请求需确认 |
+| `categories_finder_selection` | `categories.finder-selection` | 本地生成 Finder selection scaffold | 低，本地计算 |
+| `finder_query` | `finder.query` | Product Finder selection 查询 | 中高；真实请求需确认 |
+| `deals_query` | `deals.query` | Deals selection 查询，返回 deal/product 图谱 | 中 |
+| `sellers_get` | `sellers.get` | Seller 与 storefront ASIN 研究 | 低 |
+| `bestsellers_get` | `bestsellers.get` | Best Sellers 原始榜单 | 高；真实请求需确认 |
+| `topsellers_list` | `topsellers.list` | Top Sellers 原始榜单 | 高；真实请求需确认 |
+| `workflow_plan` | `workflow.plan` | 本地生成 Agent 执行图 | 低，本地计算 |
+| `research_graph_merge` | `research_graph.merge` | 合并 category/products/compare/seller/deals 输出中的研究图 | 低，本地计算 |
+| `research_brief_export` | `research_brief.export` | 从 merged graph 或多份 Agent payload 导出调研 brief | 低，本地计算 |
+| `docs_index` | `docs.index` | 列出 zread/schema/evidence/fixture 文档资源 | 低，本地读取 |
+| `docs_read` | `docs.read` | 按 URI 或 zread 页面 slug 读取文档资源 | 低，本地读取 |
+| `context_policy` | `context.policy` | 读取 offline-first policy、roots、tool gating 与 live Keepa 安全状态 | 低，本地计算 |
+| `resolve_research_target` | `research.target.resolve` | 将模糊输入解析为 ASIN、类目、seller、fixture、evidence 或关键词候选 | 低，本地计算 |
+| `query_research_context` | `research.context.query` | 基于目标列出本地 schema、fixture、evidence、zread、cache 资源 | 低，本地计算 |
 
 当前 MCP 默认只返回 `research` toolset，避免 `tools/list` 一次暴露过多 schema。可在 `tools/list.params.toolset` 中显式选择：
 
 - `research`：context policy、target resolution、context query、产品、类目、本地 Finder scaffold、Finder、Deals、Seller、榜单、workflow plan、docs index/read、research graph merge、research brief export。
-- `docs`：暴露 `keepa.docs_index`、`keepa.docs_read`、`keepa.context_policy`、`keepa.query_research_context`，用于不支持 `resources/read` 的客户端。
-- `audit`：`keepa.audit_cost`、`keepa.cassettes_sanitize`、`keepa.cassettes_promote`。
-- `reports`：`keepa.research_graph_merge`、`keepa.reports_build`、`keepa.browse_snapshot`、`keepa.figures_research`、`keepa.research_brief_export`，只处理本地文件。
-- `tracking-readonly`：`keepa.tracking_list`、`keepa.tracking_list_names`、`keepa.tracking_get`、`keepa.tracking_notifications`、`keepa.audit_cost`，不暴露 add/remove/webhook。
+- `docs`：暴露 `docs_index`、`docs_read`、`context_policy`、`query_research_context`，用于不支持 `resources/read` 的客户端。
+- `audit`：`audit_cost`、`cassettes_sanitize`、`cassettes_promote`。
+- `reports`：`research_graph_merge`、`reports_build`、`browse_snapshot`、`figures_research`、`research_brief_export`，只处理本地文件。
+- `tracking-readonly`：`tracking_list`、`tracking_list_names`、`tracking_get`、`tracking_notifications`、`audit_cost`，不暴露 add/remove/webhook。
 - `all`：显式全量发现，用于调试和 schema 生成。
 
 未知 toolset 会返回 JSON-RPC `Invalid toolset`，不静默回退。tracking 写操作仍不暴露给 MCP。
 
-`tools/list.params.allow_tools` 与 `tools/list.params.exclude_tools` 可进一步收窄单次发现面。`tools/list.params.profile` 支持 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`；被 profile 禁用的工具会在 `x-keepa.active=false` 标注，若仍被调用则在 service 执行前返回结构化 `inactive_tool`。调研 Agent 建议先只暴露 `keepa.context_policy`、`keepa.resolve_research_target`、`keepa.query_research_context`、`keepa.workflow_plan`，确认目标和预算后再放开具体产品、类目、deals 或 seller 工具。
+`tools/list.params.allow_tools` 与 `tools/list.params.exclude_tools` 可进一步收窄单次发现面。`tools/list.params.profile` 支持 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`；被 profile 禁用的工具会在 `x-keepa.active=false` 标注，若仍被调用则在 service 执行前返回结构化 `inactive_tool`。调研 Agent 建议先只暴露 `context_policy`、`resolve_research_target`、`query_research_context`、`workflow_plan`，确认目标和预算后再放开具体产品、类目、deals 或 seller 工具。
 
 `tools/list.params.profile` 可把调研阶段显式传给 MCP server。当前 profile 包括 `offline_fixture_only`、`dry_run_default`、`live_read_allowed`、`tracking_readonly`、`fixture_curation`。返回的每个 tool 都带 `x-keepa.active` 与 `x-keepa.inactive_reason`；客户端若继续用同一 `profile` 调用 inactive tool，`tools/call` 会返回结构化 `inactive_tool`，不会进入 service 执行层。这样 Agent 可以在离线发现、dry-run 规划、live read、tracking 只读和 fixture 整理阶段共享同一套工具目录，但把当前阶段不该用的能力显式标成不可用。
 
 ## Tool 命名与参数策略
 
-工具名使用 `keepa.<resource>_<action>`，原因是部分 MCP 客户端对点号命名空间展示更清晰，同时下划线避免 action 再分层造成歧义。
+工具名使用 `<resource>_<action>`，不再带 `keepa.` 前缀；命名仍保留下划线，避免 action 再分层造成歧义。
 
 参数只接受结构化 JSON，不接受 CLI 字符串：
 
@@ -251,10 +251,10 @@ MCP resources 承载稳定文档和大响应按需读取入口，避免 `tools/l
 
 MCP prompts 用来减少 Agent 启动时的路线漂移，不执行 Keepa 请求：
 
-- `keepa.product_research`：单品研究，先 workflow plan，再 `products_get` 的低成本 full/agent view。
-- `keepa.category_research`：关键词找类目、生成 Finder scaffold，并明确 `categories_products` 需要确认。
-- `keepa.deal_compare`：多 ASIN deal 对比，强调 `selection_signals`、`risk_taxonomy` 与 evidence。
-- `keepa.project_onboarding`：先读 zread wiki、schema 与 recent evidence，再决定修改范围。
+- `product_research`：单品研究，先 workflow plan，再 `products_get` 的低成本 full/agent view。
+- `category_research`：关键词找类目、生成 Finder scaffold，并明确 `categories_products` 需要确认。
+- `deal_compare`：多 ASIN deal 对比，强调 `selection_signals`、`risk_taxonomy` 与 evidence。
+- `project_onboarding`：先读 zread wiki、schema 与 recent evidence，再决定修改范围。
 
 公开文档入口分两层：
 
@@ -327,7 +327,7 @@ MCP server 不能交互等待用户输入。需要确认时，直接返回结构
   "kind": "confirmation_required",
   "details": {
     "resume_with": {
-      "tool": "keepa.categories_products",
+      "tool": "categories_products",
       "params": {"yes": true}
     },
     "estimated_tokens": 50,
@@ -361,9 +361,9 @@ MCP 输出必须延续现有 Agent profile：
 
 `research_graph` 使用轻量实体关系结构：产品命令的 `nodes` 包含 `product`、`brand`、`manufacturer`、`category`、`seller`、`variation` 等类型；category/finder/deals/seller/ranking 命令还会输出 `search_term`、`selection`、`deal_set`、`deal`、`seller_request`、`seller_ranking`。`products.compare` 会额外输出合并后的 `research_graph` 与 `risk_summary`；`categories.search/products`、`finder.query`、`deals.query`、`sellers.get`、`bestsellers.get`、`topsellers.list` 都提供同名字段，便于跨命令拼接实体记忆。
 
-`research_graph.merge` / `keepa.research_graph_merge` 负责把多条命令结果合并为单个研究图。它支持文件输入和 inline graph/payload 输入，递归抽取所有 `research_graph`，合并时去重节点/边，添加 `research_graph` root 节点与 `includes_graph` 边，并返回 `summary.entity_counts`、`sources`、`diagnostics`、`diff`、`data_quality` 和 `evidence_index`。`sources` 给出 `source_weight/confidence`，`diagnostics` 记录重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 给出冲突节点的 variant 列表与 resolution；`--prefer-source` / `prefer_source` 可指定 source index 或 source root，帮助 Agent 在多来源 label/type 不一致时做确定性选择。典型链路是 `categories.search -> categories.products -> products.compare -> sellers.get`。
+`research_graph.merge` / `research_graph_merge` 负责把多条命令结果合并为单个研究图。它支持文件输入和 inline graph/payload 输入，递归抽取所有 `research_graph`，合并时去重节点/边，添加 `research_graph` root 节点与 `includes_graph` 边，并返回 `summary.entity_counts`、`sources`、`diagnostics`、`diff`、`data_quality` 和 `evidence_index`。`sources` 给出 `source_weight/confidence`，`diagnostics` 记录重复节点、孤立节点、label/type 冲突和 source weight 范围。`diff` 给出冲突节点的 variant 列表与 resolution；`--prefer-source` / `prefer_source` 可指定 source index 或 source root，帮助 Agent 在多来源 label/type 不一致时做确定性选择。典型链路是 `categories.search -> categories.products -> products.compare -> sellers.get`。
 
-`research_brief.export` / `keepa.research_brief_export` 直接消费 merged graph JSON、多个 Agent payload 文件或 inline payload。它输出 `view=research_brief_export`，核心字段包括 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 和 `recommended_read_order`。MCP tool 调用成功后会进入同一 `AgentSession` cache，调研 Agent 可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 只回读图谱摘要，避免把所有原始 payload 再塞进上下文。
+`research_brief.export` / `research_brief_export` 直接消费 merged graph JSON、多个 Agent payload 文件或 inline payload。它输出 `view=research_brief_export`，核心字段包括 `decision_summary`、`risk_summary`、`entity_graph_summary`、`follow_up_plan`、`evidence_links`、`data_quality` 和 `recommended_read_order`。MCP tool 调用成功后会进入同一 `AgentSession` cache，调研 Agent 可用 `keepa://research/{cache_key}/brief` 回读完整 brief，用 `keepa://research/{cache_key}/graph` 只回读图谱摘要，避免把所有原始 payload 再塞进上下文。
 
 `reports.build` 直接消费 merged graph JSON：Markdown 输出追加 SVG figure、实体和关系表，JSON 输出增加 `figures` 与 `research_graph_report`。这让 Agent 可以先用 `research_graph.merge` 固化实体图，再用 `research_brief.export` 固化机器可读 handoff，最后按需要用报告工具生成面向人类或下游系统的证据摘要；审计时通过 `keepa://graphs/{root}` 查图谱来源，通过 `keepa://research/{cache_key}` 查同一 MCP session 的缓存结果和 budget ledger。`keepa://research/{cache_key}/figures` 会从 session cache 生成完整 SVG manifest；`keepa://research/{cache_key}/figures/{figure_set}` 可只生成 `history`、`compare` 或 `audit` 图表组；SVG 本体继续以 `keepa://output/...` 暴露，避免把大图直接塞进 tools/list 或普通文本 content。
 
@@ -373,7 +373,7 @@ MCP 输出必须延续现有 Agent profile：
 {
   "mcp": {
     "server": "keepa",
-    "tool": "keepa.products_get",
+    "tool": "products_get",
     "transport": "stdio",
     "session_cache_key": "products.get:4e3c...",
     "cache_hit": false
@@ -407,12 +407,12 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 - `tests/test_mcp.py`
   - `initialize` 返回 server info 和 protocol version。
   - `tools/list` 默认只返回 research，并能按 `audit/business/reports/tracking-readonly/all` 过滤。
-  - `tools/call keepa.categories_search` 使用 fixture 返回 `category_candidates`。
-  - `tools/call keepa.categories_finder_selection` 本地生成 Finder scaffold，不累计 token。
-  - `tools/call keepa.deals_query` 使用 fixture 返回 deal/product `research_graph`。
-  - `tools/call keepa.products_compare` 使用 fixture 返回风险汇总与合并图谱。
-  - `tools/call keepa.research_graph_merge` 合并 inline graph/payload。
-  - `tools/call keepa.research_brief_export` 导出 decision/risk/graph/follow-up/evidence brief。
+  - `tools/call categories_search` 使用 fixture 返回 `category_candidates`。
+  - `tools/call categories_finder_selection` 本地生成 Finder scaffold，不累计 token。
+  - `tools/call deals_query` 使用 fixture 返回 deal/product `research_graph`。
+  - `tools/call products_compare` 使用 fixture 返回风险汇总与合并图谱。
+  - `tools/call research_graph_merge` 合并 inline graph/payload。
+  - `tools/call research_brief_export` 导出 decision/risk/graph/follow-up/evidence brief。
   - `resources/list/read` 暴露 schema、manifest、cassette 指南和最近 evidence。
   - `resources/templates/list` 暴露 schema、fixture、workflow policy、chunk 和 output resource URI 模板。
   - 大响应 chunk tool 调用在 text fallback 中返回 `mcp_resource_manifest`。
@@ -441,29 +441,29 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 `scripts/mcp_agent_workflow_example.py` 按以下顺序执行：
 
 1. `initialize` 与收窄后的 `tools/list`。
-2. `tools/call keepa.workflow_plan` 读取执行图、预算和 resource templates。
+2. `tools/call workflow_plan` 读取执行图、预算和 resource templates。
 3. `resources/read keepa://schema/risk-taxonomy` 获取风险枚举与 required fields。
-4. `tools/call keepa.categories_products` 使用 fixture 生成候选 ASIN 与 `cache_key`。
-5. `tools/call keepa.products_compare` 传入 `keepa://research/{cache_key}`，由 workflow resolver 推导 ASIN。
+4. `tools/call categories_products` 使用 fixture 生成候选 ASIN 与 `cache_key`。
+5. `tools/call products_compare` 传入 `keepa://research/{cache_key}`，由 workflow resolver 推导 ASIN。
 6. client 侧校验 compare payload 中的 `risk_taxonomy.codes/items/severity/evidence_path`。
-7. `tools/call keepa.research_graph_merge` 传入 `keepa://research/{compare_cache_key}/graph`。
-8. `tools/call keepa.research_brief_export` 与 `keepa.reports_build` 传入 merged graph 的 research resource。
+7. `tools/call research_graph_merge` 传入 `keepa://research/{compare_cache_key}/graph`。
+8. `tools/call research_brief_export` 与 `reports_build` 传入 merged graph 的 research resource。
 
 `scripts/mcp_tracking_audit_example.py` 演示 `tracking-audit` 计划的只读边界：
 
 1. 使用 `tools/list toolset=tracking-readonly profile=tracking_readonly`。
-2. 调用 `keepa.workflow_plan name=tracking-audit`，确认 recommended toolset/profile 与 confirmation steps。
-3. 用 fixture 调用 `keepa.tracking_list`，再把 `keepa://research/{cache_key}` 传给 `keepa.tracking_get` 与 `keepa.audit_cost`，让 resolver 推导 tracked ASIN。
-4. 验证 `keepa.tracking_add` 这类写工具在 MCP 中是 unknown tool，说明写路径没有暴露。
+2. 调用 `workflow_plan name=tracking-audit`，确认 recommended toolset/profile 与 confirmation steps。
+3. 用 fixture 调用 `tracking_list`，再把 `keepa://research/{cache_key}` 传给 `tracking_get` 与 `audit_cost`，让 resolver 推导 tracked ASIN。
+4. 验证 `tracking_add` 这类写工具在 MCP 中是 unknown tool，说明写路径没有暴露。
 
 `scripts/mcp_report_research_example.py` 演示 `report-research` 计划的纯本地报告链路：
 
 1. 使用 `tools/list toolset=reports profile=offline_fixture_only`。
-2. 调用 `keepa.workflow_plan name=report-research`，确认 0 token 本地链路。
-3. 从本地 compare fixture 调用 `keepa.research_graph_merge` 并写入临时 graph JSON。
-4. 通过 merged graph 的 `resource_uri` 导出 `keepa.research_brief_export` 和 `keepa.browse_snapshot`。
-5. 调用 `keepa.figures_research`，读取 MCP text fallback 里的 `mcp_resource_manifest.resources[]`，把 `image/svg+xml` 的 `keepa://output/...` 作为报告图片资源。
-6. 通过 `workflow_context.steps/outputs` 把 graph artifact 交给 `keepa.reports_build`，展示 Agent 常见状态容器如何被 resolver 接续。
+2. 调用 `workflow_plan name=report-research`，确认 0 token 本地链路。
+3. 从本地 compare fixture 调用 `research_graph_merge` 并写入临时 graph JSON。
+4. 通过 merged graph 的 `resource_uri` 导出 `research_brief_export` 和 `browse_snapshot`。
+5. 调用 `figures_research`，读取 MCP text fallback 里的 `mcp_resource_manifest.resources[]`，把 `image/svg+xml` 的 `keepa://output/...` 作为报告图片资源。
+6. 通过 `workflow_context.steps/outputs` 把 graph artifact 交给 `reports_build`，展示 Agent 常见状态容器如何被 resolver 接续。
 
 运行：
 
@@ -489,11 +489,11 @@ MCP JSON-RPC  -> AgentSession -> run_command -> tool result
 7. 补测试、README、`docs/agent-contract.md`。（已完成）
 8. 落地 `research_graph`、统一 `risk_taxonomy`，并让 evaluation specs 断言 Agent 语义质量。（已完成）
 9. 落地 cassette promote workflow：真实响应 -> sanitize -> 双份 fixture -> manifest。（已完成）
-10. 落地 `cassettes.promote_and_verify` / `keepa.cassettes_promote_and_verify`：promote 后检查 fixture parity，并可选运行 Agent eval fixtures。（已完成）
+10. 落地 `cassettes.promote_and_verify` / `cassettes_promote_and_verify`：promote 后检查 fixture parity，并可选运行 Agent eval fixtures。（已完成）
 11. 落地 MCP toolset 动态过滤：`research/audit/business/reports/tracking-readonly/all`。（已完成）
 12. 把 `research_graph` 扩展到 category/finder/deals/seller/ranking 输出。（已完成）
-13. 落地 `research_graph.merge` 与 `keepa.research_graph_merge`，合并 category -> products -> compare -> seller 研究图。（已完成）
-14. 落地 `research_brief.export` 与 `keepa.research_brief_export`，把 merged graph 或多 payload 汇总为调研 Agent handoff。（已完成）
+13. 落地 `research_graph.merge` 与 `research_graph_merge`，合并 category -> products -> compare -> seller 研究图。（已完成）
+14. 落地 `research_brief.export` 与 `research_brief_export`，把 merged graph 或多 payload 汇总为调研 Agent handoff。（已完成）
 15. 落地 MCP resources 与 chunk/output resource manifest，大响应 text fallback 只返回摘要和资源引用。（已完成）
 16. 扩展 Agent eval，断言 graph merge、risk taxonomy、next_actions 可执行性和长链路 budget ledger。（已完成）
 17. 将 session profile 与 `workflow.plan` 联动，输出 recommended profile、inactive tools、profile switch points、确认策略和 budget ledger seed。（已完成）

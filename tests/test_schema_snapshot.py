@@ -28,7 +28,7 @@ def _mcp_chunk_products_get() -> dict:
                     "id": "chunks",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_get",
+                        "name": "products_get",
                         "arguments": {
                             "asin": "B0D8W1YVBX",
                             "domain": "US",

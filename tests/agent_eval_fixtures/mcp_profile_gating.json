@@ -10,7 +10,7 @@
   "assertions": [
     {"path": "result.profile", "equals": "offline_fixture_only"},
     {"path": "result.available_profiles", "contains": "offline_fixture_only"},
-    {"path": "result.tools", "contains_item": {"name": "keepa.products_get"}},
-    {"path": "result.tools", "contains_item": {"name": "keepa.context_policy"}}
+    {"path": "result.tools", "contains_item": {"name": "products_get"}},
+    {"path": "result.tools", "contains_item": {"name": "context_policy"}}
   ]
 }

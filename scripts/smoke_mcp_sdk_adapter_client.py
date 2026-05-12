@@ -59,6 +59,16 @@ async def _collect_pages(list_func: Any, result_attr: str) -> tuple[list[Any], l
     return items, pages
 
 
+def _contains_text(value: Any, expected: str) -> bool:
+    if isinstance(value, str):
+        return expected in value
+    if isinstance(value, dict):
+        return any(_contains_text(item, expected) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_text(item, expected) for item in value)
+    return False
+
+
 async def _run_smoke() -> dict[str, Any]:
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
@@ -78,15 +88,22 @@ async def _run_smoke() -> dict[str, Any]:
                 initialize = await session.initialize()
                 tool_list, tool_pages = await _collect_pages(session.list_tools, "tools")
                 tool_names = [tool.name for tool in tool_list]
-                if "keepa.context_policy" not in tool_names:
-                    raise AssertionError("SDK adapter did not expose keepa.context_policy")
-                if not tool_pages or tool_pages[0]["names"][0] != "keepa.context_policy":
-                    raise AssertionError("SDK adapter first tool page did not prioritize keepa.context_policy")
+                if "context_policy" not in tool_names:
+                    raise AssertionError("SDK adapter did not expose context_policy")
+                if not tool_pages or tool_pages[0]["names"][0] != "context_policy":
+                    raise AssertionError("SDK adapter first tool page did not prioritize context_policy")
                 if len(tool_pages[0]["names"]) > SDK_DEFAULT_TOOL_PAGE_SIZE:
                     raise AssertionError("SDK adapter first tool page is too large for Agent startup")
-                tool_result = await session.call_tool("keepa.context_policy", {})
+                tool_result = await session.call_tool("context_policy", {})
                 if tool_result.isError or not tool_result.structuredContent:
-                    raise AssertionError("keepa.context_policy did not return structuredContent")
+                    raise AssertionError("context_policy did not return structuredContent")
+                invalid_schema_result = await session.call_tool("categories_search", {"domain": "US", "term": 123})
+                if not invalid_schema_result.isError:
+                    raise AssertionError("SDK adapter did not map JSON Schema validation failure to isError=true")
+                if not _contains_text(invalid_schema_result.structuredContent, "invalid_arguments"):
+                    raise AssertionError("SDK adapter JSON Schema validation lost invalid_arguments error kind")
+                if not _contains_text(invalid_schema_result.structuredContent, "term: expected string"):
+                    raise AssertionError("SDK adapter JSON Schema validation lost field type detail")
                 resources, resource_pages = await _collect_pages(session.list_resources, "resources")
                 resource_uris = [str(resource.uri) for resource in resources]
                 if "keepa://context/policy" not in resource_uris:
@@ -104,11 +121,11 @@ async def _run_smoke() -> dict[str, Any]:
                     raise AssertionError("SDK adapter first template page is too large for Agent startup")
                 prompts, prompt_pages = await _collect_pages(session.list_prompts, "prompts")
                 prompt_names = [prompt.name for prompt in prompts]
-                if "keepa.product_research" not in prompt_names:
-                    raise AssertionError("SDK adapter did not expose keepa.product_research")
+                if "product_research" not in prompt_names:
+                    raise AssertionError("SDK adapter did not expose product_research")
                 if len(prompt_pages[0]["names"]) > SDK_DEFAULT_PROMPT_PAGE_SIZE:
                     raise AssertionError("SDK adapter first prompt page is too large for Agent startup")
-                if prompt_pages[0]["names"][0] != "keepa.product_research":
+                if prompt_pages[0]["names"][0] != "product_research":
                     raise AssertionError("SDK adapter first prompt page did not prioritize product research")
 
     return {
@@ -122,7 +139,7 @@ async def _run_smoke() -> dict[str, Any]:
             "page_count": len(tool_pages),
             "first_page_names": tool_pages[0]["names"],
             "first_page_meta": tool_pages[0]["meta"],
-            "has_context_policy": "keepa.context_policy" in tool_names,
+            "has_context_policy": "context_policy" in tool_names,
         },
         "resources": {
             "count": len(resource_uris),
@@ -142,11 +159,13 @@ async def _run_smoke() -> dict[str, Any]:
             "page_count": len(prompt_pages),
             "first_page_names": prompt_pages[0]["names"],
             "first_page_meta": prompt_pages[0]["meta"],
-            "has_product_research": "keepa.product_research" in prompt_names,
+            "has_product_research": "product_research" in prompt_names,
         },
         "tool_call": {
             "is_error": tool_result.isError,
             "has_structured_content": bool(tool_result.structuredContent),
+            "schema_error_is_error": invalid_schema_result.isError,
+            "schema_error_contains_type_detail": _contains_text(invalid_schema_result.structuredContent, "term: expected string"),
         },
     }
 

@@ -4,7 +4,7 @@
   "kind": "mcp",
   "method": "tools/call",
   "params": {
-    "name": "keepa.resolve_research_target",
+    "name": "resolve_research_target",
     "arguments": {
       "query": "B001GZ6QEC",
       "domain": "US"

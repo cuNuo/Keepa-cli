@@ -36,22 +36,22 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                 "toolset": "all",
                 "profile": "offline_fixture_only",
                 "allow_tools": [
-                    "keepa.workflow_plan",
-                    "keepa.categories_products",
-                    "keepa.products_compare",
-                    "keepa.research_graph_merge",
-                    "keepa.research_brief_export",
-                    "keepa.reports_build",
+                    "workflow_plan",
+                    "categories_products",
+                    "products_compare",
+                    "research_graph_merge",
+                    "research_brief_export",
+                    "reports_build",
                 ],
             },
         )
         workflow_plan = client.call_tool(
-            "keepa.workflow_plan",
+            "workflow_plan",
             {"name": "category-research", "term": args.term, "domain": args.domain, "goal": args.goal, "hydrate_top": 0},
         )
         risk_schema = client.read_resource_json(RISK_SCHEMA_URI)
         category_products = client.call_tool(
-            "keepa.categories_products",
+            "categories_products",
             {
                 "category": args.category,
                 "domain": args.domain,
@@ -62,7 +62,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
         )
         category_resource_uri = research_resource_uri(str(category_products["cache_key"]))
         compare = client.call_tool(
-            "keepa.products_compare",
+            "products_compare",
             {
                 "resource_uri": category_resource_uri,
                 "domain": args.domain,
@@ -74,18 +74,18 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
         risk_validation = validate_risk_taxonomy([compare], risk_schema)
         compare_graph_uri = research_resource_uri(str(compare["cache_key"]), "/graph")
         merged = client.call_tool(
-            "keepa.research_graph_merge",
+            "research_graph_merge",
             {"resource_uri": compare_graph_uri, "root": args.graph_root, "label": "MCP client example research graph"},
         )
         merged_resource_uri = research_resource_uri(str(merged["cache_key"]))
         merged_graph_uri = research_resource_uri(str(merged["cache_key"]), "/graph")
         brief = client.call_tool(
-            "keepa.research_brief_export",
+            "research_brief_export",
             {"resource_uri": merged_resource_uri, "title": args.report_title},
         )
         brief_resource_uri = research_resource_uri(str(brief["cache_key"]), "/brief")
         report = client.call_tool(
-            "keepa.reports_build",
+            "reports_build",
             {"resource_uri": merged_resource_uri, "format": "json", "title": args.report_title},
         )
         return {

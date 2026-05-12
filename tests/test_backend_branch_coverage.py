@@ -198,9 +198,9 @@ class BackendBranchCoverageTests(unittest.TestCase):
         initialized = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "note", "method": "notifications/initialized"}), env={})
         unknown_method = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "missing", "method": "missing"}), env={})
         unknown_resource = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "resource", "method": "resources/read", "params": {"uri": "keepa://missing"}}), env={})
-        bad_prompt_args = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompt-args", "method": "prompts/get", "params": {"name": "keepa.product_research", "arguments": [1]}}), env={})
+        bad_prompt_args = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompt-args", "method": "prompts/get", "params": {"name": "product_research", "arguments": [1]}}), env={})
         unknown_prompt = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompt", "method": "prompts/get", "params": {"name": "missing"}}), env={})
-        bad_tool_args = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "tool", "method": "tools/call", "params": {"name": "keepa.products_get", "arguments": [1]}}), env={})
+        bad_tool_args = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "tool", "method": "tools/call", "params": {"name": "products_get", "arguments": [1]}}), env={})
 
         self.assertEqual(parse_error["error"]["code"], -32700)
         self.assertEqual(invalid_request["error"]["code"], -32600)
@@ -213,10 +213,10 @@ class BackendBranchCoverageTests(unittest.TestCase):
         self.assertEqual(bad_tool_args["error"]["code"], -32602)
 
         filtered = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "filter", "method": "tools/list", "params": {"allow_tools": "keepa.context_policy, keepa.products_get", "exclude_tools": 123}}),
+            json.dumps({"jsonrpc": "2.0", "id": "filter", "method": "tools/list", "params": {"allow_tools": "context_policy, products_get", "exclude_tools": 123}}),
             env={},
         )
-        self.assertEqual(filtered["result"]["filters"]["allow_tools"], ["keepa.context_policy", "keepa.products_get"])
+        self.assertEqual(filtered["result"]["filters"]["allow_tools"], ["context_policy", "products_get"])
         self.assertEqual(filtered["result"]["filters"]["exclude_tools"], [])
 
         stdio_parse = handle_stdio_message("{", env={})
@@ -233,8 +233,8 @@ class BackendBranchCoverageTests(unittest.TestCase):
 
         session = AgentSession(runner=lambda command, params: {"ok": True, "command": command, "data": "not-a-dict", "token_bucket": {"tokens_consumed": "3"}})
         cache_miss = session.execute("doctor", {"from_cache": "missing"})
-        payload = session.execute("doctor", {}, tool="keepa.doctor")
-        cache_hit = session.execute("doctor", {}, tool="keepa.doctor")
+        payload = session.execute("doctor", {}, tool="doctor")
+        cache_hit = session.execute("doctor", {}, tool="doctor")
 
         self.assertFalse(cache_miss["ok"])
         self.assertEqual(cache_miss["error"]["kind"], "cache_miss")

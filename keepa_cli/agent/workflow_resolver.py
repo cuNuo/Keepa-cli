@@ -236,48 +236,48 @@ def _apply_derived_params(
     paths: list[str],
     temp_paths: list[str],
 ) -> None:
-    if tool_name in {"keepa.categories_products", "keepa.categories_finder_selection"} and not params.get("category"):
+    if tool_name in {"categories_products", "categories_finder_selection"} and not params.get("category"):
         category = _first(values.get("category_ids"))
         if category:
             params["category"] = category
 
-    if tool_name in {"keepa.products_compare", "keepa.products_get"} and not params.get("asin"):
+    if tool_name in {"products_compare", "products_get"} and not params.get("asin"):
         asins = list(values.get("asins") or [])
-        if tool_name == "keepa.products_compare" and len(asins) >= 2:
+        if tool_name == "products_compare" and len(asins) >= 2:
             params["asin"] = asins[:10]
-        elif tool_name == "keepa.products_get" and asins:
+        elif tool_name == "products_get" and asins:
             params["asin"] = asins[0]
 
-    if tool_name == "keepa.tracking_get" and not params.get("asin"):
+    if tool_name == "tracking_get" and not params.get("asin"):
         asin = _first(values.get("tracking_asins")) or _first(values.get("asins"))
         if asin:
             params["asin"] = asin
 
-    if tool_name == "keepa.audit_cost":
+    if tool_name == "audit_cost":
         nested = params.get("params")
         if isinstance(nested, dict) and not nested.get("asin"):
             asin = _first(values.get("tracking_asins")) or _first(values.get("asins"))
             if asin:
                 nested["asin"] = asin
 
-    if tool_name == "keepa.research_graph_merge" and not params.get("input") and not params.get("graph"):
+    if tool_name == "research_graph_merge" and not params.get("input") and not params.get("graph"):
         if paths:
             params["input"] = paths[0] if len(paths) == 1 else paths
         elif graphs:
             params["graph"] = graphs
-    if tool_name == "keepa.research_brief_export" and not params.get("input") and not params.get("payload") and not params.get("graph"):
+    if tool_name == "research_brief_export" and not params.get("input") and not params.get("payload") and not params.get("graph"):
         if paths:
             params["input"] = paths[0] if len(paths) == 1 else paths
         elif payloads:
             params["payload"] = payloads
 
     local_input_tools = {
-        "keepa.reports_build",
-        "keepa.browse_snapshot",
-        "keepa.figures_research",
-        "keepa.find_fast_movers",
-        "keepa.inventory_audit",
-        "keepa.market_opportunity",
+        "reports_build",
+        "browse_snapshot",
+        "figures_research",
+        "find_fast_movers",
+        "inventory_audit",
+        "market_opportunity",
     }
     if tool_name in local_input_tools and not params.get("input") and not params.get("payload") and not params.get("fixture"):
         if paths:
@@ -286,7 +286,7 @@ def _apply_derived_params(
             params["input"] = _write_temp_json({"research_graph": graphs[0]}, prefix="keepa-workflow-graph-")
             temp_paths.append(params["input"])
         elif payloads:
-            if tool_name in {"keepa.find_fast_movers", "keepa.inventory_audit", "keepa.market_opportunity"}:
+            if tool_name in {"find_fast_movers", "inventory_audit", "market_opportunity"}:
                 params["payload"] = payloads[0]
             else:
                 params["input"] = _write_temp_json(payloads[0], prefix="keepa-workflow-payload-")
@@ -295,25 +295,25 @@ def _apply_derived_params(
 
 def _missing_inputs(tool_name: str, params: Mapping[str, Any]) -> list[dict[str, Any]]:
     missing: list[dict[str, Any]] = []
-    if tool_name in {"keepa.categories_products", "keepa.categories_finder_selection"} and not params.get("category"):
+    if tool_name in {"categories_products", "categories_finder_selection"} and not params.get("category"):
         missing.append({"field": "category", "accepts": ["artifact category_candidates", "workflow_inputs.selected_category_id", "resource_uri"]})
-    if tool_name == "keepa.products_compare" and len(params.get("asin") or []) < 2:
+    if tool_name == "products_compare" and len(params.get("asin") or []) < 2:
         missing.append({"field": "asin", "accepts": ["artifact category_products.asins", "resource_uri keepa://research/{cache_key}"]})
-    if tool_name == "keepa.products_get" and not params.get("asin") and not params.get("code"):
+    if tool_name == "products_get" and not params.get("asin") and not params.get("code"):
         missing.append({"field": "asin", "accepts": ["artifact category_products.asins", "workflow_inputs.asin"]})
-    if tool_name == "keepa.tracking_get" and not params.get("asin"):
+    if tool_name == "tracking_get" and not params.get("asin"):
         missing.append({"field": "asin", "accepts": ["artifact tracking_list", "workflow_inputs.asin"]})
-    if tool_name == "keepa.research_graph_merge" and not params.get("input") and not params.get("graph"):
+    if tool_name == "research_graph_merge" and not params.get("input") and not params.get("graph"):
         missing.append({"field": "graph", "accepts": ["resource_uri keepa://research/{cache_key}", "resource_uri keepa://research/{cache_key}/graph", "artifact graph", "artifact output.path"]})
-    if tool_name == "keepa.research_brief_export" and not params.get("input") and not params.get("payload") and not params.get("graph"):
+    if tool_name == "research_brief_export" and not params.get("input") and not params.get("payload") and not params.get("graph"):
         missing.append({"field": "payload", "accepts": ["resource_uri keepa://research/{cache_key}", "artifact merged_graph.path", "artifact payload"]})
     if tool_name in {
-        "keepa.reports_build",
-        "keepa.browse_snapshot",
-        "keepa.figures_research",
-        "keepa.find_fast_movers",
-        "keepa.inventory_audit",
-        "keepa.market_opportunity",
+        "reports_build",
+        "browse_snapshot",
+        "figures_research",
+        "find_fast_movers",
+        "inventory_audit",
+        "market_opportunity",
     } and not params.get("input") and not params.get("payload") and not params.get("fixture"):
         missing.append({"field": "input", "accepts": ["resource_uri keepa://research/{cache_key}", "resource_uri keepa://output/{encoded_path}", "artifact merged_graph.path"]})
     return missing

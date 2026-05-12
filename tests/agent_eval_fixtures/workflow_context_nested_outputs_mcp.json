@@ -7,7 +7,7 @@
       "id": "report-from-context-steps",
       "method": "tools/call",
       "params": {
-        "name": "keepa.reports_build",
+        "name": "reports_build",
         "arguments": {
           "workflow_context": {
             "steps": {
@@ -28,7 +28,7 @@
       "id": "brief-from-context-results",
       "method": "tools/call",
       "params": {
-        "name": "keepa.research_brief_export",
+        "name": "research_brief_export",
         "arguments": {
           "workflow_context": {
             "results": [

@@ -32,9 +32,9 @@ def build_context_policy(env: Mapping[str, str] | None = None, *, repo_root: Pat
             "keepa://tools/index",
             "keepa://prompts/index",
             "keepa://evidence/recent",
-            "keepa.resolve_research_target",
-            "keepa.query_research_context",
-            "keepa.workflow_plan",
+            "resolve_research_target",
+            "query_research_context",
+            "workflow_plan",
         ],
         "live_keepa": {
             "allowed_by_default": False,
@@ -192,15 +192,15 @@ def _target_next_actions(primary: Mapping[str, Any] | None) -> list[dict[str, An
     target_id = primary.get("id")
     domain = primary.get("domain", "US")
     if target_type == "asin":
-        return [{"tool": "keepa.products_get", "params": {"asin": target_id, "domain": domain, "view": "summary", "agent_view": True}}]
+        return [{"tool": "products_get", "params": {"asin": target_id, "domain": domain, "view": "summary", "agent_view": True}}]
     if target_type == "category":
-        return [{"tool": "keepa.categories_finder_selection", "params": {"category": target_id, "domain": domain}}]
+        return [{"tool": "categories_finder_selection", "params": {"category": target_id, "domain": domain}}]
     if target_type == "seller":
-        return [{"tool": "keepa.sellers_get", "params": {"seller": target_id, "domain": domain, "dry_run": True}}]
+        return [{"tool": "sellers_get", "params": {"seller": target_id, "domain": domain, "dry_run": True}}]
     if target_type == "keyword":
-        return [{"tool": "keepa.categories_search", "params": {"term": target_id, "domain": domain}}]
+        return [{"tool": "categories_search", "params": {"term": target_id, "domain": domain}}]
     if target_type == "fixture":
-        return [{"tool": "keepa.query_research_context", "params": {"target": dict(primary)}}]
+        return [{"tool": "query_research_context", "params": {"target": dict(primary)}}]
     return []
 
 

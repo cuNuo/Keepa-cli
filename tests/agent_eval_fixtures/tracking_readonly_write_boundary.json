@@ -15,11 +15,11 @@
         "toolset": "all",
         "profile": "tracking_readonly",
         "allow_tools": [
-          "keepa.tracking_add",
-          "keepa.tracking_remove",
-          "keepa.tracking_remove_all",
-          "keepa.tracking_webhook",
-          "keepa.tracking_list"
+          "tracking_add",
+          "tracking_remove",
+          "tracking_remove_all",
+          "tracking_webhook",
+          "tracking_list"
         ]
       }
     },
@@ -27,7 +27,7 @@
       "id": "readonly-call",
       "method": "tools/call",
       "params": {
-        "name": "keepa.tracking_list",
+        "name": "tracking_list",
         "arguments": {"asins_only": true, "fixture": "tracking_list.json", "profile": "tracking_readonly"}
       }
     }
@@ -37,17 +37,17 @@
     {"path": "responses", "length": 3},
     {"path": "responses.0.result.toolset", "equals": "tracking-readonly"},
     {"path": "responses.0.result.profile", "equals": "tracking_readonly"},
-    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_add"}},
-    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_remove"}},
-    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_remove_all"}},
-    {"path": "responses.0.result.tools", "not_contains_item": {"name": "keepa.tracking_webhook"}},
-    {"path": "responses.1.result.filters.allow_tools", "contains": "keepa.tracking_add"},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "tracking_add"}},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "tracking_remove"}},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "tracking_remove_all"}},
+    {"path": "responses.0.result.tools", "not_contains_item": {"name": "tracking_webhook"}},
+    {"path": "responses.1.result.filters.allow_tools", "contains": "tracking_add"},
     {"path": "responses.1.result.tools", "length": 1},
-    {"path": "responses.1.result.tools.0.name", "equals": "keepa.tracking_list"},
-    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_add"}},
-    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_remove"}},
-    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_remove_all"}},
-    {"path": "responses.1.result.tools", "not_contains_item": {"name": "keepa.tracking_webhook"}},
+    {"path": "responses.1.result.tools.0.name", "equals": "tracking_list"},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "tracking_add"}},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "tracking_remove"}},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "tracking_remove_all"}},
+    {"path": "responses.1.result.tools", "not_contains_item": {"name": "tracking_webhook"}},
     {"path": "responses.2.result.structuredContent.ok", "equals": true},
     {"path": "responses.2.result.structuredContent.command", "equals": "tracking.list"},
     {"path": "responses.2.result.structuredContent.request.params_redacted.asins-only", "equals": "1"},

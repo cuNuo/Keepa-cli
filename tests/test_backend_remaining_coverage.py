@@ -200,7 +200,7 @@ class BackendRemainingCoverageTests(unittest.TestCase):
             path_a.write_text(json.dumps(graph_payload), encoding="utf-8")
             path_b.write_text(json.dumps(graph_payload), encoding="utf-8")
             params, resolution = resolve_workflow_arguments(
-                "keepa.research_graph_merge",
+                "research_graph_merge",
                 {"resource_uris": [path_to_resource_uri(path_a, kind="output"), path_to_resource_uri(path_b, kind="output")]},
                 session_cache={},
             )
@@ -208,23 +208,23 @@ class BackendRemainingCoverageTests(unittest.TestCase):
             self.assertEqual(len(resolution["resolved"]), 2)
 
         cache = {"graph:key": {"data": {"research_graph": _graph("graph-root")}}}
-        _, graph_resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://graphs/graph-root"}, session_cache=cache)
+        _, graph_resolution = resolve_workflow_arguments("products_get", {"resource_uri": "keepa://graphs/graph-root"}, session_cache=cache)
         self.assertEqual(graph_resolution["resolved"][0]["kind"], "graph_audit_resource")
-        _, graph_error = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://graphs/missing-root"}, session_cache={})
+        _, graph_error = resolve_workflow_arguments("products_get", {"resource_uri": "keepa://graphs/missing-root"}, session_cache={})
         self.assertIn("missing_inputs", graph_error)
         params, resolution = resolve_workflow_arguments(
-            "keepa.reports_build",
+            "reports_build",
             {"workflow_context": {"steps": ["keepa://research/b64:" + text_to_resource_token("graph:key")]}},
             session_cache=cache,
         )
         self.assertTrue(Path(params["input"]).is_file())
         self.assertTrue(resolution["temp_paths"])
-        params, resolution = resolve_workflow_arguments("keepa.browse_snapshot", {"resource_uri": "keepa://research/missing"}, session_cache={})
+        params, resolution = resolve_workflow_arguments("browse_snapshot", {"resource_uri": "keepa://research/missing"}, session_cache={})
         self.assertEqual(resolution["missing_inputs"][0]["field"], "input")
-        for tool in ("keepa.categories_products", "keepa.products_get", "keepa.research_brief_export"):
+        for tool in ("categories_products", "products_get", "research_brief_export"):
             _, missing = resolve_workflow_arguments(tool, {}, session_cache={})
             self.assertTrue(missing["missing_inputs"])
-        params, resolution = resolve_workflow_arguments("keepa.audit_cost", {"resource_uri": "keepa://schema/risk-taxonomy"}, session_cache={})
+        params, resolution = resolve_workflow_arguments("audit_cost", {"resource_uri": "keepa://schema/risk-taxonomy"}, session_cache={})
         self.assertIsNotNone(resolution)
 
     def test_figures_product_view_workflow_and_context_remaining_helpers(self) -> None:

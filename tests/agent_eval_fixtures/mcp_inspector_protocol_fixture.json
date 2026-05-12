@@ -12,7 +12,7 @@
       "id": "inspector-invalid-tool-args",
       "method": "tools/call",
       "params": {
-        "name": "keepa.categories_search",
+        "name": "categories_search",
         "arguments": {"domain": "US", "extra": true}
       }
     },
@@ -26,7 +26,7 @@
     {"path": "responses.0.result.serverInfo.title", "equals": "Keepa CLI MCP"},
     {"path": "responses.0.result.capabilities.tools.listChanged", "equals": false},
     {"path": "responses.1.result.tools", "length": 2},
-    {"path": "responses.1.result.tools.0.name", "equals": "keepa.products_get"},
+    {"path": "responses.1.result.tools.0.name", "equals": "products_get"},
     {"path": "responses.1.result.tools.0.title", "equals": "Keepa Products Get"},
     {"path": "responses.1.result.tools.0.execution.taskSupport", "equals": "forbidden"},
     {"path": "responses.1.result.tools.0.annotations.openWorldHint", "equals": true},

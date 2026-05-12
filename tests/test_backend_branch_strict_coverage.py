@@ -111,7 +111,7 @@ class BranchStrictCoverageTests(unittest.TestCase):
 
         session = AgentSession(runner=lambda command, params: {"ok": True, "command": command, "data": "text", "token_bucket": {}})
         response = handle_mcp_message(
-            json.dumps({"id": 5, "method": "tools/call", "params": {"name": "keepa.doctor", "arguments": {"resource_uri": "keepa://research/missing"}}}),
+            json.dumps({"id": 5, "method": "tools/call", "params": {"name": "doctor", "arguments": {"resource_uri": "keepa://research/missing"}}}),
             session=session,
         )
         self.assertIn("error", response)
@@ -119,28 +119,28 @@ class BranchStrictCoverageTests(unittest.TestCase):
         self.assertEqual(_consumed_tokens({"token_bucket": {}}, {"estimated_tokens": 7}), (7, "estimated_fallback"))
         self.assertEqual(_consumed_tokens({}, {"estimated_tokens": 3}), (3, "estimated_fallback"))
         no_cache_session = AgentSession(runner=lambda command, params: {"ok": True, "command": command, "data": {"value": 1}, "token_bucket": {}})
-        first = no_cache_session.execute("doctor", {}, tool="keepa.doctor", use_cache=False)
-        second = no_cache_session.execute("doctor", {}, tool="keepa.doctor", use_cache=False)
+        first = no_cache_session.execute("doctor", {}, tool="doctor", use_cache=False)
+        second = no_cache_session.execute("doctor", {}, tool="doctor", use_cache=False)
         self.assertFalse(first["cache_hit"])
         self.assertFalse(second["cache_hit"])
         self.assertNotIn("doctor", no_cache_session.cache)
 
         payload = {"ok": True, "data": {"provenance": []}}
-        AgentSession._attach_mcp_provenance(payload, tool="keepa.doctor", cache_key="k", cache_hit=False)
+        AgentSession._attach_mcp_provenance(payload, tool="doctor", cache_key="k", cache_hit=False)
         self.assertEqual(payload["data"]["provenance"], [])
 
         self.assertEqual(_integer_schema("number"), {"type": "integer", "description": "number"})
-        tool = get_tool_definition("keepa.products_get")
+        tool = get_tool_definition("products_get")
         self.assertEqual(tool_params_to_command_params(tool, {"view": "raw"})["view"], "raw")
         workflow_session = AgentSession(runner=lambda command, params: {"ok": True, "command": command, "data": "not-dict", "token_bucket": {}})
         workflow_call = handle_mcp_message(
-            json.dumps({"id": 6, "method": "tools/call", "params": {"name": "keepa.products_get", "arguments": {"resource_uri": "cache-key"}}}),
+            json.dumps({"id": 6, "method": "tools/call", "params": {"name": "products_get", "arguments": {"resource_uri": "cache-key"}}}),
             session=workflow_session,
         )
         self.assertIn("result", workflow_call)
         resolved_session = AgentSession(runner=lambda command, params: {"ok": True, "command": command, "data": "not-dict", "token_bucket": {}})
         resolved_call = handle_mcp_message(
-            json.dumps({"id": 7, "method": "tools/call", "params": {"name": "keepa.products_get", "arguments": {"artifact": {"payload": {"data": {"products": [{"asin": "B1"}]}}}}}}),
+            json.dumps({"id": 7, "method": "tools/call", "params": {"name": "products_get", "arguments": {"artifact": {"payload": {"data": {"products": [{"asin": "B1"}]}}}}}}),
             session=resolved_session,
         )
         self.assertIn("result", resolved_call)
@@ -489,28 +489,28 @@ class BranchStrictCoverageTests(unittest.TestCase):
 
     def test_workflow_resolution_branch_edges(self) -> None:
         params, resolution = resolve_workflow_arguments(
-            "keepa.audit_cost",
+            "audit_cost",
             {"params": {}, "workflow_inputs": {"skip": {"value": "keepa://graphs/missing"}, "also_skip": "x"}, "workflow_context": ["plain-ref", 123]},
             session_cache={},
         )
         self.assertEqual(params["params"], {})
         self.assertTrue(resolution["resolved"])
         plain_value_params, plain_value_resolution = resolve_workflow_arguments(
-            "keepa.products_get",
+            "products_get",
             {"artifact": "keepa://graphs/missing", "workflow_inputs": {"plain": {"value": "not-a-reference"}}},
             session_cache={},
         )
         self.assertTrue(plain_value_resolution["resolved"])
         self.assertNotIn("asin", plain_value_params)
         scalar_context_params, scalar_context_resolution = resolve_workflow_arguments(
-            "keepa.products_get",
+            "products_get",
             {"artifact": "keepa://graphs/missing", "workflow_context": "not-a-reference"},
             session_cache={},
         )
         self.assertTrue(scalar_context_resolution["resolved"])
         self.assertNotIn("asin", scalar_context_params)
         unsupported_params, unsupported_resolution = resolve_workflow_arguments(
-            "keepa.products_get",
+            "products_get",
             {"artifact": {"unknown": "shape"}, "resource_uri": "keepa://graphs/missing"},
             session_cache={},
         )
@@ -520,22 +520,22 @@ class BranchStrictCoverageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "payload.json"
             path.write_text(json.dumps({"data": {"products": [{"asin": "B1"}, {"asin": "B2"}]}}), encoding="utf-8")
-            report_params, report_resolution = resolve_workflow_arguments("keepa.reports_build", {"artifact": {"output": {"path": str(path)}}})
+            report_params, report_resolution = resolve_workflow_arguments("reports_build", {"artifact": {"output": {"path": str(path)}}})
             self.assertEqual(report_params["input"], str(path))
             self.assertTrue(report_resolution["resolved"])
 
-        no_asin_params, no_asin_resolution = resolve_workflow_arguments("keepa.audit_cost", {"params": {}, "artifact": {"payload": {"note": "no asin"}}})
+        no_asin_params, no_asin_resolution = resolve_workflow_arguments("audit_cost", {"params": {}, "artifact": {"payload": {"note": "no asin"}}})
         self.assertNotIn("asin", no_asin_params["params"])
         self.assertTrue(no_asin_resolution["resolved"])
 
         nested_params, nested_resolution = resolve_workflow_arguments(
-            "keepa.tracking_get",
+            "tracking_get",
             {"workflow_context": {"steps": {"list": {"payload": {"trackings": [{"asin": None}, "skip"]}}}}},
         )
         self.assertNotIn("asin", nested_params)
         self.assertTrue(nested_resolution["resolved"])
         existing_params, existing_resolution = resolve_workflow_arguments(
-            "keepa.products_get",
+            "products_get",
             {"asin": "B0", "artifact": {"payload": {"data": {"products": [{"asin": "B1"}]}}}},
         )
         self.assertEqual(existing_params["asin"], "B0")

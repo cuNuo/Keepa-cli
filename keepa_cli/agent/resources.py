@@ -1117,9 +1117,9 @@ Server version: {__version__}
 
 Agent default path:
 
-1. Use `keepa.categories_search` or `kc --json categories search "<term>" --domain US`.
+1. Use `categories_search` or `kc --json categories search "<term>" --domain US`.
 2. Pick `category_candidates[].id` with the strongest name/path match.
-3. Generate a local Finder scaffold with `keepa.categories_finder_selection`.
+3. Generate a local Finder scaffold with `categories_finder_selection`.
 4. Use `workflow.plan` with `category-research` before any live Best Sellers request.
 
 Useful resources:
@@ -1172,7 +1172,7 @@ kc --json business agent-profile --profile dry_run_default --toolset research
 Equivalent MCP tool:
 
 ```json
-{{"name":"keepa.agent_profile_generate","arguments":{{"profile":"dry_run_default","toolset":"research"}}}}
+{{"name":"agent_profile_generate","arguments":{{"profile":"dry_run_default","toolset":"research"}}}}
 ```
 
 Recommended profile routing:
@@ -1184,9 +1184,9 @@ Recommended profile routing:
 
 Business aliases:
 
-- `keepa.find_fast_movers` -> `business.find-fast-movers`
-- `keepa.inventory_audit` -> `business.inventory-audit`
-- `keepa.market_opportunity` -> `business.market-opportunity`
+- `find_fast_movers` -> `business.find-fast-movers`
+- `inventory_audit` -> `business.inventory-audit`
+- `market_opportunity` -> `business.market-opportunity`
 """
 
 

@@ -34,19 +34,19 @@ class McpProtocolTests(unittest.TestCase):
         names = {item["name"] for item in response["result"]["tools"]}
 
         self.assertEqual(response["result"]["toolset"], "research")
-        self.assertIn("keepa.products_get", names)
-        self.assertIn("keepa.products_compare", names)
-        self.assertIn("keepa.categories_search", names)
-        self.assertIn("keepa.deals_query", names)
-        self.assertIn("keepa.research_graph_merge", names)
-        self.assertIn("keepa.research_brief_export", names)
-        self.assertIn("keepa.docs_index", names)
-        self.assertIn("keepa.docs_read", names)
-        self.assertIn("keepa.context_policy", names)
-        self.assertIn("keepa.resolve_research_target", names)
-        self.assertIn("keepa.query_research_context", names)
-        self.assertNotIn("keepa.audit_cost", names)
-        products = next(item for item in response["result"]["tools"] if item["name"] == "keepa.products_get")
+        self.assertIn("products_get", names)
+        self.assertIn("products_compare", names)
+        self.assertIn("categories_search", names)
+        self.assertIn("deals_query", names)
+        self.assertIn("research_graph_merge", names)
+        self.assertIn("research_brief_export", names)
+        self.assertIn("docs_index", names)
+        self.assertIn("docs_read", names)
+        self.assertIn("context_policy", names)
+        self.assertIn("resolve_research_target", names)
+        self.assertIn("query_research_context", names)
+        self.assertNotIn("audit_cost", names)
+        products = next(item for item in response["result"]["tools"] if item["name"] == "products_get")
         self.assertIn("inputSchema", products)
         self.assertIn("outputSchema", products)
         self.assertEqual(products["title"], "Keepa Products Get")
@@ -54,7 +54,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(products["annotations"]["openWorldHint"])
         self.assertTrue(products["annotations"]["readOnlyHint"])
         self.assertEqual(products["x-keepa"]["service_command"], "products.get")
-        compare = next(item for item in response["result"]["tools"] if item["name"] == "keepa.products_compare")
+        compare = next(item for item in response["result"]["tools"] if item["name"] == "products_compare")
         self.assertEqual(compare["x-keepa"]["service_command"], "products.compare")
         self.assertIn("risk", compare["description"])
 
@@ -64,11 +64,11 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         audit_names = {item["name"] for item in audit["result"]["tools"]}
-        self.assertIn("keepa.audit_cost", audit_names)
-        self.assertIn("keepa.cassettes_promote", audit_names)
-        self.assertIn("keepa.cassettes_promote_and_verify", audit_names)
-        self.assertNotIn("keepa.products_get", audit_names)
-        promote = next(item for item in audit["result"]["tools"] if item["name"] == "keepa.cassettes_promote")
+        self.assertIn("audit_cost", audit_names)
+        self.assertIn("cassettes_promote", audit_names)
+        self.assertIn("cassettes_promote_and_verify", audit_names)
+        self.assertNotIn("products_get", audit_names)
+        promote = next(item for item in audit["result"]["tools"] if item["name"] == "cassettes_promote")
         self.assertFalse(promote["annotations"]["readOnlyHint"])
         self.assertTrue(promote["annotations"]["destructiveHint"])
 
@@ -79,11 +79,11 @@ class McpProtocolTests(unittest.TestCase):
         report_names = {item["name"] for item in reports["result"]["tools"]}
         self.assertEqual(
             {
-                "keepa.research_graph_merge",
-                "keepa.reports_build",
-                "keepa.browse_snapshot",
-                "keepa.research_brief_export",
-                "keepa.figures_research",
+                "research_graph_merge",
+                "reports_build",
+                "browse_snapshot",
+                "research_brief_export",
+                "figures_research",
             },
             report_names,
         )
@@ -94,7 +94,7 @@ class McpProtocolTests(unittest.TestCase):
         )
         docs_names = {item["name"] for item in docs["result"]["tools"]}
         self.assertEqual(
-            {"keepa.docs_index", "keepa.docs_read", "keepa.context_policy", "keepa.query_research_context", "keepa.agent_profile_generate"},
+            {"docs_index", "docs_read", "context_policy", "query_research_context", "agent_profile_generate"},
             docs_names,
         )
 
@@ -103,16 +103,16 @@ class McpProtocolTests(unittest.TestCase):
             env={},
         )
         business_names = {item["name"] for item in business["result"]["tools"]}
-        self.assertEqual({"keepa.find_fast_movers", "keepa.inventory_audit", "keepa.market_opportunity", "keepa.agent_profile_generate"}, business_names)
+        self.assertEqual({"find_fast_movers", "inventory_audit", "market_opportunity", "agent_profile_generate"}, business_names)
 
         tracking = handle_mcp_message(
             json.dumps({"jsonrpc": "2.0", "id": "tracking", "method": "tools/list", "params": {"toolset": "tracking-readonly"}}),
             env={},
         )
         tracking_names = {item["name"] for item in tracking["result"]["tools"]}
-        self.assertIn("keepa.tracking_list", tracking_names)
-        self.assertIn("keepa.tracking_get", tracking_names)
-        self.assertIn("keepa.audit_cost", tracking_names)
+        self.assertIn("tracking_list", tracking_names)
+        self.assertIn("tracking_get", tracking_names)
+        self.assertIn("audit_cost", tracking_names)
         self.assertNotIn("tracking.add", tracking_names)
 
         all_tools = handle_mcp_message(
@@ -177,17 +177,17 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "filtered",
                     "method": "tools/list",
                     "params": {
-                        "allow_tools": ["keepa.context_policy", "keepa.resolve_research_target"],
-                        "exclude_tools": ["keepa.context_policy"],
+                        "allow_tools": ["context_policy", "resolve_research_target"],
+                        "exclude_tools": ["context_policy"],
                     },
                 }
             ),
             env={},
         )
 
-        self.assertEqual(["keepa.resolve_research_target"], [item["name"] for item in response["result"]["tools"]])
-        self.assertEqual(response["result"]["filters"]["allow_tools"], ["keepa.context_policy", "keepa.resolve_research_target"])
-        self.assertEqual(response["result"]["filters"]["exclude_tools"], ["keepa.context_policy"])
+        self.assertEqual(["resolve_research_target"], [item["name"] for item in response["result"]["tools"]])
+        self.assertEqual(response["result"]["filters"]["allow_tools"], ["context_policy", "resolve_research_target"])
+        self.assertEqual(response["result"]["filters"]["exclude_tools"], ["context_policy"])
 
     def test_workflow_runtime_args_only_exposed_on_resolver_tools(self):
         response = handle_mcp_message(
@@ -196,15 +196,15 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "runtime-schema",
                     "method": "tools/list",
-                    "params": {"toolset": "all", "allow_tools": ["keepa.products_compare", "keepa.context_policy"]},
+                    "params": {"toolset": "all", "allow_tools": ["products_compare", "context_policy"]},
                 }
             ),
             env={},
         )
         tools = {item["name"]: item for item in response["result"]["tools"]}
 
-        compare_props = tools["keepa.products_compare"]["inputSchema"]["properties"]
-        policy_props = tools["keepa.context_policy"]["inputSchema"]["properties"]
+        compare_props = tools["products_compare"]["inputSchema"]["properties"]
+        policy_props = tools["context_policy"]["inputSchema"]["properties"]
         self.assertIn("resource_uri", compare_props)
         self.assertNotIn("resource_uri", policy_props)
 
@@ -214,7 +214,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "runtime-unsupported",
                     "method": "tools/call",
-                    "params": {"name": "keepa.context_policy", "arguments": {"resource_uri": "keepa://research/example"}},
+                    "params": {"name": "context_policy", "arguments": {"resource_uri": "keepa://research/example"}},
                 }
             ),
             env={},
@@ -232,10 +232,10 @@ class McpProtocolTests(unittest.TestCase):
 
         self.assertEqual(response["result"]["profile"], "offline_fixture_only")
         self.assertIn("offline_fixture_only", response["result"]["available_profiles"])
-        self.assertTrue(tools["keepa.context_policy"]["x-keepa"]["active"])
-        self.assertTrue(tools["keepa.find_fast_movers"]["x-keepa"]["active"])
-        self.assertFalse(tools["keepa.products_get"]["x-keepa"]["active"])
-        self.assertIn("inactive_tool", tools["keepa.products_get"]["x-keepa"]["inactive_reason"])
+        self.assertTrue(tools["context_policy"]["x-keepa"]["active"])
+        self.assertTrue(tools["find_fast_movers"]["x-keepa"]["active"])
+        self.assertFalse(tools["products_get"]["x-keepa"]["active"])
+        self.assertIn("inactive_tool", tools["products_get"]["x-keepa"]["inactive_reason"])
 
     def test_tools_list_rejects_unknown_profile(self):
         response = handle_mcp_message(
@@ -255,7 +255,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "inactive",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_get",
+                        "name": "products_get",
                         "arguments": {"asin": "B0D8W1YVBX", "domain": "US", "fixture": "product_B0D8W1YVBX_agent_eval.json", "profile": "offline_fixture_only"},
                     },
                 }
@@ -274,12 +274,12 @@ class McpProtocolTests(unittest.TestCase):
         listed = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": "prompts", "method": "prompts/list", "params": {}}), env={})
         names = {item["name"] for item in listed["result"]["prompts"]}
 
-        self.assertIn("keepa.product_research", names)
-        self.assertIn("keepa.project_onboarding", names)
-        self.assertIn("keepa.research_agent_start", names)
-        self.assertIn("keepa.inventory_audit", names)
-        self.assertIn("keepa.velocity_research", names)
-        self.assertIn("keepa.market_opportunity", names)
+        self.assertIn("product_research", names)
+        self.assertIn("project_onboarding", names)
+        self.assertIn("research_agent_start", names)
+        self.assertIn("inventory_audit", names)
+        self.assertIn("velocity_research", names)
+        self.assertIn("market_opportunity", names)
 
         prompt = handle_mcp_message(
             json.dumps(
@@ -287,7 +287,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "prompt",
                     "method": "prompts/get",
-                    "params": {"name": "keepa.product_research", "arguments": {"asin": "B0D8W1YVBX", "domain": "US", "goal": "deal"}},
+                    "params": {"name": "product_research", "arguments": {"asin": "B0D8W1YVBX", "domain": "US", "goal": "deal"}},
                 }
             ),
             env={},
@@ -295,7 +295,7 @@ class McpProtocolTests(unittest.TestCase):
         message = prompt["result"]["messages"][0]
         self.assertEqual(message["role"], "user")
         self.assertIn("B0D8W1YVBX", message["content"]["text"])
-        self.assertIn("keepa.workflow_plan", message["content"]["text"])
+        self.assertIn("workflow_plan", message["content"]["text"])
 
         research_start = handle_mcp_message(
             json.dumps(
@@ -303,18 +303,18 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "research-start",
                     "method": "prompts/get",
-                    "params": {"name": "keepa.research_agent_start", "arguments": {"query": "B001GZ6QEC", "domain": "US", "goal": "deal"}},
+                    "params": {"name": "research_agent_start", "arguments": {"query": "B001GZ6QEC", "domain": "US", "goal": "deal"}},
                 }
             ),
             env={},
         )
         start_text = research_start["result"]["messages"][0]["content"]["text"]
         self.assertIn("keepa://context/policy", start_text)
-        self.assertIn("keepa.resolve_research_target", start_text)
+        self.assertIn("resolve_research_target", start_text)
 
     def test_docs_tools_read_zread_resources_for_resource_limited_clients(self):
         index = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "docs-index", "method": "tools/call", "params": {"name": "keepa.docs_index", "arguments": {}}}),
+            json.dumps({"jsonrpc": "2.0", "id": "docs-index", "method": "tools/call", "params": {"name": "docs_index", "arguments": {}}}),
             env={},
         )
         structured = index["result"]["structuredContent"]
@@ -328,7 +328,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "docs-read",
                     "method": "tools/call",
-                    "params": {"name": "keepa.docs_read", "arguments": {"page": "1-gai-lan.md"}},
+                    "params": {"name": "docs_read", "arguments": {"page": "1-gai-lan.md"}},
                 }
             ),
             env={},
@@ -340,7 +340,7 @@ class McpProtocolTests(unittest.TestCase):
 
     def test_context_policy_and_target_tools_are_local_mcp_tools(self):
         policy = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "policy", "method": "tools/call", "params": {"name": "keepa.context_policy", "arguments": {}}}),
+            json.dumps({"jsonrpc": "2.0", "id": "policy", "method": "tools/call", "params": {"name": "context_policy", "arguments": {}}}),
             env={},
         )
         policy_payload = policy["result"]["structuredContent"]
@@ -354,14 +354,14 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "resolve",
                     "method": "tools/call",
-                    "params": {"name": "keepa.resolve_research_target", "arguments": {"query": "B001GZ6QEC", "domain": "US"}},
+                    "params": {"name": "resolve_research_target", "arguments": {"query": "B001GZ6QEC", "domain": "US"}},
                 }
             ),
             env={},
         )
         resolved_payload = resolved["result"]["structuredContent"]
         self.assertEqual(resolved_payload["data"]["primary"]["type"], "asin")
-        self.assertEqual(resolved_payload["data"]["next_actions"][0]["tool"], "keepa.products_get")
+        self.assertEqual(resolved_payload["data"]["next_actions"][0]["tool"], "products_get")
 
         context = handle_mcp_message(
             json.dumps(
@@ -369,7 +369,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "context",
                     "method": "tools/call",
-                    "params": {"name": "keepa.query_research_context", "arguments": {"target_type": "asin", "target_id": "B001GZ6QEC"}},
+                    "params": {"name": "query_research_context", "arguments": {"target_type": "asin", "target_id": "B001GZ6QEC"}},
                 }
             ),
             env={},
@@ -385,7 +385,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": 3,
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.categories_search",
+                        "name": "categories_search",
                         "arguments": {
                             "term": "home kitchen",
                             "domain": "US",
@@ -417,7 +417,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "finder-selection",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.categories_finder_selection",
+                        "name": "categories_finder_selection",
                         "arguments": {
                             "category": "1055398",
                             "domain": "US",
@@ -445,7 +445,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "business-alias",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.find_fast_movers",
+                        "name": "find_fast_movers",
                         "arguments": {"fixture": "product_agent_view_B0TEST.json", "profile": "offline_fixture_only"},
                     },
                 }
@@ -469,7 +469,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "workflow-policy",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.workflow_plan",
+                        "name": "workflow_plan",
                         "arguments": {
                             "name": "category-research",
                             "term": "home kitchen",
@@ -489,7 +489,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(structured["data"]["workflow_policy"]["planning_profile"], "offline_fixture_only")
         self.assertEqual(structured["data"]["workflow_policy"]["recommended_profile"], "dry_run_default")
         self.assertEqual(structured["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
-        self.assertEqual(structured["data"]["steps"][2]["mcp"]["tool"], "keepa.categories_products")
+        self.assertEqual(structured["data"]["steps"][2]["mcp"]["tool"], "categories_products")
         self.assertFalse(structured["data"]["steps"][3]["mcp"]["active_in_recommended_profile"])
 
     def test_tools_call_report_and_tracking_workflow_profiles(self):
@@ -499,7 +499,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "report-workflow",
                     "method": "tools/call",
-                    "params": {"name": "keepa.workflow_plan", "arguments": {"name": "report-research", "domain": "US", "goal": "deal"}},
+                    "params": {"name": "workflow_plan", "arguments": {"name": "report-research", "domain": "US", "goal": "deal"}},
                 }
             ),
             env={},
@@ -521,7 +521,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "tracking-workflow",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.workflow_plan",
+                        "name": "workflow_plan",
                         "arguments": {"name": "tracking-audit", "domain": "US", "asin": "B0D8W1YVBX"},
                     },
                 }
@@ -545,7 +545,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "deals",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.deals_query",
+                        "name": "deals_query",
                         "arguments": {
                             "selection_file": "tests/fixtures/deals_selection.json",
                             "domain": "US",
@@ -571,7 +571,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "compare",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_compare",
+                        "name": "products_compare",
                         "arguments": {
                             "asin": ["B0D8W1YVBX", "B0EVALCMP1", "B0EVALCMP2"],
                             "domain": "US",
@@ -601,14 +601,14 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "bad",
                     "method": "tools/call",
-                    "params": {"name": "keepa.unknown", "arguments": {}},
+                    "params": {"name": "unknown", "arguments": {}},
                 }
             ),
             env={},
         )
 
         self.assertEqual(response["error"]["code"], -32602)
-        self.assertEqual(response["error"]["data"]["tool"], "keepa.unknown")
+        self.assertEqual(response["error"]["data"]["tool"], "unknown")
 
     def test_tools_list_rejects_unknown_toolset(self):
         response = handle_mcp_message(
@@ -627,7 +627,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "invalid",
                     "method": "tools/call",
-                    "params": {"name": "keepa.categories_search", "arguments": {"domain": "US", "extra": True}},
+                    "params": {"name": "categories_search", "arguments": {"domain": "US", "extra": True}},
                 }
             ),
             env={},
@@ -640,6 +640,36 @@ class McpProtocolTests(unittest.TestCase):
         self.assertIn("unsupported argument: extra", result["structuredContent"]["error"]["details"]["errors"])
         self.assertIn("Call tools/list", result["structuredContent"]["error"]["details"]["next_action"])
 
+    def test_json_schema_tool_arguments_return_structured_errors(self):
+        cases = [
+            ("categories_search", {"domain": "US", "term": 123}, "term: expected string"),
+            ("products_get", {"asin": "B001GZ6QEC", "view": "bad", "dry_run": True}, "view: value 'bad' is not one of"),
+            ("products_get", {"asin": "B001GZ6QEC", "history_limit": -1, "dry_run": True}, "history_limit: value -1 is less than minimum 0"),
+            ("products_compare", {"asin": ["B001GZ6QEC", 123], "dry_run": True}, "asin[1]: expected string"),
+        ]
+
+        for name, arguments, expected_error in cases:
+            with self.subTest(name=name, expected_error=expected_error):
+                response = handle_mcp_message(
+                    json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": expected_error,
+                            "method": "tools/call",
+                            "params": {"name": name, "arguments": arguments},
+                        }
+                    ),
+                    env={},
+                )
+
+                result = response["result"]
+                self.assertTrue(result["isError"])
+                self.assertEqual(result["structuredContent"]["error"]["kind"], "invalid_arguments")
+                self.assertTrue(
+                    any(expected_error in error for error in result["structuredContent"]["error"]["details"]["errors"]),
+                    result["structuredContent"]["error"]["details"]["errors"],
+                )
+
     def test_tools_call_missing_workflow_input_returns_structured_error(self):
         response = handle_mcp_message(
             json.dumps(
@@ -647,7 +677,7 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "missing-workflow-input",
                     "method": "tools/call",
-                    "params": {"name": "keepa.research_graph_merge", "arguments": {}},
+                    "params": {"name": "research_graph_merge", "arguments": {}},
                 }
             ),
             env={},
@@ -668,7 +698,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": 4,
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.categories_products",
+                        "name": "categories_products",
                         "arguments": {"category": "172282", "domain": "US"},
                     },
                 }
@@ -681,7 +711,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertTrue(result["isError"])
         self.assertFalse(structured["ok"])
         self.assertEqual(structured["error"]["kind"], "confirmation_required")
-        self.assertEqual(structured["budget_ledger"]["blocked_actions"][0]["tool"], "keepa.categories_products")
+        self.assertEqual(structured["budget_ledger"]["blocked_actions"][0]["tool"], "categories_products")
 
     def test_iter_mcp_output_keeps_session_cache_across_lines(self):
         first = {
@@ -689,7 +719,7 @@ class McpProtocolTests(unittest.TestCase):
             "id": "a",
             "method": "tools/call",
             "params": {
-                "name": "keepa.categories_search",
+                "name": "categories_search",
                 "arguments": {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},
             },
         }
@@ -698,7 +728,7 @@ class McpProtocolTests(unittest.TestCase):
             "id": "b",
             "method": "tools/call",
             "params": {
-                "name": "keepa.categories_search",
+                "name": "categories_search",
                 "arguments": {"domain": "US", "fixture": "category_search_home.json", "term": "home kitchen"},
             },
         }
@@ -726,7 +756,7 @@ class McpProtocolTests(unittest.TestCase):
                 "jsonrpc": "2.0",
                 "id": "fake",
                 "method": "tools/call",
-                "params": {"name": "keepa.audit_cost", "arguments": {"target_command": "products.get"}},
+                "params": {"name": "audit_cost", "arguments": {"target_command": "products.get"}},
             }
         )
         response = handle_mcp_message(raw, env={}, session=session)
@@ -786,7 +816,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(runtime_payload["schema_resource_uri"], "keepa://schema/workflow-runtime-contract")
         self.assertIn("resource_uri", runtime_payload["argument_names"])
         self.assertEqual(runtime_payload["failure_kind"], "missing_inputs")
-        self.assertTrue(any(item["name"] == "keepa.products_compare" for item in runtime_payload["tools"]))
+        self.assertTrue(any(item["name"] == "products_compare" for item in runtime_payload["tools"]))
 
         runtime_schema = handle_mcp_message(
             json.dumps(
@@ -910,7 +940,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(payload["resource_templates"][0]["uri_template"], "keepa://workflow/{encoded_params}/policy")
         self.assertEqual(payload["workflow_policy"]["recommended_profile"], "dry_run_default")
         self.assertEqual(payload["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
-        self.assertEqual(payload["step_summary"][0]["mcp_tool"], "keepa.categories_search")
+        self.assertEqual(payload["step_summary"][0]["mcp_tool"], "categories_search")
         self.assertIn("workflow_inputs.term", payload["step_summary"][0]["input_refs"])
         self.assertIn("artifacts.category_candidates", payload["step_summary"][0]["artifact_refs"])
 
@@ -935,7 +965,7 @@ class McpProtocolTests(unittest.TestCase):
         self.assertEqual(tracking_payload["workflow_policy"]["recommended_toolset"], "tracking-readonly")
         self.assertEqual(tracking_payload["workflow_inputs"]["asin"]["value"], "B0D8W1YVBX")
         self.assertIn("tracking_detail", tracking_payload["artifacts"])
-        self.assertEqual(tracking_payload["step_summary"][0]["mcp_tool"], "keepa.tracking_list")
+        self.assertEqual(tracking_payload["step_summary"][0]["mcp_tool"], "tracking_list")
 
     def test_tool_and_prompt_resources_support_schema_first_agent_discovery(self):
         toolset = handle_mcp_message(
@@ -945,14 +975,14 @@ class McpProtocolTests(unittest.TestCase):
         toolset_payload = json.loads(toolset["result"]["contents"][0]["text"])
         self.assertEqual(toolset_payload["toolset"], "research")
         self.assertEqual(toolset_payload["workflow_runtime_contract_uri"], "keepa://workflow/runtime-contract")
-        self.assertTrue(any(item["resource_uri"] == "keepa://tools/keepa.products_get" for item in toolset_payload["tools"]))
+        self.assertTrue(any(item["resource_uri"] == "keepa://tools/products_get" for item in toolset_payload["tools"]))
 
         tool = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "tool", "method": "resources/read", "params": {"uri": "keepa://tools/keepa.products_get"}}),
+            json.dumps({"jsonrpc": "2.0", "id": "tool", "method": "resources/read", "params": {"uri": "keepa://tools/products_get"}}),
             env={},
         )
         tool_payload = json.loads(tool["result"]["contents"][0]["text"])
-        self.assertEqual(tool_payload["tool"]["name"], "keepa.products_get")
+        self.assertEqual(tool_payload["tool"]["name"], "products_get")
         self.assertEqual(tool_payload["execution"]["service_command"], "products.get")
         self.assertTrue(tool_payload["execution"]["workflow_runtime"])
         self.assertEqual(tool_payload["execution"]["workflow_runtime_contract_uri"], "keepa://workflow/runtime-contract")
@@ -964,14 +994,14 @@ class McpProtocolTests(unittest.TestCase):
         )
         prompts_payload = json.loads(prompts["result"]["contents"][0]["text"])
         self.assertGreaterEqual(prompts_payload["prompt_count"], 4)
-        self.assertTrue(any(item["resource_uri"] == "keepa://prompts/keepa.project_onboarding" for item in prompts_payload["prompts"]))
+        self.assertTrue(any(item["resource_uri"] == "keepa://prompts/project_onboarding" for item in prompts_payload["prompts"]))
 
         prompt = handle_mcp_message(
-            json.dumps({"jsonrpc": "2.0", "id": "prompt-resource", "method": "resources/read", "params": {"uri": "keepa://prompts/keepa.project_onboarding"}}),
+            json.dumps({"jsonrpc": "2.0", "id": "prompt-resource", "method": "resources/read", "params": {"uri": "keepa://prompts/project_onboarding"}}),
             env={},
         )
         prompt_payload = json.loads(prompt["result"]["contents"][0]["text"])
-        self.assertEqual(prompt_payload["name"], "keepa.project_onboarding")
+        self.assertEqual(prompt_payload["name"], "project_onboarding")
         self.assertIn("keepa://zread/wiki/current", prompt_payload["rendered_prompt"]["messages"][0]["content"]["text"])
 
     def test_resource_templates_read_cache_key_asin_and_evidence(self):
@@ -1032,7 +1062,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "product",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_get",
+                        "name": "products_get",
                         "arguments": {
                             "asin": "B0D8W1YVBX",
                             "domain": "US",
@@ -1080,7 +1110,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "chunks",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.products_get",
+                            "name": "products_get",
                             "arguments": {
                                 "asin": "B0D8W1YVBX",
                                 "domain": "US",
@@ -1120,7 +1150,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "cat",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.categories_search",
+                        "name": "categories_search",
                         "arguments": {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},
                     },
                 }
@@ -1134,7 +1164,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "seller",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.sellers_get",
+                        "name": "sellers_get",
                         "arguments": {"seller": "A2L77EE7U53NWQ", "domain": "US", "storefront": True, "fixture": "seller_A2L77EE7U53NWQ.json"},
                     },
                 }
@@ -1148,7 +1178,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "merge",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.research_graph_merge",
+                        "name": "research_graph_merge",
                         "arguments": {"graph": [category, seller], "root": "agent_research"},
                     },
                 }
@@ -1171,7 +1201,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "category-products",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.categories_products",
+                        "name": "categories_products",
                         "arguments": {
                             "category": "1055398",
                             "domain": "US",
@@ -1193,7 +1223,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "compare-from-resource",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_compare",
+                        "name": "products_compare",
                         "arguments": {
                             "resource_uri": f"keepa://research/{category_products['cache_key']}",
                             "domain": "US",
@@ -1223,7 +1253,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "product-for-report",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_get",
+                        "name": "products_get",
                         "arguments": {
                             "asin": "B0D8W1YVBX",
                             "domain": "US",
@@ -1245,7 +1275,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "merge-resource",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.research_graph_merge",
+                        "name": "research_graph_merge",
                         "arguments": {
                             "resource_uri": f"keepa://research/{product['cache_key']}/graph",
                             "root": "agent-report",
@@ -1267,7 +1297,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "report-from-resource",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.reports_build",
+                        "name": "reports_build",
                         "arguments": {
                             "resource_uri": f"keepa://research/{merged['cache_key']}",
                             "format": "json",
@@ -1297,7 +1327,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "artifact-product",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.products_get",
+                            "name": "products_get",
                             "arguments": {
                                 "asin": "B0D8W1YVBX",
                                 "domain": "US",
@@ -1319,7 +1349,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "artifact-merge",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.research_graph_merge",
+                            "name": "research_graph_merge",
                             "arguments": {
                                 "resource_uri": f"keepa://research/{product['cache_key']}/graph",
                                 "root": "artifact-report-chain",
@@ -1339,7 +1369,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "artifact-brief",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.research_brief_export",
+                            "name": "research_brief_export",
                             "arguments": {"artifact": merged, "title": "Artifact Brief", "out": brief_path},
                         },
                     }
@@ -1355,7 +1385,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "artifact-report",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.reports_build",
+                            "name": "reports_build",
                             "arguments": {"artifact": {"output": {"path": graph_path}}, "format": "json", "title": "Artifact Report"},
                         },
                     }
@@ -1384,7 +1414,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "nested-context-product",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.products_get",
+                            "name": "products_get",
                             "arguments": {
                                 "asin": "B0D8W1YVBX",
                                 "domain": "US",
@@ -1406,7 +1436,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "nested-context-merge",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.research_graph_merge",
+                            "name": "research_graph_merge",
                             "arguments": {
                                 "resource_uri": f"keepa://research/{product['cache_key']}/graph",
                                 "root": "nested-context-chain",
@@ -1426,7 +1456,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "nested-context-report",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.reports_build",
+                            "name": "reports_build",
                             "arguments": {
                                 "workflow_context": {
                                     "steps": {"merge": {"artifact": merged}},
@@ -1456,7 +1486,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "graph-root-audit-only",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.research_graph_merge",
+                        "name": "research_graph_merge",
                         "arguments": {"resource_uri": "keepa://graphs/product_compare_agent_eval", "root": "audit-only"},
                     },
                 }
@@ -1481,7 +1511,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "brief-cat",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.categories_search",
+                        "name": "categories_search",
                         "arguments": {"term": "home kitchen", "domain": "US", "fixture": "category_search_home.json"},
                     },
                 }
@@ -1496,7 +1526,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "brief-seller",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.sellers_get",
+                        "name": "sellers_get",
                         "arguments": {"seller": "A2L77EE7U53NWQ", "domain": "US", "storefront": True, "fixture": "seller_A2L77EE7U53NWQ.json"},
                     },
                 }
@@ -1511,7 +1541,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "brief",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.research_brief_export",
+                        "name": "research_brief_export",
                         "arguments": {"payload": [category, seller], "title": "agent selection brief"},
                     },
                 }
@@ -1553,7 +1583,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "figures",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.figures_research",
+                            "name": "figures_research",
                             "arguments": {
                                 "input": "tests/fixtures/agent_eval_products_compare_output.json",
                                 "out_dir": temp_dir,
@@ -1591,7 +1621,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "compare",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_compare",
+                        "name": "products_compare",
                         "arguments": {
                             "asin": ["B0D8W1YVBX", "B0F7XPYCSJ"],
                             "domain": "US",
@@ -1650,7 +1680,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "compare",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.products_compare",
+                        "name": "products_compare",
                         "arguments": {
                             "asin": ["B0D8W1YVBX", "B0F7XPYCSJ"],
                             "domain": "US",
@@ -1694,15 +1724,15 @@ class McpProtocolTests(unittest.TestCase):
                     "jsonrpc": "2.0",
                     "id": "tools",
                     "method": "tools/list",
-                    "params": {"toolset": "reports", "allow_tools": ["keepa.figures_research", "keepa.reports_build"]},
+                    "params": {"toolset": "reports", "allow_tools": ["figures_research", "reports_build"]},
                 }
             ),
             env={},
         )
 
         tools = {item["name"]: item for item in response["result"]["tools"]}
-        figures_schema = tools["keepa.figures_research"]["inputSchema"]["properties"]["figure_set"]
-        reports_schema = tools["keepa.reports_build"]["inputSchema"]["properties"]["figure_set"]
+        figures_schema = tools["figures_research"]["inputSchema"]["properties"]["figure_set"]
+        reports_schema = tools["reports_build"]["inputSchema"]["properties"]["figure_set"]
         self.assertEqual(figures_schema["enum"], ["all", "history", "compare", "audit"])
         self.assertEqual(reports_schema["default"], "all")
 
@@ -1718,7 +1748,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "report-svg-merge",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.research_graph_merge",
+                            "name": "research_graph_merge",
                             "arguments": {
                                 "input": "tests/fixtures/agent_eval_products_compare_output.json",
                                 "root": "report-svg-links",
@@ -1738,7 +1768,7 @@ class McpProtocolTests(unittest.TestCase):
                         "id": "report-svg-build",
                         "method": "tools/call",
                         "params": {
-                            "name": "keepa.reports_build",
+                            "name": "reports_build",
                             "arguments": {"input": graph_path, "format": "markdown", "out": report_path, "title": "SVG Report"},
                         },
                     }
@@ -1779,7 +1809,7 @@ class McpProtocolTests(unittest.TestCase):
                     "id": "merge-conflict",
                     "method": "tools/call",
                     "params": {
-                        "name": "keepa.research_graph_merge",
+                        "name": "research_graph_merge",
                         "arguments": {"graph": [graph_a, graph_b], "root": "agent_research", "prefer_source": "1"},
                     },
                 }

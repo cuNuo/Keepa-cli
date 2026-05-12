@@ -58,7 +58,7 @@ class ServiceCommandTests(unittest.TestCase):
         self.assertTrue(resolved["ok"])
         self.assertEqual(resolved["data"]["primary"]["type"], "asin")
         self.assertEqual(resolved["data"]["primary"]["id"], "B001GZ6QEC")
-        self.assertEqual(resolved["data"]["next_actions"][0]["tool"], "keepa.products_get")
+        self.assertEqual(resolved["data"]["next_actions"][0]["tool"], "products_get")
 
         context = run_command("research.context.query", {"target_type": "asin", "target_id": "B001GZ6QEC"}, env={})
         self.assertTrue(context["ok"])

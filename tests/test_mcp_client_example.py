@@ -42,8 +42,8 @@ class McpClientExampleTests(unittest.TestCase):
         payload = self.run_example("scripts/mcp_agent_workflow_example.py")
 
         tools = set(payload["mcp"]["tools"])
-        self.assertIn("keepa.workflow_plan", tools)
-        self.assertIn("keepa.reports_build", tools)
+        self.assertIn("workflow_plan", tools)
+        self.assertIn("reports_build", tools)
         self.assertEqual(payload["risk_schema"]["uri"], "keepa://schema/risk-taxonomy")
         self.assertIn("data_missing", payload["risk_schema"]["known_codes"])
 
@@ -77,8 +77,8 @@ class McpClientExampleTests(unittest.TestCase):
         self.assertEqual(payload["mcp"]["toolset"], "tracking-readonly")
         self.assertEqual(payload["mcp"]["profile"], "tracking_readonly")
         self.assertEqual(payload["mcp"]["write_tools_exposed"], [])
-        self.assertIn("keepa.tracking_list", payload["mcp"]["tools"])
-        self.assertIn("keepa.audit_cost", payload["mcp"]["tools"])
+        self.assertIn("tracking_list", payload["mcp"]["tools"])
+        self.assertIn("audit_cost", payload["mcp"]["tools"])
 
         plan = payload["workflow_plan"]
         self.assertEqual(plan["recommended_toolset"], "tracking-readonly")
@@ -100,8 +100,8 @@ class McpClientExampleTests(unittest.TestCase):
 
         self.assertEqual(payload["mcp"]["toolset"], "reports")
         self.assertEqual(payload["mcp"]["profile"], "offline_fixture_only")
-        self.assertIn("keepa.reports_build", payload["mcp"]["tools"])
-        self.assertIn("keepa.browse_snapshot", payload["mcp"]["tools"])
+        self.assertIn("reports_build", payload["mcp"]["tools"])
+        self.assertIn("browse_snapshot", payload["mcp"]["tools"])
 
         plan = payload["workflow_plan"]
         self.assertEqual(plan["recommended_toolset"], "reports")

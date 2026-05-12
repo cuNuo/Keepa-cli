@@ -113,7 +113,7 @@ async def _build_snapshot() -> dict[str, Any]:
                 templates, template_pages = await _collect_pages(session.list_resource_templates, "resourceTemplates")
                 prompts, prompt_pages = await _collect_pages(session.list_prompts, "prompts")
                 policy = await session.read_resource(AnyUrl("keepa://context/policy"))
-                invalid = await session.call_tool("keepa.categories_search", {})
+                invalid = await session.call_tool("categories_search", {})
                 ping = await session.send_ping()
 
     invalid_payload = _dump_model(invalid)
@@ -138,7 +138,7 @@ async def _build_snapshot() -> dict[str, Any]:
             "text_bytes": len(policy.contents[0].text),
         },
         "tool_error_probe": {
-            "name": "keepa.categories_search",
+            "name": "categories_search",
             "is_error": bool(invalid.isError),
             "contains_invalid_arguments": _contains_text(invalid_payload, "invalid_arguments"),
             "contains_missing_term": _contains_text(invalid_payload, "missing required argument: term"),
@@ -151,8 +151,8 @@ def _validate_snapshot(snapshot: dict[str, Any]) -> None:
     if snapshot["server_info"]["name"] != "keepa_mcp":
         raise AssertionError("snapshot serverInfo.name must be keepa_mcp")
     lists = snapshot["lists"]
-    if lists["tools"]["first_page_names"][0] != "keepa.context_policy":
-        raise AssertionError("tools snapshot must start with keepa.context_policy")
+    if lists["tools"]["first_page_names"][0] != "context_policy":
+        raise AssertionError("tools snapshot must start with context_policy")
     if lists["tools"]["first_page_count"] > SDK_DEFAULT_TOOL_PAGE_SIZE or lists["tools"]["page_count"] < 2:
         raise AssertionError("tools snapshot must be paginated with a bounded first page")
     if lists["resources"]["first_page_names"][0] != "keepa://context/policy":
@@ -166,8 +166,8 @@ def _validate_snapshot(snapshot: dict[str, Any]) -> None:
         or lists["resource_templates"]["page_count"] < 2
     ):
         raise AssertionError("resource template snapshot must be paginated with a bounded first page")
-    if lists["prompts"]["first_page_names"][0] != "keepa.product_research":
-        raise AssertionError("prompt snapshot must start with keepa.product_research")
+    if lists["prompts"]["first_page_names"][0] != "product_research":
+        raise AssertionError("prompt snapshot must start with product_research")
     if lists["prompts"]["first_page_count"] > SDK_DEFAULT_PROMPT_PAGE_SIZE or lists["prompts"]["page_count"] < 2:
         raise AssertionError("prompt snapshot must be paginated with a bounded first page")
     if snapshot["resource_probe"]["text_bytes"] <= 100:

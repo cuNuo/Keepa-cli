@@ -7,7 +7,7 @@
       "id": "brief-from-artifact-path",
       "method": "tools/call",
       "params": {
-        "name": "keepa.research_brief_export",
+        "name": "research_brief_export",
         "arguments": {
           "artifact": {"output": {"path": "tests/fixtures/agent_eval_products_compare_output.json"}},
           "title": "Artifact Path Brief"
@@ -18,7 +18,7 @@
       "id": "report-from-artifact-path",
       "method": "tools/call",
       "params": {
-        "name": "keepa.reports_build",
+        "name": "reports_build",
         "arguments": {
           "artifact": {"data": {"output": {"path": "tests/fixtures/agent_eval_products_compare_output.json"}}},
           "format": "json",

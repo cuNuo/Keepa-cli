@@ -307,14 +307,14 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["data"]["view"], "workflow_plan")
         self.assertEqual(payload["data"]["steps"][0]["tool"], "categories.search")
-        self.assertEqual(payload["data"]["steps"][0]["mcp_tool"], "keepa.categories_search")
+        self.assertEqual(payload["data"]["steps"][0]["mcp_tool"], "categories_search")
         self.assertEqual(payload["data"]["steps"][0]["mcp"]["profile"], "dry_run_default")
         self.assertIn("search-categories", payload["data"]["steps"][1]["depends_on"])
         self.assertEqual(payload["data"]["totals"]["estimated_tokens"], 55)
         self.assertTrue(payload["data"]["totals"]["requires_confirmation"])
         self.assertEqual(payload["data"]["workflow_policy"]["recommended_toolset"], "research")
         self.assertEqual(payload["data"]["workflow_policy"]["recommended_profile"], "dry_run_default")
-        self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"][0]["tool"], "keepa.products_compare")
+        self.assertEqual(payload["data"]["workflow_policy"]["inactive_tools"][0]["tool"], "products_compare")
         self.assertEqual(payload["data"]["workflow_policy"]["confirmation_policy"]["step_ids"], ["fetch-category-products"])
         self.assertEqual(payload["data"]["workflow_policy"]["budget_ledger_seed"]["planned_estimated"], 55)
         self.assertEqual(
@@ -365,7 +365,7 @@ class Phase10WorkflowTests(unittest.TestCase):
         self.assertEqual(data["workflow_policy"]["recommended_toolset"], "reports")
         self.assertEqual(data["workflow_policy"]["recommended_profile"], "offline_fixture_only")
         self.assertEqual(data["workflow_policy"]["inactive_tools"], [])
-        self.assertIn("keepa.research_graph_merge", data["workflow_policy"]["workflow_tools"])
+        self.assertIn("research_graph_merge", data["workflow_policy"]["workflow_tools"])
         self.assertIn("workflow_inputs", data)
         self.assertEqual(data["workflow_inputs"]["graph_inputs"]["required"], True)
         self.assertIn("merged_graph", data["artifacts"])
@@ -404,9 +404,9 @@ class Phase10WorkflowTests(unittest.TestCase):
 
     def test_workflow_plan_business_aliases_are_offline_profile(self):
         for name, mcp_tool in (
-            ("velocity-research", "keepa.find_fast_movers"),
-            ("inventory-audit", "keepa.inventory_audit"),
-            ("market-opportunity", "keepa.market_opportunity"),
+            ("velocity-research", "find_fast_movers"),
+            ("inventory-audit", "inventory_audit"),
+            ("market-opportunity", "market_opportunity"),
         ):
             payload = run_command("workflow.plan", {"name": name, "domain": "US"}, env={})
             self.assertTrue(payload["ok"], name)

@@ -23,13 +23,13 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
     try:
         initialize = client.request("initialize", {"clientInfo": {"name": "keepa-mcp-report-research-example", "version": "1"}})
         tool_list = client.request("tools/list", {"toolset": "reports", "profile": "offline_fixture_only"})
-        workflow_plan = client.call_tool("keepa.workflow_plan", {"name": "report-research", "domain": args.domain, "goal": args.goal})
+        workflow_plan = client.call_tool("workflow_plan", {"name": "report-research", "domain": args.domain, "goal": args.goal})
         with tempfile.TemporaryDirectory(prefix="keepa-report-example-") as temp_dir:
             graph_path = str(Path(temp_dir) / "merged-research-graph.json")
             browse_dir = str(Path(temp_dir) / "browse")
             figures_dir = str(Path(temp_dir) / "figures")
             merged = client.call_tool(
-                "keepa.research_graph_merge",
+                "research_graph_merge",
                 {
                     "input": args.input,
                     "root": args.graph_root,
@@ -40,9 +40,9 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
             merged_resource_uri = research_resource_uri(str(merged["cache_key"]))
             merged_graph_uri = research_resource_uri(str(merged["cache_key"]), "/graph")
             merged_figures_uri = research_resource_uri(str(merged["cache_key"]), "/figures")
-            brief = client.call_tool("keepa.research_brief_export", {"resource_uri": merged_resource_uri, "title": args.title})
+            brief = client.call_tool("research_brief_export", {"resource_uri": merged_resource_uri, "title": args.title})
             browse = client.call_tool(
-                "keepa.browse_snapshot",
+                "browse_snapshot",
                 {
                     "resource_uri": merged_resource_uri,
                     "out_dir": browse_dir,
@@ -50,7 +50,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                 },
             )
             figures_result = client.call_tool_result(
-                "keepa.figures_research",
+                "figures_research",
                 {
                     "resource_uri": merged_resource_uri,
                     "out_dir": figures_dir,
@@ -62,7 +62,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
             resource_svg = _first_svg_resource_from_manifest(figures_resource.get("mcp_resource_manifest", {}))
             resource_svg_text, resource_svg_mime = client.read_resource_text(str(resource_svg.get("uri") or ""))
             report = client.call_tool(
-                "keepa.reports_build",
+                "reports_build",
                 {
                     "workflow_context": {
                         "steps": {"merge": {"artifact": merged}},

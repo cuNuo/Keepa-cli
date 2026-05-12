@@ -473,7 +473,7 @@ def _cassettes_promote_and_verify(params: Mapping[str, Any]) -> dict[str, Any]:
                 "next_actions": [
                     {
                         "label": "Re-run promotion parity after editing Agent eval specs",
-                        "tool": "keepa.cassettes_promote_and_verify",
+                        "tool": "cassettes_promote_and_verify",
                         "params": {"input": str(input_path), "name": metadata["fixture_name"], "run_eval": True},
                     },
                     {"label": "Review evidence manifest entry before committing", "path": str(metadata.get("manifest") or "")},

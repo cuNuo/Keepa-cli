@@ -48,7 +48,7 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         self.assertEqual(status["sdk_agent_start_tools"][0], SDK_AGENT_START_TOOLS[0])
         self.assertEqual(status["sdk_agent_start_resources"][0], "keepa://context/policy")
         self.assertEqual(status["sdk_agent_start_resource_templates"][0], "keepa://toolsets/{toolset}")
-        self.assertEqual(status["sdk_agent_start_prompts"][0], "keepa.product_research")
+        self.assertEqual(status["sdk_agent_start_prompts"][0], "product_research")
         self.assertIn("streamable HTTP", status["streamable_http_rule"])
 
     def test_inspector_fixture_matches_current_mcp_output(self):
@@ -84,7 +84,7 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         self.assertTrue(payload["tools"]["has_context_policy"])
         self.assertGreater(payload["tools"]["page_count"], 1)
         self.assertLessEqual(len(payload["tools"]["first_page_names"]), SDK_DEFAULT_TOOL_PAGE_SIZE)
-        self.assertEqual(payload["tools"]["first_page_names"][0], "keepa.context_policy")
+        self.assertEqual(payload["tools"]["first_page_names"][0], "context_policy")
         self.assertGreater(payload["resources"]["page_count"], 1)
         self.assertLessEqual(len(payload["resources"]["first_page_names"]), SDK_DEFAULT_RESOURCE_PAGE_SIZE)
         self.assertEqual(payload["resources"]["first_page_names"][0], "keepa://context/policy")
@@ -94,8 +94,10 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         self.assertEqual(payload["resource_templates"]["first_page_names"][0], "keepa://toolsets/{toolset}")
         self.assertGreater(payload["prompts"]["page_count"], 1)
         self.assertLessEqual(len(payload["prompts"]["first_page_names"]), SDK_DEFAULT_PROMPT_PAGE_SIZE)
-        self.assertEqual(payload["prompts"]["first_page_names"][0], "keepa.product_research")
+        self.assertEqual(payload["prompts"]["first_page_names"][0], "product_research")
         self.assertTrue(payload["prompts"]["has_product_research"])
+        self.assertTrue(payload["tool_call"]["schema_error_is_error"])
+        self.assertTrue(payload["tool_call"]["schema_error_contains_type_detail"])
 
     @unittest.skipUnless(adapter_status()["sdk_available"], "official mcp package is optional")
     def test_official_sdk_typed_fixture_mapping(self):
@@ -111,7 +113,7 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         tools = next(response for response in payload["responses"] if response["method"] == "tools/list")["result"]
         self.assertGreaterEqual(tools["total_count"], 30)
         self.assertIn("toolset", tools["unsupported_fixture_params"])
-        self.assertEqual(tools["first_page_names"][0], "keepa.context_policy")
+        self.assertEqual(tools["first_page_names"][0], "context_policy")
         resources = next(response for response in payload["responses"] if response["method"] == "resources/list")["result"]
         self.assertEqual(resources["first_page_names"][0], "keepa://context/policy")
         self.assertGreater(resources["page_count"], 1)
@@ -119,7 +121,7 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         self.assertEqual(templates["first_page_names"][0], "keepa://toolsets/{toolset}")
         self.assertGreater(templates["page_count"], 1)
         prompts = next(response for response in payload["responses"] if response["method"] == "prompts/list")["result"]
-        self.assertEqual(prompts["first_page_names"][0], "keepa.product_research")
+        self.assertEqual(prompts["first_page_names"][0], "product_research")
         self.assertGreater(prompts["page_count"], 1)
 
     @unittest.skipUnless(adapter_status()["sdk_available"], "official mcp package is optional")
@@ -195,7 +197,9 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
 
     def test_fastmcp_spike_is_optional(self):
         if adapter_status()["sdk_available"]:
-            self.assertIsNotNone(create_fastmcp_readonly_spike(env={}))
+            mcp = create_fastmcp_readonly_spike(env={})
+            self.assertIsNotNone(mcp)
+            self.assertEqual(sorted(mcp._tool_manager._tools), ["context_policy", "docs_index", "docs_read"])
         else:
             with self.assertRaisesRegex(RuntimeError, "官方 Python MCP SDK 未安装"):
                 create_fastmcp_readonly_spike(env={})

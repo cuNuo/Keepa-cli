@@ -4,7 +4,7 @@
   "kind": "mcp",
   "method": "tools/call",
   "params": {
-    "name": "keepa.query_research_context",
+    "name": "query_research_context",
     "arguments": {
       "target_type": "asin",
       "target_id": "B001GZ6QEC"

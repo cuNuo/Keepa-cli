@@ -56,7 +56,7 @@ class BusinessMetricsTests(unittest.TestCase):
         self.assertEqual(data["recommended_discovery"]["params"]["profile"], "offline_fixture_only")
         self.assertEqual(data["recommended_discovery"]["params"]["toolset"], "business")
         rendered = json.dumps(data, ensure_ascii=False)
-        self.assertIn("keepa.find_fast_movers", rendered)
+        self.assertIn("find_fast_movers", rendered)
 
 
 if __name__ == "__main__":

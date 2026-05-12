@@ -12,6 +12,6 @@
     {"path": "result.contents.0.text.$json.workflow_policy.recommended_toolset", "equals": "research"},
     {"path": "result.contents.0.text.$json.workflow_policy.recommended_profile", "equals": "dry_run_default"},
     {"path": "result.contents.0.text.$json.workflow_policy.confirmation_policy.step_ids", "contains": "fetch-category-products"},
-    {"path": "result.contents.0.text.$json.step_summary.0.mcp_tool", "equals": "keepa.categories_search"}
+    {"path": "result.contents.0.text.$json.step_summary.0.mcp_tool", "equals": "categories_search"}
   ]
 }

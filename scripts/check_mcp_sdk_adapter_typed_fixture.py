@@ -194,8 +194,8 @@ def _assert_typed_payload(payload: dict[str, Any], spec: dict[str, Any]) -> None
         raise AssertionError("SDK typed list_tools should require pagination for the full inventory")
     if tools["first_page_count"] > SDK_DEFAULT_TOOL_PAGE_SIZE:
         raise AssertionError("SDK typed list_tools first page is too large for Agent startup")
-    if tools["first_page_names"][0] != "keepa.context_policy":
-        raise AssertionError("SDK typed list_tools must start with keepa.context_policy")
+    if tools["first_page_names"][0] != "context_policy":
+        raise AssertionError("SDK typed list_tools must start with context_policy")
     if "limit" not in tools["unsupported_fixture_params"] or "toolset" not in tools["unsupported_fixture_params"]:
         raise AssertionError("SDK typed fixture mapping must record unsupported list_tools extension params")
     resources = responses["resources/list"]["result"]
@@ -206,12 +206,12 @@ def _assert_typed_payload(payload: dict[str, Any], spec: dict[str, Any]) -> None
     if resources["first_page_names"][0] != "keepa://context/policy":
         raise AssertionError("SDK typed list_resources must start with keepa://context/policy")
     prompts = responses["prompts/list"]["result"]
-    if prompts["total_count"] < 2 or "keepa.product_research" not in prompts["first_page_names"]:
+    if prompts["total_count"] < 2 or "product_research" not in prompts["first_page_names"]:
         raise AssertionError("SDK typed list_prompts lost product research prompt")
     if prompts["page_count"] < 2 or prompts["first_page_count"] > SDK_DEFAULT_PROMPT_PAGE_SIZE:
         raise AssertionError("SDK typed list_prompts must expose a bounded first page with pagination")
-    if prompts["first_page_names"][0] != "keepa.product_research":
-        raise AssertionError("SDK typed list_prompts must start with keepa.product_research")
+    if prompts["first_page_names"][0] != "product_research":
+        raise AssertionError("SDK typed list_prompts must start with product_research")
     templates = responses["resources/templates/list"]["result"]
     if templates["total_count"] < 1:
         raise AssertionError("SDK typed list_resource_templates returned no templates")

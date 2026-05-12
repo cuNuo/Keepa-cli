@@ -34,14 +34,14 @@ SDK_DEFAULT_RESOURCE_PAGE_SIZE = 6
 SDK_DEFAULT_RESOURCE_TEMPLATE_PAGE_SIZE = 6
 SDK_DEFAULT_PROMPT_PAGE_SIZE = 4
 SDK_AGENT_START_TOOLS = (
-    "keepa.context_policy",
-    "keepa.docs_index",
-    "keepa.workflow_plan",
-    "keepa.agent_profile_generate",
-    "keepa.products_get",
-    "keepa.products_compare",
-    "keepa.categories_search",
-    "keepa.finder_query",
+    "context_policy",
+    "docs_index",
+    "workflow_plan",
+    "agent_profile_generate",
+    "products_get",
+    "products_compare",
+    "categories_search",
+    "finder_query",
 )
 SDK_AGENT_START_RESOURCES = (
     "keepa://context/policy",
@@ -58,10 +58,10 @@ SDK_AGENT_START_RESOURCE_TEMPLATES = (
     "keepa://cache-key/{command}/{encoded_params}",
 )
 SDK_AGENT_START_PROMPTS = (
-    "keepa.product_research",
-    "keepa.category_research",
-    "keepa.deal_compare",
-    "keepa.project_onboarding",
+    "product_research",
+    "category_research",
+    "deal_compare",
+    "project_onboarding",
 )
 SUPPORTED_SPIKE_METHODS = (
     "initialize",
@@ -351,7 +351,7 @@ def _sdk_tools_meta(*, total_count: int, offset: int, count: int, has_more: bool
     meta["adapter_start_strategy"].update(
         {
             "recommended_first_calls": [
-                {"method": "tools/call", "name": "keepa.context_policy", "arguments": {}},
+                {"method": "tools/call", "name": "context_policy", "arguments": {}},
                 {"method": "resources/read", "uri": "keepa://tools/index"},
                 {"method": "resources/read", "uri": "keepa://toolsets/research"},
             ],
@@ -376,7 +376,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
         "keepa_mcp",
         version=__version__,
         instructions=(
-            "Use keepa.context_policy first, then prefer keepa://tools/index or keepa://toolsets/research "
+            "Use context_policy first, then prefer keepa://tools/index or keepa://toolsets/research "
             "before paging through every tool schema. Prefer fixture or dry_run before live calls. "
             "High-cost requests return confirmation_required unless yes=true is supplied."
         ),
@@ -543,7 +543,7 @@ def create_fastmcp_readonly_spike(*, env: Mapping[str, str] | None = None) -> An
     """创建官方 Python SDK FastMCP 只读 spike。
 
     该函数只证明 SDK adapter 可以复用 `AgentSession -> run_command`，不承诺与生产
-    `keepa.*` tool 名完全一致；真正替换前必须通过 `compare_fixture_outputs`。
+    tool 名全集完全一致；真正替换前必须通过 `compare_fixture_outputs`。
     """
 
     try:
@@ -554,24 +554,24 @@ def create_fastmcp_readonly_spike(*, env: Mapping[str, str] | None = None) -> An
     mcp = FastMCP("keepa_mcp", json_response=True)
     session = AgentSession(env=env)
 
-    @mcp.tool()
+    @mcp.tool(name="context_policy")
     def keepa_context_policy() -> dict[str, Any]:
         """读取 Keepa-cli Agent/MCP 上下文策略。"""
 
-        return _execute_local_tool(session, "keepa.context_policy", {})
+        return _execute_local_tool(session, "context_policy", {})
 
-    @mcp.tool()
+    @mcp.tool(name="docs_index")
     def keepa_docs_index() -> dict[str, Any]:
         """读取本地 Agent 文档与 MCP resource 索引。"""
 
-        return _execute_local_tool(session, "keepa.docs_index", {})
+        return _execute_local_tool(session, "docs_index", {})
 
-    @mcp.tool()
+    @mcp.tool(name="docs_read")
     def keepa_docs_read(uri: str = "", page: str = "") -> dict[str, Any]:
         """读取本地 MCP resource URI 或 zread 页面。"""
 
         arguments = {key: value for key, value in {"uri": uri, "page": page}.items() if value}
-        return _execute_local_tool(session, "keepa.docs_read", arguments)
+        return _execute_local_tool(session, "docs_read", arguments)
 
     return mcp
 

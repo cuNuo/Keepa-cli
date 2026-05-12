@@ -1,0 +1,57 @@
+{
+  "id": "mcp_schema_validation_negative",
+  "description": "MCP JSON Schema 负向校验：错误类型、非法 enum、越界 integer 与 array item 类型错误都必须映射为工具执行错误。",
+  "kind": "mcp_session",
+  "steps": [
+    {"id": "schema-initialize", "method": "initialize", "params": {}},
+    {
+      "id": "schema-type-error",
+      "method": "tools/call",
+      "params": {
+        "name": "categories_search",
+        "arguments": {"domain": "US", "term": 123}
+      }
+    },
+    {
+      "id": "schema-enum-error",
+      "method": "tools/call",
+      "params": {
+        "name": "products_get",
+        "arguments": {"asin": "B001GZ6QEC", "view": "invalid-view", "dry_run": true}
+      }
+    },
+    {
+      "id": "schema-minimum-error",
+      "method": "tools/call",
+      "params": {
+        "name": "products_get",
+        "arguments": {"asin": "B001GZ6QEC", "history_limit": -1, "dry_run": true}
+      }
+    },
+    {
+      "id": "schema-array-item-error",
+      "method": "tools/call",
+      "params": {
+        "name": "products_compare",
+        "arguments": {"asin": ["B001GZ6QEC", 123], "dry_run": true}
+      }
+    }
+  ],
+  "assertions": [
+    {"path": "kind", "equals": "mcp_session"},
+    {"path": "responses", "length": 5},
+    {"path": "responses.0.result.protocolVersion", "equals": "2025-11-25"},
+    {"path": "responses.1.result.isError", "equals": true},
+    {"path": "responses.1.result.structuredContent.error.kind", "equals": "invalid_arguments"},
+    {"path": "responses.1.result.structuredContent.error.details.errors", "contains": "term: expected string"},
+    {"path": "responses.2.result.isError", "equals": true},
+    {"path": "responses.2.result.structuredContent.error.kind", "equals": "invalid_arguments"},
+    {"path": "responses.2.result.structuredContent.error.details.errors", "contains": "view: value 'invalid-view' is not one of: 'raw', 'agent', 'summary', 'research', 'deal', 'audit'"},
+    {"path": "responses.3.result.isError", "equals": true},
+    {"path": "responses.3.result.structuredContent.error.kind", "equals": "invalid_arguments"},
+    {"path": "responses.3.result.structuredContent.error.details.errors", "contains": "history_limit: value -1 is less than minimum 0"},
+    {"path": "responses.4.result.isError", "equals": true},
+    {"path": "responses.4.result.structuredContent.error.kind", "equals": "invalid_arguments"},
+    {"path": "responses.4.result.structuredContent.error.details.errors", "contains": "asin[1]: expected string"}
+  ]
+}

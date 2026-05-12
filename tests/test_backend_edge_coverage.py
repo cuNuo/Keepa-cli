@@ -199,22 +199,22 @@ class BackendEdgeCoverageTests(unittest.TestCase):
         resource_uri = "keepa://research/b64:" + text_to_resource_token("cache:key")
 
         params, resolution = resolve_workflow_arguments(
-            "keepa.categories_products",
+            "categories_products",
             {"resource_uris": resource_uri, "workflow_context": [resource_uri]},
             session_cache=cache,
         )
         self.assertEqual(params["category"], "172282")
         self.assertGreaterEqual(resolution["payload_count"], 1)
 
-        params, _ = resolve_workflow_arguments("keepa.products_get", {"resource_uri": resource_uri}, session_cache=cache)
+        params, _ = resolve_workflow_arguments("products_get", {"resource_uri": resource_uri}, session_cache=cache)
         self.assertEqual(params["asin"], "B000000001")
-        params, _ = resolve_workflow_arguments("keepa.tracking_get", {"artifact": {"cache_key": "cache:key"}}, session_cache=cache)
+        params, _ = resolve_workflow_arguments("tracking_get", {"artifact": {"cache_key": "cache:key"}}, session_cache=cache)
         self.assertEqual(params["asin"], "B000000003")
-        params, _ = resolve_workflow_arguments("keepa.audit_cost", {"params": {}, "resource_uri": resource_uri}, session_cache=cache)
+        params, _ = resolve_workflow_arguments("audit_cost", {"params": {}, "resource_uri": resource_uri}, session_cache=cache)
         self.assertEqual(params["params"]["asin"], "B000000003")
-        params, _ = resolve_workflow_arguments("keepa.research_brief_export", {"resource_uri": resource_uri}, session_cache=cache)
+        params, _ = resolve_workflow_arguments("research_brief_export", {"resource_uri": resource_uri}, session_cache=cache)
         self.assertIn("payload", params)
-        params, _ = resolve_workflow_arguments("keepa.figures_research", {"workflow_context": {"outputs": [{"graph": graph}]}}, session_cache=cache)
+        params, _ = resolve_workflow_arguments("figures_research", {"workflow_context": {"outputs": [{"graph": graph}]}}, session_cache=cache)
         self.assertTrue(Path(params["input"]).is_file())
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -222,7 +222,7 @@ class BackendEdgeCoverageTests(unittest.TestCase):
             path.write_text(json.dumps(cached), encoding="utf-8")
             output_uri = path_to_resource_uri(path, kind="output")
             params, resolution = resolve_workflow_arguments(
-                "keepa.reports_build",
+                "reports_build",
                 {
                     "artifacts": [{"raw": {"report": {"path": str(path)}}}],
                     "resource_uris": [output_uri],
@@ -234,7 +234,7 @@ class BackendEdgeCoverageTests(unittest.TestCase):
             self.assertTrue(any(item.get("kind") == "resource_path" for item in resolution["resolved"]))
 
         _, unresolved = resolve_workflow_arguments(
-            "keepa.products_compare",
+            "products_compare",
             {"resource_uris": [123, "missing-cache-key", "keepa://graphs/missing-root"]},
             session_cache={},
         )
@@ -378,28 +378,28 @@ class BackendEdgeCoverageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             resolve_toolset_groups("missing")
 
-        products_get = get_tool_definition("keepa.products_get")
+        products_get = get_tool_definition("products_get")
         assert products_get is not None
         self.assertTrue(tool_params_to_command_params(products_get, {"temporal_window_days": [7], "view": "deal"})["agent_view"])
-        products_compare = get_tool_definition("keepa.products_compare")
+        products_compare = get_tool_definition("products_compare")
         assert products_compare is not None
         self.assertEqual(tool_params_to_command_params(products_compare, {"temporal_window_days": [30]})["temporal_windows"], [30])
-        categories_products = get_tool_definition("keepa.categories_products")
+        categories_products = get_tool_definition("categories_products")
         assert categories_products is not None
         self.assertEqual(tool_params_to_command_params(categories_products, {"temporal_window_days": [90]})["temporal_windows"], [90])
-        audit_cost = get_tool_definition("keepa.audit_cost")
+        audit_cost = get_tool_definition("audit_cost")
         assert audit_cost is not None
         self.assertEqual(tool_params_to_command_params(audit_cost, {})["target_command"], "products.get")
 
         validation_cases = [
-            ("keepa.finder_query", {}, "selection"),
-            ("keepa.products_get", {"asin": "B1", "code": "123"}, "cannot be combined"),
-            ("keepa.products_compare", {"asin": ["B1"]}, "at least two"),
-            ("keepa.workflow_plan", {"name": "category-research"}, "term is required"),
-            ("keepa.workflow_plan", {"name": "product-research"}, "asin is required"),
-            ("keepa.research_graph_merge", {}, "one of input"),
-            ("keepa.research_brief_export", {}, "one of input"),
-            ("keepa.figures_research", {}, "input is required"),
+            ("finder_query", {}, "selection"),
+            ("products_get", {"asin": "B1", "code": "123"}, "cannot be combined"),
+            ("products_compare", {"asin": ["B1"]}, "at least two"),
+            ("workflow_plan", {"name": "category-research"}, "term is required"),
+            ("workflow_plan", {"name": "product-research"}, "asin is required"),
+            ("research_graph_merge", {}, "one of input"),
+            ("research_brief_export", {}, "one of input"),
+            ("figures_research", {}, "input is required"),
         ]
         for tool_name, args, expected in validation_cases:
             tool = get_tool_definition(tool_name)
@@ -412,7 +412,7 @@ class BackendEdgeCoverageTests(unittest.TestCase):
             _resolve_path({"x": 1}, "x.$json")
         with self.assertRaises(KeyError):
             _resolve_path({"x": {}}, "x.missing")
-        for value in ("bad", [123], [{"tool": "keepa.doctor", "params": []}], [{"tool": "missing.command", "params": {}}], [{"tool": "keepa.products_get", "params": {"asin": "B1", "code": "C1"}}]):
+        for value in ("bad", [123], [{"tool": "doctor", "params": [1]}], [{"tool": "missing.command", "params": {}}], [{"tool": "products_get", "params": {"asin": "B1", "code": "C1"}}]):
             with self.subTest(next_action=value):
                 with self.assertRaises(AssertionError):
                     _assert_next_actions_executable(value, "actions")
@@ -457,7 +457,7 @@ class BackendEdgeCoverageTests(unittest.TestCase):
 
     def test_cache_config_cassettes_and_command_family_edges(self) -> None:
         self.assertEqual(_safe_for_cache_key(("a", {"key": "secret"})), ["a", {"key": "[REDACTED]"}])
-        self.assertIn("temperature", get_mcp_prompt("keepa.category_research", {"domain": "US", "term": "temperature"})["messages"][0]["content"]["text"])
+        self.assertIn("temperature", get_mcp_prompt("category_research", {"domain": "US", "term": "temperature"})["messages"][0]["content"]["text"])
         stdio_events = handle_stdio_message(json.dumps({"id": 1, "method": "doctor", "params": {}}))
         self.assertEqual(stdio_events[2]["payload"]["command"], "doctor")
 

@@ -23,11 +23,11 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
         tool_list = client.request("tools/list", {"toolset": "tracking-readonly", "profile": "tracking_readonly"})
         tools = tool_names(tool_list)
         workflow_plan = client.call_tool(
-            "keepa.workflow_plan",
+            "workflow_plan",
             {"name": "tracking-audit", "domain": args.domain, "asin": args.asin},
         )
         tracking_list = client.call_tool(
-            "keepa.tracking_list",
+            "tracking_list",
             {
                 "domain": args.domain,
                 "asins_only": True,
@@ -37,7 +37,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
         )
         tracking_resource_uri = research_resource_uri(str(tracking_list["cache_key"]))
         tracking_detail = client.call_tool(
-            "keepa.tracking_get",
+            "tracking_get",
             {
                 "resource_uri": tracking_resource_uri,
                 "domain": args.domain,
@@ -46,7 +46,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
             },
         )
         notifications = client.call_tool(
-            "keepa.tracking_notifications",
+            "tracking_notifications",
             {
                 "domain": args.domain,
                 "since": 0,
@@ -56,7 +56,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
             },
         )
         cost = client.call_tool(
-            "keepa.audit_cost",
+            "audit_cost",
             {
                 "resource_uri": tracking_resource_uri,
                 "target_command": "tracking.get",
@@ -66,7 +66,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
         )
         blocked_error = None
         try:
-            client.call_tool("keepa.tracking_add", {"tracking": [{"asin": args.asin, "domain": 1}], "dry_run": True})
+            client.call_tool("tracking_add", {"tracking": [{"asin": args.asin, "domain": 1}], "dry_run": True})
         except McpClientError as exc:
             blocked_error = str(exc)
         return {
@@ -76,7 +76,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                 "toolset": tool_list.get("toolset"),
                 "profile": tool_list.get("profile"),
                 "tools": tools,
-                "write_tools_exposed": sorted(name for name in tools if name in {"keepa.tracking_add", "keepa.tracking_remove", "keepa.tracking_webhook"}),
+                "write_tools_exposed": sorted(name for name in tools if name in {"tracking_add", "tracking_remove", "tracking_webhook"}),
             },
             "workflow_plan": {
                 "cache_key": workflow_plan["cache_key"],
@@ -111,7 +111,7 @@ def run_workflow(args: argparse.Namespace) -> dict[str, Any]:
                     "derived_asin": cost["data"].get("workflow_resolution", {}).get("derived_values", {}).get("tracking_asins", [None])[0],
                 },
                 "write_boundary": {
-                    "attempted_tool": "keepa.tracking_add",
+                    "attempted_tool": "tracking_add",
                     "blocked": bool(blocked_error),
                     "error": blocked_error,
                 },

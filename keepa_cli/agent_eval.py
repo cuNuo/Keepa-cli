@@ -47,7 +47,7 @@ def _assert_next_actions_executable(value: Any, path: str) -> None:
         params = action.get("params") or {}
         if not isinstance(params, dict):
             raise AssertionError(f"{path}.{index}.params expected object")
-        mcp_tool_name = raw_tool if raw_tool.startswith("keepa.") else f"keepa.{raw_tool.replace('.', '_').replace('-', '_')}"
+        mcp_tool_name = raw_tool.replace(".", "_").replace("-", "_")
         tool = get_tool_definition(mcp_tool_name)
         if tool is None:
             service_payload = run_command(raw_tool, params, env={})

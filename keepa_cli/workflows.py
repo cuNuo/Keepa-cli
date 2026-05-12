@@ -273,13 +273,13 @@ def show_template(name: str, out: str | None = None) -> dict[str, Any]:
 
 def _mcp_tool_name(tool: str) -> str:
     business_aliases = {
-        "business.find-fast-movers": "keepa.find_fast_movers",
-        "business.inventory-audit": "keepa.inventory_audit",
-        "business.market-opportunity": "keepa.market_opportunity",
+        "business.find-fast-movers": "find_fast_movers",
+        "business.inventory-audit": "inventory_audit",
+        "business.market-opportunity": "market_opportunity",
     }
     if tool in business_aliases:
         return business_aliases[tool]
-    return "keepa." + tool.replace(".", "_").replace("-", "_")
+    return tool.replace(".", "_").replace("-", "_")
 
 
 def _step_profile(tool: str, *, requires_confirmation: bool) -> str:

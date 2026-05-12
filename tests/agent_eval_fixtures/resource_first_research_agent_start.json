@@ -12,7 +12,7 @@
       "id": "resolve-target",
       "method": "tools/call",
       "params": {
-        "name": "keepa.resolve_research_target",
+        "name": "resolve_research_target",
         "arguments": {"query": "home kitchen", "domain": "US"}
       }
     },
@@ -30,10 +30,10 @@
         "toolset": "research",
         "profile": "dry_run_default",
         "allow_tools": [
-          "keepa.categories_search",
-          "keepa.categories_finder_selection",
-          "keepa.categories_products",
-          "keepa.products_compare"
+          "categories_search",
+          "categories_finder_selection",
+          "categories_products",
+          "products_compare"
         ]
       }
     },
@@ -41,7 +41,7 @@
       "id": "execute-first-step",
       "method": "tools/call",
       "params": {
-        "name": "keepa.categories_search",
+        "name": "categories_search",
         "arguments": {
           "term": "home kitchen",
           "domain": "US",
@@ -62,7 +62,7 @@
     {"path": "responses.2.result.contents.0.text.$json.artifacts.category_products.kind", "equals": "asin_candidates"},
     {"path": "responses.2.result.contents.0.text.$json.resource_templates.0.uri_template", "equals": "keepa://workflow/{encoded_params}/policy"},
     {"path": "responses.2.result.contents.0.text.$json.workflow_policy.recommended_profile", "equals": "dry_run_default"},
-    {"path": "responses.2.result.contents.0.text.$json.workflow_policy.tool_discovery.params.allow_tools", "contains": "keepa.categories_search"},
+    {"path": "responses.2.result.contents.0.text.$json.workflow_policy.tool_discovery.params.allow_tools", "contains": "categories_search"},
     {"path": "responses.2.result.contents.0.text.$json.step_summary.0.input_refs", "contains": "workflow_inputs.term"},
     {"path": "responses.2.result.contents.0.text.$json.step_summary.0.artifact_refs", "contains": "artifacts.category_candidates"},
     {"path": "responses.3.result.toolset", "equals": "research"},

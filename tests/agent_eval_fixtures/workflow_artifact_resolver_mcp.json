@@ -7,7 +7,7 @@
       "id": "category-products",
       "method": "tools/call",
       "params": {
-        "name": "keepa.categories_products",
+        "name": "categories_products",
         "arguments": {
           "category": "1055398",
           "domain": "US",
@@ -21,7 +21,7 @@
       "id": "compare-from-resource",
       "method": "tools/call",
       "params": {
-        "name": "keepa.products_compare",
+        "name": "products_compare",
         "arguments": {
           "resource_uri": "keepa://research/categories.products:6f25fe463674001668f4a5df",
           "domain": "US",
@@ -35,7 +35,7 @@
       "id": "merge-from-resource",
       "method": "tools/call",
       "params": {
-        "name": "keepa.research_graph_merge",
+        "name": "research_graph_merge",
         "arguments": {
           "resource_uri": "keepa://research/products.compare:18813807e24992648b82e8c4/graph",
           "root": "workflow-agent-research"
@@ -46,7 +46,7 @@
       "id": "report-from-resource",
       "method": "tools/call",
       "params": {
-        "name": "keepa.reports_build",
+        "name": "reports_build",
         "arguments": {
           "resource_uri": "keepa://research/research_graph.merge:23f7479e9703f5bc57c183e4",
           "format": "json",

@@ -42,13 +42,13 @@
     {
       "path": "result.contents.0.text.$json.tools",
       "contains_item": {
-        "name": "keepa.products_compare"
+        "name": "products_compare"
       }
     },
     {
       "path": "result.contents.0.text.$json.tools",
       "contains_item": {
-        "name": "keepa.research_graph_merge"
+        "name": "research_graph_merge"
       }
     },
     {

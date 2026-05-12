@@ -216,7 +216,7 @@ class BackendTransformCoverageTests(unittest.TestCase):
         cache = {"compare:key": cached}
 
         params, resolution = resolve_workflow_arguments(
-            "keepa.products_compare",
+            "products_compare",
             {"resource_uri": "keepa://research/b64:" + text_to_resource_token("compare:key")},
             session_cache=cache,
         )
@@ -224,7 +224,7 @@ class BackendTransformCoverageTests(unittest.TestCase):
         self.assertEqual(resolution["graph_count"], 1)
 
         graph_params, graph_resolution = resolve_workflow_arguments(
-            "keepa.research_graph_merge",
+            "research_graph_merge",
             {"resource_uri": "keepa://research/b64:" + text_to_resource_token("compare:key") + "/graph"},
             session_cache=cache,
         )
@@ -236,7 +236,7 @@ class BackendTransformCoverageTests(unittest.TestCase):
             path.write_text(json.dumps(cached), encoding="utf-8")
             output_uri = path_to_resource_uri(path, kind="output")
             report_params, report_resolution = resolve_workflow_arguments(
-                "keepa.reports_build",
+                "reports_build",
                 {
                     "workflow_inputs": {"graph_inputs": {"value": output_uri}},
                     "workflow_context": {
@@ -252,7 +252,7 @@ class BackendTransformCoverageTests(unittest.TestCase):
             self.assertEqual(Path(report_params["input"]).resolve(), path.resolve())
             self.assertGreaterEqual(report_resolution["payload_count"], 2)
 
-        missing, missing_resolution = resolve_workflow_arguments("keepa.tracking_get", {}, session_cache={})
+        missing, missing_resolution = resolve_workflow_arguments("tracking_get", {}, session_cache={})
         self.assertNotIn("asin", missing)
         self.assertEqual(missing_resolution["missing_inputs"][0]["field"], "asin")
 

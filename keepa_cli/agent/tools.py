@@ -28,68 +28,68 @@ TOOLSET_GROUPS: dict[str, set[str] | None] = {
 
 PROFILE_ALLOWED_TOOLS: dict[str, set[str] | None] = {
     "offline_fixture_only": {
-        "keepa.docs_index",
-        "keepa.docs_read",
-        "keepa.context_policy",
-        "keepa.resolve_research_target",
-        "keepa.query_research_context",
-        "keepa.workflow_plan",
-        "keepa.research_graph_merge",
-        "keepa.research_brief_export",
-        "keepa.audit_cost",
-        "keepa.reports_build",
-        "keepa.browse_snapshot",
-        "keepa.figures_research",
-        "keepa.cassettes_sanitize",
-        "keepa.find_fast_movers",
-        "keepa.inventory_audit",
-        "keepa.market_opportunity",
-        "keepa.agent_profile_generate",
+        "docs_index",
+        "docs_read",
+        "context_policy",
+        "resolve_research_target",
+        "query_research_context",
+        "workflow_plan",
+        "research_graph_merge",
+        "research_brief_export",
+        "audit_cost",
+        "reports_build",
+        "browse_snapshot",
+        "figures_research",
+        "cassettes_sanitize",
+        "find_fast_movers",
+        "inventory_audit",
+        "market_opportunity",
+        "agent_profile_generate",
     },
     "dry_run_default": {
-        "keepa.docs_index",
-        "keepa.docs_read",
-        "keepa.context_policy",
-        "keepa.resolve_research_target",
-        "keepa.query_research_context",
-        "keepa.workflow_plan",
-        "keepa.categories_search",
-        "keepa.categories_products",
-        "keepa.categories_finder_selection",
-        "keepa.finder_query",
-        "keepa.deals_query",
-        "keepa.bestsellers_get",
-        "keepa.topsellers_list",
-        "keepa.research_graph_merge",
-        "keepa.research_brief_export",
-        "keepa.audit_cost",
-        "keepa.reports_build",
-        "keepa.browse_snapshot",
-        "keepa.figures_research",
-        "keepa.find_fast_movers",
-        "keepa.inventory_audit",
-        "keepa.market_opportunity",
-        "keepa.agent_profile_generate",
+        "docs_index",
+        "docs_read",
+        "context_policy",
+        "resolve_research_target",
+        "query_research_context",
+        "workflow_plan",
+        "categories_search",
+        "categories_products",
+        "categories_finder_selection",
+        "finder_query",
+        "deals_query",
+        "bestsellers_get",
+        "topsellers_list",
+        "research_graph_merge",
+        "research_brief_export",
+        "audit_cost",
+        "reports_build",
+        "browse_snapshot",
+        "figures_research",
+        "find_fast_movers",
+        "inventory_audit",
+        "market_opportunity",
+        "agent_profile_generate",
     },
     "live_read_allowed": None,
     "tracking_readonly": {
-        "keepa.docs_index",
-        "keepa.docs_read",
-        "keepa.context_policy",
-        "keepa.audit_cost",
-        "keepa.tracking_list",
-        "keepa.tracking_list_names",
-        "keepa.tracking_get",
-        "keepa.tracking_notifications",
+        "docs_index",
+        "docs_read",
+        "context_policy",
+        "audit_cost",
+        "tracking_list",
+        "tracking_list_names",
+        "tracking_get",
+        "tracking_notifications",
     },
     "fixture_curation": {
-        "keepa.docs_index",
-        "keepa.docs_read",
-        "keepa.context_policy",
-        "keepa.audit_cost",
-        "keepa.cassettes_sanitize",
-        "keepa.cassettes_promote",
-        "keepa.cassettes_promote_and_verify",
+        "docs_index",
+        "docs_read",
+        "context_policy",
+        "audit_cost",
+        "cassettes_sanitize",
+        "cassettes_promote",
+        "cassettes_promote_and_verify",
     },
 }
 
@@ -133,7 +133,7 @@ class ToolDefinition:
     workflow_runtime: bool = False
 
     def to_mcp_tool(self) -> dict[str, Any]:
-        title = self.title or self.name.replace(".", " ").replace("_", " ").title()
+        title = self.title or f"Keepa {self.name.replace('.', ' ').replace('_', ' ').title()}"
         keepa_meta: dict[str, Any] = {
             "service_command": self.command,
             "groups": list(self.groups),
@@ -203,6 +203,97 @@ def _schema_with_common_properties(schema: JsonSchema, *, workflow_runtime: bool
         properties.setdefault("workflow_context", {"type": "object", "description": "Additional workflow context with artifacts/resource_uris from prior steps."})
     patched["properties"] = properties
     return patched
+
+
+def _format_schema_path(path: str, key: str | int) -> str:
+    if isinstance(key, int):
+        return f"{path}[{key}]" if path else f"[{key}]"
+    return key if not path else f"{path}.{key}"
+
+
+def _type_label(expected: Any) -> str:
+    if isinstance(expected, list):
+        return " or ".join(str(item) for item in expected)
+    return str(expected)
+
+
+def _matches_json_type(value: Any, expected: str) -> bool:
+    if expected == "object":
+        return isinstance(value, dict)
+    if expected == "array":
+        return isinstance(value, list)
+    if expected == "string":
+        return isinstance(value, str)
+    if expected == "boolean":
+        return isinstance(value, bool)
+    if expected == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if expected == "null":
+        return value is None
+    return True
+
+
+def _validate_json_schema(schema: Mapping[str, Any], value: Any, *, path: str = "") -> list[str]:
+    errors: list[str] = []
+    expected_type = schema.get("type")
+    if expected_type is not None:
+        expected_types = expected_type if isinstance(expected_type, list) else [expected_type]
+        if not any(_matches_json_type(value, str(item)) for item in expected_types):
+            target = path or "arguments"
+            return [f"{target}: expected {_type_label(expected_type)}"]
+
+    if "enum" in schema and value not in (schema.get("enum") or []):
+        allowed = ", ".join(repr(item) for item in schema.get("enum") or [])
+        target = path or "arguments"
+        errors.append(f"{target}: value {value!r} is not one of: {allowed}")
+    if "const" in schema and value != schema["const"]:
+        target = path or "arguments"
+        errors.append(f"{target}: value {value!r} must equal {schema['const']!r}")
+
+    if isinstance(value, dict):
+        properties = schema.get("properties") or {}
+        required = schema.get("required") or []
+        for key in sorted(str(item) for item in required):
+            if key not in value:
+                target = _format_schema_path(path, key) if path else key
+                errors.append(f"missing required argument: {target}")
+        for key, item in value.items():
+            child_path = _format_schema_path(path, str(key))
+            child_schema = properties.get(key)
+            if child_schema is not None:
+                errors.extend(_validate_json_schema(child_schema, item, path=child_path))
+                continue
+            additional = schema.get("additionalProperties", True)
+            if additional is False:
+                errors.append(f"unsupported argument: {child_path}")
+            elif isinstance(additional, Mapping):
+                errors.extend(_validate_json_schema(additional, item, path=child_path))
+
+    if isinstance(value, list) and isinstance(schema.get("items"), Mapping):
+        item_schema = schema["items"]
+        for index, item in enumerate(value):
+            errors.extend(_validate_json_schema(item_schema, item, path=_format_schema_path(path, index)))
+
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if "minimum" in schema and value < schema["minimum"]:
+            target = path or "arguments"
+            errors.append(f"{target}: value {value!r} is less than minimum {schema['minimum']!r}")
+        if "maximum" in schema and value > schema["maximum"]:
+            target = path or "arguments"
+            errors.append(f"{target}: value {value!r} is greater than maximum {schema['maximum']!r}")
+
+    if "oneOf" in schema:
+        matches = [subschema for subschema in schema["oneOf"] if not _validate_json_schema(subschema, value, path=path)]
+        if len(matches) != 1:
+            target = path or "arguments"
+            errors.append(f"{target}: must match exactly one schema in oneOf")
+    if "anyOf" in schema and not any(not _validate_json_schema(subschema, value, path=path) for subschema in schema["anyOf"]):
+        target = path or "arguments"
+        errors.append(f"{target}: must match at least one schema in anyOf")
+
+    return errors
 
 
 PRODUCTS_GET_SCHEMA: JsonSchema = {
@@ -668,7 +759,7 @@ QUERY_RESEARCH_CONTEXT_SCHEMA: JsonSchema = {
             "description": "Resolved target type.",
         },
         "target_id": _string_schema("Resolved target id, such as ASIN, category id, fixture path, or evidence logical path."),
-        "target": {"type": "object", "description": "Resolved target candidate returned by keepa.resolve_research_target."},
+        "target": {"type": "object", "description": "Resolved target candidate returned by resolve_research_target."},
         "from_cache": _string_schema("Session cache key to reuse."),
     },
 }
@@ -799,7 +890,7 @@ MCP_ENVELOPE_OUTPUT_SCHEMA: JsonSchema = {
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
-        name="keepa.products_get",
+        name="products_get",
         command="products.get",
         description="Fetch Keepa product data and return Agent-safe product views with risk_taxonomy, research_graph, data_quality, and next_actions.",
         input_schema=PRODUCTS_GET_SCHEMA,
@@ -809,7 +900,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "product"),
     ),
     ToolDefinition(
-        name="keepa.products_compare",
+        name="products_compare",
         command="products.compare",
         description="Compare ASINs using Agent-safe deal/research rows with unified risk summary and merged research graph.",
         input_schema=PRODUCTS_COMPARE_SCHEMA,
@@ -819,7 +910,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "product", "compare"),
     ),
     ToolDefinition(
-        name="keepa.categories_search",
+        name="categories_search",
         command="categories.search",
         description="Search Keepa categories by term and return Agent-friendly category candidates.",
         input_schema=CATEGORIES_SEARCH_SCHEMA,
@@ -828,7 +919,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "category"),
     ),
     ToolDefinition(
-        name="keepa.categories_products",
+        name="categories_products",
         command="categories.products",
         description="Fetch candidate ASINs for a category via Best Sellers; live calls require confirmation.",
         input_schema=CATEGORIES_PRODUCTS_SCHEMA,
@@ -838,7 +929,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "category"),
     ),
     ToolDefinition(
-        name="keepa.categories_finder_selection",
+        name="categories_finder_selection",
         command="categories.finder-selection",
         description="Generate a local Product Finder selection scaffold from a category without calling Keepa.",
         input_schema=CATEGORIES_FINDER_SELECTION_SCHEMA,
@@ -847,7 +938,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "category", "finder"),
     ),
     ToolDefinition(
-        name="keepa.finder_query",
+        name="finder_query",
         command="finder.query",
         description="Run a Product Finder selection query; prefer dry_run or fixture before live calls.",
         input_schema=FINDER_QUERY_SCHEMA,
@@ -856,7 +947,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "finder"),
     ),
     ToolDefinition(
-        name="keepa.deals_query",
+        name="deals_query",
         command="deals.query",
         description="Run a Deals selection query and return Agent profile plus deal/product research graph when available.",
         input_schema=DEALS_QUERY_SCHEMA,
@@ -865,7 +956,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "deals"),
     ),
     ToolDefinition(
-        name="keepa.sellers_get",
+        name="sellers_get",
         command="sellers.get",
         description="Fetch seller information and storefront ASINs with Agent profile and seller/product research graph.",
         input_schema=SELLERS_GET_SCHEMA,
@@ -874,7 +965,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "seller"),
     ),
     ToolDefinition(
-        name="keepa.bestsellers_get",
+        name="bestsellers_get",
         command="bestsellers.get",
         description="Fetch Keepa Best Sellers for a category; live calls require explicit confirmation.",
         input_schema=BESTSELLERS_GET_SCHEMA,
@@ -883,7 +974,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "category", "rankings"),
     ),
     ToolDefinition(
-        name="keepa.topsellers_list",
+        name="topsellers_list",
         command="topsellers.list",
         description="Fetch Keepa Top Sellers; live calls require explicit confirmation.",
         input_schema=TOPSELLERS_LIST_SCHEMA,
@@ -892,7 +983,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "seller", "rankings"),
     ),
     ToolDefinition(
-        name="keepa.workflow_plan",
+        name="workflow_plan",
         command="workflow.plan",
         description="Plan a token-safe Agent workflow without calling Keepa.",
         input_schema=WORKFLOW_PLAN_SCHEMA,
@@ -900,7 +991,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "planning"),
     ),
     ToolDefinition(
-        name="keepa.find_fast_movers",
+        name="find_fast_movers",
         command="business.find-fast-movers",
         description="Business alias: rank local Keepa product outputs by monthlySold or velocity proxy with formula confidence metadata.",
         input_schema=BUSINESS_METRICS_SCHEMA,
@@ -909,7 +1000,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("business", "research"),
     ),
     ToolDefinition(
-        name="keepa.inventory_audit",
+        name="inventory_audit",
         command="business.inventory-audit",
         description="Business alias: audit local product outputs for inventory and stockout risk with method/input/confidence evidence.",
         input_schema=BUSINESS_METRICS_SCHEMA,
@@ -918,7 +1009,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("business", "research"),
     ),
     ToolDefinition(
-        name="keepa.market_opportunity",
+        name="market_opportunity",
         command="business.market-opportunity",
         description="Business alias: combine velocity, seller competition, inventory risk, and cashflow proxy into a conclusion-first opportunity brief.",
         input_schema=BUSINESS_METRICS_SCHEMA,
@@ -927,7 +1018,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("business", "research"),
     ),
     ToolDefinition(
-        name="keepa.agent_profile_generate",
+        name="agent_profile_generate",
         command="agent.profile.generate",
         description="Generate a neutral Agent MCP client config snippet plus recommended toolset/profile choices.",
         input_schema=AGENT_PROFILE_GENERATE_SCHEMA,
@@ -935,7 +1026,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("business", "docs", "research"),
     ),
     ToolDefinition(
-        name="keepa.research_graph_merge",
+        name="research_graph_merge",
         command="research_graph.merge",
         description="Merge research_graph objects from category, product, compare, deal, and seller outputs without calling Keepa.",
         input_schema=RESEARCH_GRAPH_MERGE_SCHEMA,
@@ -945,7 +1036,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
-        name="keepa.research_brief_export",
+        name="research_brief_export",
         command="research_brief.export",
         description="Export a compact decision brief from merged graphs and Agent payloads without calling Keepa.",
         input_schema=RESEARCH_BRIEF_EXPORT_SCHEMA,
@@ -955,7 +1046,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "graph", "reports"),
     ),
     ToolDefinition(
-        name="keepa.docs_index",
+        name="docs_index",
         command="docs.index",
         description="List stable Keepa CLI documentation resources, including zread wiki, schema, evidence, and templates.",
         input_schema=DOCS_INDEX_SCHEMA,
@@ -963,7 +1054,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("docs", "research"),
     ),
     ToolDefinition(
-        name="keepa.docs_read",
+        name="docs_read",
         command="docs.read",
         description="Read a local documentation resource by URI or zread page slug for clients that cannot use MCP resources/read.",
         input_schema=DOCS_READ_SCHEMA,
@@ -971,7 +1062,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("docs", "research"),
     ),
     ToolDefinition(
-        name="keepa.context_policy",
+        name="context_policy",
         command="context.policy",
         description="Read offline-first Agent policy, allowed roots, tool gating hints, and live Keepa safety status.",
         input_schema=CONTEXT_POLICY_SCHEMA,
@@ -979,7 +1070,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("docs", "research"),
     ),
     ToolDefinition(
-        name="keepa.resolve_research_target",
+        name="resolve_research_target",
         command="research.target.resolve",
         description="Resolve a fuzzy research query into local ASIN, code, seller, category, fixture, evidence, or keyword candidates without calling Keepa.",
         input_schema=RESOLVE_RESEARCH_TARGET_SCHEMA,
@@ -987,7 +1078,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research",),
     ),
     ToolDefinition(
-        name="keepa.query_research_context",
+        name="query_research_context",
         command="research.context.query",
         description="Return local resources relevant to a resolved research target or question before any live Keepa request.",
         input_schema=QUERY_RESEARCH_CONTEXT_SCHEMA,
@@ -995,7 +1086,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("research", "docs"),
     ),
     ToolDefinition(
-        name="keepa.audit_cost",
+        name="audit_cost",
         command="audit.cost",
         description="Estimate token cost and confirmation requirements for Keepa CLI commands.",
         input_schema=AUDIT_COST_SCHEMA,
@@ -1004,7 +1095,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("audit", "tracking-readonly"),
     ),
     ToolDefinition(
-        name="keepa.cassettes_sanitize",
+        name="cassettes_sanitize",
         command="cassettes.sanitize",
         description="Redact secrets from a raw Keepa cassette JSON file.",
         input_schema=CASSETTES_SANITIZE_SCHEMA,
@@ -1013,7 +1104,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("audit", "cassette"),
     ),
     ToolDefinition(
-        name="keepa.cassettes_promote",
+        name="cassettes_promote",
         command="cassettes.promote",
         description="Sanitize a cassette, write synchronized test/package fixtures, and update evidence manifest.",
         input_schema=CASSETTES_PROMOTE_SCHEMA,
@@ -1023,7 +1114,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("audit", "cassette"),
     ),
     ToolDefinition(
-        name="keepa.cassettes_promote_and_verify",
+        name="cassettes_promote_and_verify",
         command="cassettes.promote_and_verify",
         description="Promote a cassette, verify fixture parity, and optionally run Agent eval fixtures.",
         input_schema=CASSETTES_PROMOTE_AND_VERIFY_SCHEMA,
@@ -1033,7 +1124,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("audit", "cassette"),
     ),
     ToolDefinition(
-        name="keepa.reports_build",
+        name="reports_build",
         command="reports.build",
         description="Build a local markdown/json/csv report from existing Keepa CLI JSON output.",
         input_schema=REPORTS_BUILD_SCHEMA,
@@ -1043,7 +1134,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("reports",),
     ),
     ToolDefinition(
-        name="keepa.browse_snapshot",
+        name="browse_snapshot",
         command="browse.snapshot",
         description="Create a local HTML browsing snapshot from existing Keepa CLI JSON output.",
         input_schema=BROWSE_SNAPSHOT_SCHEMA,
@@ -1053,7 +1144,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("reports",),
     ),
     ToolDefinition(
-        name="keepa.figures_research",
+        name="figures_research",
         command="figures.research",
         description="Generate Agent-report-ready SVG figures from product, comparison, or research graph JSON without calling Keepa.",
         input_schema=FIGURES_RESEARCH_SCHEMA,
@@ -1063,7 +1154,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("reports",),
     ),
     ToolDefinition(
-        name="keepa.tracking_list",
+        name="tracking_list",
         command="tracking.list",
         description="Read Keepa tracking list state. This toolset exposes read-only tracking operations only.",
         input_schema=TRACKING_LIST_SCHEMA,
@@ -1072,7 +1163,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
-        name="keepa.tracking_list_names",
+        name="tracking_list_names",
         command="tracking.list-names",
         description="Read Keepa tracking ASIN names only.",
         input_schema=TRACKING_LIST_SCHEMA,
@@ -1081,7 +1172,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
-        name="keepa.tracking_get",
+        name="tracking_get",
         command="tracking.get",
         description="Read tracking details for one ASIN.",
         input_schema=TRACKING_GET_SCHEMA,
@@ -1091,7 +1182,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         groups=("tracking-readonly",),
     ),
     ToolDefinition(
-        name="keepa.tracking_notifications",
+        name="tracking_notifications",
         command="tracking.notifications",
         description="Read tracking notifications without exposing tracking write tools.",
         input_schema=TRACKING_NOTIFICATIONS_SCHEMA,
@@ -1201,37 +1292,27 @@ def tool_params_to_command_params(tool: ToolDefinition, arguments: Mapping[str, 
 def validate_tool_arguments(tool: ToolDefinition, arguments: Mapping[str, Any] | None) -> list[str]:
     if arguments is None:
         arguments = {}
-    allowed = set(tool.input_schema.get("properties") or {})
-    allowed.add("profile")
-    if tool.workflow_runtime:
-        allowed.update(workflow_runtime_argument_names())
-    required = set(tool.input_schema.get("required") or [])
-    errors: list[str] = []
-    for key in arguments:
-        if key not in allowed:
-            errors.append(f"unsupported argument: {key}")
-    for key in sorted(required):
-        if key not in arguments:
-            errors.append(f"missing required argument: {key}")
-    if tool.name in {"keepa.finder_query", "keepa.deals_query"} and "selection" not in arguments and "selection_file" not in arguments:
+    schema = _schema_with_common_properties(tool.input_schema, workflow_runtime=tool.workflow_runtime)
+    errors = _validate_json_schema(schema, dict(arguments))
+    if tool.name in {"finder_query", "deals_query"} and "selection" not in arguments and "selection_file" not in arguments:
         errors.append("one of selection or selection_file is required")
-    if tool.name == "keepa.products_get" and arguments.get("asin") and arguments.get("code"):
+    if tool.name == "products_get" and arguments.get("asin") and arguments.get("code"):
         errors.append("asin and code cannot be combined")
-    if tool.name == "keepa.products_compare" and len(arguments.get("asin") or []) < 2:
+    if tool.name == "products_compare" and len(arguments.get("asin") or []) < 2:
         errors.append("asin must contain at least two ASINs")
-    if tool.name == "keepa.workflow_plan":
+    if tool.name == "workflow_plan":
         name = str(arguments.get("name") or "")
         if name == "category-research" and not arguments.get("term"):
             errors.append("term is required for category-research")
         if name == "product-research" and not arguments.get("asin"):
             errors.append("asin is required for product-research")
-    if tool.name == "keepa.research_graph_merge" and not arguments.get("input") and not arguments.get("graph"):
+    if tool.name == "research_graph_merge" and not arguments.get("input") and not arguments.get("graph"):
         errors.append("one of input or graph is required")
-    if tool.name == "keepa.research_brief_export" and not arguments.get("input") and not arguments.get("payload") and not arguments.get("graph"):
+    if tool.name == "research_brief_export" and not arguments.get("input") and not arguments.get("payload") and not arguments.get("graph"):
         errors.append("one of input, payload, or graph is required")
-    if tool.name == "keepa.figures_research" and not arguments.get("input"):
+    if tool.name == "figures_research" and not arguments.get("input"):
         errors.append("input is required")
-    return errors
+    return list(dict.fromkeys(errors))
 
 
 def tool_names() -> list[str]:

@@ -2,14 +2,14 @@
 
 ## 结论
 
-Keepa-cli 当前应继续保留手写 JSON-RPC stdio transport 作为生产入口，同时把官方 Python MCP SDK adapter 作为受控 spike。原因是现有实现已经围绕 `run_command`、`AgentSession`、toolset/profile gating、MCP resources/templates、prompts、chunk/output resources 和 budget ledger 形成稳定契约；直接切换 FastMCP 会带来依赖、协议形状和 session cache 迁移风险。
+Keepa-cli 当前应继续保留手写 JSON-RPC stdio transport 作为生产入口，同时把官方 Python MCP SDK adapter 作为受控 spike，并在共享 tool registry 调用层补强 JSON Schema 入参校验。原因是现有实现已经围绕 `run_command`、`AgentSession`、toolset/profile gating、MCP resources/templates、prompts、chunk/output resources 和 budget ledger 形成稳定契约；直接切换 FastMCP 会带来依赖、协议形状和 session cache 迁移风险。
 
 ## 对照范围
 
 - 当前生产入口：`keepa_cli/agent/mcp.py`，通过 `python -m keepa_cli --mcp` 或 `kc --mcp` 暴露 stdio JSON-RPC。
 - 当前业务入口：`keepa_cli/service.py::run_command`，CLI、stdio 与 MCP 都复用它。
 - 官方 SDK 参考：Model Context Protocol Python SDK 的 FastMCP server、tool/resource/prompt decorator、stdio 运行方式和 Inspector 调试链路。
-- 本轮不新增 `mcp` 运行时依赖，不改包安装依赖，不改变已发布 MCP tool 名。
+- 本轮不新增 `mcp` 运行时依赖，不改包安装依赖；公共 MCP tool/prompt 名已破坏性移除 `keepa.` 前缀。
 
 ## 能力映射
 
@@ -63,13 +63,16 @@ adapter 原则：
 - 已新增 `keepa_cli/agent/mcp_sdk_adapter.py`，作为官方 Python MCP SDK adapter 的隔离边界；生产入口仍是 `python -m keepa_cli --mcp`。
 - `adapter_status()` 会报告 `sdk_available`、`server_info_name=keepa_mcp`、生产入口未替换、业务核心仍为 `AgentSession -> run_command`，并公开 SDK typed client 的默认 starter page 策略。
 - `python -m keepa_cli.agent.mcp_sdk_adapter --stdio` 会启动官方 Python MCP SDK low-level `Server`，注册 tools/resources/resource templates/prompts，并继续复用现有 registry、session cache、workflow resolver 与 budget ledger。
-- `create_fastmcp_readonly_spike()` 只保留为 FastMCP decorator 形态的只读样例；生产级 SDK adapter 采用 low-level Server，以便保留 dotted `keepa.*` tool 名、`structuredContent`、resource templates 和分页。
+- `create_fastmcp_readonly_spike()` 只保留为 FastMCP decorator 形态的只读样例；生产级 SDK adapter 采用 low-level Server，以便保留当前无前缀 tool 名、`structuredContent`、resource templates 和分页。
 - `scripts/compare_mcp_sdk_adapter_fixture.py` 使用 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json` 对比当前 `--mcp` handler 与隔离 adapter 输出；release gate 通过 `scripts/check_mcp_quality_gate.py` 纳入该检查。
-- `scripts/smoke_mcp_sdk_adapter_client.py` 使用官方 `ClientSession` 连接 SDK stdio adapter，验证 `initialize`、分页 `list_tools`、`list_resources`、`list_resource_templates`、`list_prompts`、`call_tool keepa.context_policy` 与 `read_resource keepa://context/policy`。
+- `scripts/smoke_mcp_sdk_adapter_client.py` 使用官方 `ClientSession` 连接 SDK stdio adapter，验证 `initialize`、分页 `list_tools`、`list_resources`、`list_resource_templates`、`list_prompts`、`call_tool context_policy` 与 `read_resource keepa://context/policy`。
 - `scripts/check_mcp_sdk_adapter_typed_fixture.py` 把 `tests/agent_eval_fixtures/mcp_inspector_protocol_fixture.json` 的每个 step 映射成官方 SDK typed client 调用；SDK 不支持的 Keepa 扩展 `toolset/limit` 会记录为 mapping limitation，并继续验证完整分页、错误结构与 `ping`。
 - `scripts/export_mcp_inspector_snapshot.py --check` 会通过官方 typed client 导出并校验可复现 Inspector snapshot，覆盖 serverInfo、list_* 首页、分页、错误映射和 ping。
 - `scripts/check_mcp_quality_gate.py --require-sdk` 聚合 Agent eval fixture、adapter fixture 等价、SDK typed smoke、typed Inspector fixture 与 snapshot 校验；远端 `mcp-sdk-adapter` job 安装 `.[mcp-sdk]` 后运行该门禁。该脚本的 `--json` 成功与失败输出都保持单一 JSON payload，失败步骤的 stdout/stderr 只进入 `steps[].*_tail`，便于 Agent 和 CI 解析。
-- 当前 fixture 对比覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、非法 `tools/call` 与 `ping`，要求兼容 handler 响应 JSON 完全等价。官方 `ClientSession` 的 `list_*` 只支持标准 cursor 参数，不支持 Keepa 扩展的 `toolset/limit` 参数；因此 SDK adapter 以 `toolset=all` 作为完整工具全集，同时默认压缩 tools/resources/resource templates/prompts 首页，分别以 `keepa.context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `keepa.product_research` 起手，避免一次性读取全部 schema。
+- 当前 fixture 对比覆盖 `initialize`、分页 `tools/list`、`resources/list`、`prompts/list`、`resources/templates/list`、非法 `tools/call` 与 `ping`，要求兼容 handler 响应 JSON 完全等价。官方 `ClientSession` 的 `list_*` 只支持标准 cursor 参数，不支持 Keepa 扩展的 `toolset/limit` 参数；因此 SDK adapter 以 `toolset=all` 作为完整工具全集，同时默认压缩 tools/resources/resource templates/prompts 首页，分别以 `context_policy`、`keepa://context/policy`、`keepa://toolsets/{toolset}` 与 `product_research` 起手，避免一次性读取全部 schema。
+- 2026-05-12 已在 `keepa_cli.agent.tools.validate_tool_arguments()` 前置统一 JSON Schema 校验，覆盖 `type`、`enum`、`minimum`、`oneOf`、`anyOf`、`additionalProperties` 和 array `items`。失败统一映射到 `tools/call` 的 `isError=true` / `invalid_arguments`，因此当前 raw stdio handler 与官方 SDK adapter 都共享同一校验结果。
+- 负向覆盖已固定到 `tests/agent_eval_fixtures/mcp_schema_validation_negative.json` 与 `tests.test_mcp`，分别覆盖错误类型、非法 enum、越界 integer 和 array item 类型错误；`scripts/smoke_mcp_sdk_adapter_client.py` 也会通过官方 `ClientSession` 验证 SDK adapter 的 schema 错误映射。
+- 本轮评估后暂不把 SDK adapter 提升为生产入口。官方 FastMCP 支持显式 `name=` 注册工具名，技术上可以表达当前无前缀 tool 名；但 toolset/profile 过滤、分页扩展和动态 resource templates 都依赖现有契约。为保证现有服务完全正常，本轮直接移除 `keepa.` 旧工具名前缀，不保留旧名 alias，也不向现有工具名叠加额外前缀。
 
 ## Streamable HTTP 边界
 
@@ -77,7 +80,7 @@ adapter 原则：
 
 - 保持 `AgentSession`、`run_command`、tool registry、resource registry、prompt registry、workflow resolver 与 budget ledger 不复制。
 - HTTP adapter 只处理请求解码、session id、Origin/localhost 防护、响应编码、错误码映射和 SDK/ASGI 生命周期。
-- 任何 HTTP 输出都必须先通过当前 Inspector fixture 或等价 fixture；不能为了适配 HTTP 改动 `keepa.*` tool schema 或 service command 参数。
+- 任何 HTTP 输出都必须先通过当前 Inspector fixture 或等价 fixture；不能为了适配 HTTP 改动无前缀 tool schema 或 service command 参数。
 - `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json` 已固定 Origin allowlist/reject、`MCP-Session-Id` 缺失/过期/DELETE、parse/invalid request、notification 202 与 application JSON-RPC error 的 HTTP status 映射；后续 HTTP adapter 必须先复用该 fixture 做红线回归。
 - 本地桌面 Agent 和 CLI 文档默认仍推荐 stdio；HTTP 只作为远程或浏览器型 MCP client 的可选入口。
 
@@ -90,9 +93,9 @@ adapter 原则：
 ## 当前待完善清单
 
 - P0 已完成：CI 新增 `mcp-sdk-adapter` job，安装 `.[mcp-sdk]` 后运行 SDK adapter 单测与 `scripts/check_mcp_quality_gate.py --require-sdk`。
-- P0 已完成：SDK adapter 的 `list_tools` 保留 `toolset=all` 全集，但默认分页并优先展示 `keepa.context_policy`、docs index、workflow plan 和 agent profile；`list_resources`、`list_resource_templates` 与 `list_prompts` 也已压缩首页并通过 `nextCursor` 暴露全集，避免 Agent 起手上下文过大。
+- P0 已完成：SDK adapter 的 `list_tools` 保留 `toolset=all` 全集，但默认分页并优先展示 `context_policy`、docs index、workflow plan 和 agent profile；`list_resources`、`list_resource_templates` 与 `list_prompts` 也已压缩首页并通过 `nextCursor` 暴露全集，避免 Agent 起手上下文过大。
 - P1 已完成：`scripts/check_mcp_sdk_adapter_typed_fixture.py` 已把 Inspector fixture step 映射为 SDK typed client 调用，记录 `toolset/limit` 这类 SDK typed API 不支持的扩展参数。
 - P1 已完成：Streamable HTTP 前置 Origin/session/error fixture 已加入 `tests/agent_eval_fixtures/mcp_streamable_http_boundary_fixture.json`，并由 `keepa_cli.agent.mcp_http_contract` 与单测验证。
 - P1 已完成：`scripts/export_mcp_inspector_snapshot.py --check` 固化无需 UI 的 typed Inspector 快照；人工 Inspector UI 差异只在出现客户端展示问题时补充到 evidence。
-- P2：FastMCP decorator 只保留只读样例；若未来希望减少样板，应先验证 dotted `keepa.*` tool name、resource templates、annotations 和 direct `CallToolResult` 是否能完整表达。
+- P2：FastMCP decorator 只保留只读样例；若未来希望减少样板，应先验证无前缀 tool name、resource templates、annotations 和 direct `CallToolResult` 是否能完整表达。
 - P2 已完成基础流程：`scripts/manual_live_product_read.py` 默认只做 dry-run；只有显式 `--yes-live` 且存在 `KEEPA_API_KEY` 才执行单 ASIN `products.get`，输出 token budget、`tokens.status` 前后摘要、SQLite cache provenance 与脱敏结果摘要。该脚本不进入默认 CI。

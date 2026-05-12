@@ -178,7 +178,7 @@ class BackendFinalCoverageTests(unittest.TestCase):
                             "data_quality": {"confidence": "high"},
                             "risk_taxonomy": {"codes": ["data_missing"]},
                             "selection_signals": {"score": 1},
-                            "next_actions": [{"tool": "keepa.products_get"}],
+                            "next_actions": [{"tool": "products_get"}],
                             "evidence_index": {"identity": {"path": "identity"}},
                             "research_graph": _graph("product:B1"),
                         }
@@ -218,19 +218,19 @@ class BackendFinalCoverageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             resolve_toolset_groups("missing")
 
-        tools = list_mcp_tools(toolsets="all", allow_tools=["keepa.products_get", "missing"], exclude_tools=["missing"], profile="offline_fixture_only")
-        self.assertEqual([tool["name"] for tool in tools], ["keepa.products_get"])
+        tools = list_mcp_tools(toolsets="all", allow_tools=["products_get", "missing"], exclude_tools=["missing"], profile="offline_fixture_only")
+        self.assertEqual([tool["name"] for tool in tools], ["products_get"])
         self.assertFalse(tools[0]["x-keepa"]["active"])
-        self.assertIsNotNone(get_tool_definition("keepa.products_get"))
+        self.assertIsNotNone(get_tool_definition("products_get"))
         self.assertIsNone(get_tool_definition("missing"))
-        self.assertIn("keepa.products_get", tool_names())
+        self.assertIn("products_get", tool_names())
         self.assertIn("tools", workflow_runtime_contract())
 
-        product_get = get_tool_definition("keepa.products_get")
-        product_compare = get_tool_definition("keepa.products_compare")
-        category_products = get_tool_definition("keepa.categories_products")
-        audit_cost = get_tool_definition("keepa.audit_cost")
-        workflow_plan = get_tool_definition("keepa.workflow_plan")
+        product_get = get_tool_definition("products_get")
+        product_compare = get_tool_definition("products_compare")
+        category_products = get_tool_definition("categories_products")
+        audit_cost = get_tool_definition("audit_cost")
+        workflow_plan = get_tool_definition("workflow_plan")
         assert product_get and product_compare and category_products and audit_cost and workflow_plan
         self.assertEqual(tool_params_to_command_params(product_get, {"temporal_window_days": [7], "view": "summary"})["temporal_windows"], [7])
         self.assertTrue(tool_params_to_command_params(product_get, {"view": "summary"})["agent_view"])
@@ -254,19 +254,19 @@ class BackendFinalCoverageTests(unittest.TestCase):
         }
         cache = {"cache:key": cached}
         resource = "keepa://research/b64:" + text_to_resource_token("cache:key")
-        params, resolution = resolve_workflow_arguments("keepa.research_graph_merge", {"resource_uri": resource + "/graph"}, session_cache=cache)
+        params, resolution = resolve_workflow_arguments("research_graph_merge", {"resource_uri": resource + "/graph"}, session_cache=cache)
         self.assertIn("graph", params)
         self.assertGreaterEqual(resolution["graph_count"], 1)
-        params, resolution = resolve_workflow_arguments("keepa.reports_build", {"workflow_context": {"outputs": [{"payload": {"x": 1}}]}}, session_cache=cache)
+        params, resolution = resolve_workflow_arguments("reports_build", {"workflow_context": {"outputs": [{"payload": {"x": 1}}]}}, session_cache=cache)
         self.assertTrue(Path(params["input"]).is_file())
         self.assertTrue(resolution["temp_paths"])
-        params, resolution = resolve_workflow_arguments("keepa.products_compare", {"resource_uris": ["keepa://graphs/missing"]}, session_cache=cache)
+        params, resolution = resolve_workflow_arguments("products_compare", {"resource_uris": ["keepa://graphs/missing"]}, session_cache=cache)
         self.assertTrue(resolution["resolved"][0].get("error") or "resource_uris" in resolution["resolved"][0])
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://missing"}, session_cache=cache)
+        params, resolution = resolve_workflow_arguments("products_get", {"resource_uri": "keepa://missing"}, session_cache=cache)
         self.assertIn("error", resolution["resolved"][0])
-        params, resolution = resolve_workflow_arguments("keepa.audit_cost", {"params": {}, "workflow_context": {"steps": {"one": resource}}}, session_cache=cache)
+        params, resolution = resolve_workflow_arguments("audit_cost", {"params": {}, "workflow_context": {"steps": {"one": resource}}}, session_cache=cache)
         self.assertEqual(params["params"]["asin"], "B3")
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"workflow_context": {"artifacts": resource}}, session_cache=cache)
+        params, resolution = resolve_workflow_arguments("products_get", {"workflow_context": {"artifacts": resource}}, session_cache=cache)
         self.assertEqual(params["asin"], "B1")
 
     def test_figures_product_view_and_workflow_remaining_paths(self) -> None:
@@ -330,17 +330,17 @@ class BackendFinalCoverageTests(unittest.TestCase):
         with mock.patch("keepa_cli.commands.docs.read_mcp_resource", return_value={"uri": "u", "mimeType": "application/json", "text": "{"}):
             self.assertIsNone(handle_docs_command("docs.read", {"uri": "u"})["data"]["json"])
         fixture_target = resolve_research_target({"query": "product_B001GZ6QEC", "hint_type": "fixture", "domain": "US"}, repo_root=Path.cwd())
-        self.assertEqual(fixture_target["next_actions"][0]["tool"], "keepa.query_research_context")
+        self.assertEqual(fixture_target["next_actions"][0]["tool"], "query_research_context")
         context = query_research_context({"query": "not-present", "domain": "US", "limit": 1}, repo_root=Path(tempfile.mkdtemp()))
         self.assertEqual(context["target"]["type"], "keyword")
 
     def test_single_line_defensive_edges(self) -> None:
         with self.assertRaises(ValueError):
-            get_mcp_prompt("keepa.product_research", {})
+            get_mcp_prompt("product_research", {})
         events = handle_stdio_message(json.dumps({"id": 1, "method": "doctor", "params": 1}))
         self.assertEqual(events[0]["event"], "started")
         with self.assertRaises(AssertionError):
-            _assert_next_actions_executable([{"tool": "keepa.doctor", "params": 1}], "actions")
+            _assert_next_actions_executable([{"tool": "doctor", "params": 1}], "actions")
 
         self.assertTrue(handle_cache_command("cache.clear", {})["ok"])
         self.assertFalse(handle_history_command("history.trend", {"asin": ["B1", "B2"]}, fixture_dir=FIXTURES)["ok"])
@@ -408,28 +408,28 @@ class BackendFinalCoverageTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             read_mcp_resource("keepa://prompts/missing")
 
-        params, resolution = resolve_workflow_arguments("keepa.reports_build", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"rows": [{"asin": "B1"}]}}})
+        params, resolution = resolve_workflow_arguments("reports_build", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"rows": [{"asin": "B1"}]}}})
         self.assertTrue(resolution["temp_paths"])
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"workflow_context": {"outputs": ["keepa://missing"]}}, session_cache={})
+        params, resolution = resolve_workflow_arguments("products_get", {"workflow_context": {"outputs": ["keepa://missing"]}}, session_cache={})
         self.assertIn("error", resolution["resolved"][0])
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"workflow_context": {"outputs": [["keepa://missing"]]}}, session_cache={})
+        params, resolution = resolve_workflow_arguments("products_get", {"workflow_context": {"outputs": [["keepa://missing"]]}}, session_cache={})
         self.assertIn("error", resolution["resolved"][0])
         with mock.patch("keepa_cli.agent.resources.read_mcp_resource", side_effect=ValueError("boom")):
-            params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uris": ["keepa://graphs/missing"]}, session_cache={})
+            params, resolution = resolve_workflow_arguments("products_get", {"resource_uris": ["keepa://graphs/missing"]}, session_cache={})
             self.assertIn("boom", resolution["resolved"][0]["error"])
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"workflow_context": {"artifacts": ["keepa://missing"]}}, session_cache={})
+        params, resolution = resolve_workflow_arguments("products_get", {"workflow_context": {"artifacts": ["keepa://missing"]}}, session_cache={})
         self.assertIn("error", resolution["resolved"][0])
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://research/missing"}, session_cache={})
+        params, resolution = resolve_workflow_arguments("products_get", {"resource_uri": "keepa://research/missing"}, session_cache={})
         self.assertEqual(resolution["resolved"][0]["found"], False)
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"rows": [{"asin": "B9"}]}}})
+        params, resolution = resolve_workflow_arguments("products_get", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"rows": [{"asin": "B9"}]}}})
         self.assertEqual(params["asin"], "B9")
-        params, resolution = resolve_workflow_arguments("keepa.products_get", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"asin": "B8"}}})
+        params, resolution = resolve_workflow_arguments("products_get", {"resource_uri": "keepa://research/b64:" + text_to_resource_token("k")}, session_cache={"k": {"data": {"asin": "B8"}}})
         self.assertEqual(params["asin"], "B8")
-        self.assertEqual(resolve_workflow_arguments("keepa.tracking_get", {})[1]["missing_inputs"][0]["field"], "asin")
-        self.assertEqual(resolve_workflow_arguments("keepa.research_graph_merge", {})[1]["missing_inputs"][0]["field"], "graph")
-        self.assertEqual(resolve_workflow_arguments("keepa.research_brief_export", {})[1]["missing_inputs"][0]["field"], "payload")
-        self.assertEqual(resolve_workflow_arguments("keepa.reports_build", {})[1]["missing_inputs"][0]["field"], "input")
-        self.assertEqual(resolve_workflow_arguments("keepa.products_compare", {"asin": []})[1]["missing_inputs"][0]["field"], "asin")
+        self.assertEqual(resolve_workflow_arguments("tracking_get", {})[1]["missing_inputs"][0]["field"], "asin")
+        self.assertEqual(resolve_workflow_arguments("research_graph_merge", {})[1]["missing_inputs"][0]["field"], "graph")
+        self.assertEqual(resolve_workflow_arguments("research_brief_export", {})[1]["missing_inputs"][0]["field"], "payload")
+        self.assertEqual(resolve_workflow_arguments("reports_build", {})[1]["missing_inputs"][0]["field"], "input")
+        self.assertEqual(resolve_workflow_arguments("products_compare", {"asin": []})[1]["missing_inputs"][0]["field"], "asin")
 
         self.assertEqual(_product_rows_for_figures({"data": {"body": {"products": ["skip", {"asin": "B2"}]}}})[0]["asin"], "B2")
         self.assertEqual(_product_metric_row({"asin": "B3"})["asin"], "B3")
