@@ -16,7 +16,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from keepa_cli import __version__
-from keepa_cli.agent.mcp import JSONRPC_VERSION, MCP_PROTOCOL_VERSION
+from keepa_cli.agent.mcp_core import JSONRPC_VERSION, MCP_PROTOCOL_VERSION
 from keepa_cli.agent.mcp_http_contract import (
     MCP_ENDPOINT_PATH,
     MCP_PROTOCOL_VERSION_HEADER,

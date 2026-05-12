@@ -132,7 +132,7 @@ class McpHttpContractTests(unittest.TestCase):
         self.assertEqual(payload["results"][12]["adapter_jsonrpc_error_code"], -32700)
         self.assertEqual(payload["results"][14]["adapter_jsonrpc_error_code"], -32602)
 
-    def test_streamable_http_adapter_contract_reuses_raw_mcp_handler(self):
+    def test_streamable_http_adapter_contract_reuses_protocol_core_handler(self):
         adapter = StreamableHttpAdapterContract()
         initialize = adapter.handle(
             method="POST",

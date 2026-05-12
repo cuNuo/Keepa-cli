@@ -2,7 +2,7 @@
 keepa_cli/agent/mcp_http_contract.py
 文件说明：Streamable HTTP adapter 协议核心。
 主要职责：固化并执行 Origin、session id、timeout 与 JSON-RPC/HTTP 错误映射规则。
-依赖边界：不直接启动 HTTP server；业务仍由 handle_mcp_message、AgentSession 与 service 层承担。
+依赖边界：不直接启动 HTTP server；JSON-RPC 业务委托共享 MCPProtocolCore。
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from keepa_cli.agent.mcp import JSONRPC_VERSION, MCP_PROTOCOL_VERSION, handle_mcp_message
+from keepa_cli.agent.mcp_core import DEFAULT_MCP_PROTOCOL_CORE, JSONRPC_VERSION, MCP_PROTOCOL_VERSION
 from keepa_cli.agent.session import AgentSession
 
 
@@ -69,6 +69,12 @@ ADAPTER_JSONRPC_ERRORS: dict[str, tuple[int, str]] = {
 }
 
 _TIMEOUT = object()
+
+
+def handle_mcp_message(raw_message: str, *, env: Mapping[str, str] | None = None, session: AgentSession | None = None) -> dict[str, Any] | None:
+    """HTTP adapter 本地兼容钩子；默认直接委托共享 MCPProtocolCore。"""
+
+    return DEFAULT_MCP_PROTOCOL_CORE.handle_message(raw_message, env=env, session=session)
 
 
 def is_visible_ascii_session_id(value: str) -> bool:
@@ -166,7 +172,7 @@ def _is_jsonrpc_response(body: Any) -> bool:
 
 @dataclass
 class StreamableHttpAdapterContract:
-    """Streamable HTTP 协议 adapter 核心，所有 JSON-RPC 业务仍走 raw MCP handler。"""
+    """Streamable HTTP 协议 adapter 核心，所有 JSON-RPC 业务委托共享 core。"""
 
     allowed_origins: tuple[str, ...] = ("http://127.0.0.1:3000", "http://localhost:3000")
     env: Mapping[str, str] | None = None

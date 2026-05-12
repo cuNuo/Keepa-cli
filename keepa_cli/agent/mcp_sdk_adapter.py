@@ -18,7 +18,8 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from keepa_cli import __version__
-from keepa_cli.agent.mcp import handle_mcp_message
+from keepa_cli.agent.mcp import handle_mcp_message as production_handle_mcp_message
+from keepa_cli.agent.mcp_core import DEFAULT_MCP_PROTOCOL_CORE, MCPProtocolCore
 from keepa_cli.agent.prompts import get_mcp_prompt, list_mcp_prompts, prompt_names
 from keepa_cli.agent.resources import list_mcp_resource_templates, list_mcp_resources, read_mcp_resource
 from keepa_cli.agent.session import AgentSession
@@ -99,7 +100,7 @@ def adapter_status() -> dict[str, Any]:
         "sdk_stdio_entrypoint": SDK_STDIO_ENTRYPOINT,
         "production_entrypoint_replaced": False,
         "boundary": "protocol_adapter_only",
-        "business_core": "AgentSession -> run_command",
+        "business_core": "MCPProtocolCore -> AgentSession -> service",
         "supported_fixture_methods": list(SUPPORTED_SPIKE_METHODS),
         "sdk_default_tool_page_size": SDK_DEFAULT_TOOL_PAGE_SIZE,
         "sdk_default_resource_page_size": SDK_DEFAULT_RESOURCE_PAGE_SIZE,
@@ -118,14 +119,14 @@ def handle_sdk_adapter_message(
     *,
     env: Mapping[str, str] | None = None,
     session: AgentSession | None = None,
+    protocol_core: MCPProtocolCore = DEFAULT_MCP_PROTOCOL_CORE,
 ) -> dict[str, Any] | None:
     """SDK adapter spike 的协议入口。
 
-    当前 spike 以现有 stdio JSON-RPC handler 作为兼容性 oracle，确保后续接入官方 SDK
-    或 streamable HTTP adapter 时，必须先与生产 `--mcp` 输出等价。
+    当前 adapter 直接调用共享 MCPProtocolCore；生产 stdio handler 只作为外部兼容入口。
     """
 
-    return handle_mcp_message(raw_message, env=env, session=session)
+    return protocol_core.handle_message(raw_message, env=env, session=session)
 
 
 def _execute_local_tool(session: AgentSession, tool_name: str, arguments: Mapping[str, Any]) -> dict[str, Any]:
@@ -240,8 +241,9 @@ def _current_mcp_result(
     *,
     session: AgentSession,
     env: Mapping[str, str] | None,
+    protocol_core: MCPProtocolCore = DEFAULT_MCP_PROTOCOL_CORE,
 ) -> dict[str, Any]:
-    response = handle_mcp_message(
+    response = protocol_core.handle_message(
         json.dumps({"jsonrpc": "2.0", "id": "sdk-adapter", "method": method, "params": dict(params or {})}),
         env=env,
         session=session,
@@ -403,7 +405,7 @@ def _resolve_fixture_refs(value: Any, responses_by_step: Mapping[str, Mapping[st
     return value
 
 
-def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
+def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None, protocol_core: MCPProtocolCore = DEFAULT_MCP_PROTOCOL_CORE) -> Any:
     """创建官方 Python SDK low-level Server。
 
     SDK server 只负责协议适配；工具、资源、提示词和预算账本继续复用现有
@@ -425,7 +427,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
     async def _list_tools(req: Any) -> Any:
         cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
         offset = _decode_sdk_cursor(cursor)
-        result = _current_mcp_result("tools/list", {"toolset": "all", "limit": 100}, session=session, env=env)
+        result = _current_mcp_result("tools/list", {"toolset": "all", "limit": 100}, session=session, env=env, protocol_core=protocol_core)
         ordered = _sdk_ordered_tools(result.get("tools") or [])
         page = ordered[offset : offset + SDK_DEFAULT_TOOL_PAGE_SIZE]
         next_offset = offset + len(page)
@@ -445,7 +447,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
 
     @server.call_tool(validate_input=False)
     async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
-        response = handle_mcp_message(
+        response = protocol_core.handle_message(
             json.dumps(
                 {
                     "jsonrpc": "2.0",
@@ -469,7 +471,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
 
     async def _list_resources(req: Any) -> Any:
         cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
-        result = _current_mcp_result("resources/list", {}, session=session, env=env)
+        result = _current_mcp_result("resources/list", {}, session=session, env=env, protocol_core=protocol_core)
         page, next_cursor, meta = _sdk_page(
             result.get("resources") or [],
             cursor=cursor,
@@ -489,7 +491,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
 
     async def _list_resource_templates(req: Any) -> Any:
         cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
-        result = _current_mcp_result("resources/templates/list", {}, session=session, env=env)
+        result = _current_mcp_result("resources/templates/list", {}, session=session, env=env, protocol_core=protocol_core)
         page, next_cursor, meta = _sdk_page(
             result.get("resourceTemplates") or [],
             cursor=cursor,
@@ -528,7 +530,7 @@ def create_lowlevel_sdk_server(*, env: Mapping[str, str] | None = None) -> Any:
 
     async def _list_prompts(req: Any) -> Any:
         cursor = req.params.cursor if getattr(req, "params", None) and req.params.cursor else None
-        result = _current_mcp_result("prompts/list", {}, session=session, env=env)
+        result = _current_mcp_result("prompts/list", {}, session=session, env=env, protocol_core=protocol_core)
         page, next_cursor, meta = _sdk_page(
             result.get("prompts") or [],
             cursor=cursor,
@@ -678,7 +680,7 @@ def compare_fixture_outputs(spec: Mapping[str, Any], *, env: Mapping[str, str] |
     if not isinstance(steps, list):
         raise ValueError("mcp_session fixture steps must be a list")
 
-    current = run_mcp_fixture_steps(steps, handler=handle_mcp_message, env=env)
+    current = run_mcp_fixture_steps(steps, handler=production_handle_mcp_message, env=env)
     adapter = run_mcp_fixture_steps(steps, handler=handle_sdk_adapter_message, env=env)
     diff = _first_difference(current, adapter)
     return {

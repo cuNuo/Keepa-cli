@@ -12,11 +12,42 @@ import base64
 from pathlib import Path
 
 from keepa_cli.agent.mcp import handle_mcp_message, iter_mcp_output
+from keepa_cli.agent.mcp_core import DEFAULT_MCP_PROTOCOL_CORE, MCPProtocolCore
 from keepa_cli.agent.session import AgentSession
 from keepa_cli.agent.tools import tool_names
 
 
 class McpProtocolTests(unittest.TestCase):
+    def test_stdio_wrapper_delegates_to_protocol_core(self):
+        raw = json.dumps({"jsonrpc": "2.0", "id": "core", "method": "tools/list", "params": {"toolset": "all", "limit": 2}})
+
+        self.assertEqual(handle_mcp_message(raw, env={}), DEFAULT_MCP_PROTOCOL_CORE.handle_message(raw, env={}))
+
+    def test_protocol_core_keeps_session_cache_across_calls(self):
+        core = MCPProtocolCore()
+        session = AgentSession(env={})
+
+        first = core.handle_message(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": "product",
+                    "method": "tools/call",
+                    "params": {"name": "products_get", "arguments": {"asin": "B0TEST", "fixture": "product_agent_view_B0TEST.json"}},
+                }
+            ),
+            env={},
+            session=session,
+        )
+        cache_key = first["result"]["structuredContent"]["cache_key"]
+        second = core.handle_message(
+            json.dumps({"jsonrpc": "2.0", "id": "resource", "method": "resources/read", "params": {"uri": f"keepa://research/{cache_key}"}}),
+            env={},
+            session=session,
+        )
+
+        self.assertEqual(second["result"]["contents"][0]["uri"], f"keepa://research/{cache_key}")
+
     def test_initialize_returns_server_info(self):
         response = handle_mcp_message(json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}}), env={})
 

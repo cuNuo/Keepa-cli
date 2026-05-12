@@ -115,7 +115,7 @@ def build_capabilities() -> dict[str, Any]:
                     "entrypoint": "keepa-cli --mcp-http --mcp-http-host 127.0.0.1 --mcp-http-port 8765",
                     "endpoint": "/mcp",
                     "production": True,
-                    "business_core": "handle_mcp_message -> AgentSession -> service",
+                    "business_core": "MCPProtocolCore -> AgentSession -> service",
                     "supports_sse_get": False,
                     "session_header": "MCP-Session-Id",
                     "protocol_version_header": "MCP-Protocol-Version",

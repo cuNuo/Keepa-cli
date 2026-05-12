@@ -40,7 +40,7 @@ class McpSdkAdapterSpikeTests(unittest.TestCase):
         self.assertEqual(status["server_info_name"], "keepa_mcp")
         self.assertEqual(status["production_entrypoint"], "python -m keepa_cli --mcp")
         self.assertFalse(status["production_entrypoint_replaced"])
-        self.assertEqual(status["business_core"], "AgentSession -> run_command")
+        self.assertEqual(status["business_core"], "MCPProtocolCore -> AgentSession -> service")
         self.assertIn("initialize", status["supported_fixture_methods"])
         self.assertEqual(status["sdk_default_tool_page_size"], SDK_DEFAULT_TOOL_PAGE_SIZE)
         self.assertEqual(status["sdk_default_resource_page_size"], SDK_DEFAULT_RESOURCE_PAGE_SIZE)

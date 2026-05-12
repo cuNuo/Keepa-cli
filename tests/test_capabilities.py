@@ -26,7 +26,7 @@ class CapabilitiesTests(unittest.TestCase):
         self.assertIn("mcp-http", payload["data"]["protocols"])
         self.assertEqual(payload["data"]["mcp"]["server_name"], "keepa")
         self.assertFalse(payload["data"]["mcp"]["transports"]["streamable_http"]["supports_sse_get"])
-        self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["business_core"], "handle_mcp_message -> AgentSession -> service")
+        self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["business_core"], "MCPProtocolCore -> AgentSession -> service")
         self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["required_response_accept"], "application/json")
         self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["session_idle_ttl_seconds"], 3600)
         self.assertEqual(payload["data"]["mcp"]["transports"]["streamable_http"]["max_sessions"], 128)

@@ -1,6 +1,6 @@
 {
   "id": "mcp_sdk_adapter_filter_parity",
-  "description": "SDK adapter 提升生产入口前必须保持 raw stdio 的 toolset/profile/allow/exclude/limit/cursor 过滤与分页语义。",
+  "description": "SDK adapter 提升生产入口前必须保持共享 MCPProtocolCore 的 toolset/profile/allow/exclude/limit/cursor 过滤与分页语义。",
   "kind": "mcp_session",
   "steps": [
     {"id": "initialize", "method": "initialize", "params": {}},
